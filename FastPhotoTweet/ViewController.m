@@ -15,8 +15,11 @@
     
     //Twitter Account
     if ([[[UIDevice currentDevice] systemVersion] floatValue] < 5.0) {
+        
         NSLog(@"Twitter API not available, please upgrade to iOS 5");
+        
     } else {
+        
         accountStore = [[ACAccountStore alloc] init];
         ACAccountType *accountType = [accountStore accountTypeWithAccountTypeIdentifier:ACAccountTypeIdentifierTwitter];
         
@@ -26,14 +29,20 @@
                  if (granted) {
                      NSArray *twitterAccounts = [accountStore accountsWithAccountType:accountType];
                      if (twitterAccounts.count > 0) {
+                         
                          twAccount = [[twitterAccounts objectAtIndex:0] retain];
+                         
                          NSLog(@"Twitter account access granted:%@", [twAccount username]);
                      } else {
+                         
                          twAccount = nil;
+                         
                          NSLog(@"Twitter account nothing");
                      }
                  } else {
+                     
                      twAccount = nil;
+                     
                      NSLog(@"Twitter account access denied");
                  }
              });
@@ -42,6 +51,8 @@
 }
 
 - (IBAction)pushPostButton:(id)sender {
+    
+    [self sendTweet];
     
 }
 
@@ -65,6 +76,7 @@
     if (twAccount == nil) {
         
         NSLog(@"Can’t tweet");
+        
         return;
     }
     
