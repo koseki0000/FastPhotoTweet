@@ -36,9 +36,13 @@
             //NSLog(@"Response: %@", responseDataString);
             
             if (error != nil) {
+                
                 NSLog(@"Post Error");
+                
             } else {
+                
                 NSLog(@"Post Success");
+                
             }
             
             [ActivityIndicator activityIndicatorVisible:NO];
@@ -47,6 +51,7 @@
     
     [updateProfile performRequestWithHandler:requestHandler];
     [ActivityIndicator activityIndicatorVisible:YES];
+    
     NSLog(@"Post sended");
 }
 

@@ -38,7 +38,7 @@
         NSUserDefaults *d = [NSUserDefaults standardUserDefaults];
         
         if ( [d boolForKey:@"AddApp"] ) {
-
+            
             //通知センターへのアプリ登録時は何もしない
             NSLog(@"AddApp");
             [d removeObjectForKey:@"AddApp"];
@@ -46,21 +46,33 @@
         }
         
         if ( [d boolForKey:@"CallBack"] ) {
-
-            //ペーストボードの内容をPost
-            //UIPasteboard *pboard = [UIPasteboard generalPasteboard];
             
-            NSLog(@"CallBack");
-            [[UIApplication sharedApplication] openURL:[NSURL URLWithString:[d objectForKey:@"CallBackScheme"]]];
-
+            //ペーストボードの内容をPost
+            ACAccountStore *accountStore = [[ACAccountStore alloc] init];
+            ACAccountType *accountType = [accountStore accountTypeWithAccountTypeIdentifier:ACAccountTypeIdentifierTwitter];
+            
+            [accountStore requestAccessToAccountsWithType:accountType withCompletionHandler:
+             ^(BOOL granted, NSError *error) {
+                 dispatch_async(dispatch_get_main_queue(), ^{
+                     if (granted) {
+                         NSArray *twitterAccounts = [accountStore accountsWithAccountType:accountType];
+                         if (twitterAccounts.count > 0) {
+                             
+                             ACAccount *twAccount = [[twitterAccounts objectAtIndex:0] retain];
+                             UIPasteboard *pboard = [UIPasteboard generalPasteboard];
+                             [TWSendTweet post:pboard.string twAccount:twAccount];
+                             
+                             NSLog(@"CallBack");
+                             [[UIApplication sharedApplication] openURL:[NSURL URLWithString:[d objectForKey:@"CallBackScheme"]]];
+                         }
+                     }
+                 });
+             }];
         }
     }   
 }
 
 - (void)applicationWillResignActive:(UIApplication *)application {
-}
-
-- (void)applicationDidEnterBackground:(UIApplication *)application {
 }
 
 - (void)applicationWillEnterForeground:(UIApplication *)application {
@@ -70,6 +82,11 @@
 }
 
 - (void)applicationWillTerminate:(UIApplication *)application {
+}
+
+- (void)applicationDidEnterBackground:(UIApplication *)application {
+	backgroundTask = [application beginBackgroundTaskWithExpirationHandler: 
+                      ^{ [application endBackgroundTask:backgroundTask]; }];
 }
 
 @end

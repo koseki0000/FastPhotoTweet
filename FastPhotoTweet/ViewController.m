@@ -131,6 +131,7 @@
             
             //文字が入力されている場合はそちらを投稿
             text = postText.text;
+            postText.text = @"";
         }
         
         //Textを投稿
@@ -145,6 +146,18 @@
     
     //コールバックスキームを保存
     [d setObject:callbackTextField.text forKey:@"CallBackScheme"];
+    
+    //スキームを再設定
+    [[UIApplication sharedApplication] cancelAllLocalNotifications];
+    
+    UILocalNotification *localPush = [[UILocalNotification alloc] init];
+    localPush.timeZone = [NSTimeZone defaultTimeZone];
+    localPush.fireDate = [NSDate dateWithTimeIntervalSinceNow:0.5];
+    
+    localPush.alertBody = @"FastPhotoTweet";
+    localPush.userInfo = [NSDictionary dictionaryWithObjectsAndKeys:callbackTextField.text, @"scheme", nil];
+    [[UIApplication sharedApplication] scheduleLocalNotification:localPush];
+    [localPush release];
 }
 
 - (IBAction)callbackSwitchDidChage:(id)sender {
