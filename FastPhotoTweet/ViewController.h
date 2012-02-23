@@ -15,6 +15,9 @@
     ACAccount *twAccount;
 }
 
+@property (retain, nonatomic) IBOutlet UIButton *postButton;
+
+- (IBAction)pushPostButton:(id)sender;
 - (void)sendTweet;
 
 @end

@@ -8,6 +8,7 @@
 #import "ViewController.h"
 
 @implementation ViewController
+@synthesize postButton;
 
 - (void)viewDidLoad {
     [super viewDidLoad];
@@ -40,6 +41,10 @@
     }
 }
 
+- (IBAction)pushPostButton:(id)sender {
+    
+}
+
 - (void)sendTweet {
     
     NSString *twittertext = @"Test";
@@ -55,7 +60,6 @@
     NSDictionary *tparam = [NSDictionary dictionaryWithObject:twittertext forKey:@"status"];
     NSURL *turl = [NSURL URLWithString:@"https://api.twitter.com/1/statuses/update.json"];
     TWRequest *updateProfile = [[TWRequest alloc] initWithURL:turl parameters:tparam
-                                
                                                 requestMethod:TWRequestMethodPOST];
     
     if (twAccount == nil) {
@@ -84,6 +88,7 @@
 }
 
 - (void)viewDidUnload {
+    [self setPostButton:nil];
     [super viewDidUnload];
 }
 
@@ -111,4 +116,8 @@
     return (interfaceOrientation != UIInterfaceOrientationPortraitUpsideDown);
 }
 
+- (void)dealloc {
+    [postButton release];
+    [super dealloc];
+}
 @end
