@@ -37,13 +37,22 @@
         
         NSUserDefaults *d = [NSUserDefaults standardUserDefaults];
         
+        if ( [d boolForKey:@"AddApp"] ) {
+
+            //通知センターへのアプリ登録時は何もしない
+            NSLog(@"AddApp");
+            [d removeObjectForKey:@"AddApp"];
+            return;
+        }
+        
         if ( [d boolForKey:@"CallBack"] ) {
 
-            NSLog(@"CallBack");
-            
+            //ペーストボードの内容をPost
             //UIPasteboard *pboard = [UIPasteboard generalPasteboard];
-            //NSString *itemName = [notification.userInfo objectForKey:@"scheme"];
             
+            NSLog(@"CallBack");
+            [[UIApplication sharedApplication] openURL:[NSURL URLWithString:[d objectForKey:@"CallBackScheme"]]];
+
         }
     }   
 }

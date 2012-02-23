@@ -46,6 +46,20 @@
                          twAccount = [[twitterAccounts objectAtIndex:0] retain];
                          NSLog(@"twAccount: %@", twAccount);
                          
+                         //通知センターにアプリを登録
+                         
+                         //通知センター登録時は通知を受け取っても無視するように設定
+                         [d setBool:YES forKey:@"AddApp"];
+                         
+                         UILocalNotification *localPush = [[UILocalNotification alloc] init];
+                         localPush.timeZone = [NSTimeZone defaultTimeZone];
+                         localPush.fireDate = [NSDate dateWithTimeIntervalSinceNow:0.5];
+                         
+                         localPush.alertBody = @"FastPhotoTweet";
+                         localPush.userInfo = [NSDictionary dictionaryWithObjectsAndKeys:@"fpt://", @"scheme", nil];
+                         [[UIApplication sharedApplication] scheduleLocalNotification:localPush];
+                         [localPush release];
+                         
                      } else {
                          
                          twAccount = nil;
