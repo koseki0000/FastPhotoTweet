@@ -111,11 +111,23 @@
             } else {
                 NSLog(@"Post Success");
             }
+            
+            [self activityIndicatorVisible:NO];
         });
     };
     
     [updateProfile performRequestWithHandler:requestHandler];
+    [self activityIndicatorVisible:YES];
     NSLog(@"Post sended");
+}
+
+- (void)activityIndicatorVisible:(BOOL)visible {
+    
+    if (visible) {
+        [UIApplication sharedApplication].networkActivityIndicatorVisible = YES;
+    }else {
+        [UIApplication sharedApplication].networkActivityIndicatorVisible = NO;
+    }
 }
 
 - (void)viewDidUnload {

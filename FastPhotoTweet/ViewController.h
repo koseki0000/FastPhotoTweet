@@ -19,5 +19,6 @@
 
 - (IBAction)pushPostButton:(id)sender;
 - (void)sendTweet;
+- (void)activityIndicatorVisible:(BOOL)visible;
 
 @end
