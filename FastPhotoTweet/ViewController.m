@@ -11,14 +11,18 @@
 @synthesize postButton;
 
 - (void)viewDidLoad {
+    
     [super viewDidLoad];
     
-    //Twitter Account
+    //iOSバージョン判定
     if ([[[UIDevice currentDevice] systemVersion] floatValue] < 5.0) {
         
+        //iOS5以前
         NSLog(@"Twitter API not available, please upgrade to iOS 5");
         
     } else {
+        
+        //iOS5
         
         accountStore = [[ACAccountStore alloc] init];
         ACAccountType *accountType = [accountStore accountTypeWithAccountTypeIdentifier:ACAccountTypeIdentifierTwitter];
@@ -54,19 +58,24 @@
 
 - (IBAction)pushPostButton:(id)sender {
     
+    //テスト文字列を投稿
     [self sendTweet];
-    
 }
 
 - (void)sendTweet {
     
-    NSString *postText = @"Test";
+    //テスト投稿用文字列を作成
+    NSString *postText = [NSString stringWithFormat:@"TestDate: %@", [NSDate date]];
     
+    //iOSバージョン判定
     if ([[[UIDevice currentDevice] systemVersion] floatValue] < 5.0) {
         
+        //iOS5以前
         NSLog(@"Twitter API not available, please upgrade to iOS 5");
     
     }else{
+        
+        //iOS5
         
     }
     
@@ -75,6 +84,7 @@
     TWRequest *updateProfile = [[TWRequest alloc] initWithURL:tURL parameters:tParam
                                                 requestMethod:TWRequestMethodPOST];
     
+    //Twitterアカウントの確認
     if (twAccount == nil) {
         
         NSLog(@"Can’t tweet");
@@ -102,35 +112,43 @@
 }
 
 - (void)viewDidUnload {
+    
     [self setPostButton:nil];
     [super viewDidUnload];
 }
 
 - (void)didReceiveMemoryWarning {
+    
     [super didReceiveMemoryWarning];
 }
 
 - (void)viewWillAppear:(BOOL)animated {
+    
     [super viewWillAppear:animated];
 }
 
 - (void)viewDidAppear:(BOOL)animated {
+    
     [super viewDidAppear:animated];
 }
 
 - (void)viewWillDisappear:(BOOL)animated {
+    
 	[super viewWillDisappear:animated];
 }
 
 - (void)viewDidDisappear:(BOOL)animated {
+    
 	[super viewDidDisappear:animated];
 }
 
 - (BOOL)shouldAutorotateToInterfaceOrientation:(UIInterfaceOrientation)interfaceOrientation {
+    
     return (interfaceOrientation != UIInterfaceOrientationPortraitUpsideDown);
 }
 
 - (void)dealloc {
+    
     [postButton release];
     [super dealloc];
 }
