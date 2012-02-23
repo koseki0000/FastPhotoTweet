@@ -33,6 +33,7 @@
                          twAccount = [[twitterAccounts objectAtIndex:0] retain];
                          
                          NSLog(@"Twitter account access granted:%@", [twAccount username]);
+                         
                      } else {
                          
                          twAccount = nil;
@@ -44,6 +45,7 @@
                      twAccount = nil;
                      
                      NSLog(@"Twitter account access denied");
+                     
                  }
              });
          }];
