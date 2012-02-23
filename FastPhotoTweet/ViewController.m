@@ -58,7 +58,7 @@
 
 - (void)sendTweet {
     
-    NSString *twittertext = @"Test";
+    NSString *postText = @"Test";
     
     if ([[[UIDevice currentDevice] systemVersion] floatValue] < 5.0) {
         
@@ -68,9 +68,9 @@
         
     }
     
-    NSDictionary *tparam = [NSDictionary dictionaryWithObject:twittertext forKey:@"status"];
-    NSURL *turl = [NSURL URLWithString:@"https://api.twitter.com/1/statuses/update.json"];
-    TWRequest *updateProfile = [[TWRequest alloc] initWithURL:turl parameters:tparam
+    NSDictionary *tParam = [NSDictionary dictionaryWithObject:postText forKey:@"status"];
+    NSURL *tURL = [NSURL URLWithString:@"https://api.twitter.com/1/statuses/update.json"];
+    TWRequest *updateProfile = [[TWRequest alloc] initWithURL:tURL parameters:tParam
                                                 requestMethod:TWRequestMethodPOST];
     
     if (twAccount == nil) {
