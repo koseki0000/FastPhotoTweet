@@ -35,8 +35,7 @@
                      if (twitterAccounts.count > 0) {
                          
                          twAccount = [[twitterAccounts objectAtIndex:0] retain];
-                         
-                         NSLog(@"Twitter account access granted:%@", [twAccount username]);
+                         NSLog(@"twAccount: %@", twAccount);
                          
                      } else {
                          
@@ -91,7 +90,7 @@
     //Twitterアカウントの確認
     if (twAccount == nil) {
         
-        NSLog(@"Can’t tweet");
+        NSLog(@"Can’t post");
         
         return;
     }
@@ -104,15 +103,19 @@
         
         dispatch_async(dispatch_get_main_queue(), ^{
             
+            //NSString *responseDataString = [[[NSString alloc] initWithData:responseData encoding:NSUTF8StringEncoding] autorelease];
+            //NSLog(@"Response: %@", responseDataString);
+            
             if (error != nil) {
-                //error
+                NSLog(@"Post Error");
             } else {
-                //success
+                NSLog(@"Post Success");
             }
         });
     };
     
     [updateProfile performRequestWithHandler:requestHandler];
+    NSLog(@"Post sended");
 }
 
 - (void)viewDidUnload {
