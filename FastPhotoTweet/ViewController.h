@@ -9,16 +9,26 @@
 #import <Twitter/Twitter.h>
 #import <Accounts/Accounts.h>
 
+#import "Twitter/TWTwitterHeader.h"
+#import "UtilityClass.h"
+
 @interface ViewController : UIViewController {
     
-    ACAccountStore *accountStore;
+    NSUserDefaults *d;
+    
     ACAccount *twAccount;
 }
 
 @property (retain, nonatomic) IBOutlet UIButton *postButton;
+@property (retain, nonatomic) IBOutlet UITextView *postText;
+@property (retain, nonatomic) IBOutlet UILabel *callbackLabel;
+@property (retain, nonatomic) IBOutlet UITextField *callbackTextField;
+@property (retain, nonatomic) IBOutlet UISwitch *callbackSwitch;
 
 - (IBAction)pushPostButton:(id)sender;
-- (void)sendTweet;
-- (void)activityIndicatorVisible:(BOOL)visible;
+- (IBAction)callbackTextFieldEnter:(id)sender;
+- (IBAction)callbackSwitchDidChage:(id)sender;
+
+- (void)loadSettings;
 
 @end

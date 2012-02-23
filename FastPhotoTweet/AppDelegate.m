@@ -29,6 +29,25 @@
     return YES;
 }
 
+- (void)application:(UIApplication *)application didReceiveLocalNotification:(UILocalNotification *)notification {
+    
+    if ( notification ) {
+        
+        NSLog(@"Notification");
+        
+        NSUserDefaults *d = [NSUserDefaults standardUserDefaults];
+        
+        if ( [d boolForKey:@"CallBack"] ) {
+
+            NSLog(@"CallBack");
+            
+            //UIPasteboard *pboard = [UIPasteboard generalPasteboard];
+            //NSString *itemName = [notification.userInfo objectForKey:@"scheme"];
+            
+        }
+    }   
+}
+
 - (void)applicationWillResignActive:(UIApplication *)application {
 }
 

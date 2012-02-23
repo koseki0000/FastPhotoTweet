@@ -9,10 +9,20 @@
 
 @implementation ViewController
 @synthesize postButton;
+@synthesize postText;
+@synthesize callbackLabel;
+@synthesize callbackTextField;
+@synthesize callbackSwitch;
 
 - (void)viewDidLoad {
     
     [super viewDidLoad];
+    
+    d = [NSUserDefaults standardUserDefaults];
+    postText.text = @"";
+    
+    //保存されている情報をロード
+    [self loadSettings];
     
     //iOSバージョン判定
     if ([[[UIDevice currentDevice] systemVersion] floatValue] < 5.0) {
@@ -23,8 +33,7 @@
     } else {
         
         //iOS5
-        
-        accountStore = [[ACAccountStore alloc] init];
+        ACAccountStore *accountStore = [[ACAccountStore alloc] init];
         ACAccountType *accountType = [accountStore accountTypeWithAccountTypeIdentifier:ACAccountTypeIdentifierTwitter];
         
         [accountStore requestAccessToAccountsWithType:accountType withCompletionHandler:
@@ -55,84 +64,96 @@
     }
 }
 
-- (IBAction)pushPostButton:(id)sender {
+- (void)loadSettings {
     
-    //テスト文字列を投稿
-    [self sendTweet];
+    if ( [d boolForKey:@"CallBack"] ) {
+        
+        //オン
+        callbackSwitch.on = YES;
+        
+    }else {
+        
+        //オフ
+        callbackSwitch.on = NO;
+        
+    }
+    
+    NSString *str = [d objectForKey:@"CallBackScheme"];
+    if ( [str isEqualToString:@""] || str == nil) {
+        
+        //スキームが保存されていない
+        //空のキーを保存
+        [d setObject:@"" forKey:@"CallBackScheme"];
+        
+    }else {
+        
+        //スキームをセット
+        callbackTextField.text = str;
+    }
 }
 
-- (void)sendTweet {
-    
-    //テスト投稿用文字列を作成
-    NSString *testDate = [NSDateFormatter localizedStringFromDate:[NSDate date] 
-                                   dateStyle:kCFDateFormatterNoStyle
-                                   timeStyle:kCFDateFormatterMediumStyle];
-    
-    NSString *postText = [NSString stringWithFormat:@"TestDate: %@", testDate];
+- (IBAction)pushPostButton:(id)sender {
     
     //iOSバージョン判定
     if ([[[UIDevice currentDevice] systemVersion] floatValue] < 5.0) {
         
         //iOS5以前
         NSLog(@"Twitter API not available, please upgrade to iOS 5");
-    
+        
     }else{
         
-        //iOS5
+        NSString *text;
         
+        if ( [postText.text isEqualToString:@""] ) {
+            
+            //Post入力欄が空ならテスト用テキストを生成して投稿
+            NSString *testDate = [NSDateFormatter localizedStringFromDate:[NSDate date] 
+                                                                dateStyle:kCFDateFormatterNoStyle
+                                                                timeStyle:kCFDateFormatterMediumStyle];
+            
+            text = [NSString stringWithFormat:@"TestDate: %@", testDate];
+            
+        }else {
+            
+            //文字が入力されている場合はそちらを投稿
+            text = postText.text;
+        }
+        
+        //Textを投稿
+        [TWSendTweet post:text twAccount:twAccount];
     }
-    
-    NSDictionary *tParam = [NSDictionary dictionaryWithObject:postText forKey:@"status"];
-    NSURL *tURL = [NSURL URLWithString:@"https://api.twitter.com/1/statuses/update.json"];
-    TWRequest *updateProfile = [[TWRequest alloc] initWithURL:tURL parameters:tParam
-                                                requestMethod:TWRequestMethodPOST];
-    
-    //Twitterアカウントの確認
-    if (twAccount == nil) {
-        
-        NSLog(@"Can’t post");
-        
-        return;
-    }
-    
-    updateProfile.account = twAccount;
-    
-    TWRequestHandler requestHandler = ^(NSData *responseData, 
-                                        NSHTTPURLResponse *urlResponse, 
-                                        NSError *error) {
-        
-        dispatch_async(dispatch_get_main_queue(), ^{
-            
-            //NSString *responseDataString = [[[NSString alloc] initWithData:responseData encoding:NSUTF8StringEncoding] autorelease];
-            //NSLog(@"Response: %@", responseDataString);
-            
-            if (error != nil) {
-                NSLog(@"Post Error");
-            } else {
-                NSLog(@"Post Success");
-            }
-            
-            [self activityIndicatorVisible:NO];
-        });
-    };
-    
-    [updateProfile performRequestWithHandler:requestHandler];
-    [self activityIndicatorVisible:YES];
-    NSLog(@"Post sended");
 }
 
-- (void)activityIndicatorVisible:(BOOL)visible {
+- (IBAction)callbackTextFieldEnter:(id)sender {
     
-    if (visible) {
-        [UIApplication sharedApplication].networkActivityIndicatorVisible = YES;
+    //Enterが押されたらキーボードを隠す
+    [callbackTextField resignFirstResponder];
+    
+    //コールバックスキームを保存
+    [d setObject:callbackTextField.text forKey:@"CallBackScheme"];
+}
+
+- (IBAction)callbackSwitchDidChage:(id)sender {
+    
+    //スイッチの状態を保存
+    if ( callbackSwitch.on ) {
+     
+        [d setBool:YES forKey:@"CallBack"];
+        
     }else {
-        [UIApplication sharedApplication].networkActivityIndicatorVisible = NO;
+        
+        [d setBool:NO forKey:@"CallBack"];
+        
     }
 }
 
 - (void)viewDidUnload {
     
     [self setPostButton:nil];
+    [self setPostText:nil];
+    [self setCallbackLabel:nil];
+    [self setCallbackTextField:nil];
+    [self setCallbackSwitch:nil];
     [super viewDidUnload];
 }
 
@@ -168,7 +189,13 @@
 
 - (void)dealloc {
     
+    [twAccount release];
+    
     [postButton release];
+    [postText release];
+    [callbackLabel release];
+    [callbackTextField release];
+    [callbackSwitch release];
     [super dealloc];
 }
 
