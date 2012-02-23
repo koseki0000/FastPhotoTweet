@@ -65,7 +65,11 @@
 - (void)sendTweet {
     
     //テスト投稿用文字列を作成
-    NSString *postText = [NSString stringWithFormat:@"TestDate: %@", [NSDate date]];
+    NSString *testDate = [NSDateFormatter localizedStringFromDate:[NSDate date] 
+                                   dateStyle:kCFDateFormatterNoStyle
+                                   timeStyle:kCFDateFormatterMediumStyle];
+    
+    NSString *postText = [NSString stringWithFormat:@"TestDate: %@", testDate];
     
     //iOSバージョン判定
     if ([[[UIDevice currentDevice] systemVersion] floatValue] < 5.0) {
