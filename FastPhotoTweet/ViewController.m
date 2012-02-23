@@ -42,26 +42,45 @@
 
 - (void)sendTweet {
     
-    TWTweetComposeViewController *Tweeter = [[TWTweetComposeViewController alloc] init];
-    [Tweeter setInitialText:@"Test"];
-    [self presentModalViewController:Tweeter animated:YES];
+    NSString *twittertext = @"Test";
     
-    Tweeter.completionHandler = ^(TWTweetComposeViewControllerResult result) {
-        switch (result) {
-            case TWTweetComposeViewControllerResultCancelled:
-                //NSLog(@”Twitter Result: canceled”);
-                break;
-            case TWTweetComposeViewControllerResultDone:
-                //NSLog(@”Twitter Result: sent”);
-                break;
-            default:
-                //NSLog(@”Twitter Result: sent”);
-                break;
-        }
-        [self dismissModalViewControllerAnimated:YES];
+    if ([[[UIDevice currentDevice] systemVersion] floatValue] < 5.0) {
+        
+        NSLog(@"Twitter API not available, please upgrade to iOS 5");
+    
+    }else{
+        
+    }
+    
+    NSDictionary *tparam = [NSDictionary dictionaryWithObject:twittertext forKey:@"status"];
+    NSURL *turl = [NSURL URLWithString:@"https://api.twitter.com/1/statuses/update.json"];
+    TWRequest *updateProfile = [[TWRequest alloc] initWithURL:turl parameters:tparam
+                                
+                                                requestMethod:TWRequestMethodPOST];
+    
+    if (twAccount == nil) {
+        
+        NSLog(@"Can’t tweet");
+        return;
+    }
+    
+    updateProfile.account = twAccount;
+    
+    TWRequestHandler requestHandler = ^(NSData *responseData, 
+                                        NSHTTPURLResponse *urlResponse, 
+                                        NSError *error) {
+        
+        dispatch_async(dispatch_get_main_queue(), ^{
+            
+            if (error != nil) {
+                //error
+            } else {
+                //success
+            }
+        });
     };
     
-    [Tweeter release];
+    [updateProfile performRequestWithHandler:requestHandler];
 }
 
 - (void)viewDidUnload {

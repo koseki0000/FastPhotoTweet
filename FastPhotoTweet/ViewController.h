@@ -12,7 +12,9 @@
 @interface ViewController : UIViewController {
     
     ACAccountStore *accountStore;
-    ACAccountType *twAccount;
+    ACAccount *twAccount;
 }
+
+- (void)sendTweet;
 
 @end
