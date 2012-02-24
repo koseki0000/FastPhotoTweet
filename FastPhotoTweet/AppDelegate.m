@@ -13,13 +13,6 @@
 @synthesize window = _window;
 @synthesize viewController = _viewController;
 
-- (void)dealloc {
-    
-    [_window release];
-    [_viewController release];
-    [super dealloc];
-}
-
 - (BOOL)application:(UIApplication *)application didFinishLaunchingWithOptions:(NSDictionary *)launchOptions {
     
     self.window = [[[UIWindow alloc] initWithFrame:[[UIScreen mainScreen] bounds]] autorelease];
@@ -42,10 +35,27 @@
             //通知センターへのアプリ登録時は何もしない
             NSLog(@"AddApp");
             [d removeObjectForKey:@"AddApp"];
+            
             return;
         }
         
         if ( [d boolForKey:@"CallBack"] ) {
+            
+            BOOL canOpen = NO;
+            
+            if ( [[d objectForKey:@"CallBackScheme"] isEqualToString:@""] ||
+                 [d objectForKey:@"CallBackScheme"] == nil) {
+                
+                return;
+                
+            }else {
+                
+                canOpen = [[UIApplication sharedApplication] canOpenURL:[NSURL URLWithString:[d objectForKey:@"CallBackScheme"]]];
+                
+                if ( !canOpen ) {
+                    return;
+                }
+            }
             
             //ペーストボードの内容をPost
             ACAccountStore *accountStore = [[ACAccountStore alloc] init];
@@ -85,8 +95,16 @@
 }
 
 - (void)applicationDidEnterBackground:(UIApplication *)application {
+    
 	backgroundTask = [application beginBackgroundTaskWithExpirationHandler: 
                       ^{ [application endBackgroundTask:backgroundTask]; }];
+}
+
+- (void)dealloc {
+    
+    [_window release];
+    [_viewController release];
+    [super dealloc];
 }
 
 @end
