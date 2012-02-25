@@ -27,13 +27,17 @@
 @property (retain, nonatomic) IBOutlet UIButton *dicButton;
 @property (retain, nonatomic) IBOutlet UITextView *postText;
 @property (retain, nonatomic) IBOutlet UILabel *callbackLabel;
+@property (retain, nonatomic) IBOutlet UILabel *fastPostLabel;
+@property (retain, nonatomic) IBOutlet UILabel *postCharLabel;
 @property (retain, nonatomic) IBOutlet UITextField *callbackTextField;
 @property (retain, nonatomic) IBOutlet UISwitch *callbackSwitch;
+@property (retain, nonatomic) IBOutlet UISwitch *fastPostSwitch;
 
 - (IBAction)pushPostButton:(id)sender;
 - (IBAction)pushDicButton:(id)sender;
 - (IBAction)callbackTextFieldEnter:(id)sender;
 - (IBAction)callbackSwitchDidChage:(id)sender;
+- (IBAction)fastPostSwitchDidChage:(id)sender;
 
 - (void)loadSettings;
 - (BOOL)ios5Check;

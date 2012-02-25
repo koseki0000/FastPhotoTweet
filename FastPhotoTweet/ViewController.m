@@ -12,12 +12,20 @@
 @synthesize dicButton;
 @synthesize postText;
 @synthesize callbackLabel;
+@synthesize fastPostLabel;
+@synthesize postCharLabel;
 @synthesize callbackTextField;
 @synthesize callbackSwitch;
+@synthesize fastPostSwitch;
 
 - (void)viewDidLoad {
     
     [super viewDidLoad];
+    
+    [[NSNotificationCenter defaultCenter] addObserver:self
+                                             selector:@selector(becomeActive:)
+                                                 name:UIApplicationDidBecomeActiveNotification
+                                               object:nil];
     
     d = [NSUserDefaults standardUserDefaults];
     postText.text = @"";
@@ -92,6 +100,18 @@
         
         //オフ
         callbackSwitch.on = NO;
+        
+    }
+    
+    if ( [d boolForKey:@"FastPost"] ) {
+        
+        //オン
+        fastPostSwitch.on = YES;
+        
+    }else {
+        
+        //オフ
+        fastPostSwitch.on = NO;
         
     }
     
@@ -192,6 +212,20 @@
     }
 }
 
+- (IBAction)fastPostSwitchDidChage:(id)sender {
+    
+    //スイッチの状態を保存
+    if ( fastPostSwitch.on ) {
+        
+        [d setBool:YES forKey:@"FastPost"];
+        
+    }else {
+        
+        [d setBool:NO forKey:@"FastPost"];
+        
+    }
+}
+
 - (BOOL)ios5Check {
     
     BOOL result = NO;
@@ -211,6 +245,55 @@
     return result;
 }
 
+- (void)textViewDidChange:(UITextView *)textView {
+
+    //TextViewの内容が変更された時に呼ばれる
+    
+    //t.coを考慮した文字数カウントを行う
+    int num = [TWTwitterCharCounter charCounter:postText.text];
+    
+    //結果をラベルに反映
+    postCharLabel.text = [NSString stringWithFormat:@"%d", num];
+    
+    //文字数が140字を超えていた場合Postボタンを隠す
+    if (num < 0) {
+        postButton.hidden = YES;
+    }else {
+        postButton.hidden = NO;
+    }
+}
+
+- (void)becomeActive:(NSNotification *)notification {
+    
+    NSLog(@"becomeActive active");
+    
+    //FastPostが無効な場合
+    if ( ![d boolForKey:@"FastPost"] ) {
+        //通知判定がある場合
+        if ( [d boolForKey:@"Notification"] ) {
+            
+            //ペーストボード内容をPost入力欄にコピー
+            UIPasteboard *pboard = [UIPasteboard generalPasteboard];
+            postText.text = pboard.string;
+            
+            //通知判定を削除
+            [d removeObjectForKey:@"Notification"];
+        }
+    }
+    
+    if ( [d boolForKey:@"Over140Chars"] ) {
+        
+        UIPasteboard *pboard = [UIPasteboard generalPasteboard];
+        postText.text = pboard.string;
+        
+        int num = [TWTwitterCharCounter charCounter:postText.text];
+        postCharLabel.text = [NSString stringWithFormat:@"%d", num];
+        
+        [d removeObjectForKey:@"Over140Chars"];
+        
+    }
+}
+
 - (void)viewDidUnload {
     
     [self setPostButton:nil];
@@ -219,6 +302,9 @@
     [self setCallbackTextField:nil];
     [self setCallbackSwitch:nil];
     [self setDicButton:nil];
+    [self setFastPostLabel:nil];
+    [self setFastPostSwitch:nil];
+    [self setPostCharLabel:nil];
     [super viewDidUnload];
 }
 
@@ -257,6 +343,9 @@
     [callbackTextField release];
     [callbackSwitch release];
     [dicButton release];
+    [fastPostLabel release];
+    [fastPostSwitch release];
+    [postCharLabel release];
     [super dealloc];
 }
 

@@ -2,7 +2,7 @@
 //  TWGetAccount.h
 //  FastPhotoTweet
 //
-//  Created by @peace3884 on 11/11/10.
+//  Created by @peace3884 on 12/02/25.
 //
 
 #import <Foundation/Foundation.h>

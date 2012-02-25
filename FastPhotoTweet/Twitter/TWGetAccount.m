@@ -2,7 +2,7 @@
 //  TWGetAccount.m
 //  FastPhotoTweet
 //
-//  Created by @peace3884 on 11/11/10.
+//  Created by @peace3884 on 12/02/25.
 //
 
 #import "TWGetAccount.h"
@@ -23,12 +23,13 @@
         twAccount = [[twitterAccounts objectAtIndex:0] retain];
         
     }else {
-     
+        
         NSLog(@"Account Error");
         
     }
     
     return twAccount;
 }
+
 
 @end

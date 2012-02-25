@@ -53,16 +53,19 @@
                 
             }else if ( [itemName hasPrefix:@"tweet"] ) {
                 
-                if ( [d boolForKey:@"CallBack"] ) {
+                //FastPostが有効
+                if ( [d boolForKey:@"FastPost"] ) {
                     
                     BOOL canOpen = NO;
-                    
-                    if ( ![[d objectForKey:@"CallBackScheme"] isEqualToString:@""] ||
-                        [d objectForKey:@"CallBackScheme"] != nil) {
-                        
-                        //CallbackSchemeがアクセス可能な物がテスト
-                        canOpen = [[UIApplication sharedApplication] canOpenURL:[NSURL URLWithString:[d objectForKey:@"CallBackScheme"]]];
-                        
+                    if ( [d boolForKey:@"CallBack"] ) {
+                        //CallbackSchemeが空でない
+                        if ( ![[d objectForKey:@"CallBackScheme"] isEqualToString:@""] ||
+                            [d objectForKey:@"CallBackScheme"] != nil) {
+                            
+                            //CallbackSchemeがアクセス可能な物がテスト
+                            canOpen = [[UIApplication sharedApplication] canOpenURL:[NSURL URLWithString:[d objectForKey:@"CallBackScheme"]]];
+                            
+                        }
                     }
                     
                     //アカウント情報取得
@@ -70,33 +73,64 @@
                     
                     if (twAccount != nil) {
                         
+                        //t.coを考慮した文字数カウントを行う
+                        int num = [TWTwitterCharCounter charCounter:pboard.string];
+                        
+                        if ( num < 0 ) {
+                            
+                            //140字を超えていた場合
+                            ShowAlert *alert = [[ShowAlert alloc] init];
+                            [alert error:[NSString stringWithFormat:@"Post message is over 140: %d", num]];
+                            
+                            NSLog(@"%@", [NSString stringWithFormat:@"Post message is over 140: %d", num]);
+                            
+                            //140字を超えていた事を表すフラグを設置
+                            [d setBool:YES forKey:@"Over140Chars"];
+                            
+                            return;
+                            
+                        }else {
+                            
+                            NSLog(@"length: %d", num);
+                            
+                        }
+                        
+                        
                         //ペーストボードの内容を投稿
-                        NSArray *postDataArray = [NSArray arrayWithObjects:pboard.string, twAccount, nil];
-                        [TWSendTweet post:postDataArray];
+                        //NSArray *postDataArray = [NSArray arrayWithObjects:pboard.string, twAccount, nil];
+                        //[TWSendTweet post:postDataArray];
                         
                     }else {
                         
                         //Twitterアカウントが見つからない場合設定に飛ばす
-                        ShowAlert *alert = [[[ShowAlert alloc] init] autorelease];
+                        ShowAlert *alert = [[ShowAlert alloc] init];
                         [alert error:@"Twitter account nothing"];
                         [[UIApplication sharedApplication] openURL:[NSURL URLWithString:@"prefs:root=TWITTER"]];
                         
                     }
                     
-                    if ( !canOpen ) {
-                        
-                        NSLog(@"Can't callBack");
-                        
-                        ShowAlert *alert = [[ShowAlert alloc] init];
-                        [alert error:@"Can't callBack"];
-                        
-                    }else {
-                        
-                        NSLog(@"CallBack");
-                        
-                        [[UIApplication sharedApplication] openURL:[NSURL URLWithString:[d objectForKey:@"CallBackScheme"]]];
-                        
+                    if ( [d boolForKey:@"CallBack"] ) {
+                        if ( !canOpen ) {
+                            
+                            NSLog(@"Can't callBack");
+                            
+                            ShowAlert *alert = [[ShowAlert alloc] init];
+                            [alert error:@"Can't callBack"];
+                            
+                        }else {
+                            
+                            NSLog(@"CallBack");
+                            
+                            [[UIApplication sharedApplication] openURL:[NSURL URLWithString:[d objectForKey:@"CallBackScheme"]]];
+                            
+                        }
                     }
+                    
+                }else {
+                    
+                    //通知判定
+                    [d setBool:YES forKey:@"Notification"];
+                    
                 }
             }
             
@@ -129,15 +163,19 @@
 }
 
 - (void)applicationWillResignActive:(UIApplication *)application {
+    //NSLog(@"applicationWillResignActive");
 }
 
 - (void)applicationWillEnterForeground:(UIApplication *)application {
+    //NSLog(@"applicationWillEnterForeground");
 }
 
 - (void)applicationDidBecomeActive:(UIApplication *)application {
+    //NSLog(@"applicationDidBecomeActive");
 }
 
 - (void)applicationWillTerminate:(UIApplication *)application {
+    //NSLog(@"applicationWillTerminate");
 }
 
 - (void)applicationDidEnterBackground:(UIApplication *)application {
