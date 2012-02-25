@@ -17,4 +17,6 @@
 @property (strong, nonatomic) UIWindow *window;
 @property (strong, nonatomic) ViewController *viewController;
 
+- (BOOL)ios5Check;
+
 @end

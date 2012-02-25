@@ -24,62 +24,108 @@
 
 - (void)application:(UIApplication *)application didReceiveLocalNotification:(UILocalNotification *)notification {
     
-    if ( notification ) {
-        
-        NSLog(@"Notification");
-        
-        NSUserDefaults *d = [NSUserDefaults standardUserDefaults];
-        
-        if ( [d boolForKey:@"AddApp"] ) {
+    //iOS5以降かチェック
+    if ( [self ios5Check] ) {
+        //Internet接続のチェック
+        if ( [[Reachability reachabilityForInternetConnection] currentReachabilityStatus] != NotReachable ) {
             
-            //通知センターへのアプリ登録時は何もしない
-            NSLog(@"AddApp");
-            [d removeObjectForKey:@"AddApp"];
+            NSLog(@"Notification");
             
-            return;
-        }
-        
-        if ( [d boolForKey:@"CallBack"] ) {
+            NSUserDefaults *d = [NSUserDefaults standardUserDefaults];
             
-            BOOL canOpen = NO;
-            
-            if ( [[d objectForKey:@"CallBackScheme"] isEqualToString:@""] ||
-                 [d objectForKey:@"CallBackScheme"] == nil) {
+            if ( [d boolForKey:@"AddApp"] ) {
+                
+                //通知センターへのアプリ登録時は何もしない
+                [d removeObjectForKey:@"AddApp"];
                 
                 return;
+            }
+            
+            UIPasteboard *pboard = [UIPasteboard generalPasteboard];
+            NSString *itemName = [notification.userInfo objectForKey:@"scheme"];
+            NSLog(@"itemName: %@", itemName);
+            
+            if ( [itemName hasPrefix:@"dic"] ) {
                 
-            }else {
+                //辞書
+                UIReferenceLibraryViewController *controller = [[UIReferenceLibraryViewController alloc] initWithTerm:pboard.string];
+                [self.viewController presentModalViewController:controller animated:YES];
                 
-                canOpen = [[UIApplication sharedApplication] canOpenURL:[NSURL URLWithString:[d objectForKey:@"CallBackScheme"]]];
+            }else if ( [itemName hasPrefix:@"tweet"] ) {
                 
-                if ( !canOpen ) {
-                    return;
+                if ( [d boolForKey:@"CallBack"] ) {
+                    
+                    BOOL canOpen = NO;
+                    
+                    if ( ![[d objectForKey:@"CallBackScheme"] isEqualToString:@""] ||
+                        [d objectForKey:@"CallBackScheme"] != nil) {
+                        
+                        //CallbackSchemeがアクセス可能な物がテスト
+                        canOpen = [[UIApplication sharedApplication] canOpenURL:[NSURL URLWithString:[d objectForKey:@"CallBackScheme"]]];
+                        
+                    }
+                    
+                    //アカウント情報取得
+                    ACAccount *twAccount = [TWGetAccount getTwitterAccount];
+                    
+                    if (twAccount != nil) {
+                        
+                        //ペーストボードの内容を投稿
+                        NSArray *postDataArray = [NSArray arrayWithObjects:pboard.string, twAccount, nil];
+                        [TWSendTweet post:postDataArray];
+                        
+                    }else {
+                        
+                        //Twitterアカウントが見つからない場合設定に飛ばす
+                        ShowAlert *alert = [[[ShowAlert alloc] init] autorelease];
+                        [alert error:@"Twitter account nothing"];
+                        [[UIApplication sharedApplication] openURL:[NSURL URLWithString:@"prefs:root=TWITTER"]];
+                        
+                    }
+                    
+                    if ( !canOpen ) {
+                        
+                        NSLog(@"Can't callBack");
+                        
+                        ShowAlert *alert = [[ShowAlert alloc] init];
+                        [alert error:@"Can't callBack"];
+                        
+                    }else {
+                        
+                        NSLog(@"CallBack");
+                        
+                        [[UIApplication sharedApplication] openURL:[NSURL URLWithString:[d objectForKey:@"CallBackScheme"]]];
+                        
+                    }
                 }
             }
             
-            //ペーストボードの内容をPost
-            ACAccountStore *accountStore = [[ACAccountStore alloc] init];
-            ACAccountType *accountType = [accountStore accountTypeWithAccountTypeIdentifier:ACAccountTypeIdentifierTwitter];
+        }else {
             
-            [accountStore requestAccessToAccountsWithType:accountType withCompletionHandler:
-             ^(BOOL granted, NSError *error) {
-                 dispatch_async(dispatch_get_main_queue(), ^{
-                     if (granted) {
-                         NSArray *twitterAccounts = [accountStore accountsWithAccountType:accountType];
-                         if (twitterAccounts.count > 0) {
-                             
-                             ACAccount *twAccount = [[twitterAccounts objectAtIndex:0] retain];
-                             UIPasteboard *pboard = [UIPasteboard generalPasteboard];
-                             [TWSendTweet post:pboard.string twAccount:twAccount];
-                             
-                             NSLog(@"CallBack");
-                             [[UIApplication sharedApplication] openURL:[NSURL URLWithString:[d objectForKey:@"CallBackScheme"]]];
-                         }
-                     }
-                 });
-             }];
+            ShowAlert *alert = [[ShowAlert alloc] init];
+            [alert error:@"No internet connection"];
+            
         }
-    }   
+    }
+}
+
+- (BOOL)ios5Check {
+    
+    BOOL result = NO;
+    
+    if ([[[UIDevice currentDevice] systemVersion] floatValue] < 5.0) {
+        
+        //iOS5以前
+        ShowAlert *alert = [[ShowAlert alloc] init];
+        [alert error:@"Twitter API not available, please upgrade to iOS 5"];
+        
+    }else {
+        
+        result = YES;
+        
+    }
+    
+    return result;
 }
 
 - (void)applicationWillResignActive:(UIApplication *)application {
@@ -96,8 +142,10 @@
 
 - (void)applicationDidEnterBackground:(UIApplication *)application {
     
-	backgroundTask = [application beginBackgroundTaskWithExpirationHandler: 
-                      ^{ [application endBackgroundTask:backgroundTask]; }];
+	backgroundTask = [application beginBackgroundTaskWithExpirationHandler: ^{
+        [application endBackgroundTask:backgroundTask];
+    }];
+    
 }
 
 - (void)dealloc {

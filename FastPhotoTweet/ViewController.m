@@ -9,6 +9,7 @@
 
 @implementation ViewController
 @synthesize postButton;
+@synthesize dicButton;
 @synthesize postText;
 @synthesize callbackLabel;
 @synthesize callbackTextField;
@@ -25,12 +26,7 @@
     [self loadSettings];
     
     //iOSバージョン判定
-    if ([[[UIDevice currentDevice] systemVersion] floatValue] < 5.0) {
-        
-        //iOS5以前
-        NSLog(@"Twitter API not available, please upgrade to iOS 5");
-        
-    } else {
+    if ( [self ios5Check] ) {
         
         //iOS5
         ACAccountStore *accountStore = [[ACAccountStore alloc] init];
@@ -44,7 +40,10 @@
                      if (twitterAccounts.count > 0) {
                          
                          twAccount = [[twitterAccounts objectAtIndex:0] retain];
-                         NSLog(@"twAccount: %@", twAccount);
+                         ShowAlert *alert = [[ShowAlert alloc] init];
+                         [alert title:@"Success" message:[NSString stringWithFormat:@"Account Name: %@", twAccount.username]];
+                         
+                         //NSLog(@"twAccount: %@", twAccount);
                          
                          //通知センターにアプリを登録
                          
@@ -53,10 +52,10 @@
                          
                          UILocalNotification *localPush = [[UILocalNotification alloc] init];
                          localPush.timeZone = [NSTimeZone defaultTimeZone];
-                         localPush.fireDate = [NSDate dateWithTimeIntervalSinceNow:0.5];
+                         localPush.fireDate = [NSDate dateWithTimeIntervalSinceNow:0];
                          
                          localPush.alertBody = @"FastPhotoTweet";
-                         localPush.userInfo = [NSDictionary dictionaryWithObjectsAndKeys:@"fpt://", @"scheme", nil];
+                         localPush.userInfo = [NSDictionary dictionaryWithObjectsAndKeys:@"tweet", @"scheme", nil];
                          [[UIApplication sharedApplication] scheduleLocalNotification:localPush];
                          [localPush release];
                          
@@ -64,13 +63,17 @@
                          
                          twAccount = nil;
                          
-                         NSLog(@"Twitter account nothing");
+                         ShowAlert *alert = [[ShowAlert alloc] init];
+                         [alert error:@"Twitter account nothing"];
+
                      }
+                     
                  } else {
                      
                      twAccount = nil;
                      
-                     NSLog(@"Twitter account access denied");
+                     ShowAlert *alert = [[ShowAlert alloc] init];
+                     [alert error:@"Twitter account access denied"];
                      
                  }
              });
@@ -109,34 +112,49 @@
 - (IBAction)pushPostButton:(id)sender {
     
     //iOSバージョン判定
-    if ([[[UIDevice currentDevice] systemVersion] floatValue] < 5.0) {
-        
-        //iOS5以前
-        NSLog(@"Twitter API not available, please upgrade to iOS 5");
-        
-    }else{
-        
-        NSString *text;
-        
-        if ( [postText.text isEqualToString:@""] ) {
+    if ( [self ios5Check] ) {
+        //Internet接続のチェック
+        if ( [[Reachability reachabilityForInternetConnection] currentReachabilityStatus] != NotReachable ) {
             
-            //Post入力欄が空ならテスト用テキストを生成して投稿
-            NSString *testDate = [NSDateFormatter localizedStringFromDate:[NSDate date] 
-                                                                dateStyle:kCFDateFormatterNoStyle
-                                                                timeStyle:kCFDateFormatterMediumStyle];
+            NSString *text;
             
-            text = [NSString stringWithFormat:@"TestDate: %@", testDate];
+            if ( [postText.text isEqualToString:@""] ) {
+                
+                //Post入力欄が空ならテスト用テキストを生成して投稿
+                NSString *testDate = [NSDateFormatter localizedStringFromDate:[NSDate date] 
+                                                                    dateStyle:kCFDateFormatterNoStyle
+                                                                    timeStyle:kCFDateFormatterMediumStyle];
+                
+                text = [NSString stringWithFormat:@"TestDate: %@", testDate];
+                
+            }else {
+                
+                //文字が入力されている場合はそちらを投稿
+                text = postText.text;
+                postText.text = @"";
+            }
             
-        }else {
-            
-            //文字が入力されている場合はそちらを投稿
-            text = postText.text;
-            postText.text = @"";
+            //Textをバックグラウンドプロセスで投稿
+            NSArray *postDataArray = [NSArray arrayWithObjects:text, twAccount, nil];
+            [TWSendTweet performSelectorInBackground:@selector(post:) withObject:postDataArray];
         }
-        
-        //Textを投稿
-        [TWSendTweet post:text twAccount:twAccount];
     }
+}
+
+- (IBAction)pushDicButton:(id)sender {
+    
+    //通知センター登録時は通知を受け取っても無視するように設定
+    [d setBool:YES forKey:@"AddApp"];
+    
+    UILocalNotification *localPush = [[UILocalNotification alloc] init];
+    localPush.timeZone = [NSTimeZone defaultTimeZone];
+    localPush.fireDate = [NSDate dateWithTimeIntervalSinceNow:0];
+    
+    localPush.alertBody = @"FastDictionary";
+    localPush.userInfo = [NSDictionary dictionaryWithObjectsAndKeys:@"dic", @"scheme", nil];
+    [[UIApplication sharedApplication] scheduleLocalNotification:localPush];
+    
+    [localPush release];
 }
 
 - (IBAction)callbackTextFieldEnter:(id)sender {
@@ -152,7 +170,7 @@
     
     UILocalNotification *localPush = [[UILocalNotification alloc] init];
     localPush.timeZone = [NSTimeZone defaultTimeZone];
-    localPush.fireDate = [NSDate dateWithTimeIntervalSinceNow:0.5];
+    localPush.fireDate = [NSDate dateWithTimeIntervalSinceNow:0];
     
     localPush.alertBody = @"FastPhotoTweet";
     localPush.userInfo = [NSDictionary dictionaryWithObjectsAndKeys:callbackTextField.text, @"scheme", nil];
@@ -174,6 +192,25 @@
     }
 }
 
+- (BOOL)ios5Check {
+    
+    BOOL result = NO;
+    
+    if ([[[UIDevice currentDevice] systemVersion] floatValue] < 5.0) {
+        
+        //iOS5以前
+        ShowAlert *alert = [[ShowAlert alloc] init];
+        [alert error:@"Twitter API not available, please upgrade to iOS 5"];
+        
+    }else {
+        
+        result = YES;
+        
+    }
+    
+    return result;
+}
+
 - (void)viewDidUnload {
     
     [self setPostButton:nil];
@@ -181,6 +218,7 @@
     [self setCallbackLabel:nil];
     [self setCallbackTextField:nil];
     [self setCallbackSwitch:nil];
+    [self setDicButton:nil];
     [super viewDidUnload];
 }
 
@@ -209,11 +247,6 @@
 	[super viewDidDisappear:animated];
 }
 
-- (BOOL)shouldAutorotateToInterfaceOrientation:(UIInterfaceOrientation)interfaceOrientation {
-    
-    return (interfaceOrientation != UIInterfaceOrientationPortraitUpsideDown);
-}
-
 - (void)dealloc {
     
     [twAccount release];
@@ -223,6 +256,7 @@
     [callbackLabel release];
     [callbackTextField release];
     [callbackSwitch release];
+    [dicButton release];
     [super dealloc];
 }
 

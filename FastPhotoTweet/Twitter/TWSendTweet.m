@@ -9,7 +9,11 @@
 
 @implementation TWSendTweet
 
-+ (void)post:(NSString *)postText twAccount:(ACAccount *)twAccount {
+
++ (void)post:(NSArray *)postData {
+    
+    NSString *postText = [postData objectAtIndex:0];
+    ACAccount *twAccount = [postData objectAtIndex:1];
     
     NSDictionary *tParam = [NSDictionary dictionaryWithObject:postText forKey:@"status"];
     NSURL *tURL = [NSURL URLWithString:@"https://api.twitter.com/1/statuses/update.json"];
@@ -19,7 +23,8 @@
     //Twitterアカウントの確認
     if (twAccount == nil) {
         
-        NSLog(@"Can’t post");
+        ShowAlert *alert = [[ShowAlert alloc] init];
+        [alert error:@"Can’t post"];
         
         return;
     }
@@ -31,17 +36,41 @@
                                         NSError *error) {
         
         dispatch_async(dispatch_get_main_queue(), ^{
-            
-            //NSString *responseDataString = [[[NSString alloc] initWithData:responseData encoding:NSUTF8StringEncoding] autorelease];
-            //NSLog(@"Response: %@", responseDataString);
-            
+                        
             if (error != nil) {
+            
+                NSString *responseDataString = [[[NSString alloc] initWithData:responseData encoding:NSUTF8StringEncoding] autorelease];
                 
-                NSLog(@"Post Error");
+                ShowAlert *alert = [[ShowAlert alloc] init];
+                [alert error:@"Post Error"];
+                
+                NSLog(@"Post Error: %@", responseDataString);
                 
             } else {
                 
-                NSLog(@"Post Success");
+                //JSONからDictionaryを生成
+                NSString *responseDataString = [[[NSString alloc] initWithData:responseData encoding:NSUTF8StringEncoding] autorelease];
+                NSDictionary *result = [responseDataString JSONValue];
+                
+                //Postしたテキスト
+                NSString *text = [result objectForKey:@"text"];
+                
+                if ( [text isEqualToString:@""] || text == nil ) {
+                    
+                    NSLog(@"Post Error");
+                    
+                    //textが空の場合は失敗してる
+                    ShowAlert *alert = [[ShowAlert alloc] init];
+                    [alert error:@"Post Error"];
+                    
+                }else {
+                    
+                    NSLog(@"Post Success");
+                    
+                    ShowAlert *alert = [[ShowAlert alloc] init];
+                    [alert title:@"Success" message:text];
+                    
+                }
                 
             }
             

@@ -6,8 +6,12 @@
 //
 
 #import <UIKit/UIKit.h>
+#import <UIKit/UITextChecker.h>
 #import <Twitter/Twitter.h>
 #import <Accounts/Accounts.h>
+#import "JSON.h"
+#import <SystemConfiguration/SystemConfiguration.h>
+#import "Reachability.h"
 
 #import "Twitter/TWTwitterHeader.h"
 #import "UtilityClass.h"
@@ -20,15 +24,18 @@
 }
 
 @property (retain, nonatomic) IBOutlet UIButton *postButton;
+@property (retain, nonatomic) IBOutlet UIButton *dicButton;
 @property (retain, nonatomic) IBOutlet UITextView *postText;
 @property (retain, nonatomic) IBOutlet UILabel *callbackLabel;
 @property (retain, nonatomic) IBOutlet UITextField *callbackTextField;
 @property (retain, nonatomic) IBOutlet UISwitch *callbackSwitch;
 
 - (IBAction)pushPostButton:(id)sender;
+- (IBAction)pushDicButton:(id)sender;
 - (IBAction)callbackTextFieldEnter:(id)sender;
 - (IBAction)callbackSwitchDidChage:(id)sender;
 
 - (void)loadSettings;
+- (BOOL)ios5Check;
 
 @end

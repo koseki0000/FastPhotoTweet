@@ -152,6 +152,7 @@
     alert.message = @"正規表現でエラーが発生しました。";
     [alert addButtonWithTitle:@"OK"];
     [alert show];
+    [alert release];
 }
 
 @end
