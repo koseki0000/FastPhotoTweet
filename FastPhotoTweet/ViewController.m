@@ -10,6 +10,7 @@
 @implementation ViewController
 @synthesize postButton;
 @synthesize dicButton;
+@synthesize uploadImageButton;
 @synthesize postText;
 @synthesize callbackLabel;
 @synthesize fastPostLabel;
@@ -17,11 +18,13 @@
 @synthesize callbackTextField;
 @synthesize callbackSwitch;
 @synthesize fastPostSwitch;
+@synthesize imagePreview;
 
 - (void)viewDidLoad {
     
     [super viewDidLoad];
     
+    //アプリがアクティブになった場合の通知を受け取る設定
     [[NSNotificationCenter defaultCenter] addObserver:self
                                              selector:@selector(becomeActive:)
                                                  name:UIApplicationDidBecomeActiveNotification
@@ -37,21 +40,22 @@
     if ( [self ios5Check] ) {
         
         //iOS5
-        ACAccountStore *accountStore = [[ACAccountStore alloc] init];
+        
+        ACAccountStore *accountStore = [[[ACAccountStore alloc] init] autorelease];
         ACAccountType *accountType = [accountStore accountTypeWithAccountTypeIdentifier:ACAccountTypeIdentifierTwitter];
         
         [accountStore requestAccessToAccountsWithType:accountType withCompletionHandler:
-         ^(BOOL granted, NSError *error) {
+         ^( BOOL granted, NSError *error ) {
              dispatch_async(dispatch_get_main_queue(), ^{
-                 if (granted) {
+                 if ( granted ) {
                      NSArray *twitterAccounts = [accountStore accountsWithAccountType:accountType];
-                     if (twitterAccounts.count > 0) {
+                     if ( twitterAccounts.count > 0 ) {
                          
                          twAccount = [[twitterAccounts objectAtIndex:0] retain];
                          ShowAlert *alert = [[ShowAlert alloc] init];
                          [alert title:@"Success" message:[NSString stringWithFormat:@"Account Name: %@", twAccount.username]];
                          
-                         //NSLog(@"twAccount: %@", twAccount);
+                         NSLog(@"twAccount: %@", twAccount);
                          
                          //通知センターにアプリを登録
                          
@@ -61,7 +65,6 @@
                          UILocalNotification *localPush = [[UILocalNotification alloc] init];
                          localPush.timeZone = [NSTimeZone defaultTimeZone];
                          localPush.fireDate = [NSDate dateWithTimeIntervalSinceNow:0];
-                         
                          localPush.alertBody = @"FastPhotoTweet";
                          localPush.userInfo = [NSDictionary dictionaryWithObjectsAndKeys:@"tweet", @"scheme", nil];
                          [[UIApplication sharedApplication] scheduleLocalNotification:localPush];
@@ -133,13 +136,14 @@
     
     //iOSバージョン判定
     if ( [self ios5Check] ) {
+
         //Internet接続のチェック
         if ( [[Reachability reachabilityForInternetConnection] currentReachabilityStatus] != NotReachable ) {
-            
+
             NSString *text;
             
             if ( [postText.text isEqualToString:@""] ) {
-                
+
                 //Post入力欄が空ならテスト用テキストを生成して投稿
                 NSString *testDate = [NSDateFormatter localizedStringFromDate:[NSDate date] 
                                                                     dateStyle:kCFDateFormatterNoStyle
@@ -148,15 +152,14 @@
                 text = [NSString stringWithFormat:@"TestDate: %@", testDate];
                 
             }else {
-                
+
                 //文字が入力されている場合はそちらを投稿
                 text = postText.text;
                 postText.text = @"";
             }
             
             //Textをバックグラウンドプロセスで投稿
-            NSArray *postDataArray = [NSArray arrayWithObjects:text, twAccount, nil];
-            [TWSendTweet performSelectorInBackground:@selector(post:) withObject:postDataArray];
+            [TWSendTweet performSelectorInBackground:@selector(post:) withObject:text];
         }
     }
 }
@@ -169,12 +172,26 @@
     UILocalNotification *localPush = [[UILocalNotification alloc] init];
     localPush.timeZone = [NSTimeZone defaultTimeZone];
     localPush.fireDate = [NSDate dateWithTimeIntervalSinceNow:0];
-    
     localPush.alertBody = @"FastDictionary";
     localPush.userInfo = [NSDictionary dictionaryWithObjectsAndKeys:@"dic", @"scheme", nil];
     [[UIApplication sharedApplication] scheduleLocalNotification:localPush];
     
     [localPush release];
+}
+
+- (IBAction)pushUploadImageButton:(id)sender {
+    
+    if ( imagePreview.image != nil ) {
+     
+        //画像が設定されている場合アップロードを開始
+        
+        
+    }else {
+        
+        //画像が設定されていない場合エラー表示
+        
+        
+    }
 }
 
 - (IBAction)callbackTextFieldEnter:(id)sender {
@@ -191,7 +208,6 @@
     UILocalNotification *localPush = [[UILocalNotification alloc] init];
     localPush.timeZone = [NSTimeZone defaultTimeZone];
     localPush.fireDate = [NSDate dateWithTimeIntervalSinceNow:0];
-    
     localPush.alertBody = @"FastPhotoTweet";
     localPush.userInfo = [NSDictionary dictionaryWithObjectsAndKeys:callbackTextField.text, @"scheme", nil];
     [[UIApplication sharedApplication] scheduleLocalNotification:localPush];
@@ -257,9 +273,13 @@
     
     //文字数が140字を超えていた場合Postボタンを隠す
     if (num < 0) {
+        
         postButton.hidden = YES;
+        
     }else {
+        
         postButton.hidden = NO;
+        
     }
 }
 
@@ -267,28 +287,33 @@
     
     NSLog(@"becomeActive active");
     
+    UIPasteboard *pboard = [UIPasteboard generalPasteboard];
+    
     //FastPostが無効な場合
     if ( ![d boolForKey:@"FastPost"] ) {
+        
         //通知判定がある場合
         if ( [d boolForKey:@"Notification"] ) {
             
             //ペーストボード内容をPost入力欄にコピー
-            UIPasteboard *pboard = [UIPasteboard generalPasteboard];
             postText.text = pboard.string;
+            int num = [TWTwitterCharCounter charCounter:postText.text];
+            postCharLabel.text = [NSString stringWithFormat:@"%d", num];
             
             //通知判定を削除
             [d removeObjectForKey:@"Notification"];
+            
         }
     }
     
     if ( [d boolForKey:@"Over140Chars"] ) {
         
-        UIPasteboard *pboard = [UIPasteboard generalPasteboard];
+        //ペーストボード内容をPost入力欄にコピー
         postText.text = pboard.string;
-        
         int num = [TWTwitterCharCounter charCounter:postText.text];
         postCharLabel.text = [NSString stringWithFormat:@"%d", num];
         
+        //判定を削除
         [d removeObjectForKey:@"Over140Chars"];
         
     }
@@ -305,6 +330,8 @@
     [self setFastPostLabel:nil];
     [self setFastPostSwitch:nil];
     [self setPostCharLabel:nil];
+    [self setImagePreview:nil];
+    [self setUploadImageButton:nil];
     [super viewDidUnload];
 }
 
@@ -346,6 +373,8 @@
     [fastPostLabel release];
     [fastPostSwitch release];
     [postCharLabel release];
+    [imagePreview release];
+    [uploadImageButton release];
     [super dealloc];
 }
 

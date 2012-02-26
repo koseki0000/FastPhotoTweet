@@ -10,78 +10,100 @@
 @implementation TWSendTweet
 
 
-+ (void)post:(NSArray *)postData {
++ (void)post:(NSString *)postText {
     
-    NSString *postText = [postData objectAtIndex:0];
-    ACAccount *twAccount = [postData objectAtIndex:1];
-    
-    NSDictionary *tParam = [NSDictionary dictionaryWithObject:postText forKey:@"status"];
-    NSURL *tURL = [NSURL URLWithString:@"https://api.twitter.com/1/statuses/update.json"];
-    TWRequest *updateProfile = [[TWRequest alloc] initWithURL:tURL parameters:tParam
-                                                requestMethod:TWRequestMethodPOST];
-    
-    //Twitterアカウントの確認
-    if (twAccount == nil) {
+    //Tweet可能な状態か判別
+    if ( [TWTweetComposeViewController canSendTweet] ) {
         
+        //ステータスバーに処理中表示
+        [ActivityIndicator activityIndicatorVisible:YES];
+        
+        //リクエストの作成
+        TWRequest *postRequest = [[TWRequest alloc] initWithURL:
+                                  [NSURL URLWithString:@"http://api.twitter.com/1/statuses/update.json"] 
+                                                     parameters:[NSDictionary dictionaryWithObject:postText 
+                                                                                            forKey:@"status"] 
+                                                  requestMethod:TWRequestMethodPOST];
+        
+        //アカウントの取得
+        ACAccount *twAccount = [TWGetAccount getTwitterAccount];
+        
+        //Twitterアカウントの確認
+        if (twAccount == nil) {
+            
+            //アカウントデータが空
+            ShowAlert *alert = [[ShowAlert alloc] init];
+            [alert error:@"Can’t post"];
+            
+            return;
+        }
+        
+        //リクエストにアカウントを設定
+        [postRequest setAccount:twAccount];
+        
+        [postRequest performRequestWithHandler:
+         ^( NSData *responseData, NSHTTPURLResponse *urlResponse, NSError *error ) {
+            
+             dispatch_async(dispatch_get_main_queue(), ^{
+                 
+                 if (error != nil) {
+                     
+                     //エラー
+                     NSString *responseDataString = [[[NSString alloc] initWithData:responseData encoding:NSUTF8StringEncoding] autorelease];
+                     NSDictionary *result = [responseDataString JSONValue];
+                     
+                     NSString *errorText = [result objectForKey:@"error"];
+                     
+                     ShowAlert *alert = [[ShowAlert alloc] init];
+                     [alert error:errorText];
+                     
+                     NSLog(@"Post Error: %@", errorText);
+                     
+                 } else {
+                     
+                     //JSONからDictionaryを生成
+                     NSString *responseDataString = [[[NSString alloc] initWithData:responseData encoding:NSUTF8StringEncoding] autorelease];
+                     NSDictionary *result = [responseDataString JSONValue];
+                     
+                     //Postしたテキスト
+                     NSString *text = [result objectForKey:@"text"];
+                     
+                     if ( [text isEqualToString:@""] || text == nil ) {
+                     
+                         NSString *errorText = [result objectForKey:@"error"];
+                         
+                         //textが空の場合は失敗してる
+                         ShowAlert *alert = [[ShowAlert alloc] init];
+                         [alert error:errorText];
+                         
+                         NSLog(@"Post Error: %@", errorText);
+                         
+                     }else {
+                         
+                         //Post成功
+                         ShowAlert *alert = [[ShowAlert alloc] init];
+                         [alert title:@"Success" message:text];
+                         
+                         NSLog(@"Post Success");
+                         
+                     }
+                     
+                 }
+                 
+                 //ステータスバーの処理中表示オフ
+                 [ActivityIndicator activityIndicatorVisible:NO];
+             });
+        }];
+        
+        NSLog(@"Post sended");
+        
+    }else {
+        
+        //何らかの理由でTweet不可だった場合
         ShowAlert *alert = [[ShowAlert alloc] init];
-        [alert error:@"Can’t post"];
+        [alert error:@"Please try again later"];
         
-        return;
     }
-    
-    updateProfile.account = twAccount;
-    
-    TWRequestHandler requestHandler = ^(NSData *responseData, 
-                                        NSHTTPURLResponse *urlResponse, 
-                                        NSError *error) {
-        
-        dispatch_async(dispatch_get_main_queue(), ^{
-                        
-            if (error != nil) {
-            
-                NSString *responseDataString = [[[NSString alloc] initWithData:responseData encoding:NSUTF8StringEncoding] autorelease];
-                
-                ShowAlert *alert = [[ShowAlert alloc] init];
-                [alert error:@"Post Error"];
-                
-                NSLog(@"Post Error: %@", responseDataString);
-                
-            } else {
-                
-                //JSONからDictionaryを生成
-                NSString *responseDataString = [[[NSString alloc] initWithData:responseData encoding:NSUTF8StringEncoding] autorelease];
-                NSDictionary *result = [responseDataString JSONValue];
-                
-                //Postしたテキスト
-                NSString *text = [result objectForKey:@"text"];
-                
-                if ( [text isEqualToString:@""] || text == nil ) {
-                    
-                    NSLog(@"Post Error");
-                    
-                    //textが空の場合は失敗してる
-                    ShowAlert *alert = [[ShowAlert alloc] init];
-                    [alert error:@"Post Error"];
-                    
-                }else {
-                    
-                    NSLog(@"Post Success");
-                    
-                    ShowAlert *alert = [[ShowAlert alloc] init];
-                    [alert title:@"Success" message:text];
-                    
-                }
-                
-            }
-            
-            [ActivityIndicator activityIndicatorVisible:NO];
-        });
-    };
-    
-    [updateProfile performRequestWithHandler:requestHandler];
-    [ActivityIndicator activityIndicatorVisible:YES];
-    
-    NSLog(@"Post sended");
 }
 
 @end

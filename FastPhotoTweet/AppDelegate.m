@@ -26,6 +26,7 @@
     
     //iOS5以降かチェック
     if ( [self ios5Check] ) {
+        
         //Internet接続のチェック
         if ( [[Reachability reachabilityForInternetConnection] currentReachabilityStatus] != NotReachable ) {
             
@@ -42,6 +43,31 @@
             }
             
             UIPasteboard *pboard = [UIPasteboard generalPasteboard];
+            NSLog(@"pboard: %@", pboard.pasteboardTypes);
+    
+//            BOOL pBoardType = NO;
+            int pBoardType = 0;
+            
+            if ( [[pboard.pasteboardTypes objectAtIndex:0] isEqualToString:@"public.text"] ) {
+            
+                //テキストの場合
+                pBoardType = 0;
+                
+            }else if ( [[pboard.pasteboardTypes objectAtIndex:0] isEqualToString:@"public.jpeg"] ||
+                       [[pboard.pasteboardTypes objectAtIndex:0] isEqualToString:@"public.png"] ||
+                       [[pboard.pasteboardTypes objectAtIndex:0] isEqualToString:@"public.gif"] ||
+                       [[pboard.pasteboardTypes objectAtIndex:0] isEqualToString:@"public.bmp"] ) {
+                
+                //画像の場合
+                pBoardType = 1;
+            
+            }else {
+                
+                //得体の知れない物
+                pBoardType = 2;
+                
+            }
+            
             NSString *itemName = [notification.userInfo objectForKey:@"scheme"];
             NSLog(@"itemName: %@", itemName);
             
@@ -58,6 +84,7 @@
                     
                     BOOL canOpen = NO;
                     if ( [d boolForKey:@"CallBack"] ) {
+                        
                         //CallbackSchemeが空でない
                         if ( ![[d objectForKey:@"CallBackScheme"] isEqualToString:@""] ||
                             [d objectForKey:@"CallBackScheme"] != nil) {
@@ -72,33 +99,43 @@
                     ACAccount *twAccount = [TWGetAccount getTwitterAccount];
                     
                     if (twAccount != nil) {
-                        
-                        //t.coを考慮した文字数カウントを行う
-                        int num = [TWTwitterCharCounter charCounter:pboard.string];
-                        
-                        if ( num < 0 ) {
+                    
+                        //ペーストボードの内容を投稿
+                        if ( pBoardType == 0 ) {
                             
-                            //140字を超えていた場合
-                            ShowAlert *alert = [[ShowAlert alloc] init];
-                            [alert error:[NSString stringWithFormat:@"Post message is over 140: %d", num]];
+                            //t.coを考慮した文字数カウントを行う
+                            int num = [TWTwitterCharCounter charCounter:pboard.string];
                             
-                            NSLog(@"%@", [NSString stringWithFormat:@"Post message is over 140: %d", num]);
+                            if ( num < 0 ) {
+                                
+                                //140字を超えていた場合
+                                ShowAlert *alert = [[ShowAlert alloc] init];
+                                [alert error:[NSString stringWithFormat:@"Post message is over 140: %d", num]];
+                                
+                                NSLog(@"%@", [NSString stringWithFormat:@"Post message is over 140: %d", num]);
+                                
+                                //140字を超えていた事を表すフラグを設置
+                                [d setBool:YES forKey:@"Over140Chars"];
+                                
+                                return;
+                                
+                            }
                             
-                            //140字を超えていた事を表すフラグを設置
-                            [d setBool:YES forKey:@"Over140Chars"];
+                            //テキスト
+                            [TWSendTweet post:pboard.string];
                             
-                            return;
+                        }else if ( pBoardType == 1 ){
+                            
+                            //画像
                             
                         }else {
                             
-                            NSLog(@"length: %d", num);
+                            //得体の知れない物
+                            ShowAlert *alert = [[ShowAlert alloc] init];
+                            [alert error:@"ペーストボードの中身がテキストか画像以外です。"];
                             
                         }
                         
-                        
-                        //ペーストボードの内容を投稿
-                        //NSArray *postDataArray = [NSArray arrayWithObjects:pboard.string, twAccount, nil];
-                        //[TWSendTweet post:postDataArray];
                         
                     }else {
                         
@@ -109,14 +146,17 @@
                         
                     }
                     
+                    //Callbackが有効
                     if ( [d boolForKey:@"CallBack"] ) {
+                        
+                        //Schemeが開けない
                         if ( !canOpen ) {
-                            
+                        
                             NSLog(@"Can't callBack");
                             
                             ShowAlert *alert = [[ShowAlert alloc] init];
                             [alert error:@"Can't callBack"];
-                            
+                        
                         }else {
                             
                             NSLog(@"CallBack");

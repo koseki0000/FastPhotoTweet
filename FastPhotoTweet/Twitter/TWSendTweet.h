@@ -11,12 +11,12 @@
 #import "JSON.h"
 #import <SystemConfiguration/SystemConfiguration.h>
 #import "Reachability.h"
+#import "TWGetAccount.h"
 
 #import "UtilityClass.h"
 
 @interface TWSendTweet : NSObject
 
-//+ (void)post:(NSString *)postText twAccount:(ACAccount *)twAccount;
-+ (void)post:(NSArray *)postData;
++ (void)post:(NSString *)postText;
 
 @end
