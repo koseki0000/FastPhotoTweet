@@ -33,32 +33,33 @@
         
         NSArray *match = [regexp matchesInString:postString 
                                          options:0 
-                                           range:NSMakeRange(0, postString.length)];
+                                           range:NSMakeRange( 0, postString.length )];
         
         //文字列中にいくつURLがあるかチェック
-        for (NSTextCheckingResult *result in match) {
+        for ( NSTextCheckingResult *result in match ) {
             
+            //見つかったURLを保存
             NSString *matchString = [postString substringWithRange:result.range];
             [urlList addObject:matchString];
             
-            //マッチしたらカウントを増やす
+            //URLの個数カウントを増やす
             urlCount++;
             
         }
         
-        for (NSString *tmp in urlList) {
+        for ( NSString *tmp in urlList ) {
             
             //オリジナルの文字列からURLを取り除く
             [postString replaceOccurrencesOfString:tmp withString:@"" 
                                      options:0 
-                                       range:NSMakeRange(0, postString.length)];
+                                       range:NSMakeRange( 0, postString.length )];
             
         }
         
         //残り入力可能文字数 = 140 - URL以外の文字数 - URLの数 * 20
         num = num - postString.length - urlCount * 20;
         
-    }@catch (NSException *e) {
+    }@catch ( NSException *e ) {
         
         //エラーの場合は取り敢えずオリジナルの文字数を返しておく
         return originalCharNum;
