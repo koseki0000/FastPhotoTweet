@@ -92,6 +92,7 @@
                  
                  //ステータスバーの処理中表示オフ
                  [ActivityIndicator activityIndicatorVisible:NO];
+
              });
         }];
         

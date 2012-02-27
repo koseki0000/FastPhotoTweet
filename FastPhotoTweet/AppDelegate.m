@@ -64,8 +64,10 @@
             }else {
                 
                 //得体の知れない物
-                pBoardType = 2;
+                ShowAlert *alert = [[ShowAlert alloc] init];
+                [alert error:@"ペーストボードの中身がテキストか画像以外です。"];
                 
+                return;
             }
             
             NSString *itemName = [notification.userInfo objectForKey:@"scheme"];
@@ -128,14 +130,7 @@
                             
                             //画像
                             
-                        }else {
-                            
-                            //得体の知れない物
-                            ShowAlert *alert = [[ShowAlert alloc] init];
-                            [alert error:@"ペーストボードの中身がテキストか画像以外です。"];
-                            
                         }
-                        
                         
                     }else {
                         

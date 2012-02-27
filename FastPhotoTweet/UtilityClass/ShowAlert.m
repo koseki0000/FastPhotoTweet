@@ -50,10 +50,11 @@
         [[UIApplication sharedApplication] openURL:[NSURL URLWithString:@"prefs:root=TWITTER"]];
         
     }
-    
 }
 
 - (void)dealloc {
+    
+    [self release];
     
     [super dealloc];
     
