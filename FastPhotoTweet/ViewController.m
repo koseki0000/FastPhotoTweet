@@ -285,37 +285,154 @@
 
 - (void)becomeActive:(NSNotification *)notification {
     
-    NSLog(@"becomeActive active");
+    //アプリケーションがアクティブになった際に呼ばれる
+    NSLog(@"becomeActive");
     
-    UIPasteboard *pboard = [UIPasteboard generalPasteboard];
-    
-    //FastPostが無効な場合
-    if ( ![d boolForKey:@"FastPost"] ) {
+    //通知判定がある場合
+    if ( [d boolForKey:@"Notification"] ) {
         
-        //通知判定がある場合
-        if ( [d boolForKey:@"Notification"] ) {
+        //通知判定を削除
+        [d removeObjectForKey:@"Notification"];
+        
+        //iOS5以降かチェック
+        if ( [self ios5Check] ) {
             
-            //ペーストボード内容をPost入力欄にコピー
-            postText.text = pboard.string;
-            int num = [TWTwitterCharCounter charCounter:postText.text];
-            postCharLabel.text = [NSString stringWithFormat:@"%d", num];
+            UIPasteboard *pboard = [UIPasteboard generalPasteboard];
             
-            //通知判定を削除
-            [d removeObjectForKey:@"Notification"];
+            //通知が辞書機能だった場合
+            if ( [[d objectForKey:@"NotificationType"] isEqualToString:@"dic"] ) {
+                
+                UIReferenceLibraryViewController *controller = [[UIReferenceLibraryViewController alloc] initWithTerm:pboard.string];
+                [self presentModalViewController:controller animated:YES];
+
+                return;
+            }
             
+            //以下通知がtweetだった場合
+            
+            if ( twAccount == nil ) {
+                
+                //Twitterアカウントが見つからない場合設定に飛ばす
+                ShowAlert *alert = [[ShowAlert alloc] init];
+                [alert error:@"Twitter account nothing"];
+                [[UIApplication sharedApplication] openURL:[NSURL URLWithString:@"prefs:root=TWITTER"]];
+                
+                return;
+            }
+            
+            //インターネット接続のチェック
+            if ( [[Reachability reachabilityForInternetConnection] currentReachabilityStatus] != NotReachable ) {
+                
+                BOOL canPost = NO;
+                BOOL canOpen = NO;
+                
+                //ペーストボードの内容をチェック
+                int pBoardType = [PasteboardType check];
+                
+                if ( pBoardType == -1 ) {
+                    
+                    //テキストか画像以外
+                    return;
+                }
+                
+                //FastPostが無効な場合
+                if ( ![d boolForKey:@"FastPost"] ) {
+                                        
+                    //テキスト
+                    if ( pBoardType == 0 ) {
+                        
+                        //ペーストボード内容をPost入力欄にコピー
+                        postText.text = pboard.string;
+                        int num = [TWTwitterCharCounter charCounter:postText.text];
+                        postCharLabel.text = [NSString stringWithFormat:@"%d", num];
+                        
+                    //画像
+                    }else if ( pBoardType == 1 ) {
+                        
+                        //up
+                        
+                    }
+                    
+                //FastPostが有効な場合
+                }else {
+                    
+                    //コールバックが有効な場合
+                    if ( [d boolForKey:@"CallBack"] ) {
+                        
+                        NSLog(@"CallBack Enable");
+                        
+                        //CallbackSchemeが空でない
+                        if ( ![[d objectForKey:@"CallBackScheme"] isEqualToString:@""] ||
+                            [d objectForKey:@"CallBackScheme"] != nil) {
+                            
+                            //CallbackSchemeがアクセス可能な物がテスト
+                            canOpen = [[UIApplication sharedApplication] canOpenURL:[NSURL URLWithString:[d objectForKey:@"CallBackScheme"]]];
+                        }
+                    }
+                    
+                    //ペーストボード内がテキスト
+                    if ( pBoardType == 0 ) {
+                        
+                        //t.coを考慮した文字数カウントを行う
+                        int num = [TWTwitterCharCounter charCounter:pboard.string];
+                        
+                        if ( num < 0 ) {
+                            
+                            //140字を超えていた場合
+                            ShowAlert *alert = [[ShowAlert alloc] init];
+                            [alert error:[NSString stringWithFormat:@"Post message is over 140: %d", num]];
+                            
+                            NSLog(@"%@", [NSString stringWithFormat:@"Post message is over 140: %d", num]);
+                            
+                        }else {
+                            
+                            //投稿可能文字数である
+                            canPost = YES;
+                        }
+                    }
+                }
+                
+                if ( canPost ) {
+                 
+                    //投稿処理
+                    [TWSendTweet post:pboard.string];
+                    
+                    //コールバックが有効
+                    if ( [d boolForKey:@"CallBack"] ) {
+                        
+                        //コールバックスキームが開けない
+                        if ( !canOpen ) {
+                            
+                            NSLog(@"Can't callBack");
+                            
+                            ShowAlert *alert = [[ShowAlert alloc] init];
+                            [alert error:@"Can't callBack"];
+                            
+                        //コールバックスキームを開くことが出来る
+                        }else {
+                            
+                            NSLog(@"CallBack");
+                            
+                            [[UIApplication sharedApplication] openURL:[NSURL URLWithString:[d objectForKey:@"CallBackScheme"]]];
+                        }
+                    }
+                    
+                //投稿不可能な場合
+                }else {
+                    
+                    //ペーストボード内容をPost入力欄にコピー
+                    postText.text = pboard.string;
+                    int num = [TWTwitterCharCounter charCounter:postText.text];
+                    postCharLabel.text = [NSString stringWithFormat:@"%d", num];
+                }
+                
+            }else {
+                
+                //インターネ接続されていない
+                ShowAlert *alert = [[ShowAlert alloc] init];
+                [alert error:@"No internet connection"];
+            }
         }
-    }
-    
-    if ( [d boolForKey:@"Over140Chars"] ) {
-        
-        //ペーストボード内容をPost入力欄にコピー
-        postText.text = pboard.string;
-        int num = [TWTwitterCharCounter charCounter:postText.text];
-        postCharLabel.text = [NSString stringWithFormat:@"%d", num];
-        
-        //判定を削除
-        [d removeObjectForKey:@"Over140Chars"];
-        
     }
 }
 

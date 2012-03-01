@@ -24,157 +24,28 @@
 
 - (void)application:(UIApplication *)application didReceiveLocalNotification:(UILocalNotification *)notification {
     
+    NSLog(@"Notification");
+    
     //iOS5以降かチェック
     if ( [self ios5Check] ) {
         
-        //Internet接続のチェック
-        if ( [[Reachability reachabilityForInternetConnection] currentReachabilityStatus] != NotReachable ) {
+        NSUserDefaults *d = [NSUserDefaults standardUserDefaults];
+        
+        if ( [d boolForKey:@"AddApp"] ) {
             
-            NSLog(@"Notification");
+            //通知センターへのアプリ登録時は何もしない
+            [d removeObjectForKey:@"AddApp"];
             
-            NSUserDefaults *d = [NSUserDefaults standardUserDefaults];
-            
-            if ( [d boolForKey:@"AddApp"] ) {
-                
-                //通知センターへのアプリ登録時は何もしない
-                [d removeObjectForKey:@"AddApp"];
-                
-                return;
-            }
-            
-            UIPasteboard *pboard = [UIPasteboard generalPasteboard];
-            NSLog(@"pboard: %@", pboard.pasteboardTypes);
-    
-//            BOOL pBoardType = NO;
-            int pBoardType = 0;
-            
-            if ( [[pboard.pasteboardTypes objectAtIndex:0] isEqualToString:@"public.text"] ) {
-            
-                //テキストの場合
-                pBoardType = 0;
-                
-            }else if ( [[pboard.pasteboardTypes objectAtIndex:0] isEqualToString:@"public.jpeg"] ||
-                       [[pboard.pasteboardTypes objectAtIndex:0] isEqualToString:@"public.png"] ||
-                       [[pboard.pasteboardTypes objectAtIndex:0] isEqualToString:@"public.gif"] ||
-                       [[pboard.pasteboardTypes objectAtIndex:0] isEqualToString:@"public.bmp"] ) {
-                
-                //画像の場合
-                pBoardType = 1;
-            
-            }else {
-                
-                //得体の知れない物
-                ShowAlert *alert = [[ShowAlert alloc] init];
-                [alert error:@"ペーストボードの中身がテキストか画像以外です。"];
-                
-                return;
-            }
-            
-            NSString *itemName = [notification.userInfo objectForKey:@"scheme"];
-            NSLog(@"itemName: %@", itemName);
-            
-            if ( [itemName hasPrefix:@"dic"] ) {
-                
-                //辞書
-                UIReferenceLibraryViewController *controller = [[UIReferenceLibraryViewController alloc] initWithTerm:pboard.string];
-                [self.viewController presentModalViewController:controller animated:YES];
-                
-            }else if ( [itemName hasPrefix:@"tweet"] ) {
-                
-                //FastPostが有効
-                if ( [d boolForKey:@"FastPost"] ) {
-                    
-                    BOOL canOpen = NO;
-                    if ( [d boolForKey:@"CallBack"] ) {
-                        
-                        //CallbackSchemeが空でない
-                        if ( ![[d objectForKey:@"CallBackScheme"] isEqualToString:@""] ||
-                            [d objectForKey:@"CallBackScheme"] != nil) {
-                            
-                            //CallbackSchemeがアクセス可能な物がテスト
-                            canOpen = [[UIApplication sharedApplication] canOpenURL:[NSURL URLWithString:[d objectForKey:@"CallBackScheme"]]];
-                            
-                        }
-                    }
-                    
-                    //アカウント情報取得
-                    ACAccount *twAccount = [TWGetAccount getTwitterAccount];
-                    
-                    if (twAccount != nil) {
-                    
-                        //ペーストボードの内容を投稿
-                        if ( pBoardType == 0 ) {
-                            
-                            //t.coを考慮した文字数カウントを行う
-                            int num = [TWTwitterCharCounter charCounter:pboard.string];
-                            
-                            if ( num < 0 ) {
-                                
-                                //140字を超えていた場合
-                                ShowAlert *alert = [[ShowAlert alloc] init];
-                                [alert error:[NSString stringWithFormat:@"Post message is over 140: %d", num]];
-                                
-                                NSLog(@"%@", [NSString stringWithFormat:@"Post message is over 140: %d", num]);
-                                
-                                //140字を超えていた事を表すフラグを設置
-                                [d setBool:YES forKey:@"Over140Chars"];
-                                
-                                return;
-                                
-                            }
-                            
-                            //テキスト
-                            [TWSendTweet post:pboard.string];
-                            
-                        }else if ( pBoardType == 1 ){
-                            
-                            //画像
-                            
-                        }
-                        
-                    }else {
-                        
-                        //Twitterアカウントが見つからない場合設定に飛ばす
-                        ShowAlert *alert = [[ShowAlert alloc] init];
-                        [alert error:@"Twitter account nothing"];
-                        [[UIApplication sharedApplication] openURL:[NSURL URLWithString:@"prefs:root=TWITTER"]];
-                        
-                    }
-                    
-                    //Callbackが有効
-                    if ( [d boolForKey:@"CallBack"] ) {
-                        
-                        //Schemeが開けない
-                        if ( !canOpen ) {
-                        
-                            NSLog(@"Can't callBack");
-                            
-                            ShowAlert *alert = [[ShowAlert alloc] init];
-                            [alert error:@"Can't callBack"];
-                        
-                        }else {
-                            
-                            NSLog(@"CallBack");
-                            
-                            [[UIApplication sharedApplication] openURL:[NSURL URLWithString:[d objectForKey:@"CallBackScheme"]]];
-                            
-                        }
-                    }
-                    
-                }else {
-                    
-                    //通知判定
-                    [d setBool:YES forKey:@"Notification"];
-                    
-                }
-            }
-            
-        }else {
-            
-            ShowAlert *alert = [[ShowAlert alloc] init];
-            [alert error:@"No internet connection"];
-            
+            return;
         }
+        
+        //通知の判別
+        NSString *itemName = [notification.userInfo objectForKey:@"scheme"];
+        NSLog(@"itemName: %@", itemName);
+        
+        //通知フラグと種類を登録
+        [d setBool:YES forKey:@"Notification"];
+        [d setObject:itemName forKey:@"NotificationType"];
     }
 }
 
@@ -191,7 +62,6 @@
     }else {
         
         result = YES;
-        
     }
     
     return result;
@@ -218,7 +88,6 @@
 	backgroundTask = [application beginBackgroundTaskWithExpirationHandler: ^{
         [application endBackgroundTask:backgroundTask];
     }];
-    
 }
 
 - (void)dealloc {

@@ -10,3 +10,4 @@
 #import "GrayView.h"
 #import "ActivityIndicator.h"
 #import "ShowAlert.h"
+#import "PasteboardType.h"

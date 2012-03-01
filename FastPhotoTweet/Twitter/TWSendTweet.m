@@ -65,6 +65,8 @@
                      NSString *responseDataString = [[[NSString alloc] initWithData:responseData encoding:NSUTF8StringEncoding] autorelease];
                      NSDictionary *result = [responseDataString JSONValue];
                      
+                     //NSLog(@"result: %@", result);
+                     
                      //Postしたテキスト
                      NSString *text = [result objectForKey:@"text"];
                      
