@@ -15,6 +15,8 @@
 
 - (BOOL)application:(UIApplication *)application didFinishLaunchingWithOptions:(NSDictionary *)launchOptions {
     
+    NSLog(@"FinishLaunching");
+    
     self.window = [[[UIWindow alloc] initWithFrame:[[UIScreen mainScreen] bounds]] autorelease];
     self.viewController = [[[ViewController alloc] initWithNibName:@"ViewController" bundle:nil] autorelease];
     self.window.rootViewController = self.viewController;
@@ -31,10 +33,26 @@
         
         NSUserDefaults *d = [NSUserDefaults standardUserDefaults];
         
-        if ( [d boolForKey:@"AddApp"] ) {
+        if ( [d boolForKey:@"AddDic"] ) {
             
-            //通知センターへのアプリ登録時は何もしない
-            [d removeObjectForKey:@"AddApp"];
+            //通知センターへの登録時は何もしない
+            [d removeObjectForKey:@"AddDic"];
+            
+            return;
+        }
+        
+        if ( [d boolForKey:@"AddPhoto"] ) {
+            
+            //通知センターへの登録時は何もしない
+            [d removeObjectForKey:@"AddPhoto"];
+            
+            return;
+        }
+        
+        if ( [d boolForKey:@"AddTweet"] ) {
+            
+            //通知センターへの登録時は何もしない
+            [d removeObjectForKey:@"AddTweet"];
             
             return;
         }

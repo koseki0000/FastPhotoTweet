@@ -15,16 +15,16 @@
 #import "Twitter/TWTwitterHeader.h"
 #import "UtilityClass.h"
 
-@interface ViewController : UIViewController {
+@interface ViewController : UIViewController <UINavigationControllerDelegate, UIImagePickerControllerDelegate> {
     
     NSUserDefaults *d;
-    
     ACAccount *twAccount;
 }
 
+@property (retain, nonatomic) IBOutlet UIScrollView *sv;
 @property (retain, nonatomic) IBOutlet UIButton *postButton;
 @property (retain, nonatomic) IBOutlet UIButton *dicButton;
-@property (retain, nonatomic) IBOutlet UIButton *uploadImageButton;
+@property (retain, nonatomic) IBOutlet UIButton *imageSettingButton;
 @property (retain, nonatomic) IBOutlet UITextView *postText;
 @property (retain, nonatomic) IBOutlet UILabel *callbackLabel;
 @property (retain, nonatomic) IBOutlet UILabel *fastPostLabel;
@@ -36,10 +36,11 @@
 
 - (IBAction)pushPostButton:(id)sender;
 - (IBAction)pushDicButton:(id)sender;
-- (IBAction)pushUploadImageButton:(id)sender;
+- (IBAction)pushImageSettingButton:(id)sender;
 - (IBAction)callbackTextFieldEnter:(id)sender;
 - (IBAction)callbackSwitchDidChage:(id)sender;
 - (IBAction)fastPostSwitchDidChage:(id)sender;
+- (IBAction)textFieldStartEdit:(id)sender;
 
 - (void)loadSettings;
 - (BOOL)ios5Check;

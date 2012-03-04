@@ -8,9 +8,10 @@
 #import "ViewController.h"
 
 @implementation ViewController
+@synthesize sv;
 @synthesize postButton;
 @synthesize dicButton;
-@synthesize uploadImageButton;
+@synthesize imageSettingButton;
 @synthesize postText;
 @synthesize callbackLabel;
 @synthesize fastPostLabel;
@@ -24,6 +25,8 @@
     
     [super viewDidLoad];
     
+    NSLog(@"viewDidLoad");
+        
     //アプリがアクティブになった場合の通知を受け取る設定
     [[NSNotificationCenter defaultCenter] addObserver:self
                                              selector:@selector(becomeActive:)
@@ -32,7 +35,7 @@
     
     d = [NSUserDefaults standardUserDefaults];
     postText.text = @"";
-    
+        
     //保存されている情報をロード
     [self loadSettings];
     
@@ -54,20 +57,29 @@
                          twAccount = [[twitterAccounts objectAtIndex:0] retain];
                          ShowAlert *alert = [[ShowAlert alloc] init];
                          [alert title:@"Success" message:[NSString stringWithFormat:@"Account Name: %@", twAccount.username]];
-                         
                          NSLog(@"twAccount: %@", twAccount);
                          
                          //通知センターにアプリを登録
                          
                          //通知センター登録時は通知を受け取っても無視するように設定
-                         [d setBool:YES forKey:@"AddApp"];
+                         [d setBool:YES forKey:@"AddPhoto"];
+                         [d setBool:YES forKey:@"AddTweet"];
                          
+                         UILocalNotification *localPushPhoto = [[UILocalNotification alloc] init];
+                         localPushPhoto.timeZone = [NSTimeZone defaultTimeZone];
+                         localPushPhoto.alertBody = @"PhotoTweet";
+                         localPushPhoto.userInfo = [NSDictionary dictionaryWithObjectsAndKeys:@"photo", @"scheme", nil];
+
                          UILocalNotification *localPush = [[UILocalNotification alloc] init];
                          localPush.timeZone = [NSTimeZone defaultTimeZone];
-                         localPush.fireDate = [NSDate dateWithTimeIntervalSinceNow:0];
-                         localPush.alertBody = @"FastPhotoTweet";
+                         localPush.alertBody = @"Tweet";
                          localPush.userInfo = [NSDictionary dictionaryWithObjectsAndKeys:@"tweet", @"scheme", nil];
+                         
+                         localPushPhoto.fireDate = [NSDate dateWithTimeIntervalSinceNow:0];
+                         localPush.fireDate = [NSDate dateWithTimeIntervalSinceNow:0];
+                         [[UIApplication sharedApplication] scheduleLocalNotification:localPushPhoto];                                                  
                          [[UIApplication sharedApplication] scheduleLocalNotification:localPush];
+                         [localPushPhoto release];
                          [localPush release];
                          
                      } else {
@@ -76,7 +88,6 @@
                          
                          ShowAlert *alert = [[ShowAlert alloc] init];
                          [alert error:@"Twitter account nothing"];
-
                      }
                      
                  } else {
@@ -85,7 +96,6 @@
                      
                      ShowAlert *alert = [[ShowAlert alloc] init];
                      [alert error:@"Twitter account access denied"];
-                     
                  }
              });
          }];
@@ -103,7 +113,6 @@
         
         //オフ
         callbackSwitch.on = NO;
-        
     }
     
     if ( [d boolForKey:@"FastPost"] ) {
@@ -115,7 +124,6 @@
         
         //オフ
         fastPostSwitch.on = NO;
-        
     }
     
     NSString *str = [d objectForKey:@"CallBackScheme"];
@@ -158,8 +166,19 @@
                 postText.text = @"";
             }
             
-            //Textをバックグラウンドプロセスで投稿
-            [TWSendTweet performSelectorInBackground:@selector(post:) withObject:text];
+            //画像が設定されていない場合
+            if ( imagePreview.image == nil ) {
+                
+                //文字列をバックグラウンドプロセスで投稿
+                [TWSendTweet performSelectorInBackground:@selector(post:) withObject:text];
+             
+            //画像が設定されている場合
+            }else {
+                
+                //文字列と画像をバックグラウンドプロセスで投稿
+                NSArray *postData = [NSArray arrayWithObjects:text, imagePreview.image, nil];
+                [TWSendTweet performSelectorInBackground:@selector(photoPost:) withObject:postData];
+            }
         }
     }
 }
@@ -167,11 +186,11 @@
 - (IBAction)pushDicButton:(id)sender {
     
     //通知センター登録時は通知を受け取っても無視するように設定
-    [d setBool:YES forKey:@"AddApp"];
+    [d setBool:YES forKey:@"AddDic"];
     
     UILocalNotification *localPush = [[UILocalNotification alloc] init];
     localPush.timeZone = [NSTimeZone defaultTimeZone];
-    localPush.fireDate = [NSDate dateWithTimeIntervalSinceNow:0];
+    localPush.fireDate = [NSDate dateWithTimeIntervalSinceNow:0.1];
     localPush.alertBody = @"FastDictionary";
     localPush.userInfo = [NSDictionary dictionaryWithObjectsAndKeys:@"dic", @"scheme", nil];
     [[UIApplication sharedApplication] scheduleLocalNotification:localPush];
@@ -179,25 +198,42 @@
     [localPush release];
 }
 
-- (IBAction)pushUploadImageButton:(id)sender {
+- (IBAction)pushImageSettingButton:(id)sender {
     
-    if ( imagePreview.image != nil ) {
-     
-        //画像が設定されている場合アップロードを開始
-        
-        
-    }else {
-        
-        //画像が設定されていない場合エラー表示
-        
-        
-    }
+    //イメージピッカーを表示
+    UIImagePickerController *picPicker = [[UIImagePickerController alloc] init];
+    picPicker.delegate = self;
+    picPicker.sourceType = UIImagePickerControllerSourceTypePhotoLibrary;
+    [self presentModalViewController:picPicker animated:YES];
+    [picPicker release];
+}
+
+- (void)imagePickerController:(UIImagePickerController *)picPicker
+        didFinishPickingImage:(UIImage *)image 
+                  editingInfo:(NSDictionary*)editingInfo {
+
+    //画像が選択された場合
+    //画像を設定
+    imagePreview.image = image;
+    
+    //モーダルビューを閉じる
+    [picPicker dismissModalViewControllerAnimated:YES];
+}
+
+- (void)imagePickerControllerDidCancel:(UIImagePickerController *)picPicker {
+ 
+    //画像選択がキャンセルされた場合
+    //モーダルビューを閉じる
+    [picPicker dismissModalViewControllerAnimated:YES];
 }
 
 - (IBAction)callbackTextFieldEnter:(id)sender {
     
     //Enterが押されたらキーボードを隠す
     [callbackTextField resignFirstResponder];
+    
+    //ビューの位置を戻す
+    [sv setContentOffset:CGPointMake(0, 0) animated:YES];
     
     //コールバックスキームを保存
     [d setObject:callbackTextField.text forKey:@"CallBackScheme"];
@@ -212,6 +248,12 @@
     localPush.userInfo = [NSDictionary dictionaryWithObjectsAndKeys:callbackTextField.text, @"scheme", nil];
     [[UIApplication sharedApplication] scheduleLocalNotification:localPush];
     [localPush release];
+}
+
+- (IBAction)textFieldStartEdit:(id)sender {
+    
+    //ビューの位置を上げる
+    [sv setContentOffset:CGPointMake(0, 80) animated:YES];
 }
 
 - (IBAction)callbackSwitchDidChage:(id)sender {
@@ -337,9 +379,13 @@
                 
                 //FastPostが無効な場合
                 if ( ![d boolForKey:@"FastPost"] ) {
-                                        
+                    
+                    NSLog(@"FastPost Disable");
+                    
                     //テキスト
                     if ( pBoardType == 0 ) {
+                        
+                        NSLog(@"pBoardType Text");
                         
                         //ペーストボード内容をPost入力欄にコピー
                         postText.text = pboard.string;
@@ -349,12 +395,19 @@
                     //画像
                     }else if ( pBoardType == 1 ) {
                         
-                        //up
+                        NSLog(@"pBoardType Image");
                         
+                        //ペーストボードの画像をサムネイル表示
+                        imagePreview.image = pboard.image;
                     }
                     
+                    //Post入力状態にする
+                    [postText becomeFirstResponder];
+                
                 //FastPostが有効な場合
                 }else {
+                    
+                    NSLog(@"FastPost Enable");
                     
                     //コールバックが有効な場合
                     if ( [d boolForKey:@"CallBack"] ) {
@@ -448,7 +501,8 @@
     [self setFastPostSwitch:nil];
     [self setPostCharLabel:nil];
     [self setImagePreview:nil];
-    [self setUploadImageButton:nil];
+    [self setImageSettingButton:nil];
+    [self setSv:nil];
     [super viewDidUnload];
 }
 
@@ -491,7 +545,8 @@
     [fastPostSwitch release];
     [postCharLabel release];
     [imagePreview release];
-    [uploadImageButton release];
+    [imageSettingButton release];
+    [sv release];
     [super dealloc];
 }
 

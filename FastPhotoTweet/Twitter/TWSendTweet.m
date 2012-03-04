@@ -9,7 +9,6 @@
 
 @implementation TWSendTweet
 
-
 + (void)post:(NSString *)postText {
     
     //Tweet可能な状態か判別
@@ -18,11 +17,16 @@
         //ステータスバーに処理中表示
         [ActivityIndicator activityIndicatorVisible:YES];
         
+        //リクエスト情報
+        NSMutableDictionary *tParam = [NSMutableDictionary dictionaryWithObject:postText 
+                                                                         forKey:@"status"];
+        
+        //リクエストURLを指定
+        NSString *tReqURL = @"http://api.twitter.com/1/statuses/update.json";
+        
         //リクエストの作成
-        TWRequest *postRequest = [[TWRequest alloc] initWithURL:
-                                  [NSURL URLWithString:@"http://api.twitter.com/1/statuses/update.json"] 
-                                                     parameters:[NSDictionary dictionaryWithObject:postText 
-                                                                                            forKey:@"status"] 
+        TWRequest *postRequest = [[TWRequest alloc] initWithURL:[NSURL URLWithString:tReqURL] 
+                                                     parameters:tParam 
                                                   requestMethod:TWRequestMethodPOST];
         
         //アカウントの取得
@@ -83,8 +87,8 @@
                      }else {
                          
                          //Post成功
-                         ShowAlert *alert = [[ShowAlert alloc] init];
-                         [alert title:@"Success" message:text];
+//                         ShowAlert *alert = [[ShowAlert alloc] init];
+//                         [alert title:@"Success" message:text];
                          
                          NSLog(@"Post Success");
                          
@@ -97,6 +101,132 @@
 
              });
         }];
+        
+        NSLog(@"Post sended");
+        
+    }else {
+        
+        //何らかの理由でTweet不可だった場合
+        ShowAlert *alert = [[ShowAlert alloc] init];
+        [alert error:@"Please try again later"];
+    }
+}
+
++ (void)photoPost:(NSArray *)postData {
+    
+    //Tweet可能な状態か判別
+    if ( [TWTweetComposeViewController canSendTweet] ) {
+        
+        NSString *postText = [postData objectAtIndex:0];
+        UIImage *image = [postData objectAtIndex:1];
+        
+        if ( image == nil ) {
+            
+            //imageが空
+            ShowAlert *alert = [[ShowAlert alloc] init];
+            [alert error:@"画像データが空です。"];
+            
+            return;
+        }
+        
+        NSLog(@"Start PhotoPost");
+        
+        //ステータスバーに処理中表示
+        [ActivityIndicator activityIndicatorVisible:YES];
+        
+        //リクエストURLを指定
+        NSString *tReqURL = @"https://upload.twitter.com/1/statuses/update_with_media.json";
+        
+        //リクエストの作成
+        TWRequest *postRequest = [[TWRequest alloc] initWithURL:[NSURL URLWithString:tReqURL] 
+                                                     parameters:nil 
+                                                  requestMethod:TWRequestMethodPOST];
+        
+        //UIImageをNSDataに変換
+        NSData *imageData = UIImagePNGRepresentation(image);
+        
+        //画像を追加
+        [postRequest addMultiPartData:imageData 
+                             withName:@"media[]" 
+                                 type:@"multipart/form-data"];
+        
+        //テキストを追加
+        [postRequest addMultiPartData:[postText dataUsingEncoding:NSUTF8StringEncoding]
+                             withName:@"status" 
+                                 type:@"multipart/form-data"];
+        
+        //アカウントの取得
+        ACAccount *twAccount = [TWGetAccount getTwitterAccount];
+        
+        //Twitterアカウントの確認
+        if (twAccount == nil) {
+            
+            //アカウントデータが空
+            ShowAlert *alert = [[ShowAlert alloc] init];
+            [alert error:@"Can’t post"];
+            
+            return;
+        }
+        
+        //リクエストにアカウントを設定
+        [postRequest setAccount:twAccount];
+        
+        [postRequest performRequestWithHandler:
+         ^( NSData *responseData, NSHTTPURLResponse *urlResponse, NSError *error ) {
+             
+             dispatch_async(dispatch_get_main_queue(), ^{
+                 
+                 if (error != nil) {
+                     
+                     //エラー
+                     NSString *responseDataString = [[[NSString alloc] initWithData:responseData encoding:NSUTF8StringEncoding] autorelease];
+                     NSDictionary *result = [responseDataString JSONValue];
+                     
+                     NSString *errorText = [result objectForKey:@"error"];
+                     
+                     ShowAlert *alert = [[ShowAlert alloc] init];
+                     [alert error:errorText];
+                     
+                     NSLog(@"Post Error: %@", errorText);
+                     
+                 } else {
+                     
+                     //JSONからDictionaryを生成
+                     NSString *responseDataString = [[[NSString alloc] initWithData:responseData encoding:NSUTF8StringEncoding] autorelease];
+                     NSDictionary *result = [responseDataString JSONValue];
+                     
+                     //NSLog(@"result: %@", result);
+                     
+                     //Postしたテキスト
+                     NSString *text = [result objectForKey:@"text"];
+                     
+                     if ( [text isEqualToString:@""] || text == nil ) {
+                         
+                         NSString *errorText = [result objectForKey:@"error"];
+                         
+                         //textが空の場合は失敗してる
+                         ShowAlert *alert = [[ShowAlert alloc] init];
+                         [alert error:errorText];
+                         
+                         NSLog(@"Post Error: %@", errorText);
+                         
+                     }else {
+                         
+                         //Post成功
+//                       ShowAlert *alert = [[ShowAlert alloc] init];
+//                       [alert title:@"Success" message:text];
+                         
+                         NSLog(@"Post Success");
+                         
+                     }
+                     
+                 }
+                 
+                 //ステータスバーの処理中表示オフ
+                 [ActivityIndicator activityIndicatorVisible:NO];
+                 
+             });
+         }];
         
         NSLog(@"Post sended");
         

@@ -48,16 +48,14 @@
          [alertView.message isEqualToString:@"Twitter account access denied"] ) {
         
         [[UIApplication sharedApplication] openURL:[NSURL URLWithString:@"prefs:root=TWITTER"]];
-        
     }
 }
 
 - (void)dealloc {
     
-    [self release];
+    NSLog(@"ShowAlert dealloc");
     
     [super dealloc];
-    
 }
 
 @end
