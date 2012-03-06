@@ -1,0 +1,12 @@
+//
+//  EmptyCheck.h
+//  FastPhotoTweet
+//
+//  Created by @peace3884 on 12/03/05.
+//
+
+#import <Foundation/Foundation.h>
+
+@interface EmptyCheck : NSObject 
+
+@end

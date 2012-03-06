@@ -266,7 +266,6 @@
     }else {
         
         [d setBool:NO forKey:@"CallBack"];
-        
     }
 }
 
@@ -280,7 +279,6 @@
     }else {
         
         [d setBool:NO forKey:@"FastPost"];
-        
     }
 }
 
@@ -297,7 +295,6 @@
     }else {
         
         result = YES;
-        
     }
     
     return result;
@@ -321,7 +318,6 @@
     }else {
         
         postButton.hidden = NO;
-        
     }
 }
 
@@ -547,6 +543,7 @@
     [imagePreview release];
     [imageSettingButton release];
     [sv release];
+    
     [super dealloc];
 }
 
