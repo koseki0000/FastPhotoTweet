@@ -86,8 +86,8 @@
 
 + (NSArray *)arrayRegExp:(NSString *)matchString regExpPattern:(NSString *)regExpPattern {
     
-    NSArray *resultArray = [[NSArray alloc] init];
-    NSMutableArray *tmpArray = [[NSMutableArray alloc] initWithArray:resultArray];
+    NSArray *resultArray = [[[NSArray alloc] init] autorelease];
+    NSMutableArray *tmpArray = [[[NSMutableArray alloc] initWithArray:resultArray] autorelease];
     NSString *tmp = @"";
     NSError *error = nil;
     
@@ -100,13 +100,16 @@
                                        range:NSMakeRange(0, 
                                                          matchString.length)];
     
-    if (!error) {
+    if ( !error ) {
+        
         for (NSTextCheckingResult *result in match) {
+            
             tmp = [matchString substringWithRange:result.range];
             [tmpArray addObject:tmp];
         }
         
     }else {
+        
         [RegularExpression regExpError];
         return [NSArray array];
     }

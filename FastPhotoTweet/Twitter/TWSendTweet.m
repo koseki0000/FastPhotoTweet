@@ -16,9 +16,13 @@
         
         //0:画像つき投稿 1:文字のみ
         int postMode = 0;
+        NSString *postText;
+        UIImage *image;
+        
+        NSLog(@"postData: %@", postData);
         
         //画像のチェック
-        if ( [postData objectAtIndex:1] == nil ) {
+        if ( postData.count == 1 ) {
             
             //imageが空なら文字のみ投稿
             //文字データのチェック
@@ -35,8 +39,7 @@
             }
         }
         
-        NSString *postText = [postData objectAtIndex:0];
-        UIImage *image = [postData objectAtIndex:1];
+        postText = [postData objectAtIndex:0];
         
         NSLog(@"Start PhotoPost");
         
@@ -48,6 +51,7 @@
         if ( postMode == 0 ) {
             
             tReqURL = @"https://upload.twitter.com/1/statuses/update_with_media.json";
+            image = [postData objectAtIndex:1];
             
         }else if ( postMode == 1 ) {
             
@@ -55,16 +59,16 @@
         }
         
         //リクエストの作成
-        TWRequest *postRequest = [[TWRequest alloc] initWithURL:[NSURL URLWithString:tReqURL] 
+        TWRequest *postRequest = [[[TWRequest alloc] initWithURL:[NSURL URLWithString:tReqURL] 
                                                      parameters:nil 
-                                                  requestMethod:TWRequestMethodPOST];
-        
-        //UIImageをNSDataに変換
-        NSData *imageData;
-        //imageData = UIImagePNGRepresentation(image);
-        imageData = UIImageJPEGRepresentation(image, 0.9);
+                                                  requestMethod:TWRequestMethodPOST] autorelease];
         
         if ( postMode == 0 ) {
+            
+            //UIImageをNSDataに変換
+            NSData *imageData;
+            //imageData = UIImagePNGRepresentation(image);
+            imageData = UIImageJPEGRepresentation(image, 0.9);
             
             //画像を追加
             [postRequest addMultiPartData:imageData 
@@ -133,11 +137,7 @@
                          NSLog(@"Post Error: %@", errorText);
                          
                      }else {
-                         
-                         //Post成功
-//                       ShowAlert *alert = [[ShowAlert alloc] init];
-//                       [alert title:@"Success" message:text];
-                         
+
                          NSLog(@"Post Success");
                          
                      }
@@ -150,7 +150,7 @@
              });
          }];
         
-        NSLog(@"Post sended");
+        NSLog(@"Post sended: %@", twAccount.username);
         
     }else {
         

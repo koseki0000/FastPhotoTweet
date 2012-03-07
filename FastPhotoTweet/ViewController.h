@@ -14,17 +14,19 @@
 #import "Reachability.h"
 #import "Twitter/TWTwitterHeader.h"
 #import "UtilityClass.h"
+#import "IDChangeViewController.h"
+#import "SettingViewController.h"
 
-@interface ViewController : UIViewController <UINavigationControllerDelegate, UIImagePickerControllerDelegate> {
+@interface ViewController : UIViewController <UINavigationControllerDelegate, UIImagePickerControllerDelegate, UIActionSheetDelegate> {
     
     NSUserDefaults *d;
     ACAccount *twAccount;
+    
+    BOOL changeAccount;
+    int actionSheetNo;
 }
 
 @property (retain, nonatomic) IBOutlet UIScrollView *sv;
-@property (retain, nonatomic) IBOutlet UIButton *postButton;
-@property (retain, nonatomic) IBOutlet UIButton *dicButton;
-@property (retain, nonatomic) IBOutlet UIButton *imageSettingButton;
 @property (retain, nonatomic) IBOutlet UITextView *postText;
 @property (retain, nonatomic) IBOutlet UILabel *callbackLabel;
 @property (retain, nonatomic) IBOutlet UILabel *fastPostLabel;
@@ -33,16 +35,31 @@
 @property (retain, nonatomic) IBOutlet UISwitch *callbackSwitch;
 @property (retain, nonatomic) IBOutlet UISwitch *fastPostSwitch;
 @property (retain, nonatomic) IBOutlet UIImageView *imagePreview;
+@property (retain, nonatomic) IBOutlet UIToolbar *topBar;
+@property (retain, nonatomic) IBOutlet UIToolbar *bottomBar;
+@property (retain, nonatomic) IBOutlet UIBarButtonItem *trashButton;
+@property (retain, nonatomic) IBOutlet UIBarButtonItem *postButton;
+@property (retain, nonatomic) IBOutlet UIBarButtonItem *imageSettingButton;
+@property (retain, nonatomic) IBOutlet UIBarButtonItem *idButton;
+@property (retain, nonatomic) IBOutlet UIBarButtonItem *settingButton;
+@property (retain, nonatomic) IBOutlet UIBarButtonItem *flexibleSpace;
+@property (retain, nonatomic) IBOutlet UIBarButtonItem *addButton;
 
 - (IBAction)pushPostButton:(id)sender;
-- (IBAction)pushDicButton:(id)sender;
+- (IBAction)pushTrashButton:(id)sender;
+- (IBAction)pushSettingButton:(id)sender;
 - (IBAction)pushImageSettingButton:(id)sender;
+- (IBAction)pushIDButton:(id)sender;
+- (IBAction)pushAddButton:(id)sender;
+
 - (IBAction)callbackTextFieldEnter:(id)sender;
+- (IBAction)textFieldStartEdit:(id)sender;
+
 - (IBAction)callbackSwitchDidChage:(id)sender;
 - (IBAction)fastPostSwitchDidChage:(id)sender;
-- (IBAction)textFieldStartEdit:(id)sender;
 
 - (void)loadSettings;
 - (BOOL)ios5Check;
+- (BOOL)reachability;
 
 @end

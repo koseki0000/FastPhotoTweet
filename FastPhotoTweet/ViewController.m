@@ -7,10 +7,11 @@
 
 #import "ViewController.h"
 
+#define TOP_BAR [NSArray arrayWithObjects:trashButton, flexibleSpace, idButton, flexibleSpace, imageSettingButton, flexibleSpace, postButton, nil]
+#define BOTTOM_BAR [NSArray arrayWithObjects:settingButton, flexibleSpace, addButton, nil]
+
 @implementation ViewController
 @synthesize sv;
-@synthesize postButton;
-@synthesize dicButton;
 @synthesize imageSettingButton;
 @synthesize postText;
 @synthesize callbackLabel;
@@ -20,6 +21,14 @@
 @synthesize callbackSwitch;
 @synthesize fastPostSwitch;
 @synthesize imagePreview;
+@synthesize topBar;
+@synthesize trashButton;
+@synthesize postButton;
+@synthesize flexibleSpace;
+@synthesize addButton;
+@synthesize idButton;
+@synthesize bottomBar;
+@synthesize settingButton;
 
 - (void)viewDidLoad {
     
@@ -33,9 +42,16 @@
                                                  name:UIApplicationDidBecomeActiveNotification
                                                object:nil];
     
+    //各種初期値をセット
     d = [NSUserDefaults standardUserDefaults];
     postText.text = @"";
-        
+    changeAccount = NO;
+    actionSheetNo = 0;
+    
+    //ツールバーにボタンをセット
+    [topBar setItems:TOP_BAR animated:NO];
+    [bottomBar setItems:BOTTOM_BAR animated:NO];
+    
     //保存されている情報をロード
     [self loadSettings];
     
@@ -54,33 +70,10 @@
                      NSArray *twitterAccounts = [accountStore accountsWithAccountType:accountType];
                      if ( twitterAccounts.count > 0 ) {
                          
-                         twAccount = [[twitterAccounts objectAtIndex:0] retain];
+                         twAccount = [[twitterAccounts objectAtIndex:[d integerForKey:@"UseAccount"]] retain];
                          ShowAlert *alert = [[ShowAlert alloc] init];
                          [alert title:@"Success" message:[NSString stringWithFormat:@"Account Name: %@", twAccount.username]];
                          NSLog(@"twAccount: %@", twAccount);
-                         
-                         //通知センターにアプリを登録
-                         
-                         //通知センター登録時は通知を受け取っても無視するように設定
-                         [d setBool:YES forKey:@"AddPhoto"];
-                         [d setBool:YES forKey:@"AddTweet"];
-                         
-                         UILocalNotification *localPushPhoto = [[UILocalNotification alloc] init];
-                         localPushPhoto.timeZone = [NSTimeZone defaultTimeZone];
-                         localPushPhoto.alertBody = @"PhotoTweet";
-                         localPushPhoto.userInfo = [NSDictionary dictionaryWithObjectsAndKeys:@"photo", @"scheme", nil];
-
-                         UILocalNotification *localPush = [[UILocalNotification alloc] init];
-                         localPush.timeZone = [NSTimeZone defaultTimeZone];
-                         localPush.alertBody = @"Tweet";
-                         localPush.userInfo = [NSDictionary dictionaryWithObjectsAndKeys:@"tweet", @"scheme", nil];
-                         
-                         localPushPhoto.fireDate = [NSDate dateWithTimeIntervalSinceNow:0];
-                         localPush.fireDate = [NSDate dateWithTimeIntervalSinceNow:0];
-                         [[UIApplication sharedApplication] scheduleLocalNotification:localPushPhoto];                                                  
-                         [[UIApplication sharedApplication] scheduleLocalNotification:localPush];
-                         [localPushPhoto release];
-                         [localPush release];
                          
                      } else {
                          
@@ -146,7 +139,7 @@
     if ( [self ios5Check] ) {
 
         //Internet接続のチェック
-        if ( [[Reachability reachabilityForInternetConnection] currentReachabilityStatus] != NotReachable ) {
+        if ( [self reachability] ) {
 
             NSString *text;
             
@@ -184,19 +177,43 @@
     }
 }
 
-- (IBAction)pushDicButton:(id)sender {
+- (IBAction)pushTrashButton:(id)sender {
     
-    //通知センター登録時は通知を受け取っても無視するように設定
-    [d setBool:YES forKey:@"AddDic"];
+    NSLog(@"Trash");
     
-    UILocalNotification *localPush = [[UILocalNotification alloc] init];
-    localPush.timeZone = [NSTimeZone defaultTimeZone];
-    localPush.fireDate = [NSDate dateWithTimeIntervalSinceNow:0.1];
-    localPush.alertBody = @"FastDictionary";
-    localPush.userInfo = [NSDictionary dictionaryWithObjectsAndKeys:@"dic", @"scheme", nil];
-    [[UIApplication sharedApplication] scheduleLocalNotification:localPush];
+    postText.text = @"";
+    imagePreview.image = nil;
+}
+
+- (IBAction)pushSettingButton:(id)sender {
     
-    [localPush release];
+    NSLog(@"Setting");
+    
+}
+
+- (IBAction)pushIDButton:(id)sender {
+    
+    NSLog(@"ID Change");
+    
+    changeAccount = YES;
+    
+    IDChangeViewController *dialog = [[[IDChangeViewController alloc] init] autorelease];
+	dialog.modalTransitionStyle = UIModalTransitionStyleFlipHorizontal;
+	[self presentModalViewController:dialog animated:YES];
+}
+
+- (IBAction)pushAddButton:(id)sender {
+    
+    actionSheetNo = 0;
+    
+    UIActionSheet *sheet = [[UIActionSheet alloc]
+                            initWithTitle:@"通知センター登録"
+                            delegate:self
+                            cancelButtonTitle:@"Cancel"
+                            destructiveButtonTitle:nil
+                            otherButtonTitles:@"Tweet", @"PhotoTweet", @"Dictionary", nil];
+	[sheet autorelease];
+	[sheet showInView:self.view];
 }
 
 - (IBAction)pushImageSettingButton:(id)sender {
@@ -254,7 +271,7 @@
 - (IBAction)textFieldStartEdit:(id)sender {
     
     //ビューの位置を上げる
-    [sv setContentOffset:CGPointMake(0, 80) animated:YES];
+    [sv setContentOffset:CGPointMake(0, 60) animated:YES];
 }
 
 - (IBAction)callbackSwitchDidChage:(id)sender {
@@ -283,6 +300,50 @@
     }
 }
 
+- (void)actionSheet:(UIActionSheet*)actionSheet clickedButtonAtIndex:(NSInteger)buttonIndex {
+
+    if ( actionSheet == 0 ) {
+     
+        if ( buttonIndex < 3 ) {
+            
+            return;
+        }
+
+        //通知センターにアプリを登録
+        //通知センター登録時は通知を受け取っても無視するように設定
+        [d setBool:YES forKey:@"AddPhoto"];
+        
+        UILocalNotification *localPush = [[UILocalNotification alloc] init];
+        localPush.timeZone = [NSTimeZone defaultTimeZone];
+        
+        if ( buttonIndex == 0 ) {
+
+            localPush.alertBody = @"Tweet";
+            localPush.userInfo = [NSDictionary dictionaryWithObjectsAndKeys:@"tweet", @"scheme", nil];
+            
+            NSLog(@"Add NotificationCenter Tweet");
+            
+        }else if ( buttonIndex == 2 ) {
+            
+            localPush.alertBody = @"PhotoTweet";
+            localPush.userInfo = [NSDictionary dictionaryWithObjectsAndKeys:@"photo", @"scheme", nil];
+
+            NSLog(@"Add NotificationCenter PhotoTweet");
+            
+        }else if ( buttonIndex == 3 ) {
+            
+            localPush.alertBody = @"Dictionary";
+            localPush.userInfo = [NSDictionary dictionaryWithObjectsAndKeys:@"dic", @"scheme", nil];
+            
+            NSLog(@"Add NotificationCenter Dictionary");
+        }
+        
+        localPush.fireDate = [NSDate dateWithTimeIntervalSinceNow:0];
+        [[UIApplication sharedApplication] scheduleLocalNotification:localPush];
+        [localPush release];
+    }
+}
+
 - (BOOL)ios5Check {
     
     BOOL result = NO;
@@ -301,6 +362,23 @@
     return result;
 }
 
+- (BOOL)reachability {
+    
+    BOOL result = NO;
+    
+    if ( [[Reachability reachabilityForInternetConnection] currentReachabilityStatus] != NotReachable ) {
+        
+        result = YES;
+        
+    }else {
+        
+        ShowAlert *alert = [[ShowAlert alloc] init];
+        [alert error:@"No Internet connection"];
+    }
+    
+    return result;
+}
+
 - (void)textViewDidChange:(UITextView *)textView {
 
     //TextViewの内容が変更された時に呼ばれる
@@ -314,11 +392,11 @@
     //文字数が140字を超えていた場合Postボタンを隠す
     if (num < 0) {
         
-        postButton.hidden = YES;
+        postButton.enabled = NO;
         
     }else {
         
-        postButton.hidden = NO;
+        postButton.enabled = YES;
     }
 }
 
@@ -341,7 +419,7 @@
             //通知が辞書機能だった場合
             if ( [[d objectForKey:@"NotificationType"] isEqualToString:@"dic"] ) {
                 
-                UIReferenceLibraryViewController *controller = [[UIReferenceLibraryViewController alloc] initWithTerm:pboard.string];
+                UIReferenceLibraryViewController *controller = [[[UIReferenceLibraryViewController alloc] initWithTerm:pboard.string] autorelease];
                 [self presentModalViewController:controller animated:YES];
 
                 return;
@@ -360,7 +438,7 @@
             }
             
             //インターネット接続のチェック
-            if ( [[Reachability reachabilityForInternetConnection] currentReachabilityStatus] != NotReachable ) {
+            if ( [self reachability] ) {
                 
                 BOOL canPost = NO;
                 BOOL canOpen = NO;
@@ -445,7 +523,8 @@
                 if ( canPost ) {
                  
                     //投稿処理
-                    NSArray *postData = [NSArray arrayWithObjects:pboard.string, nil, nil];
+                    NSString *text = [[[NSString alloc] initWithString:pboard.string] autorelease];
+                    NSArray *postData = [NSArray arrayWithObjects:text, nil, nil];
                     [TWSendTweet performSelectorInBackground:@selector(post:) withObject:postData];
                     
                     //コールバックが有効
@@ -489,18 +568,24 @@
 
 - (void)viewDidUnload {
     
-    [self setPostButton:nil];
     [self setPostText:nil];
     [self setCallbackLabel:nil];
     [self setCallbackTextField:nil];
     [self setCallbackSwitch:nil];
-    [self setDicButton:nil];
     [self setFastPostLabel:nil];
     [self setFastPostSwitch:nil];
     [self setPostCharLabel:nil];
     [self setImagePreview:nil];
     [self setImageSettingButton:nil];
     [self setSv:nil];
+    [self setTopBar:nil];
+    [self setTrashButton:nil];
+    [self setPostButton:nil];
+    [self setFlexibleSpace:nil];
+    [self setSettingButton:nil];
+    [self setBottomBar:nil];
+    [self setIdButton:nil];
+    [self setAddButton:nil];
     [super viewDidUnload];
 }
 
@@ -517,6 +602,24 @@
 - (void)viewDidAppear:(BOOL)animated {
     
     [super viewDidAppear:animated];
+    
+    NSLog(@"viewDidAppear");
+    
+    if ( changeAccount ) {
+        
+        NSLog(@"ChangeAccount");
+        
+        [twAccount release];
+        
+        //アカウント設定を更新
+        ACAccountStore *accountStore = [[[ACAccountStore alloc] init] autorelease];
+        ACAccountType *accountType = [accountStore accountTypeWithAccountTypeIdentifier:ACAccountTypeIdentifierTwitter];
+        NSArray *twitterAccounts = [accountStore accountsWithAccountType:accountType];
+        twAccount = [[twitterAccounts objectAtIndex:[d integerForKey:@"UseAccount"]] retain];
+        [twAccount retain];
+        
+        changeAccount = NO;
+    }
 }
 
 - (void)viewWillDisappear:(BOOL)animated {
@@ -533,12 +636,10 @@
     
     [twAccount release];
     
-    [postButton release];
     [postText release];
     [callbackLabel release];
     [callbackTextField release];
     [callbackSwitch release];
-    [dicButton release];
     [fastPostLabel release];
     [fastPostSwitch release];
     [postCharLabel release];
@@ -546,6 +647,14 @@
     [imageSettingButton release];
     [sv release];
     
+    [topBar release];
+    [trashButton release];
+    [postButton release];
+    [flexibleSpace release];
+    [settingButton release];
+    [bottomBar release];
+    [idButton release];
+    [addButton release];
     [super dealloc];
 }
 
