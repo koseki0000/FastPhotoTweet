@@ -61,8 +61,8 @@
         
         //UIImageをNSDataに変換
         NSData *imageData;
-        imageData = UIImagePNGRepresentation(image);
-        //imageData = UIImageJPEGRepresentation(image, 0.95);
+        //imageData = UIImagePNGRepresentation(image);
+        imageData = UIImageJPEGRepresentation(image, 0.9);
         
         if ( postMode == 0 ) {
             

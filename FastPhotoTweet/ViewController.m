@@ -445,7 +445,8 @@
                 if ( canPost ) {
                  
                     //投稿処理
-                    [TWSendTweet post:pboard.string];
+                    NSArray *postData = [NSArray arrayWithObjects:pboard.string, nil, nil];
+                    [TWSendTweet performSelectorInBackground:@selector(post:) withObject:postData];
                     
                     //コールバックが有効
                     if ( [d boolForKey:@"CallBack"] ) {
