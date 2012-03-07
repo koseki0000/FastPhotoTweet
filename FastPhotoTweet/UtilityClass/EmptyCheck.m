@@ -9,7 +9,7 @@
 
 @implementation EmptyCheck
 
-- (BOOL)check:(id)obj {
++ (BOOL)check:(id)obj {
     
     BOOL result = NO;
     

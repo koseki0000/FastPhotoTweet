@@ -9,4 +9,6 @@
 
 @interface EmptyCheck : NSObject 
 
++ (BOOL)check:(id)obj;
+
 @end

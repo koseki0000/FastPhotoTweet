@@ -170,14 +170,15 @@
             if ( imagePreview.image == nil ) {
                 
                 //文字列をバックグラウンドプロセスで投稿
-                [TWSendTweet performSelectorInBackground:@selector(post:) withObject:text];
+                NSArray *postData = [NSArray arrayWithObjects:text, nil, nil];
+                [TWSendTweet performSelectorInBackground:@selector(post:) withObject:postData];
              
             //画像が設定されている場合
             }else {
                 
                 //文字列と画像をバックグラウンドプロセスで投稿
                 NSArray *postData = [NSArray arrayWithObjects:text, imagePreview.image, nil];
-                [TWSendTweet performSelectorInBackground:@selector(photoPost:) withObject:postData];
+                [TWSendTweet performSelectorInBackground:@selector(post:) withObject:postData];
             }
         }
     }
