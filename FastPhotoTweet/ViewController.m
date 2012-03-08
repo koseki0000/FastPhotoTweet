@@ -301,14 +301,9 @@
 }
 
 - (void)actionSheet:(UIActionSheet*)actionSheet clickedButtonAtIndex:(NSInteger)buttonIndex {
-
-    if ( actionSheet == 0 ) {
-     
-        if ( buttonIndex < 3 ) {
-            
-            return;
-        }
-
+    
+    if ( actionSheetNo == 0 ) {
+             
         //通知センターにアプリを登録
         //通知センター登録時は通知を受け取っても無視するように設定
         [d setBool:YES forKey:@"AddPhoto"];
@@ -323,14 +318,14 @@
             
             NSLog(@"Add NotificationCenter Tweet");
             
-        }else if ( buttonIndex == 2 ) {
+        }else if ( buttonIndex == 1 ) {
             
             localPush.alertBody = @"PhotoTweet";
             localPush.userInfo = [NSDictionary dictionaryWithObjectsAndKeys:@"photo", @"scheme", nil];
 
             NSLog(@"Add NotificationCenter PhotoTweet");
             
-        }else if ( buttonIndex == 3 ) {
+        }else if ( buttonIndex == 2 ) {
             
             localPush.alertBody = @"Dictionary";
             localPush.userInfo = [NSDictionary dictionaryWithObjectsAndKeys:@"dic", @"scheme", nil];
