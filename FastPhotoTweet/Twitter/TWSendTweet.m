@@ -97,6 +97,12 @@
         //リクエストにアカウントを設定
         [postRequest setAccount:twAccount];
         
+        //投稿結果通知を作成
+        NSMutableDictionary *postResult = [NSMutableDictionary dictionary];
+        NSNotification *postNotification =[NSNotification notificationWithName:@"PostDone" 
+                                                                        object:self 
+                                                                      userInfo:postResult];
+        
         [postRequest performRequestWithHandler:
          ^( NSData *responseData, NSHTTPURLResponse *urlResponse, NSError *error ) {
              
@@ -112,6 +118,12 @@
                      
                      ShowAlert *alert = [[ShowAlert alloc] init];
                      [alert error:errorText];
+                     
+                     //通知にエラーをセット
+                     [postResult setObject:@"Error" forKey:@"PostResult"];
+                     
+                     //通知を実行
+                     [[NSNotificationCenter defaultCenter] postNotification:postNotification];
                      
                      NSLog(@"Post Error: %@", errorText);
                      
@@ -138,6 +150,12 @@
                          
                      }else {
 
+                         //通知に成功をセット
+                         [postResult setObject:@"Success" forKey:@"PostResult"];
+                         
+                         //通知を実行
+                         [[NSNotificationCenter defaultCenter] postNotification:postNotification];
+                         
                          NSLog(@"Post Success");
                          
                      }

@@ -35,12 +35,19 @@
     [super viewDidLoad];
     
     NSLog(@"viewDidLoad");
-        
+    
+    NSNotificationCenter *notificationCenter = [NSNotificationCenter defaultCenter];
+    
     //アプリがアクティブになった場合の通知を受け取る設定
-    [[NSNotificationCenter defaultCenter] addObserver:self
-                                             selector:@selector(becomeActive:)
-                                                 name:UIApplicationDidBecomeActiveNotification
-                                               object:nil];
+    [notificationCenter addObserver:self
+                           selector:@selector(becomeActive:)
+                               name:UIApplicationDidBecomeActiveNotification
+                             object:nil];
+    
+    [notificationCenter addObserver:self 
+                           selector:@selector(postDone:) 
+                               name:@"PostDone" 
+                             object:nil];
     
     //各種初期値をセット
     d = [NSUserDefaults standardUserDefaults];
@@ -155,8 +162,7 @@
             }else {
 
                 //文字が入力されている場合はそちらを投稿
-                text = postText.text;
-                postText.text = @"";
+                //TODO 失敗時最投稿処理用の保存を行う
             }
             
             //画像が設定されていない場合
@@ -177,6 +183,23 @@
     }
 }
 
+- (void)postDone:(NSNotification *)center {
+
+    NSString *result = [center.userInfo objectForKey:@"PostResult"];
+    NSLog(@"postDone: %@", result);
+    
+    if ( [result isEqualToString:@""] ) {
+        
+        //投稿成功、入力欄と画像プレビューを空にする
+        postText.text = @"";
+        imagePreview.image = nil;
+        
+    }else {
+        
+        //TODO 投稿失敗、再投稿の確認を出す予定
+    }
+}
+
 - (IBAction)pushTrashButton:(id)sender {
     
     NSLog(@"Trash");
@@ -188,7 +211,6 @@
 - (IBAction)pushSettingButton:(id)sender {
     
     NSLog(@"Setting");
-    
 }
 
 - (IBAction)pushIDButton:(id)sender {

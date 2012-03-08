@@ -59,6 +59,7 @@
 - (IBAction)fastPostSwitchDidChage:(id)sender;
 
 - (void)loadSettings;
+- (void)postDone;
 - (BOOL)ios5Check;
 - (BOOL)reachability;
 
