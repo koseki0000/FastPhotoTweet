@@ -11,17 +11,17 @@
 
 + (UIImage *)aspectResize:(UIImage *)image {
 
-    NSAutoreleasePool *pool = [[NSAutoreleasePool alloc] init];
 	NSUserDefaults *d = [NSUserDefaults standardUserDefaults];
     
     size_t resizeHeight = 0;
     size_t resizeWidth = 0;
-    int originalHeight = abs((int)resizeHeight);
-    int originalWidth = abs((int)resizeWidth);
+    int originalHeight = (int)image.size.height;
+    int originalWidth = (int)image.size.width;
     BOOL skip = NO;
     
     //リサイズ前のログ
     NSLog(@"OriginalSize w: %d h: %d", originalWidth, originalHeight);
+    NSLog(@"imageMaxSize: %d", [d integerForKey:@"imageMaxSize"]);
     
     //iPhone4解像度はリサイズしない
     if ( [d integerForKey:@"noResizeIphone4Ss"] == 1 ){
@@ -51,9 +51,9 @@
 
             if ( originalHeight < [d integerForKey:@"imageMaxSize"] ) {
                 
-                CGFloat ratio = originalWidth / [d integerForKey:@"imageMaxSize"];
-                resizeWidth = originalWidth / ratio;
-                resizeHeight = originalHeight / ratio;
+                CGFloat ratio = image.size.width / [d integerForKey:@"imageMaxSize"];
+                resizeWidth = image.size.width / ratio;
+                resizeHeight = image.size.height / ratio;
                 
             }else {
                 
@@ -71,25 +71,33 @@
                 //縦長
                 if ( originalHeight > originalWidth ) {
                     
-                    CGFloat ratio = originalHeight / [d integerForKey:@"imageMaxSize"];
-                    resizeWidth = originalWidth / ratio;
-                    resizeHeight = originalHeight / ratio;    
+                    NSLog(@"H > W");
+                    
+                    CGFloat ratio = image.size.height / [d integerForKey:@"imageMaxSize"];
+                    resizeWidth = image.size.width / ratio;
+                    resizeHeight = image.size.height / ratio;
                 
                 //横長
                 }else {
                     
-                    CGFloat ratio = originalWidth / [d integerForKey:@"imageMaxSize"];
-                    resizeWidth = originalWidth / ratio;
-                    resizeHeight = originalHeight / ratio;
+                    NSLog(@"W > H");
+                    
+                    CGFloat ratio = image.size.width / [d integerForKey:@"imageMaxSize"];
+                    resizeWidth = image.size.width / ratio;
+                    resizeHeight = image.size.height / ratio;
                 }
             
             //指定サイズ以下、リサイズ無し
             }else {
 
+                NSLog(@"No resize");
+                
                 return image;
             }
         }
     }
+    
+    NSLog(@"ResizeSize w: %lu h: %lu", resizeWidth, resizeHeight);
     
     UIGraphicsBeginImageContext( CGSizeMake( resizeWidth, resizeHeight ) );  
 	[image drawInRect:CGRectMake( 0, 0, resizeWidth, resizeHeight )];  
@@ -97,9 +105,7 @@
 	UIGraphicsEndImageContext();
     
     //リサイズ後のログ
-    NSLog(@"OriginalSize w: %d h: %d", originalWidth, originalHeight);
-    
-    [pool drain];
+    NSLog(@"Resized Image w: %.0f h: %.0f", image.size.width, image.size.height);
     
     return image;
 }

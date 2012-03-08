@@ -55,6 +55,10 @@
     changeAccount = NO;
     actionSheetNo = 0;
     
+    //for debug
+    [d setInteger:1 forKey:@"noResizeIphone4Ss"];
+    [d setInteger:800 forKey:@"imageMaxSize"];
+    
     //ツールバーにボタンをセット
     [topBar setItems:TOP_BAR animated:NO];
     [bottomBar setItems:BOTTOM_BAR animated:NO];
@@ -213,6 +217,9 @@
 - (IBAction)pushSettingButton:(id)sender {
     
     NSLog(@"Setting");
+    
+    //for debug
+    imagePreview.image = [ResizeImage aspectResize:imagePreview.image];
 }
 
 - (IBAction)pushIDButton:(id)sender {
