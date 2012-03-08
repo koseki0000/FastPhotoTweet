@@ -148,7 +148,7 @@
         //Internet接続のチェック
         if ( [self reachability] ) {
 
-            NSString *text;
+            NSString *text = @"";
             
             if ( [postText.text isEqualToString:@""] ) {
 
@@ -162,6 +162,9 @@
             }else {
 
                 //文字が入力されている場合はそちらを投稿
+                text = postText.text;
+                
+                
                 //TODO 失敗時最投稿処理用の保存を行う
             }
             
@@ -186,9 +189,8 @@
 - (void)postDone:(NSNotification *)center {
 
     NSString *result = [center.userInfo objectForKey:@"PostResult"];
-    NSLog(@"postDone: %@", result);
     
-    if ( [result isEqualToString:@""] ) {
+    if ( [result isEqualToString:@"Success"] ) {
         
         //投稿成功、入力欄と画像プレビューを空にする
         postText.text = @"";
@@ -489,8 +491,25 @@
                         
                         NSLog(@"pBoardType Image");
                         
-                        //ペーストボードの画像をサムネイル表示
-                        imagePreview.image = pboard.image;
+                        if ( [[d objectForKey:@"NotificationType"] isEqualToString:@"photo"] ) {
+                            
+                            //ペーストボードの画像をサムネイル表示
+                            imagePreview.image = pboard.image;
+                            
+                        }else {
+                            
+                            if ( [EmptyCheck check:pboard.string] ) {
+                                
+                                //ペーストボードが空
+                                //入力可能状態にする
+                                [postText becomeFirstResponder];
+                                
+                            }else {
+                                
+                                //入力欄にペーストボードのテキストをコピー
+                                postText.text = pboard.string;
+                            }
+                        }
                     }
                     
                     //Post入力状態にする

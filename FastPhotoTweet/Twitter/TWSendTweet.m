@@ -26,16 +26,18 @@
             
             //imageが空なら文字のみ投稿
             //文字データのチェック
-            if ( ![EmptyCheck check:[postData objectAtIndex:0]] ) {
+            if ( [EmptyCheck check:[postData objectAtIndex:0]] ) {
+                
+                //文字のみの投稿モードを設定
+                postMode = 1;
+                
+            }else {
+                
+                NSLog(@"PostTextEmpty");
                 
                 ShowAlert *alert = [[ShowAlert alloc] init];
                 [alert error:@"文字が入力されていません。"];
                 return;
-                
-            }else {
-                
-                //文字のみの投稿モードを設定
-                postMode = 1;
             }
         }
         
@@ -102,6 +104,7 @@
         NSNotification *postNotification =[NSNotification notificationWithName:@"PostDone" 
                                                                         object:self 
                                                                       userInfo:postResult];
+        NSLog(@"SetNotification");
         
         [postRequest performRequestWithHandler:
          ^( NSData *responseData, NSHTTPURLResponse *urlResponse, NSError *error ) {
@@ -125,7 +128,7 @@
                      //通知を実行
                      [[NSNotificationCenter defaultCenter] postNotification:postNotification];
                      
-                     NSLog(@"Post Error: %@", errorText);
+                     NSLog(@"PostErrorNotification: %@", errorText);
                      
                  } else {
                      
@@ -156,15 +159,12 @@
                          //通知を実行
                          [[NSNotificationCenter defaultCenter] postNotification:postNotification];
                          
-                         NSLog(@"Post Success");
-                         
+                         NSLog(@"PostSuccessNotification");
                      }
-                     
                  }
                  
                  //ステータスバーの処理中表示オフ
                  [ActivityIndicator activityIndicatorVisible:NO];
-                 
              });
          }];
         
