@@ -51,6 +51,8 @@
     
     //各種初期値をセット
     d = [NSUserDefaults standardUserDefaults];
+    postedText = [NSMutableArray array];
+    postedImage = [NSMutableArray array];
     postText.text = @"";
     changeAccount = NO;
     actionSheetNo = 0;
@@ -76,7 +78,7 @@
         
         [accountStore requestAccessToAccountsWithType:accountType withCompletionHandler:
          ^( BOOL granted, NSError *error ) {
-             dispatch_async(dispatch_get_main_queue(), ^{
+             dispatch_sync(dispatch_get_main_queue(), ^{
                  if ( granted ) {
                      NSArray *twitterAccounts = [accountStore accountsWithAccountType:accountType];
                      if ( twitterAccounts.count > 0 ) {
@@ -131,7 +133,7 @@
     }
     
     NSString *str = [d objectForKey:@"CallBackScheme"];
-    if ( [str isEqualToString:@""] || str == nil) {
+    if ( [EmptyCheck check:str] ) {
         
         //スキームが保存されていない
         //空のキーを保存
@@ -175,16 +177,30 @@
             //画像が設定されていない場合
             if ( imagePreview.image == nil ) {
                 
+                //投稿失敗時の再投稿用に文字列を保存
+                [postedText addObject:text];
+                
                 //文字列をバックグラウンドプロセスで投稿
                 NSArray *postData = [NSArray arrayWithObjects:text, nil, nil];
                 [TWSendTweet performSelectorInBackground:@selector(post:) withObject:postData];
+                
+                //入力欄を空にする
+                postText.text = @"";
              
             //画像が設定されている場合
             }else {
                 
+                //投稿失敗時の再投稿用に文字列と画像を保存
+                [postedText addObject:text];
+                [postedImage addObject:imagePreview.image];
+                
                 //文字列と画像をバックグラウンドプロセスで投稿
                 NSArray *postData = [NSArray arrayWithObjects:text, imagePreview.image, nil];
                 [TWSendTweet performSelectorInBackground:@selector(post:) withObject:postData];
+                
+                //入力欄と画像プレビューを空にする
+                postText.text = @"";
+                imagePreview.image = nil;
             }
         }
     }
@@ -196,14 +212,21 @@
     
     if ( [result isEqualToString:@"Success"] ) {
         
+        //投稿成功、入力欄を空にする
+        //postText.text = @"";
+        
+    }else if ( [result isEqualToString:@"PhotoSuccess"] ) {
+        
         //投稿成功、入力欄と画像プレビューを空にする
-        postText.text = @"";
-        imagePreview.image = nil;
+        //postText.text = @"";
+        //imagePreview.image = nil;
         
     }else {
         
         //TODO 投稿失敗、再投稿の確認を出す予定
     }
+    
+    //TODO Post失敗後再送信待ちの物があるかチェック
 }
 
 - (IBAction)pushTrashButton:(id)sender {

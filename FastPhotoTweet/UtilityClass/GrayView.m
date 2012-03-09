@@ -47,4 +47,8 @@
     [self removeFromSuperview];
 }
 
+- (void)dealloc {
+    [super dealloc];
+}
+
 @end

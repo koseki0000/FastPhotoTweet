@@ -111,12 +111,25 @@
              
              dispatch_async(dispatch_get_main_queue(), ^{
                  
+                 //レスポンスのデータをNSStringに変換後JSONをDictionaryに格納
+                 NSString *responseDataString = [[[NSString alloc] initWithData:responseData encoding:NSUTF8StringEncoding] autorelease];
+                 NSDictionary *result = [responseDataString JSONValue];
+                 
+                 //NSLog(@"Result: %@", result);
+                 
+                 BOOL media = NO;
+                 NSString *entities = [[result objectForKey:@"entities"] objectForKey:@"media"];
+                 
+                 //投稿完了したPostが文字のみか画像付きか判定
+                 if ( [EmptyCheck check:entities] ) {
+                     
+                     //画像付き
+                     media = YES;
+                 }
+                 
                  if (error != nil) {
                      
                      //エラー
-                     NSString *responseDataString = [[[NSString alloc] initWithData:responseData encoding:NSUTF8StringEncoding] autorelease];
-                     NSDictionary *result = [responseDataString JSONValue];
-                     
                      NSString *errorText = [result objectForKey:@"error"];
                      
                      ShowAlert *alert = [[ShowAlert alloc] init];
@@ -132,14 +145,9 @@
                      
                  } else {
                      
-                     //JSONからDictionaryを生成
-                     NSString *responseDataString = [[[NSString alloc] initWithData:responseData encoding:NSUTF8StringEncoding] autorelease];
-                     NSDictionary *result = [responseDataString JSONValue];
-                     
-                     //NSLog(@"result: %@", result);
-                     
                      //Postしたテキスト
                      NSString *text = [result objectForKey:@"text"];
+                     NSLog(@"Text: %@", text);
                      
                      if ( [text isEqualToString:@""] || text == nil ) {
                          
@@ -152,9 +160,16 @@
                          NSLog(@"Post Error: %@", errorText);
                          
                      }else {
-
+                         
                          //通知に成功をセット
-                         [postResult setObject:@"Success" forKey:@"PostResult"];
+                         if ( media ) {
+                             
+                             [postResult setObject:@"PhotoSuccess" forKey:@"PostResult"];
+                             
+                         }else {
+                             
+                             [postResult setObject:@"Success" forKey:@"PostResult"];
+                         }
                          
                          //通知を実行
                          [[NSNotificationCenter defaultCenter] postNotification:postNotification];

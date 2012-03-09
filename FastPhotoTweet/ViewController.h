@@ -19,8 +19,13 @@
 
 @interface ViewController : UIViewController <UINavigationControllerDelegate, UIImagePickerControllerDelegate, UIActionSheetDelegate> {
     
+    GrayView *grayView;
+    
     NSUserDefaults *d;
     ACAccount *twAccount;
+    
+    NSMutableArray *postedText;
+    NSMutableArray *postedImage;
     
     BOOL changeAccount;
     int actionSheetNo;
