@@ -178,7 +178,7 @@
             if ( imagePreview.image == nil ) {
                 
                 //投稿失敗時の再投稿用に文字列を保存
-                [postedText addObject:text];
+                //[postedText addObject:text];
                 
                 //文字列をバックグラウンドプロセスで投稿
                 NSArray *postData = [NSArray arrayWithObjects:text, nil, nil];
@@ -191,8 +191,8 @@
             }else {
                 
                 //投稿失敗時の再投稿用に文字列と画像を保存
-                [postedText addObject:text];
-                [postedImage addObject:imagePreview.image];
+                //[postedText addObject:text];
+                //[postedImage addObject:imagePreview.image];
                 
                 //文字列と画像をバックグラウンドプロセスで投稿
                 NSArray *postData = [NSArray arrayWithObjects:text, imagePreview.image, nil];
@@ -468,9 +468,19 @@
             //通知が辞書機能だった場合
             if ( [[d objectForKey:@"NotificationType"] isEqualToString:@"dic"] ) {
                 
-                UIReferenceLibraryViewController *controller = [[[UIReferenceLibraryViewController alloc] initWithTerm:pboard.string] autorelease];
-                [self presentModalViewController:controller animated:YES];
-
+                NSLog(@"Dictionary");
+                
+                if ( [PasteboardType check] == 0 ) {
+                    
+                    UIReferenceLibraryViewController *controller = [[[UIReferenceLibraryViewController alloc] initWithTerm:pboard.string] autorelease];
+                    [self presentModalViewController:controller animated:YES];
+                    
+                }else {
+                    
+                    ShowAlert *alert = [[ShowAlert alloc] init];
+                    [alert error:@"ペーストボード内が文字以外です。"];
+                }
+                
                 return;
             }
             
