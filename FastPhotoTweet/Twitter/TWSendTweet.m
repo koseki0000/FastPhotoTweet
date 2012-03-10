@@ -17,7 +17,7 @@
         //0:画像つき投稿 1:文字のみ
         int postMode = 0;
         NSString *postText;
-        UIImage *image;
+        UIImage *image = [[[UIImage alloc] init] autorelease];
         
         NSLog(@"postData: %@", postData);
         
@@ -35,7 +35,7 @@
                 
                 NSLog(@"PostTextEmpty");
                 
-                ShowAlert *alert = [[ShowAlert alloc] init];
+                ShowAlert *alert = [[[ShowAlert alloc] init] autorelease];
                 [alert error:@"文字が入力されていません。"];
                 return;
             }
@@ -90,7 +90,7 @@
         if (twAccount == nil) {
             
             //アカウントデータが空
-            ShowAlert *alert = [[ShowAlert alloc] init];
+            ShowAlert *alert = [[[ShowAlert alloc] init] autorelease];
             [alert error:@"Can’t post"];
             
             return;
@@ -127,16 +127,33 @@
                      media = YES;
                  }
                  
+                 //Postしたテキスト
+                 NSString *text = [result objectForKey:@"text"];
+                 NSLog(@"Text: %@", text);
+                 
                  if (error != nil) {
                      
                      //エラー
                      NSString *errorText = [result objectForKey:@"error"];
                      
-                     ShowAlert *alert = [[ShowAlert alloc] init];
+                     ShowAlert *alert = [[[ShowAlert alloc] init] autorelease];
                      [alert error:errorText];
                      
                      //通知にエラーをセット
-                     [postResult setObject:@"Error" forKey:@"PostResult"];
+                     if ( media ) {
+                         
+                         [postResult setObject:@"PhotoError" forKey:@"PostResult"];
+                         
+                         NSArray *resultArray = [NSArray arrayWithObjects:text, image, nil];
+                         [postResult setObject:resultArray forKey:@"PostData"];
+                         
+                     }else {
+                         
+                         [postResult setObject:@"Error" forKey:@"PostResult"];
+                         
+                         NSArray *resultArray = [NSArray arrayWithObjects:text, nil, nil];
+                         [postResult setObject:resultArray forKey:@"PostData"];
+                     }
                      
                      //通知を実行
                      [[NSNotificationCenter defaultCenter] postNotification:postNotification];
@@ -145,16 +162,12 @@
                      
                  } else {
                      
-                     //Postしたテキスト
-                     NSString *text = [result objectForKey:@"text"];
-                     NSLog(@"Text: %@", text);
-                     
                      if ( [text isEqualToString:@""] || text == nil ) {
                          
                          NSString *errorText = [result objectForKey:@"error"];
                          
                          //textが空の場合は失敗してる
-                         ShowAlert *alert = [[ShowAlert alloc] init];
+                         ShowAlert *alert = [[[ShowAlert alloc] init] autorelease];
                          [alert error:errorText];
                          
                          NSLog(@"Post Error: %@", errorText);
@@ -166,9 +179,15 @@
                              
                              [postResult setObject:@"PhotoSuccess" forKey:@"PostResult"];
                              
+                             NSArray *resultArray = [NSArray arrayWithObjects:text, image, nil];
+                             [postResult setObject:resultArray forKey:@"PostData"];
+                             
                          }else {
                              
                              [postResult setObject:@"Success" forKey:@"PostResult"];
+                             
+                             NSArray *resultArray = [NSArray arrayWithObjects:text, nil, nil];
+                             [postResult setObject:resultArray forKey:@"PostData"];
                          }
                          
                          //通知を実行
@@ -188,7 +207,7 @@
     }else {
         
         //何らかの理由でTweet不可だった場合
-        ShowAlert *alert = [[ShowAlert alloc] init];
+        ShowAlert *alert = [[[ShowAlert alloc] init] autorelease];
         [alert error:@"Please try again later"];
         
     }

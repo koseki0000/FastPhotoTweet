@@ -24,11 +24,14 @@
     NSUserDefaults *d;
     ACAccount *twAccount;
     
-    NSMutableArray *postedText;
-    NSMutableArray *postedImage;
+    NSString *reSendText;
+    NSMutableDictionary *postedDic;
+    
+    UIImage *reSendImage;
     
     BOOL changeAccount;
     int actionSheetNo;
+    int postedCount;
 }
 
 @property (retain, nonatomic) IBOutlet UIScrollView *sv;
@@ -49,6 +52,7 @@
 @property (retain, nonatomic) IBOutlet UIBarButtonItem *settingButton;
 @property (retain, nonatomic) IBOutlet UIBarButtonItem *flexibleSpace;
 @property (retain, nonatomic) IBOutlet UIBarButtonItem *addButton;
+@property (retain, nonatomic) IBOutlet UITapGestureRecognizer *tapGesture;
 
 - (IBAction)pushPostButton:(id)sender;
 - (IBAction)pushTrashButton:(id)sender;
@@ -62,6 +66,8 @@
 
 - (IBAction)callbackSwitchDidChage:(id)sender;
 - (IBAction)fastPostSwitchDidChage:(id)sender;
+
+- (IBAction)svTapGesture:(id)sender;
 
 - (void)loadSettings;
 - (void)postDone:(NSNotification *)center;

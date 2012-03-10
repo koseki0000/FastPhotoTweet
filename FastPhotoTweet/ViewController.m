@@ -26,6 +26,7 @@
 @synthesize postButton;
 @synthesize flexibleSpace;
 @synthesize addButton;
+@synthesize tapGesture;
 @synthesize idButton;
 @synthesize bottomBar;
 @synthesize settingButton;
@@ -52,11 +53,11 @@
     
     //各種初期値をセット
     d = [NSUserDefaults standardUserDefaults];
-    postedText = [NSMutableArray array];
-    postedImage = [NSMutableArray array];
+    postedDic = [[NSMutableDictionary alloc] init];
     postText.text = @"";
     changeAccount = NO;
     actionSheetNo = 0;
+    postedCount = 0;
     
     //for debug
     [d setInteger:1 forKey:@"noResizeIphone4Ss"];
@@ -81,7 +82,7 @@
         if ( twitterAccounts.count > 0 ) {
             
             twAccount = [[twitterAccounts objectAtIndex:[d integerForKey:@"UseAccount"]] retain];
-            ShowAlert *alert = [[ShowAlert alloc] init];
+            ShowAlert *alert = [[[ShowAlert alloc] init] autorelease];
             [alert title:@"Success" message:[NSString stringWithFormat:@"Account Name: %@", twAccount.username]];
             NSLog(@"twAccount: %@", twAccount);
             
@@ -89,7 +90,7 @@
             
             twAccount = nil;
             
-            ShowAlert *alert = [[ShowAlert alloc] init];
+            ShowAlert *alert = [[[ShowAlert alloc] init] autorelease];
             [alert error:@"Twitter account nothing"];
         }
         
@@ -97,7 +98,7 @@
         
         twAccount = nil;
         
-        ShowAlert *alert = [[ShowAlert alloc] init];
+        ShowAlert *alert = [[[ShowAlert alloc] init] autorelease];
         [alert error:@"Twitter account access denied"];
     }
 }
@@ -148,7 +149,7 @@
         //Internet接続のチェック
         if ( [self reachability] ) {
 
-            NSString *text = @"";
+            NSString *text = [[[NSString alloc] initWithString:@""] autorelease];
             
             if ( [postText.text isEqualToString:@""] ) {
 
@@ -163,20 +164,21 @@
 
                 //文字が入力されている場合はそちらを投稿
                 text = postText.text;
-                
-                
-                //TODO 失敗時最投稿処理用の保存を行う
             }
             
             //画像が設定されていない場合
             if ( imagePreview.image == nil ) {
                 
-                //投稿失敗時の再投稿用に文字列を保存
-                //[postedText addObject:text];
-                
                 //文字列をバックグラウンドプロセスで投稿
                 NSArray *postData = [NSArray arrayWithObjects:text, nil, nil];
                 [TWSendTweet performSelectorInBackground:@selector(post:) withObject:postData];
+                
+                //投稿失敗時の再投稿用に文字列を保存
+                NSArray *saveArray = [NSArray arrayWithObjects:text, nil, nil];
+                [postedDic setObject:saveArray forKey:[NSString stringWithFormat:@"%d", postedCount]];
+                
+                //投稿カウントを増やす
+                postedCount++;
                 
                 //入力欄を空にする
                 postText.text = @"";
@@ -184,13 +186,16 @@
             //画像が設定されている場合
             }else {
                 
-                //投稿失敗時の再投稿用に文字列と画像を保存
-                //[postedText addObject:text];
-                //[postedImage addObject:imagePreview.image];
-                
                 //文字列と画像をバックグラウンドプロセスで投稿
                 NSArray *postData = [NSArray arrayWithObjects:text, imagePreview.image, nil];
                 [TWSendTweet performSelectorInBackground:@selector(post:) withObject:postData];
+                
+                //投稿失敗時の再投稿用に文字列と画像を保存
+                NSArray *saveArray = [NSArray arrayWithObjects:text, imagePreview.image, nil];
+                [postedDic setObject:saveArray forKey:[NSString stringWithFormat:@"%d", postedCount]];
+                
+                //投稿カウントを増やす
+                postedCount++;
                 
                 //入力欄と画像プレビューを空にする
                 postText.text = @"";
@@ -202,25 +207,64 @@
 
 - (void)postDone:(NSNotification *)center {
 
-    NSString *result = [center.userInfo objectForKey:@"PostResult"];
+    NSLog(@"PostedDic: %@", postedDic);
     
-    if ( [result isEqualToString:@"Success"] ) {
+    reSendText = nil;
+    reSendImage = nil;
+    
+    NSString *result = [center.userInfo objectForKey:@"PostResult"];
+    NSArray *resultData = [center.userInfo objectForKey:@"PostData"];
+    
+    //投稿完了した文字列
+    NSString *resultString = [resultData objectAtIndex:0];
+    NSLog(@"resultString: %@", resultString);
+    
+    NSArray *dicValue = [postedDic allValues];
+    NSArray *dicKey = [postedDic allKeys];
+    
+    //文字投稿成功
+    if ( [result isEqualToString:@"Success"] ||
+         [result isEqualToString:@"PhotoSuccess"] ) {
         
-        //投稿成功、入力欄を空にする
-        //postText.text = @"";
+        int i = 0;
+        for ( id obj in dicValue ) {
+    
+            NSLog(@"obj%d: %@",i , [obj objectAtIndex:0]);
+            
+            if ( [resultString hasPrefix:[obj objectAtIndex:0]] ) {
+                
+                NSLog(@"Delete: %d", i);
+                [postedDic removeObjectForKey:[dicKey objectAtIndex:i]];
+            }
+            
+            i++;
+        }
+
+    //投稿失敗
+    }else if ( [result isEqualToString:@"Error"] ) {
         
-    }else if ( [result isEqualToString:@"PhotoSuccess"] ) {
+        NSLog(@"ReSend Text");
         
-        //投稿成功、入力欄と画像プレビューを空にする
-        //postText.text = @"";
-        //imagePreview.image = nil;
+        reSendText = [resultData objectAtIndex:0];
+        [TWSendTweet post:[NSArray arrayWithObjects:reSendText, nil, nil]];
         
-    }else {
+        ShowAlert *alert = [[[ShowAlert alloc] init] autorelease];
+        [alert title:@"以下の内容を再送信しました。" message:reSendText];
         
-        //TODO 投稿失敗、再投稿の確認を出す予定
+    }else if ( [result isEqualToString:@"PhotoError"] ) {
+        
+        NSLog(@"ReSend Text, Image");
+        
+        reSendText = [resultData objectAtIndex:0];
+        reSendImage = [resultData objectAtIndex:1];
+        
+        [TWSendTweet post:[NSArray arrayWithObjects:reSendText, reSendImage, nil]];
+        
+        ShowAlert *alert = [[[ShowAlert alloc] init] autorelease];
+        [alert title:@"以下の内容と画像を再送信しました。" message:reSendText];
     }
     
-    //TODO Post失敗後再送信待ちの物があるかチェック
+    NSLog(@"PostedDic: %@", postedDic);
 }
 
 - (IBAction)pushTrashButton:(id)sender {
@@ -325,6 +369,15 @@
     [sv setContentOffset:CGPointMake(0, 60) animated:YES];
 }
 
+- (IBAction)svTapGesture:(id)sender {
+    
+    NSLog(@"svTapGesture");
+    
+    [postText resignFirstResponder];
+    [callbackTextField resignFirstResponder];
+    [sv setContentOffset:CGPointMake(0, 0) animated:YES];
+}
+
 - (IBAction)callbackSwitchDidChage:(id)sender {
     
     //スイッチの状態を保存
@@ -397,7 +450,7 @@
     if ([[[UIDevice currentDevice] systemVersion] floatValue] < 5.0) {
         
         //iOS5以前
-        ShowAlert *alert = [[ShowAlert alloc] init];
+        ShowAlert *alert = [[[ShowAlert alloc] init] autorelease];
         [alert error:@"Twitter API not available, please upgrade to iOS 5"];
         
     }else {
@@ -418,7 +471,7 @@
         
     }else {
         
-        ShowAlert *alert = [[ShowAlert alloc] init];
+        ShowAlert *alert = [[[ShowAlert alloc] init] autorelease];
         [alert error:@"No Internet connection"];
     }
     
@@ -431,6 +484,11 @@
     
     //t.coを考慮した文字数カウントを行う
     int num = [TWTwitterCharCounter charCounter:postText.text];
+    
+    //画像が設定されている場合入力可能文字数を21文字減らす
+    if ( imagePreview.image != nil ) {
+        num = num - 21;
+    }
     
     //結果をラベルに反映
     postCharLabel.text = [NSString stringWithFormat:@"%d", num];
@@ -474,7 +532,7 @@
                     
                 }else {
                     
-                    ShowAlert *alert = [[ShowAlert alloc] init];
+                    ShowAlert *alert = [[[ShowAlert alloc] init] autorelease];
                     [alert error:@"ペーストボード内が文字以外です。"];
                 }
                 
@@ -486,7 +544,7 @@
             if ( twAccount == nil ) {
                 
                 //Twitterアカウントが見つからない場合設定に飛ばす
-                ShowAlert *alert = [[ShowAlert alloc] init];
+                ShowAlert *alert = [[[ShowAlert alloc] init] autorelease];
                 [alert error:@"Twitter account nothing"];
                 [[UIApplication sharedApplication] openURL:[NSURL URLWithString:@"prefs:root=TWITTER"]];
                 
@@ -580,7 +638,7 @@
                         if ( num < 0 ) {
                             
                             //140字を超えていた場合
-                            ShowAlert *alert = [[ShowAlert alloc] init];
+                            ShowAlert *alert = [[[ShowAlert alloc] init] autorelease];
                             [alert error:[NSString stringWithFormat:@"Post message is over 140: %d", num]];
                             
                             NSLog(@"%@", [NSString stringWithFormat:@"Post message is over 140: %d", num]);
@@ -608,7 +666,7 @@
                             
                             NSLog(@"Can't callBack");
                             
-                            ShowAlert *alert = [[ShowAlert alloc] init];
+                            ShowAlert *alert = [[[ShowAlert alloc] init] autorelease];
                             [alert error:@"Can't callBack"];
                             
                         //コールバックスキームを開くことが出来る
@@ -632,7 +690,7 @@
             }else {
                 
                 //インターネ接続されていない
-                ShowAlert *alert = [[ShowAlert alloc] init];
+                ShowAlert *alert = [[[ShowAlert alloc] init] autorelease];
                 [alert error:@"No internet connection"];
             }
         }
@@ -659,6 +717,7 @@
     [self setBottomBar:nil];
     [self setIdButton:nil];
     [self setAddButton:nil];
+    [self setTapGesture:nil];
     [super viewDidUnload];
 }
 
@@ -689,7 +748,6 @@
         ACAccountType *accountType = [accountStore accountTypeWithAccountTypeIdentifier:ACAccountTypeIdentifierTwitter];
         NSArray *twitterAccounts = [accountStore accountsWithAccountType:accountType];
         twAccount = [[twitterAccounts objectAtIndex:[d integerForKey:@"UseAccount"]] retain];
-        [twAccount retain];
         
         changeAccount = NO;
     }
@@ -728,6 +786,7 @@
     [bottomBar release];
     [idButton release];
     [addButton release];
+    [tapGesture release];
     [super dealloc];
 }
 

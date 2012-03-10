@@ -29,15 +29,9 @@
             
             NSLog(@"640x960");
             
-            resizeHeight = 640;
-            resizeWidth = 960;
-            
 		}else if ( originalHeight == 960 && originalWidth == 640 ) {
             
             NSLog(@"960x640");
-            
-            resizeHeight = 960;
-            resizeWidth = 640;
         }
         
         return image;
