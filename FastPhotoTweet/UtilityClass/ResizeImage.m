@@ -10,14 +10,13 @@
 @implementation ResizeImage
 
 + (UIImage *)aspectResize:(UIImage *)image {
-
+    
 	NSUserDefaults *d = [NSUserDefaults standardUserDefaults];
     
     size_t resizeHeight = 0;
     size_t resizeWidth = 0;
     int originalHeight = (int)image.size.height;
     int originalWidth = (int)image.size.width;
-    BOOL skip = NO;
     
     //リサイズ前のログ
     NSLog(@"OriginalSize w: %d h: %d", originalWidth, originalHeight);
@@ -32,7 +31,6 @@
             
             resizeHeight = 640;
             resizeWidth = 960;
-            skip = YES;
             
 		}else if ( originalHeight == 960 && originalWidth == 640 ) {
             
@@ -40,60 +38,58 @@
             
             resizeHeight = 960;
             resizeWidth = 640;
-            skip = YES;
         }
+        
+        return image;
 	}
     
-    if ( !skip ) {
+    //正方形
+    if ( originalWidth == originalHeight ) {
         
-        //正方形
-        if ( originalWidth == originalHeight ) {
-
-            if ( originalHeight < [d integerForKey:@"imageMaxSize"] ) {
+        if ( originalHeight < [d integerForKey:@"imageMaxSize"] ) {
+            
+            CGFloat ratio = image.size.width / [d integerForKey:@"imageMaxSize"];
+            resizeWidth = image.size.width / ratio;
+            resizeHeight = image.size.height / ratio;
+            
+        }else {
+            
+            resizeWidth = originalWidth;
+            resizeHeight = originalHeight;
+        }
+        
+    //長方形
+    } else {
+        
+        
+        if ( originalHeight > [d integerForKey:@"imageMaxSize"] ||
+            originalWidth > [d integerForKey:@"imageMaxSize"] ) {
+            
+            //縦長
+            if ( originalHeight > originalWidth ) {
+                
+                NSLog(@"H > W");
+                
+                CGFloat ratio = image.size.height / [d integerForKey:@"imageMaxSize"];
+                resizeWidth = image.size.width / ratio;
+                resizeHeight = image.size.height / ratio;
+                
+            //横長
+            }else {
+                
+                NSLog(@"W > H");
                 
                 CGFloat ratio = image.size.width / [d integerForKey:@"imageMaxSize"];
                 resizeWidth = image.size.width / ratio;
                 resizeHeight = image.size.height / ratio;
-                
-            }else {
-                
-                resizeWidth = originalWidth;
-                resizeHeight = originalHeight;
             }
             
-        //長方形
-        } else {
+        //指定サイズ以下、リサイズ無し
+        }else {
             
+            NSLog(@"No resize");
             
-            if ( originalHeight > [d integerForKey:@"imageMaxSize"] ||
-                 originalWidth > [d integerForKey:@"imageMaxSize"] ) {
-                
-                //縦長
-                if ( originalHeight > originalWidth ) {
-                    
-                    NSLog(@"H > W");
-                    
-                    CGFloat ratio = image.size.height / [d integerForKey:@"imageMaxSize"];
-                    resizeWidth = image.size.width / ratio;
-                    resizeHeight = image.size.height / ratio;
-                
-                //横長
-                }else {
-                    
-                    NSLog(@"W > H");
-                    
-                    CGFloat ratio = image.size.width / [d integerForKey:@"imageMaxSize"];
-                    resizeWidth = image.size.width / ratio;
-                    resizeHeight = image.size.height / ratio;
-                }
-            
-            //指定サイズ以下、リサイズ無し
-            }else {
-
-                NSLog(@"No resize");
-                
-                return image;
-            }
+            return image;
         }
     }
     

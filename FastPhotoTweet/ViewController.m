@@ -44,6 +44,7 @@
                                name:UIApplicationDidBecomeActiveNotification
                              object:nil];
     
+    //投稿完了通知を受け取る設定
     [notificationCenter addObserver:self 
                            selector:@selector(postDone:) 
                                name:@"PostDone" 
@@ -75,36 +76,29 @@
         
         ACAccountStore *accountStore = [[[ACAccountStore alloc] init] autorelease];
         ACAccountType *accountType = [accountStore accountTypeWithAccountTypeIdentifier:ACAccountTypeIdentifierTwitter];
+        NSArray *twitterAccounts = [accountStore accountsWithAccountType:accountType];
         
-        [accountStore requestAccessToAccountsWithType:accountType withCompletionHandler:
-         ^( BOOL granted, NSError *error ) {
-             dispatch_sync(dispatch_get_main_queue(), ^{
-                 if ( granted ) {
-                     NSArray *twitterAccounts = [accountStore accountsWithAccountType:accountType];
-                     if ( twitterAccounts.count > 0 ) {
-                         
-                         twAccount = [[twitterAccounts objectAtIndex:[d integerForKey:@"UseAccount"]] retain];
-                         ShowAlert *alert = [[ShowAlert alloc] init];
-                         [alert title:@"Success" message:[NSString stringWithFormat:@"Account Name: %@", twAccount.username]];
-                         NSLog(@"twAccount: %@", twAccount);
-                         
-                     } else {
-                         
-                         twAccount = nil;
-                         
-                         ShowAlert *alert = [[ShowAlert alloc] init];
-                         [alert error:@"Twitter account nothing"];
-                     }
-                     
-                 } else {
-                     
-                     twAccount = nil;
-                     
-                     ShowAlert *alert = [[ShowAlert alloc] init];
-                     [alert error:@"Twitter account access denied"];
-                 }
-             });
-         }];
+        if ( twitterAccounts.count > 0 ) {
+            
+            twAccount = [[twitterAccounts objectAtIndex:[d integerForKey:@"UseAccount"]] retain];
+            ShowAlert *alert = [[ShowAlert alloc] init];
+            [alert title:@"Success" message:[NSString stringWithFormat:@"Account Name: %@", twAccount.username]];
+            NSLog(@"twAccount: %@", twAccount);
+            
+        } else {
+            
+            twAccount = nil;
+            
+            ShowAlert *alert = [[ShowAlert alloc] init];
+            [alert error:@"Twitter account nothing"];
+        }
+        
+    } else {
+        
+        twAccount = nil;
+        
+        ShowAlert *alert = [[ShowAlert alloc] init];
+        [alert error:@"Twitter account access denied"];
     }
 }
 
@@ -241,8 +235,11 @@
     
     NSLog(@"Setting");
     
-    //for debug
-    imagePreview.image = [ResizeImage aspectResize:imagePreview.image];
+    if ( imagePreview.image != nil ) {
+        
+        //for debug
+        imagePreview.image = [ResizeImage aspectResize:imagePreview.image];
+    }
 }
 
 - (IBAction)pushIDButton:(id)sender {

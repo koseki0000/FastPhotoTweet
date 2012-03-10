@@ -47,7 +47,11 @@
     if ( [alertView.message isEqualToString:@"Twitter account nothing"] ||
          [alertView.message isEqualToString:@"Twitter account access denied"] ) {
         
-        [[UIApplication sharedApplication] openURL:[NSURL URLWithString:@"prefs:root=TWITTER"]];
+        //iOS5.1では飛ばせなくなったため判定
+        if ([[[UIDevice currentDevice] systemVersion] floatValue] < 5.1) {
+            
+            [[UIApplication sharedApplication] openURL:[NSURL URLWithString:@"prefs:root=TWITTER"]];
+        }
     }
 }
 
