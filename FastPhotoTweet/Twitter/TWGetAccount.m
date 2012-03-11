@@ -16,6 +16,7 @@
     ACAccountStore *accountStore = [[[ACAccountStore alloc] init] autorelease];
     ACAccountType *accountType = [accountStore accountTypeWithAccountTypeIdentifier:ACAccountTypeIdentifierTwitter];
     ACAccount *twAccount = [[[ACAccount alloc] init] autorelease];
+    twAccount = nil;
     
     NSArray *twitterAccounts = [accountStore accountsWithAccountType:accountType];
     if (twitterAccounts.count > 0) {
@@ -27,7 +28,6 @@
     }else {
         
         NSLog(@"Account Error");
-        
     }
     
     return twAccount;

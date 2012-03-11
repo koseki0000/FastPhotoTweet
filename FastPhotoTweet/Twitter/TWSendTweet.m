@@ -14,6 +14,19 @@
     //Tweet可能な状態か判別
     if ( [TWTweetComposeViewController canSendTweet] ) {
         
+        //アカウントの取得
+        ACAccount *twAccount = [TWGetAccount getTwitterAccount];
+        
+        //Twitterアカウントの確認
+        if (twAccount == nil) {
+            
+            //アカウントデータが空
+            ShowAlert *alert = [[[ShowAlert alloc] init] autorelease];
+            [alert error:@"Can’t post"];
+            
+            return;
+        }
+        
         //0:画像つき投稿 1:文字のみ
         int postMode = 0;
         NSString *postText;
@@ -42,8 +55,6 @@
         }
         
         postText = [postData objectAtIndex:0];
-        
-        NSLog(@"Start PhotoPost");
         
         //ステータスバーに処理中表示
         [ActivityIndicator activityIndicatorVisible:YES];
@@ -82,20 +93,7 @@
         [postRequest addMultiPartData:[postText dataUsingEncoding:NSUTF8StringEncoding]
                              withName:@"status" 
                                  type:@"multipart/form-data"];
-        
-        //アカウントの取得
-        ACAccount *twAccount = [TWGetAccount getTwitterAccount];
-        
-        //Twitterアカウントの確認
-        if (twAccount == nil) {
             
-            //アカウントデータが空
-            ShowAlert *alert = [[[ShowAlert alloc] init] autorelease];
-            [alert error:@"Can’t post"];
-            
-            return;
-        }
-        
         //リクエストにアカウントを設定
         [postRequest setAccount:twAccount];
         
