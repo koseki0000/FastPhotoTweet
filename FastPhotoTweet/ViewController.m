@@ -62,6 +62,9 @@
     //for debug
     [d setInteger:1 forKey:@"noResizeIphone4Ss"];
     [d setInteger:800 forKey:@"imageMaxSize"];
+    [d setInteger:1 forKey:@"nowplayingEdit"];
+    [d setObject:@" #nowplaying : [st] - [ar] - [at] - [pc]回目 - [rt]" forKey:@"nowplayingEditText"];
+    [d removeObjectForKey:@"Notification"];
     
     //ツールバーにボタンをセット
     [topBar setItems:TOP_BAR animated:NO];
@@ -77,22 +80,41 @@
         
         ACAccountStore *accountStore = [[[ACAccountStore alloc] init] autorelease];
         ACAccountType *accountType = [accountStore accountTypeWithAccountTypeIdentifier:ACAccountTypeIdentifierTwitter];
-        NSArray *twitterAccounts = [accountStore accountsWithAccountType:accountType];
         
-        if ( twitterAccounts.count > 0 ) {
-            
-            twAccount = [[twitterAccounts objectAtIndex:[d integerForKey:@"UseAccount"]] retain];
-            ShowAlert *alert = [[[ShowAlert alloc] init] autorelease];
-            [alert title:@"Success" message:[NSString stringWithFormat:@"Account Name: %@", twAccount.username]];
-            NSLog(@"twAccount: %@", twAccount);
-            
-        } else {
-            
-            twAccount = nil;
-            
-            ShowAlert *alert = [[[ShowAlert alloc] init] autorelease];
-            [alert error:@"Twitter account nothing"];
-        }
+        [accountStore requestAccessToAccountsWithType:accountType withCompletionHandler:
+         ^( BOOL granted, NSError *error ) {
+             dispatch_sync(dispatch_get_main_queue(), ^{
+                 if ( granted ) {
+                     
+                     NSArray *twitterAccounts = [accountStore accountsWithAccountType:accountType];
+                     
+                     if ( twitterAccounts.count > 0 ) {
+                         
+                         twAccount = [[twitterAccounts objectAtIndex:[d integerForKey:@"UseAccount"]] retain];
+                         
+                         ShowAlert *alert = [[ShowAlert alloc] init];
+                         [alert title:@"Success" message:[NSString stringWithFormat:@"Account Name: %@", twAccount.username]];
+                         
+                         NSLog(@"twAccount: %@", twAccount);
+                         
+                     } else {
+                         
+                         twAccount = nil;
+                         
+                         ShowAlert *alert = [[ShowAlert alloc] init];
+                         [alert error:@"Twitter account nothing"];
+                     }
+                     
+                 } else {
+                     
+                     twAccount = nil;
+                     
+                     ShowAlert *alert = [[ShowAlert alloc] init];
+                     
+                     [alert error:@"Twitter account access denied"];
+                 }
+             });
+         }];
         
     } else {
         
@@ -148,7 +170,7 @@
 
         //Internet接続のチェック
         if ( [self reachability] ) {
-
+            
             NSString *text = [[[NSString alloc] initWithString:@""] autorelease];
             
             if ( [postText.text isEqualToString:@""] ) {
@@ -226,6 +248,8 @@
     if ( [result isEqualToString:@"Success"] ||
          [result isEqualToString:@"PhotoSuccess"] ) {
         
+        NSLog(@"postDone: Success");
+        
         int i = 0;
         for ( id obj in dicValue ) {
     
@@ -245,23 +269,20 @@
         
         NSLog(@"ReSend Text");
         
-        reSendText = [resultData objectAtIndex:0];
-        [TWSendTweet post:[NSArray arrayWithObjects:reSendText, nil, nil]];
-        
-        ShowAlert *alert = [[[ShowAlert alloc] init] autorelease];
-        [alert title:@"以下の内容を再送信しました。" message:reSendText];
+        if ( [EmptyCheck check:resultData] ) {
+            
+            postText.text = [resultData objectAtIndex:0];
+        }
         
     }else if ( [result isEqualToString:@"PhotoError"] ) {
         
         NSLog(@"ReSend Text, Image");
         
-        reSendText = [resultData objectAtIndex:0];
-        reSendImage = [resultData objectAtIndex:1];
-        
-        [TWSendTweet post:[NSArray arrayWithObjects:reSendText, reSendImage, nil]];
-        
-        ShowAlert *alert = [[[ShowAlert alloc] init] autorelease];
-        [alert title:@"以下の内容と画像を再送信しました。" message:reSendText];
+        if ( [EmptyCheck check:resultData] ) {
+            
+            postText.text = [resultData objectAtIndex:0];
+            imagePreview.image = [resultData objectAtIndex:1];
+        }
     }
     
     NSLog(@"PostedDic: %@", postedDic);
@@ -306,7 +327,8 @@
                             delegate:self
                             cancelButtonTitle:@"Cancel"
                             destructiveButtonTitle:nil
-                            otherButtonTitles:@"Tweet", @"PhotoTweet", @"Dictionary", nil];
+                            otherButtonTitles:@"Tweet", @"PhotoTweet", @"Dictionary",
+                                              @"NowPlaying", nil];
 	[sheet autorelease];
 	[sheet showInView:self.view];
 }
@@ -350,17 +372,6 @@
     
     //コールバックスキームを保存
     [d setObject:callbackTextField.text forKey:@"CallBackScheme"];
-    
-    //スキームを再設定
-    [[UIApplication sharedApplication] cancelAllLocalNotifications];
-    
-    UILocalNotification *localPush = [[UILocalNotification alloc] init];
-    localPush.timeZone = [NSTimeZone defaultTimeZone];
-    localPush.fireDate = [NSDate dateWithTimeIntervalSinceNow:0];
-    localPush.alertBody = @"FastPhotoTweet";
-    localPush.userInfo = [NSDictionary dictionaryWithObjectsAndKeys:callbackTextField.text, @"scheme", nil];
-    [[UIApplication sharedApplication] scheduleLocalNotification:localPush];
-    [localPush release];
 }
 
 - (IBAction)textFieldStartEdit:(id)sender {
@@ -435,6 +446,13 @@
             localPush.userInfo = [NSDictionary dictionaryWithObjectsAndKeys:@"dic", @"scheme", nil];
             
             NSLog(@"Add NotificationCenter Dictionary");
+            
+        }else if ( buttonIndex == 3 ) {
+            
+            localPush.alertBody = @"NowPlaying";
+            localPush.userInfo = [NSDictionary dictionaryWithObjectsAndKeys:@"music", @"scheme", nil];
+            
+            NSLog(@"Add NotificationCenter NowPlaying");
         }
         
         localPush.fireDate = [NSDate dateWithTimeIntervalSinceNow:0];
@@ -546,7 +564,6 @@
                 //Twitterアカウントが見つからない場合設定に飛ばす
                 ShowAlert *alert = [[[ShowAlert alloc] init] autorelease];
                 [alert error:@"Twitter account nothing"];
-                [[UIApplication sharedApplication] openURL:[NSURL URLWithString:@"prefs:root=TWITTER"]];
                 
                 return;
             }
@@ -557,144 +574,243 @@
                 BOOL canPost = NO;
                 BOOL canOpen = NO;
                 
-                //ペーストボードの内容をチェック
-                int pBoardType = [PasteboardType check];
-                
-                if ( pBoardType == -1 ) {
+                if ( [[d objectForKey:@"NotificationType"] isEqualToString:@"music"] ) {
                     
-                    //テキストか画像以外
-                    return;
-                }
-                
-                //FastPostが無効な場合
-                if ( ![d boolForKey:@"FastPost"] ) {
+                    NSString *nowPlayingText = [self nowPlaying];
+                    int length = [TWTwitterCharCounter charCounter:nowPlayingText];
                     
-                    NSLog(@"FastPost Disable");
-                    
-                    //テキスト
-                    if ( pBoardType == 0 ) {
+                    if ( length > 0 ) {
                         
-                        NSLog(@"pBoardType Text");
+                        if ( [d boolForKey:@"FastPost"] ) {
+                            
+                            NSArray *postData = [NSArray arrayWithObjects:nowPlayingText, nil, nil];
+                            [TWSendTweet performSelectorInBackground:@selector(post:) withObject:postData];
+                            
+                        }else {
+                            
+                            postText.text = nowPlayingText;
+                            [postText becomeFirstResponder];
+                            [postText setSelectedRange:NSMakeRange(0, 0)];
+                        }
+                        
+                    }else {
+                        
+                        //140字を超えていた場合
+                        ShowAlert *alert = [[[ShowAlert alloc] init] autorelease];
+                        [alert error:[NSString stringWithFormat:@"Post message is over 140: %d", length]];
+                    }
+                    
+                }else {
+                    
+                    //ペーストボードの内容をチェック
+                    int pBoardType = [PasteboardType check];
+                    
+                    if ( pBoardType == -1 ) {
+                        
+                        //テキストか画像以外
+                        return;
+                    }
+                    
+                    //FastPostが無効な場合
+                    if ( ![d boolForKey:@"FastPost"] ) {
+                        
+                        NSLog(@"FastPost Disable");
+                        
+                        //テキスト
+                        if ( pBoardType == 0 ) {
+                            
+                            NSLog(@"pBoardType Text");
+                            
+                            //ペーストボード内容をPost入力欄にコピー
+                            postText.text = pboard.string;
+                            int num = [TWTwitterCharCounter charCounter:postText.text];
+                            postCharLabel.text = [NSString stringWithFormat:@"%d", num];
+                            
+                            //画像
+                        }else if ( pBoardType == 1 ) {
+                            
+                            NSLog(@"pBoardType Image");
+                            
+                            if ( [[d objectForKey:@"NotificationType"] isEqualToString:@"photo"] ) {
+                                
+                                //ペーストボードの画像をサムネイル表示
+                                imagePreview.image = pboard.image;
+                                
+                            }else {
+                                
+                                if ( [EmptyCheck check:pboard.string] ) {
+                                    
+                                    //ペーストボードが空
+                                    //入力可能状態にする
+                                    [postText becomeFirstResponder];
+                                    
+                                }else {
+                                    
+                                    //入力欄にペーストボードのテキストをコピー
+                                    postText.text = pboard.string;
+                                }
+                            }
+                        }
+                        
+                        //Post入力状態にする
+                        [postText becomeFirstResponder];
+                        
+                        //FastPostが有効な場合
+                    }else {
+                        
+                        NSLog(@"FastPost Enable");
+                        
+                        //コールバックが有効な場合
+                        if ( [d boolForKey:@"CallBack"] ) {
+                            
+                            NSLog(@"CallBack Enable");
+                            
+                            //CallbackSchemeが空でない
+                            if ( ![[d objectForKey:@"CallBackScheme"] isEqualToString:@""] ||
+                                [d objectForKey:@"CallBackScheme"] != nil) {
+                                
+                                //CallbackSchemeがアクセス可能な物がテスト
+                                canOpen = [[UIApplication sharedApplication] canOpenURL:[NSURL URLWithString:[d objectForKey:@"CallBackScheme"]]];
+                            }
+                        }
+                        
+                        //ペーストボード内がテキスト
+                        if ( pBoardType == 0 ) {
+                            
+                            //t.coを考慮した文字数カウントを行う
+                            int num = [TWTwitterCharCounter charCounter:pboard.string];
+                            
+                            if ( num < 0 ) {
+                                
+                                //140字を超えていた場合
+                                ShowAlert *alert = [[[ShowAlert alloc] init] autorelease];
+                                [alert error:[NSString stringWithFormat:@"Post message is over 140: %d", num]];
+                                
+                            }else {
+                                
+                                //投稿可能文字数である
+                                canPost = YES;
+                            }
+                        }
+                    }
+                    
+                    if ( canPost ) {
+                        
+                        //投稿処理
+                        NSString *text = [[[NSString alloc] initWithString:pboard.string] autorelease];
+                        NSArray *postData = [NSArray arrayWithObjects:text, nil, nil];
+                        [TWSendTweet performSelectorInBackground:@selector(post:) withObject:postData];
+                        
+                        //コールバックが有効
+                        if ( [d boolForKey:@"CallBack"] ) {
+                            
+                            //コールバックスキームが開けない
+                            if ( !canOpen ) {
+                                
+                                NSLog(@"Can't callBack");
+                                
+                                ShowAlert *alert = [[[ShowAlert alloc] init] autorelease];
+                                [alert error:@"Can't callBack"];
+                                
+                                //コールバックスキームを開くことが出来る
+                            }else {
+                                
+                                NSLog(@"CallBack");
+                                
+                                [[UIApplication sharedApplication] openURL:[NSURL URLWithString:[d objectForKey:@"CallBackScheme"]]];
+                            }
+                        }
+                        
+                        //投稿不可能な場合
+                    }else {
                         
                         //ペーストボード内容をPost入力欄にコピー
                         postText.text = pboard.string;
                         int num = [TWTwitterCharCounter charCounter:postText.text];
                         postCharLabel.text = [NSString stringWithFormat:@"%d", num];
-                        
-                    //画像
-                    }else if ( pBoardType == 1 ) {
-                        
-                        NSLog(@"pBoardType Image");
-                        
-                        if ( [[d objectForKey:@"NotificationType"] isEqualToString:@"photo"] ) {
-                            
-                            //ペーストボードの画像をサムネイル表示
-                            imagePreview.image = pboard.image;
-                            
-                        }else {
-                            
-                            if ( [EmptyCheck check:pboard.string] ) {
-                                
-                                //ペーストボードが空
-                                //入力可能状態にする
-                                [postText becomeFirstResponder];
-                                
-                            }else {
-                                
-                                //入力欄にペーストボードのテキストをコピー
-                                postText.text = pboard.string;
-                            }
-                        }
                     }
-                    
-                    //Post入力状態にする
-                    [postText becomeFirstResponder];
-                
-                //FastPostが有効な場合
-                }else {
-                    
-                    NSLog(@"FastPost Enable");
-                    
-                    //コールバックが有効な場合
-                    if ( [d boolForKey:@"CallBack"] ) {
-                        
-                        NSLog(@"CallBack Enable");
-                        
-                        //CallbackSchemeが空でない
-                        if ( ![[d objectForKey:@"CallBackScheme"] isEqualToString:@""] ||
-                            [d objectForKey:@"CallBackScheme"] != nil) {
-                            
-                            //CallbackSchemeがアクセス可能な物がテスト
-                            canOpen = [[UIApplication sharedApplication] canOpenURL:[NSURL URLWithString:[d objectForKey:@"CallBackScheme"]]];
-                        }
-                    }
-                    
-                    //ペーストボード内がテキスト
-                    if ( pBoardType == 0 ) {
-                        
-                        //t.coを考慮した文字数カウントを行う
-                        int num = [TWTwitterCharCounter charCounter:pboard.string];
-                        
-                        if ( num < 0 ) {
-                            
-                            //140字を超えていた場合
-                            ShowAlert *alert = [[[ShowAlert alloc] init] autorelease];
-                            [alert error:[NSString stringWithFormat:@"Post message is over 140: %d", num]];
-                            
-                            NSLog(@"%@", [NSString stringWithFormat:@"Post message is over 140: %d", num]);
-                            
-                        }else {
-                            
-                            //投稿可能文字数である
-                            canPost = YES;
-                        }
-                    }
-                }
-                
-                if ( canPost ) {
-                 
-                    //投稿処理
-                    NSString *text = [[[NSString alloc] initWithString:pboard.string] autorelease];
-                    NSArray *postData = [NSArray arrayWithObjects:text, nil, nil];
-                    [TWSendTweet performSelectorInBackground:@selector(post:) withObject:postData];
-                    
-                    //コールバックが有効
-                    if ( [d boolForKey:@"CallBack"] ) {
-                        
-                        //コールバックスキームが開けない
-                        if ( !canOpen ) {
-                            
-                            NSLog(@"Can't callBack");
-                            
-                            ShowAlert *alert = [[[ShowAlert alloc] init] autorelease];
-                            [alert error:@"Can't callBack"];
-                            
-                        //コールバックスキームを開くことが出来る
-                        }else {
-                            
-                            NSLog(@"CallBack");
-                            
-                            [[UIApplication sharedApplication] openURL:[NSURL URLWithString:[d objectForKey:@"CallBackScheme"]]];
-                        }
-                    }
-                    
-                //投稿不可能な場合
-                }else {
-                    
-                    //ペーストボード内容をPost入力欄にコピー
-                    postText.text = pboard.string;
-                    int num = [TWTwitterCharCounter charCounter:postText.text];
-                    postCharLabel.text = [NSString stringWithFormat:@"%d", num];
                 }
                 
             }else {
                 
-                //インターネ接続されていない
+                //インターネット接続されていない
                 ShowAlert *alert = [[[ShowAlert alloc] init] autorelease];
                 [alert error:@"No internet connection"];
             }
         }
     }
+}
+
+- (NSString *)nowPlaying {
+    
+    NSLog(@"nowPlaying");
+    
+    NSMutableString *resultText = [NSMutableString stringWithString:@""];
+    
+    @try {
+        
+        //再生中各種の曲の各種情報を取得
+        MPMusicPlayerController *player = [MPMusicPlayerController iPodMusicPlayer];
+        NSString *songTitle = [player.nowPlayingItem valueForProperty:MPMediaItemPropertyTitle];
+        NSString *songArtist = [player.nowPlayingItem valueForProperty:MPMediaItemPropertyArtist];
+        NSString *albumTitle = [player.nowPlayingItem valueForProperty:MPMediaItemPropertyAlbumTitle];
+        NSNumber *playCount = [player.nowPlayingItem valueForProperty:MPMediaItemPropertyPlayCount];
+        NSNumber *ratingNum = [player.nowPlayingItem valueForProperty:MPMediaItemPropertyRating];
+        
+        //NSNumberをNSStringにキャスト
+        int playCountInt = [playCount intValue];
+        NSString *playCountStr = [NSString stringWithFormat:@"%d", playCountInt];
+	    
+        //NSNumberをNSStringにキャスト
+        int rating = [ratingNum intValue];
+        NSString *ratingStr = [NSString stringWithFormat:@"%d", rating];
+        
+        //数字の文字から☆表記に変換
+        if ([ratingStr isEqualToString:@"0"]) {
+            ratingStr = @"☆☆☆☆☆";
+        }else if ([ratingStr isEqualToString:@"1"]) {
+            ratingStr = @"★☆☆☆☆";
+        }else if ([ratingStr isEqualToString:@"2"]) {
+            ratingStr = @"★★☆☆☆";
+        }else if ([ratingStr isEqualToString:@"3"]) {
+            ratingStr = @"★★★☆☆";
+        }else if ([ratingStr isEqualToString:@"4"]) {
+            ratingStr = @"★★★★☆";
+        }else if ([ratingStr isEqualToString:@"5"]) {
+            ratingStr = @"★★★★★";
+        }
+        
+        //曲名が空の場合は再生中じゃない
+        if ( songTitle != nil ){
+            
+            //自分で設定した書式を使用しない場合
+            if ([d integerForKey:@"nowplayingEdit"] == 0) {
+                
+                NSLog(@"default");
+                
+                //デフォルトの書式を適用
+                resultText = [NSMutableString stringWithFormat:@" #nowplaying %@ - %@ ", songTitle, songArtist];
+                
+            }else {
+                
+                NSLog(@"template");
+                
+                //自分で設定した書式に再生中の曲の情報を埋め込む
+                resultText = [NSMutableString stringWithString:[d stringForKey:@"nowplayingEditText"]];
+                resultText = [ReplaceOrDelete replaceWordReturnMStr:resultText replaceWord:@"[st]" replacedWord:songTitle];
+                resultText = [ReplaceOrDelete replaceWordReturnMStr:resultText replaceWord:@"[ar]" replacedWord:songArtist];
+                resultText = [ReplaceOrDelete replaceWordReturnMStr:resultText replaceWord:@"[at]" replacedWord:albumTitle];
+                resultText = [ReplaceOrDelete replaceWordReturnMStr:resultText replaceWord:@"[pc]" replacedWord:playCountStr];
+                resultText = [ReplaceOrDelete replaceWordReturnMStr:resultText replaceWord:@"[rt]" replacedWord:ratingStr];
+            }
+        }
+        
+    }@catch (NSException *e) {
+        
+        NSLog(@"Exception: %@", e);
+    }
+    
+    return (NSString *)resultText;
 }
 
 - (void)viewDidUnload {

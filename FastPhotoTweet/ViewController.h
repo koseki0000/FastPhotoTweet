@@ -16,6 +16,8 @@
 #import "UtilityClass.h"
 #import "IDChangeViewController.h"
 #import "SettingViewController.h"
+#import <MediaPlayer/MediaPlayer.h>
+//#import <MediaPlayer/MPMusicPlayerController.h>
 
 @interface ViewController : UIViewController <UINavigationControllerDelegate, UIImagePickerControllerDelegate, UIActionSheetDelegate> {
     
@@ -73,5 +75,6 @@
 - (void)postDone:(NSNotification *)center;
 - (BOOL)ios5Check;
 - (BOOL)reachability;
+- (NSString *)nowPlaying;
 
 @end

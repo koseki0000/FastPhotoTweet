@@ -11,13 +11,14 @@
 
 //現在入力されている文字数をt.coを考慮してカウントし、残りの入力可能文字数を返す
 //URLはどんな長さでも1つ20文字としてカウント
+//文頭、末尾にある半角スペースはカウントされない
 + (int)charCounter:(id)post {
     
     //自動開放プールを生成
     NSAutoreleasePool *pool = [[NSAutoreleasePool alloc] init];
     
     //id型で受け取りNSMutableStringにキャスト
-    NSMutableString *postString = [NSMutableString stringWithString:post];
+    NSMutableString *postString = (NSMutableString *)post;
     
     int num = 140;
     int originalCharNum = postString.length;
@@ -44,7 +45,6 @@
             
             //URLの個数カウントを増やす
             urlCount++;
-            
         }
         
         for ( NSString *tmp in urlList ) {
@@ -53,10 +53,19 @@
             [postString replaceOccurrencesOfString:tmp withString:@"" 
                                      options:0 
                                        range:NSMakeRange( 0, postString.length )];
-            
         }
         
-        //残り入力可能文字数 = 140 - URL以外の文字数 - URLの数 * 20
+        postString = [ReplaceOrDelete replaceWordReturnMStr:postString 
+                                                replaceWord:[RegularExpression mStrRegExp:postString 
+                                                                            regExpPattern:@"^ *"] 
+                                               replacedWord:@""];
+        
+        postString = [ReplaceOrDelete replaceWordReturnMStr:postString 
+                                                replaceWord:[RegularExpression mStrRegExp:postString 
+                                                                            regExpPattern:@" *$"] 
+                                               replacedWord:@""];
+        
+        //残り入力可能文字数 = 140 - URL以外の文字数 - 行頭･末尾半角スペースの数 - URLの数 * 20
         num = num - postString.length - urlCount * 20;
         
     }@catch ( NSException *e ) {
@@ -68,7 +77,6 @@
         
         //自動開放プールを開放
         [pool drain];
-        
     }
     
     //入力可能文字数を返す

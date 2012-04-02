@@ -113,7 +113,7 @@
                  NSString *responseDataString = [[[NSString alloc] initWithData:responseData encoding:NSUTF8StringEncoding] autorelease];
                  NSDictionary *result = [responseDataString JSONValue];
                  
-                 //NSLog(@"Result: %@", result);
+                 NSLog(@"ResultText: %@", [result objectForKey:@"text"]);
                  
                  BOOL media = NO;
                  NSString *entities = [[result objectForKey:@"entities"] objectForKey:@"media"];
@@ -133,7 +133,7 @@
                      
                      //エラー
                      NSString *errorText = [result objectForKey:@"error"];
-                     
+                                          
                      ShowAlert *alert = [[[ShowAlert alloc] init] autorelease];
                      [alert error:errorText];
                      
@@ -160,7 +160,7 @@
                      
                  } else {
                      
-                     if ( [text isEqualToString:@""] || text == nil ) {
+                     if ( ![EmptyCheck check:text] ) {
                          
                          NSString *errorText = [result objectForKey:@"error"];
                          
