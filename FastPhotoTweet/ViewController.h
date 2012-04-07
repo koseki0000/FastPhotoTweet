@@ -72,6 +72,7 @@
 - (IBAction)svTapGesture:(id)sender;
 
 - (void)loadSettings;
+- (void)callback;
 - (void)postDone:(NSNotification *)center;
 - (BOOL)ios5Check;
 - (BOOL)reachability;

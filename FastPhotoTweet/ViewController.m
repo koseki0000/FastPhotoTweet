@@ -64,6 +64,7 @@
     [d setInteger:800 forKey:@"imageMaxSize"];
     [d setInteger:1 forKey:@"nowplayingEdit"];
     [d setObject:@" #nowplaying : [st] - [ar] - [at] - [pc]回目 - [rt]" forKey:@"nowplayingEditText"];
+    [d setObject:@" #nowplaying : [st] - [ar] - [pc]回目 - [rt]" forKey:@"nowplayingEditTextSub"];
     [d removeObjectForKey:@"Notification"];
     
     //ツールバーにボタンをセット
@@ -149,8 +150,7 @@
         fastPostSwitch.on = NO;
     }
     
-    NSString *str = [d objectForKey:@"CallBackScheme"];
-    if ( [EmptyCheck check:str] ) {
+    if ( ![EmptyCheck check:[d objectForKey:@"CallBackScheme"]] ) {
         
         //スキームが保存されていない
         //空のキーを保存
@@ -159,7 +159,7 @@
     }else {
         
         //スキームをセット
-        callbackTextField.text = str;
+        callbackTextField.text = [d objectForKey:@"CallBackScheme"];
     }
 }
 
@@ -530,6 +530,8 @@
     //通知判定がある場合
     if ( [d boolForKey:@"Notification"] ) {
         
+        NSLog(@"Notification: YES");
+        
         //通知判定を削除
         [d removeObjectForKey:@"Notification"];
         
@@ -541,7 +543,7 @@
             //通知が辞書機能だった場合
             if ( [[d objectForKey:@"NotificationType"] isEqualToString:@"dic"] ) {
                 
-                NSLog(@"Dictionary");
+                NSLog(@"Dictionary Start");
                 
                 if ( [PasteboardType check] == 0 ) {
                     
@@ -572,9 +574,10 @@
             if ( [self reachability] ) {
                 
                 BOOL canPost = NO;
-                BOOL canOpen = NO;
                 
                 if ( [[d objectForKey:@"NotificationType"] isEqualToString:@"music"] ) {
+                    
+                    NSLog(@"NowPlaying Start");
                     
                     NSString *nowPlayingText = [self nowPlaying];
                     int length = [TWTwitterCharCounter charCounter:nowPlayingText];
@@ -585,6 +588,14 @@
                             
                             NSArray *postData = [NSArray arrayWithObjects:nowPlayingText, nil, nil];
                             [TWSendTweet performSelectorInBackground:@selector(post:) withObject:postData];
+                            
+                            if ( [d boolForKey:@"CallBack"] ) {
+                                
+                                NSLog(@"Callback Enable");
+                                
+                                //CallBack
+                                [self callback];
+                            }
                             
                         }else {
                             
@@ -665,13 +676,7 @@
                             
                             NSLog(@"CallBack Enable");
                             
-                            //CallbackSchemeが空でない
-                            if ( ![[d objectForKey:@"CallBackScheme"] isEqualToString:@""] ||
-                                [d objectForKey:@"CallBackScheme"] != nil) {
-                                
-                                //CallbackSchemeがアクセス可能な物がテスト
-                                canOpen = [[UIApplication sharedApplication] canOpenURL:[NSURL URLWithString:[d objectForKey:@"CallBackScheme"]]];
-                            }
+                            [self callback];
                         }
                         
                         //ペーストボード内がテキスト
@@ -701,25 +706,8 @@
                         NSArray *postData = [NSArray arrayWithObjects:text, nil, nil];
                         [TWSendTweet performSelectorInBackground:@selector(post:) withObject:postData];
                         
-                        //コールバックが有効
-                        if ( [d boolForKey:@"CallBack"] ) {
-                            
-                            //コールバックスキームが開けない
-                            if ( !canOpen ) {
-                                
-                                NSLog(@"Can't callBack");
-                                
-                                ShowAlert *alert = [[[ShowAlert alloc] init] autorelease];
-                                [alert error:@"Can't callBack"];
-                                
-                                //コールバックスキームを開くことが出来る
-                            }else {
-                                
-                                NSLog(@"CallBack");
-                                
-                                [[UIApplication sharedApplication] openURL:[NSURL URLWithString:[d objectForKey:@"CallBackScheme"]]];
-                            }
-                        }
+                        //CallBack
+                        [self callback];
                         
                         //投稿不可能な場合
                     }else {
@@ -737,6 +725,40 @@
                 ShowAlert *alert = [[[ShowAlert alloc] init] autorelease];
                 [alert error:@"No internet connection"];
             }
+        }
+        
+    }else {
+        
+        NSLog(@"Notification: NO");
+    }
+}
+
+- (void)callback {
+    
+    NSLog(@"Callback Start");
+    
+    BOOL canOpen = NO;
+    
+    //CallbackSchemeが空でない
+    if ( [EmptyCheck check:[d objectForKey:@"CallBackScheme"]] ) {
+        
+        //CallbackSchemeがアクセス可能な物がテスト
+        canOpen = [[UIApplication sharedApplication] canOpenURL:[NSURL URLWithString:[d objectForKey:@"CallBackScheme"]]];
+        
+        //コールバックスキームが開けない
+        if ( !canOpen ) {
+            
+            NSLog(@"Can't callBack");
+            
+            ShowAlert *alert = [[[ShowAlert alloc] init] autorelease];
+            [alert error:@"Can't callBack"];
+            
+            //コールバックスキームを開くことが出来る
+        }else {
+            
+            NSLog(@"CallBack");
+            
+            [[UIApplication sharedApplication] openURL:[NSURL URLWithString:[d objectForKey:@"CallBackScheme"]]];
         }
     }
 }
@@ -796,7 +818,16 @@
                 NSLog(@"template");
                 
                 //自分で設定した書式に再生中の曲の情報を埋め込む
-                resultText = [NSMutableString stringWithString:[d stringForKey:@"nowplayingEditText"]];
+                if ( [songTitle isEqualToString:albumTitle] ) {
+                    
+                    resultText = [NSMutableString stringWithString:[d stringForKey:@"nowplayingEditTextSub"]];
+                    
+                }else {
+                    
+                    resultText = [NSMutableString stringWithString:[d stringForKey:@"nowplayingEditText"]];
+                }
+                
+                
                 resultText = [ReplaceOrDelete replaceWordReturnMStr:resultText replaceWord:@"[st]" replacedWord:songTitle];
                 resultText = [ReplaceOrDelete replaceWordReturnMStr:resultText replaceWord:@"[ar]" replacedWord:songArtist];
                 resultText = [ReplaceOrDelete replaceWordReturnMStr:resultText replaceWord:@"[at]" replacedWord:albumTitle];
