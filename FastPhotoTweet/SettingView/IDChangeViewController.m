@@ -7,10 +7,6 @@
 
 #import "IDChangeViewController.h"
 
-@interface IDChangeViewController ()
-
-@end
-
 @implementation IDChangeViewController
 @synthesize topBar;
 @synthesize closeButton;
@@ -23,7 +19,7 @@
     
     if ( self ) {
         
-        NSLog(@"SettingView init");
+        NSLog(@"IDChangeView init");
         
         //初期化処理
         ACAccountStore *accountStore = [[[ACAccountStore alloc] init] autorelease];
@@ -57,12 +53,12 @@
     
     [super viewDidLoad];
     
-    NSLog(@"SettingView viewDidLoad");
+    NSLog(@"IDChangeView viewDidLoad");
 }
 
 - (IBAction)pushCloseButton:(id)sender {
     
-    NSLog(@"SettingView close");
+    NSLog(@"IDChangeView close");
     
     //閉じる
     [self dismissModalViewControllerAnimated:YES];
@@ -125,6 +121,8 @@
 }
 
 - (void)dealloc {
+    
+    NSLog(@"IDChangeView dealloc");
     
     [accountList release];
     

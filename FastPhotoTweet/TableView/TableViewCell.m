@@ -13,7 +13,9 @@
 
 - (void)dealloc {
 
-	[numberLabel release];
+    NSLog(@"TableViewCell dealloc");
+    
+    [numberLabel release];
 	[textLabel release];
     [super dealloc];
 }

@@ -20,10 +20,10 @@
     
     //リサイズ前のログ
     NSLog(@"OriginalSize w: %d h: %d", originalWidth, originalHeight);
-    NSLog(@"imageMaxSize: %d", [d integerForKey:@"imageMaxSize"]);
+    NSLog(@"ImageMaxSize: %d", [d integerForKey:@"ImageMaxSize"]);
     
     //iPhone4解像度はリサイズしない
-    if ( [d integerForKey:@"noResizeIphone4Ss"] == 1 ){
+    if ( [d integerForKey:@"NoResizeIphone4Ss"] == 1 ){
         
 		if ( originalHeight == 640 && originalWidth == 960 ) {
             
@@ -40,9 +40,9 @@
     //正方形
     if ( originalWidth == originalHeight ) {
         
-        if ( originalHeight < [d integerForKey:@"imageMaxSize"] ) {
+        if ( originalHeight < [d integerForKey:@"ImageMaxSize"] ) {
             
-            CGFloat ratio = image.size.width / [d integerForKey:@"imageMaxSize"];
+            CGFloat ratio = image.size.width / [d integerForKey:@"ImageMaxSize"];
             resizeWidth = image.size.width / ratio;
             resizeHeight = image.size.height / ratio;
             
@@ -56,15 +56,15 @@
     } else {
         
         
-        if ( originalHeight > [d integerForKey:@"imageMaxSize"] ||
-            originalWidth > [d integerForKey:@"imageMaxSize"] ) {
+        if ( originalHeight > [d integerForKey:@"ImageMaxSize"] ||
+            originalWidth > [d integerForKey:@"ImageMaxSize"] ) {
             
             //縦長
             if ( originalHeight > originalWidth ) {
                 
                 NSLog(@"H > W");
                 
-                CGFloat ratio = image.size.height / [d integerForKey:@"imageMaxSize"];
+                CGFloat ratio = image.size.height / [d integerForKey:@"ImageMaxSize"];
                 resizeWidth = image.size.width / ratio;
                 resizeHeight = image.size.height / ratio;
                 
@@ -73,7 +73,7 @@
                 
                 NSLog(@"W > H");
                 
-                CGFloat ratio = image.size.width / [d integerForKey:@"imageMaxSize"];
+                CGFloat ratio = image.size.width / [d integerForKey:@"ImageMaxSize"];
                 resizeWidth = image.size.width / ratio;
                 resizeHeight = image.size.height / ratio;
             }

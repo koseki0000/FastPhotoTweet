@@ -78,10 +78,28 @@
         
         if ( postMode == 0 ) {
             
+            NSUserDefaults *d = [NSUserDefaults standardUserDefaults];
+            
+            //画像をリサイズするか判定
+            if ( [d boolForKey:@"ResizeImage"] ) {
+                
+                //リサイズを行う
+                image = [ResizeImage aspectResize:image];
+            }
+            
             //UIImageをNSDataに変換
-            NSData *imageData;
-            //imageData = UIImagePNGRepresentation(image);
-            imageData = UIImageJPEGRepresentation(image, 0.9);
+            NSData *imageData;            
+            if ( [d integerForKey:@"ImageMaxSize"] == 0 ) {
+                imageData = UIImageJPEGRepresentation(image, 0.6);
+            }else if ( [d integerForKey:@"ImageMaxSize"] == 1 ) {
+                imageData = UIImageJPEGRepresentation(image, 0.8);
+            }else if ( [d integerForKey:@"ImageMaxSize"] == 2 ) {
+                imageData = UIImageJPEGRepresentation(image, 0.95);
+            }else if ( [d integerForKey:@"ImageMaxSize"] == 3 ) {
+                imageData = UIImagePNGRepresentation(image);
+            }else {
+                imageData = UIImageJPEGRepresentation(image, 0.8);
+            }
             
             //画像を追加
             [postRequest addMultiPartData:imageData 

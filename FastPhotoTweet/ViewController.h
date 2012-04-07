@@ -17,7 +17,6 @@
 #import "IDChangeViewController.h"
 #import "SettingViewController.h"
 #import <MediaPlayer/MediaPlayer.h>
-//#import <MediaPlayer/MPMusicPlayerController.h>
 
 @interface ViewController : UIViewController <UINavigationControllerDelegate, UIImagePickerControllerDelegate, UIActionSheetDelegate> {
     

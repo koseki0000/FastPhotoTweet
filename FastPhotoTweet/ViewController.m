@@ -60,12 +60,14 @@
     postedCount = 0;
     
     //for debug
-    [d setInteger:1 forKey:@"noResizeIphone4Ss"];
-    [d setInteger:800 forKey:@"imageMaxSize"];
-    [d setInteger:1 forKey:@"nowplayingEdit"];
-    [d setObject:@" #nowplaying : [st] - [ar] - [at] - [pc]回目 - [rt]" forKey:@"nowplayingEditText"];
-    [d setObject:@" #nowplaying : [st] - [ar] - [pc]回目 - [rt]" forKey:@"nowplayingEditTextSub"];
+    [d setInteger:1 forKey:@"NoResizeIphone4Ss"];
+    [d setInteger:1 forKey:@"NowPlayingEdit"];
+    [d setBool:YES forKey:@"NowPlayingEdit"];
+    [d setBool:YES forKey:@"NowPlayingCallBack"];
+    [d setObject:@" #nowplaying : [st] - [ar] - [at] - [pc]回目 - [rt]" forKey:@"NowPlayingEditText"];
+    [d setObject:@" #nowplaying : [st] - [ar] - [pc]回目 - [rt]" forKey:@"NowPlayingEditTextSub"];
     [d removeObjectForKey:@"Notification"];
+    [d synchronize];
     
     //ツールバーにボタンをセット
     [topBar setItems:TOP_BAR animated:NO];
@@ -160,6 +162,16 @@
         
         //スキームをセット
         callbackTextField.text = [d objectForKey:@"CallBackScheme"];
+    }
+    
+    //リサイズ最大長辺が設定されていない場合640を設定
+    if ( [d integerForKey:@"ImageMaxSize"] == 0 ) {
+        [d setInteger:640 forKey:@"ImageMaxSize"];
+    }
+    
+    //画像形式が設定されていない場合JPGを設定
+    if ( ![EmptyCheck check:[d objectForKey:@"SaveImageType"]] ) {
+        [d setObject:@"JPG" forKey:@"SaveImageType"];
     }
 }
 
@@ -300,11 +312,15 @@
     
     NSLog(@"Setting");
     
-    if ( imagePreview.image != nil ) {
-        
-        //for debug
-        imagePreview.image = [ResizeImage aspectResize:imagePreview.image];
-    }
+//    if ( imagePreview.image != nil ) {
+//        
+//        //for debug
+//        imagePreview.image = [ResizeImage aspectResize:imagePreview.image];
+//    }
+    
+    SettingViewController *dialog = [[[SettingViewController alloc] init] autorelease];
+	dialog.modalTransitionStyle = UIModalTransitionStyleCoverVertical;
+	[self presentModalViewController:dialog animated:YES];
 }
 
 - (IBAction)pushIDButton:(id)sender {
@@ -314,7 +330,7 @@
     changeAccount = YES;
     
     IDChangeViewController *dialog = [[[IDChangeViewController alloc] init] autorelease];
-	dialog.modalTransitionStyle = UIModalTransitionStyleFlipHorizontal;
+	dialog.modalTransitionStyle = UIModalTransitionStyleCoverVertical;
 	[self presentModalViewController:dialog animated:YES];
 }
 
@@ -415,7 +431,7 @@
     }
 }
 
-- (void)actionSheet:(UIActionSheet*)actionSheet clickedButtonAtIndex:(NSInteger)buttonIndex {
+- (void)actionSheet:(UIActionSheet *)actionSheet clickedButtonAtIndex:(NSInteger)buttonIndex {
     
     if ( actionSheetNo == 0 ) {
              
@@ -589,7 +605,7 @@
                             NSArray *postData = [NSArray arrayWithObjects:nowPlayingText, nil, nil];
                             [TWSendTweet performSelectorInBackground:@selector(post:) withObject:postData];
                             
-                            if ( [d boolForKey:@"CallBack"] ) {
+                            if ( [d boolForKey:@"CallBack"] || [d boolForKey:@"NowPlayingCallBack"] ) {
                                 
                                 NSLog(@"Callback Enable");
                                 
@@ -672,10 +688,11 @@
                         NSLog(@"FastPost Enable");
                         
                         //コールバックが有効な場合
-                        if ( [d boolForKey:@"CallBack"] ) {
+                        if ( [d boolForKey:@"CallBack"] || [d boolForKey:@"NowPlayingCallBack"] ) {
                             
-                            NSLog(@"CallBack Enable");
+                            NSLog(@"Callback Enable");
                             
+                            //CallBack
                             [self callback];
                         }
                         
@@ -806,33 +823,32 @@
         if ( songTitle != nil ){
             
             //自分で設定した書式を使用しない場合
-            if ([d integerForKey:@"nowplayingEdit"] == 0) {
-                
-                NSLog(@"default");
-                
-                //デフォルトの書式を適用
-                resultText = [NSMutableString stringWithFormat:@" #nowplaying %@ - %@ ", songTitle, songArtist];
-                
-            }else {
+            if ( [d boolForKey:@"NowPlayingEdit"] ) {
                 
                 NSLog(@"template");
                 
                 //自分で設定した書式に再生中の曲の情報を埋め込む
                 if ( [songTitle isEqualToString:albumTitle] ) {
                     
-                    resultText = [NSMutableString stringWithString:[d stringForKey:@"nowplayingEditTextSub"]];
+                    resultText = [NSMutableString stringWithString:[d stringForKey:@"NowPlayingEditTextSub"]];
                     
                 }else {
                     
-                    resultText = [NSMutableString stringWithString:[d stringForKey:@"nowplayingEditText"]];
+                    resultText = [NSMutableString stringWithString:[d stringForKey:@"NowPlayingEditText"]];
                 }
-                
                 
                 resultText = [ReplaceOrDelete replaceWordReturnMStr:resultText replaceWord:@"[st]" replacedWord:songTitle];
                 resultText = [ReplaceOrDelete replaceWordReturnMStr:resultText replaceWord:@"[ar]" replacedWord:songArtist];
                 resultText = [ReplaceOrDelete replaceWordReturnMStr:resultText replaceWord:@"[at]" replacedWord:albumTitle];
                 resultText = [ReplaceOrDelete replaceWordReturnMStr:resultText replaceWord:@"[pc]" replacedWord:playCountStr];
                 resultText = [ReplaceOrDelete replaceWordReturnMStr:resultText replaceWord:@"[rt]" replacedWord:ratingStr];
+                
+            }else {
+                
+                NSLog(@"default");
+                
+                //デフォルトの書式を適用
+                resultText = [NSMutableString stringWithFormat:@" #nowplaying %@ - %@ ", songTitle, songArtist];
             }
         }
         
