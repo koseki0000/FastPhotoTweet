@@ -25,6 +25,7 @@
         ACAccountStore *accountStore = [[[ACAccountStore alloc] init] autorelease];
         ACAccountType *accountType = [accountStore accountTypeWithAccountTypeIdentifier:ACAccountTypeIdentifierTwitter];
         NSArray *twitterAccounts = [accountStore accountsWithAccountType:accountType];
+        d = [NSUserDefaults standardUserDefaults];
         
         if ( twitterAccounts != 0 ) {
     
@@ -90,7 +91,13 @@
 	}
     
     //テキストをセット
-    cell.numberLabel.text = [NSString stringWithFormat:@"%d", indexPath.row + 1];
+    //使用中のアカウントにチェックマークを付ける
+    if ( indexPath.row == [d integerForKey:@"UseAccount"] ) {
+        cell.numberLabel.text = [NSString stringWithFormat:@"✓ %d", indexPath.row + 1];
+    }else {
+        cell.numberLabel.text = [NSString stringWithFormat:@"　 %d", indexPath.row + 1];
+    }
+    
     cell.textLabel.text = [accountList objectAtIndex:indexPath.row];
     
     return cell;
@@ -102,7 +109,6 @@
 	[tableView deselectRowAtIndexPath:indexPath animated:YES];
     
     //使用アカウント情報を保存
-    NSUserDefaults *d = [NSUserDefaults standardUserDefaults];
     [d setInteger:indexPath.row forKey:@"UseAccount"];
     
     //閉じる

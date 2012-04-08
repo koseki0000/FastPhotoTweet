@@ -60,13 +60,7 @@
     actionSheetNo = 0;
     postedCount = 0;
     
-    //for debug
-    [d setBool:YES forKey:@"NoResizeIphone4Ss"];
-    [d setBool:YES forKey:@"NowPlayingEdit"];
-    [d setObject:@" #nowplaying : [st] - [ar] - [at] - [pc]回目 - [rt]" forKey:@"NowPlayingEditText"];
-    [d setObject:@" #nowplaying : [st] - [ar] - [pc]回目 - [rt]" forKey:@"NowPlayingEditTextSub"];
     [d removeObjectForKey:@"Notification"];
-    [d synchronize];
     
     //ツールバーにボタンをセット
     [topBar setItems:TOP_BAR animated:NO];
@@ -162,16 +156,28 @@
         //スキームをセット
         callbackTextField.text = [d objectForKey:@"CallBackScheme"];
     }
-        
+    
+    //画像形式が設定されていない場合JPGを設定
+    if ( ![EmptyCheck check:[d objectForKey:@"SaveImageType"]] ) {
+        [d setObject:@"JPG" forKey:@"SaveImageType"];
+    }
+    
     //リサイズ最大長辺が設定されていない場合640を設定
     if ( [d integerForKey:@"ImageMaxSize"] == 0 ) {
         [d setInteger:640 forKey:@"ImageMaxSize"];
     }
     
     //画像形式が設定されていない場合JPGを設定
-    if ( ![EmptyCheck check:[d objectForKey:@"SaveImageType"]] ) {
-        [d setObject:@"JPG" forKey:@"SaveImageType"];
+    if ( ![EmptyCheck check:[d objectForKey:@"NowPlayingEditText"]] ) {
+        [d setObject:BLANK forKey:@"NowPlayingEditText"];
     }
+    
+    if ( ![EmptyCheck check:[d objectForKey:@"NowPlayingEditTextSub"]] ) {
+        [d setObject:BLANK forKey:@"NowPlayingEditTextSub"];
+    }
+    
+    //設定を即反映
+    [d synchronize];
 }
 
 - (IBAction)pushPostButton:(id)sender {
@@ -310,10 +316,13 @@
 - (IBAction)pushSettingButton:(id)sender {
     
     NSLog(@"Setting");
+    
+    dispatch_async(dispatch_get_main_queue(), ^{
         
-    SettingViewController *dialog = [[[SettingViewController alloc] init] autorelease];
-	dialog.modalTransitionStyle = UIModalTransitionStyleCoverVertical;
-	[self presentModalViewController:dialog animated:YES];
+        SettingViewController *dialog = [[[SettingViewController alloc] init] autorelease];
+        dialog.modalTransitionStyle = UIModalTransitionStyleCoverVertical;
+        [self presentModalViewController:dialog animated:YES];
+    });
 }
 
 - (IBAction)pushIDButton:(id)sender {
@@ -322,9 +331,12 @@
     
     changeAccount = YES;
     
-    IDChangeViewController *dialog = [[[IDChangeViewController alloc] init] autorelease];
-	dialog.modalTransitionStyle = UIModalTransitionStyleCoverVertical;
-	[self presentModalViewController:dialog animated:YES];
+    dispatch_async(dispatch_get_main_queue(), ^{
+        
+        IDChangeViewController *dialog = [[[IDChangeViewController alloc] init] autorelease];
+        dialog.modalTransitionStyle = UIModalTransitionStyleCoverVertical;
+        [self presentModalViewController:dialog animated:YES];
+    });
 }
 
 - (IBAction)pushAddButton:(id)sender {
@@ -832,13 +844,19 @@
             //自分で設定した書式に再生中の曲の情報を埋め込む
             if ( [songTitle isEqualToString:albumTitle] ) {
                 
-                resultText = [NSMutableString stringWithString:[d stringForKey:@"NowPlayingEditTextSub"]];
+                //サブ書式を使用するか判定
+                if ( [d boolForKey:@"NowPlayingEditSub"] ) {
+                    resultText = [NSMutableString stringWithString:[d stringForKey:@"NowPlayingEditTextSub"]];
+                }else {
+                    resultText = [NSMutableString stringWithString:[d stringForKey:@"NowPlayingEditText"]];
+                }
                 
             }else {
                 
                 resultText = [NSMutableString stringWithString:[d stringForKey:@"NowPlayingEditText"]];
             }
             
+            //曲情報を書式に埋め込み
             resultText = [ReplaceOrDelete replaceWordReturnMStr:resultText replaceWord:@"[st]" replacedWord:songTitle];
             resultText = [ReplaceOrDelete replaceWordReturnMStr:resultText replaceWord:@"[ar]" replacedWord:songArtist];
             resultText = [ReplaceOrDelete replaceWordReturnMStr:resultText replaceWord:@"[at]" replacedWord:albumTitle];

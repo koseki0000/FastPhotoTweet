@@ -8,13 +8,18 @@
 #import <UIKit/UIKit.h>
 #import "TableViewCell.h"
 #import "TableViewCellController.h"
+#import "EmptyCheck.h"
 
-@interface SettingViewController : UIViewController <UIActionSheetDelegate> {
+@interface SettingViewController : UIViewController <UIActionSheetDelegate, UITextFieldDelegate> {
     
     NSUserDefaults *d;
     NSMutableArray *settingArray;
     
+    UIAlertView *alert;
+    UITextField *alertText;
+    
     int actionSheetNo;
+    int alertTextNo;
 }
 
 @property (retain, nonatomic) IBOutlet UITableView *tv;

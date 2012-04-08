@@ -12,6 +12,7 @@
 
 @interface IDChangeViewController : UIViewController {
     
+    NSUserDefaults *d;
     NSMutableArray *accountList;
     NSString *screenName;
 }

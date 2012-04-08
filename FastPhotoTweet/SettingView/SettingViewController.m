@@ -7,6 +7,17 @@
 
 #import "SettingViewController.h"
 
+//セクション数
+#define SECTION_COUNT 3
+//セクション0の項目数 (画像関連設定)
+#define SECTION_0 4
+//セクション1の項目数 (投稿関連設定)
+#define SECTION_1 5
+//セクション2の項目数 (その他の設定)
+#define SECTION_2 1
+
+#define BLANK @""
+
 @implementation SettingViewController
 @synthesize tv;
 @synthesize bar;
@@ -24,15 +35,21 @@
         d = [NSUserDefaults standardUserDefaults];
         settingArray = [NSMutableArray array];
         actionSheetNo = 0;
+        alertTextNo = 0;
         
         //設定項目を追加
         //画像関連設定
         [settingArray addObject:@"画像投稿時リサイズを行う"];
         [settingArray addObject:@"リサイズ最大長辺"];
         [settingArray addObject:@"画像形式"];
+        [settingArray addObject:@"Retina解像度画像のリサイズを行わない"];
         
         //投稿関連設定
         [settingArray addObject:@"NowPlaying時は必ずCallBackを行う"];
+        [settingArray addObject:@"NowPlayingにカスタム書式を使用"];
+        [settingArray addObject:@"カスタム書式を編集"];
+        [settingArray addObject:@"曲名とアルバム名が同じな場合サブ書式を使用"];
+        [settingArray addObject:@"サブ書式を編集"];
         
         //その他の設定
         [settingArray addObject:@"設定"];
@@ -52,7 +69,7 @@
     
     NSLog(@"pushDoneButton");
     
-    //閉じる    
+    //閉じる
     [settingArray release];
     [self dismissModalViewControllerAnimated:YES];
 }
@@ -61,7 +78,7 @@
     
     //NSLog(@"getSettingState: %d", index);
     
-    NSString *result = @"";
+    NSString *result = BLANK;
     
     if ( index == 0 ) {
         
@@ -93,6 +110,43 @@
             result = @"OFF";
         }
         
+    }else if ( index == 4 ) {
+        
+        if ( [d boolForKey:@"NoResizeIphone4Ss"] ) {
+            
+            result = @"ON";
+            
+        }else {
+
+            result = @"OFF";
+        }
+    
+    }else if ( index == 5 ) {
+        
+        if ( [d boolForKey:@"NowPlayingEdit"] ) {
+            
+            result = @"ON";
+            
+        }else {
+            
+            result = @"OFF";
+        }
+        
+    }else if ( index == 6 ) {
+        //空のまま
+    }else if ( index == 7 ) {
+        
+        if ( [d boolForKey:@"NowPlayingEditSub"] ) {
+            
+            result = @"ON";
+            
+        }else {
+            
+            result = @"OFF";
+        }
+        
+    }else if ( index == 8 ) {
+        //空のまま
     }
         
     return result;
@@ -107,15 +161,15 @@
     //各セクションの要素数を返す
     switch ( section ) {
 		case 0:
-			return 3;
+			return SECTION_0;
             break;
             
 		case 1:
-			return 1;
+			return SECTION_1;
             break;
             
         case 2:
-			return 1;
+			return SECTION_2;
             break;
 	}
     
@@ -144,7 +198,7 @@
     cell.textLabel.frame =      CGRectMake(215, 0,  90, 44);
     
     //テキストをセット
-    NSString *settingName = @"";
+    NSString *settingName = BLANK;
     int settingState = 0;
     
     switch ( indexPath.section ) {
@@ -157,14 +211,14 @@
         
         case 1:
             //投稿関連設定
-            settingName = [settingArray objectAtIndex:indexPath.row + 3];
-            settingState = indexPath.row + 3;
+            settingName = [settingArray objectAtIndex:indexPath.row + SECTION_0];
+            settingState = indexPath.row + SECTION_0;
             break;
             
         case 2:
             //その他の設定
-            settingName = [settingArray objectAtIndex:indexPath.row + 4];
-            settingState = indexPath.row + 4;
+            settingName = [settingArray objectAtIndex:indexPath.row + SECTION_0 + SECTION_1];
+            settingState = indexPath.row + SECTION_0 + SECTION_1;
             break;
     }
     
@@ -217,11 +271,19 @@
                      destructiveButtonTitle:nil
                      otherButtonTitles:@"JPG(Low)", @"JPG", @"JPG(High)", @"PNG", nil];
             
+        }else if ( indexPath.row == 3 ) {
+            
+            sheet = [[UIActionSheet alloc]
+                     initWithTitle:@"Retina解像度画像のリサイズを行わない"
+                     delegate:self
+                     cancelButtonTitle:@"Cancel"
+                     destructiveButtonTitle:nil
+                     otherButtonTitles:@"ON", @"OFF", nil];
         }
         
     }else if ( indexPath.section == 1 ) {
         
-        actionSheetNo = actionSheetNo + 3;
+        actionSheetNo = actionSheetNo + SECTION_0;
         
         if ( indexPath.row == 0 ) {
             
@@ -231,11 +293,132 @@
                      cancelButtonTitle:@"Cancel"
                      destructiveButtonTitle:nil
                      otherButtonTitles:@"ON", @"OFF", nil];
+            
+        }else if ( indexPath.row == 1 ) {
+            
+            sheet = [[UIActionSheet alloc]
+                     initWithTitle:@"NowPlayingにカスタム書式を使用"
+                     delegate:self
+                     cancelButtonTitle:@"Cancel"
+                     destructiveButtonTitle:nil
+                     otherButtonTitles:@"ON", @"OFF", nil];
+        
+        }else if ( indexPath.row == 2 ) {
+            
+            alertTextNo = 0;
+            
+            NSString *message = @"\n曲名[st] アーティスト名[ar]\nアルバム名[at] 再生数[pc] レート[rt]";
+            NSString *alertMessage = BLANK;
+            
+            if ( [EmptyCheck check:[d objectForKey:@"NowPlayingEditText"]] ) {
+                alertMessage = [d objectForKey:@"NowPlayingEditText"];
+            }
+            
+            alert = [[UIAlertView alloc] initWithTitle:@"カスタム書式を編集" 
+                                                            message:message
+                                                           delegate:self 
+                                                  cancelButtonTitle:@"キャンセル" 
+                                                  otherButtonTitles:@"確定", nil];
+
+            alertText = [[UITextField alloc] initWithFrame:CGRectMake(12, 40, 260, 25)];
+            [alertText setBackgroundColor:[UIColor whiteColor]];
+            alertText.contentVerticalAlignment = UIControlContentVerticalAlignmentCenter;
+            alertText.delegate = self;
+            alertText.text = alertMessage;
+            
+            [alert addSubview:alertText];
+            [alert show];
+            [alert release];
+            [alertText becomeFirstResponder];
+            [alertText release];
+            
+            return;
+            
+        }else if ( indexPath.row == 3 ) {
+            
+            sheet = [[UIActionSheet alloc]
+                     initWithTitle:@"曲名とアルバム名が同じな場合サブ書式を使用"
+                     delegate:self
+                     cancelButtonTitle:@"Cancel"
+                     destructiveButtonTitle:nil
+                     otherButtonTitles:@"ON", @"OFF", nil];
+            
+        }else if ( indexPath.row == 4 ) {
+            
+            alertTextNo = 1;
+            
+            NSString *alertMessage = BLANK;
+            
+            if ( [EmptyCheck check:[d objectForKey:@"NowPlayingEditTextSub"]] ) {
+                alertMessage = [d objectForKey:@"NowPlayingEditTextSub"];
+            }
+            
+            alert = [[UIAlertView alloc] initWithTitle:@"サブ書式を編集" 
+                                               message:@"\n"
+                                              delegate:self 
+                                     cancelButtonTitle:@"キャンセル" 
+                                     otherButtonTitles:@"確定", nil];
+            
+            alertText = [[UITextField alloc] initWithFrame:CGRectMake(12, 40, 260, 25)];
+            [alertText setBackgroundColor:[UIColor whiteColor]];
+            alertText.contentVerticalAlignment = UIControlContentVerticalAlignmentCenter;
+            alertText.delegate = self;
+            alertText.text = alertMessage;
+            
+            [alert addSubview:alertText];
+            [alert show];
+            [alert release];
+            [alertText becomeFirstResponder];
+            [alertText release];
+            
+            return;
         }
     }
     
     [sheet autorelease];
     [sheet showInView:self.view];        
+}
+
+- (void)alertView:(UIAlertView *)alertView clickedButtonAtIndex:(NSInteger)buttonIndex {
+    
+    //確定が押された
+    if ( alertTextNo == 0 ) {
+
+        if (buttonIndex == 1) {
+            
+            //カスタム書式を保存
+            [d setObject:alertText.text forKey:@"NowPlayingEditText"];
+        }
+        
+    }else if ( alertTextNo == 1 ) {
+        
+        //サブ書式を保存
+        [d setObject:alertText.text forKey:@"NowPlayingEditTextSub"];
+    }
+}
+
+- (BOOL)textFieldShouldReturn:(UITextField *)sender {
+    
+    NSLog(@"Textfield Enter: %@", sender.text);
+    
+    if ( alertTextNo == 0 ) {
+        
+        //カスタム書式を保存
+        [d setObject:alertText.text forKey:@"NowPlayingEditText"];
+        
+    }else if ( alertTextNo == 1 ) {
+        
+        //サブ書式を保存
+        [d setObject:alertText.text forKey:@"NowPlayingEditTextSub"];
+    }
+    
+    //アラートを閉じる
+    [alert dismissWithClickedButtonIndex:0 animated:YES];
+    
+    //キーボードを閉じる
+    [sender resignFirstResponder];
+    
+    return YES;
 }
 
 - (void)actionSheet:(UIActionSheet *)actionSheet clickedButtonAtIndex:(NSInteger)buttonIndex {
@@ -279,8 +462,30 @@
         }else if ( buttonIndex == 1 ) {
             [d setBool:NO forKey:@"NowPlayingCallBack"];
         }
+    
+    }else if ( actionSheetNo == 4 ) {
+        if ( buttonIndex == 0 ) {
+            [d setBool:YES forKey:@"NoResizeIphone4Ss"];
+        }else if ( buttonIndex == 1 ) {
+            [d setBool:NO forKey:@"NoResizeIphone4Ss"];
+        }
+    
+    }else if ( actionSheetNo == 5 ) {
+        if ( buttonIndex == 0 ) {
+            [d setBool:YES forKey:@"NowPlayingEdit"];
+        }else if ( buttonIndex == 1 ) {
+            [d setBool:NO forKey:@"NowPlayingEdit"];
+        }
+    
+    }else if ( actionSheetNo == 7 ) {
+        if ( buttonIndex == 0 ) {
+            [d setBool:YES forKey:@"NowPlayingEditSub"];
+        }else if ( buttonIndex == 1 ) {
+            [d setBool:NO forKey:@"NowPlayingEditSub"];
+        }
     }
     
+    //設定項目の表示を更新
     [tv reloadData];
 }
 
@@ -312,7 +517,7 @@
     //NSLog(@"numberOfSectionsInTableView");
     
     //セクションの数を設定
-	return 3;
+	return SECTION_COUNT;
 }
 
 /* TableView必須メソッドここまで */
