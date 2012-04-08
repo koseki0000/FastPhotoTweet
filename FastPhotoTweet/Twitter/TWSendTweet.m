@@ -89,13 +89,13 @@
             
             //UIImageをNSDataに変換
             NSData *imageData;            
-            if ( [d integerForKey:@"ImageMaxSize"] == 0 ) {
+            if ( [[d objectForKey:@"SaveImageType"] isEqualToString:@"JPG(Low)"] ) {
                 imageData = UIImageJPEGRepresentation(image, 0.6);
-            }else if ( [d integerForKey:@"ImageMaxSize"] == 1 ) {
+            }else if ( [[d objectForKey:@"SaveImageType"] isEqualToString:@"JPG"] ) {
                 imageData = UIImageJPEGRepresentation(image, 0.8);
-            }else if ( [d integerForKey:@"ImageMaxSize"] == 2 ) {
+            }else if ( [[d objectForKey:@"SaveImageType"] isEqualToString:@"JPG(High)"] ) {
                 imageData = UIImageJPEGRepresentation(image, 0.95);
-            }else if ( [d integerForKey:@"ImageMaxSize"] == 3 ) {
+            }else if ( [[d objectForKey:@"SaveImageType"] isEqualToString:@"PNG"] ) {
                 imageData = UIImagePNGRepresentation(image);
             }else {
                 imageData = UIImageJPEGRepresentation(image, 0.8);

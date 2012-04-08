@@ -31,6 +31,9 @@
         [settingArray addObject:@"リサイズ最大長辺"];
         [settingArray addObject:@"画像形式"];
         
+        //投稿関連設定
+        [settingArray addObject:@"NowPlaying時は必ずCallBackを行う"];
+        
         //その他の設定
         [settingArray addObject:@"設定"];
         
@@ -58,7 +61,7 @@
     
     //NSLog(@"getSettingState: %d", index);
     
-    NSString *result = @"Text";
+    NSString *result = @"";
     
     if ( index == 0 ) {
         
@@ -78,6 +81,18 @@
     }else if ( index == 2 ) {
         
         result = [NSString stringWithFormat:@"%@", [d objectForKey:@"SaveImageType"]];;
+    
+    }else if ( index == 3 ) {
+        
+        if ( [d boolForKey:@"NowPlayingCallBack"] ) {
+            
+            result = @"ON";
+            
+        }else {
+            
+            result = @"OFF";
+        }
+        
     }
         
     return result;
@@ -97,7 +112,11 @@
             
 		case 1:
 			return 1;
-            break;            
+            break;
+            
+        case 2:
+			return 1;
+            break;
 	}
     
 	return 0;
@@ -109,7 +128,7 @@
     
 	//TableViewCellを生成
 	static NSString *identifier = @"TableViewCell";
-	cell = (TableViewCell *)[tableView dequeueReusableCellWithIdentifier:identifier];
+	TableViewCell *cell = (TableViewCell *)[tableView dequeueReusableCellWithIdentifier:identifier];
 	cell.numberLabel.textColor = [UIColor blackColor];
 	cell.textLabel.textColor = [UIColor blackColor];
     
@@ -135,11 +154,17 @@
             settingName = [settingArray objectAtIndex:indexPath.row];
             settingState = indexPath.row;
             break;
-            
+        
         case 1:
-            //その他の設定
+            //投稿関連設定
             settingName = [settingArray objectAtIndex:indexPath.row + 3];
             settingState = indexPath.row + 3;
+            break;
+            
+        case 2:
+            //その他の設定
+            settingName = [settingArray objectAtIndex:indexPath.row + 4];
+            settingState = indexPath.row + 4;
             break;
     }
     
@@ -152,45 +177,70 @@
 - (void)tableView:(UITableView *)tableView didSelectRowAtIndexPath:(NSIndexPath *)indexPath {
     
     //セルの選択状態を解除
-	[tableView deselectRowAtIndexPath:indexPath animated:YES];
-
+    [tableView deselectRowAtIndexPath:indexPath animated:YES];
+    
+    //for debug
+    if ( indexPath.section == 2 ) {
+        return;
+    }
+    
     actionSheetNo = indexPath.row;
     
     UIActionSheet *sheet;
     
-    if ( indexPath.row == 0 ) {
+    if ( indexPath.section == 0 ) {
         
-        sheet = [[UIActionSheet alloc]
-                                initWithTitle:@"画像投稿時リサイズを行う"
-                                delegate:self
-                                cancelButtonTitle:@"Cancel"
-                                destructiveButtonTitle:nil
-                                otherButtonTitles:@"ON", @"OFF", nil];
+        if ( indexPath.row == 0 ) {
+            
+            sheet = [[UIActionSheet alloc]
+                     initWithTitle:@"画像投稿時リサイズを行う"
+                     delegate:self
+                     cancelButtonTitle:@"Cancel"
+                     destructiveButtonTitle:nil
+                     otherButtonTitles:@"ON", @"OFF", nil];
+            
+        }else if ( indexPath.row == 1 ) {
+            
+            sheet = [[UIActionSheet alloc]
+                     initWithTitle:@"リサイズ最大長辺"
+                     delegate:self
+                     cancelButtonTitle:@"Cancel"
+                     destructiveButtonTitle:nil
+                     otherButtonTitles:@"320", @"640", @"800", @"960",@"1280", nil];
+            
+        }else if ( indexPath.row == 2 ) {
+            
+            sheet = [[UIActionSheet alloc]
+                     initWithTitle:@"画像形式"
+                     delegate:self
+                     cancelButtonTitle:@"Cancel"
+                     destructiveButtonTitle:nil
+                     otherButtonTitles:@"JPG(Low)", @"JPG", @"JPG(High)", @"PNG", nil];
+            
+        }
         
-    }else if ( indexPath.row == 1 ) {
+    }else if ( indexPath.section == 1 ) {
         
-        sheet = [[UIActionSheet alloc]
-                 initWithTitle:@"リサイズ最大長辺"
-                 delegate:self
-                 cancelButtonTitle:@"Cancel"
-                 destructiveButtonTitle:nil
-                 otherButtonTitles:@"320", @"640", @"800", @"960",@"1280", nil];
+        actionSheetNo = actionSheetNo + 3;
         
-    }else if ( indexPath.row == 2 ) {
-        
-        sheet = [[UIActionSheet alloc]
-                 initWithTitle:@"画像形式"
-                 delegate:self
-                 cancelButtonTitle:@"Cancel"
-                 destructiveButtonTitle:nil
-                 otherButtonTitles:@"JPG(Low)", @"JPG", @"JPG(High)", @"PNG", nil];
+        if ( indexPath.row == 0 ) {
+            
+            sheet = [[UIActionSheet alloc]
+                     initWithTitle:@"NowPlaying時は必ずCallBackを行う"
+                     delegate:self
+                     cancelButtonTitle:@"Cancel"
+                     destructiveButtonTitle:nil
+                     otherButtonTitles:@"ON", @"OFF", nil];
+        }
     }
     
     [sheet autorelease];
-    [sheet showInView:self.view];
+    [sheet showInView:self.view];        
 }
 
 - (void)actionSheet:(UIActionSheet *)actionSheet clickedButtonAtIndex:(NSInteger)buttonIndex {
+    
+    //NSLog(@"actionSheet: %d, buttonIndex: %d", actionSheetNo, buttonIndex);
     
     if ( actionSheetNo == 0 ) {
         if ( buttonIndex == 0 ) {
@@ -222,6 +272,13 @@
         }else if ( buttonIndex == 3 ) {
             [d setObject:@"PNG" forKey:@"SaveImageType"];
         }
+        
+    }else if ( actionSheetNo == 3 ) {
+        if ( buttonIndex == 0 ) {
+            [d setBool:YES forKey:@"NowPlayingCallBack"];
+        }else if ( buttonIndex == 1 ) {
+            [d setBool:NO forKey:@"NowPlayingCallBack"];
+        }
     }
     
     [tv reloadData];
@@ -237,8 +294,12 @@
         case 0:
             return @"画像関連設定";
             break;
-            
+        
         case 1:
+            return @"投稿関連設定";
+            break;
+            
+        case 2:
             return @"その他の設定";
             break;
     }
@@ -251,7 +312,7 @@
     //NSLog(@"numberOfSectionsInTableView");
     
     //セクションの数を設定
-	return 2;
+	return 3;
 }
 
 /* TableView必須メソッドここまで */

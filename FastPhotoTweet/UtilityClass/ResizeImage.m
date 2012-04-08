@@ -23,18 +23,18 @@
     NSLog(@"ImageMaxSize: %d", [d integerForKey:@"ImageMaxSize"]);
     
     //iPhone4解像度はリサイズしない
-    if ( [d integerForKey:@"NoResizeIphone4Ss"] == 1 ){
+    if ( [d boolForKey:@"NoResizeIphone4Ss"] ){
         
 		if ( originalHeight == 640 && originalWidth == 960 ) {
             
             NSLog(@"640x960");
+            return image;
             
 		}else if ( originalHeight == 960 && originalWidth == 640 ) {
             
             NSLog(@"960x640");
+            return image;
         }
-        
-        return image;
 	}
     
     //正方形
@@ -54,7 +54,6 @@
         
     //長方形
     } else {
-        
         
         if ( originalHeight > [d integerForKey:@"ImageMaxSize"] ||
             originalWidth > [d integerForKey:@"ImageMaxSize"] ) {

@@ -15,8 +15,6 @@
     NSMutableArray *settingArray;
     
     int actionSheetNo;
-    
-    TableViewCell *cell;
 }
 
 @property (retain, nonatomic) IBOutlet UITableView *tv;

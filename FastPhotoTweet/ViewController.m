@@ -60,10 +60,8 @@
     postedCount = 0;
     
     //for debug
-    [d setInteger:1 forKey:@"NoResizeIphone4Ss"];
-    [d setInteger:1 forKey:@"NowPlayingEdit"];
+    [d setBool:YES forKey:@"NoResizeIphone4Ss"];
     [d setBool:YES forKey:@"NowPlayingEdit"];
-    [d setBool:YES forKey:@"NowPlayingCallBack"];
     [d setObject:@" #nowplaying : [st] - [ar] - [at] - [pc]回目 - [rt]" forKey:@"NowPlayingEditText"];
     [d setObject:@" #nowplaying : [st] - [ar] - [pc]回目 - [rt]" forKey:@"NowPlayingEditTextSub"];
     [d removeObjectForKey:@"Notification"];
@@ -163,7 +161,7 @@
         //スキームをセット
         callbackTextField.text = [d objectForKey:@"CallBackScheme"];
     }
-    
+        
     //リサイズ最大長辺が設定されていない場合640を設定
     if ( [d integerForKey:@"ImageMaxSize"] == 0 ) {
         [d setInteger:640 forKey:@"ImageMaxSize"];
@@ -600,11 +598,13 @@
                     
                     if ( length > 0 ) {
                         
-                        if ( [d boolForKey:@"FastPost"] ) {
+                        //FastPostが有効、またはNowPlaying限定CallBackが有効
+                        if ( [d boolForKey:@"FastPost"] || [d boolForKey:@"NowPlayingCallBack"]) {
                             
                             NSArray *postData = [NSArray arrayWithObjects:nowPlayingText, nil, nil];
                             [TWSendTweet performSelectorInBackground:@selector(post:) withObject:postData];
                             
+                            //CallBack、またはNowPlaying限定CallBackが有効
                             if ( [d boolForKey:@"CallBack"] || [d boolForKey:@"NowPlayingCallBack"] ) {
                                 
                                 NSLog(@"Callback Enable");
