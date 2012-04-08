@@ -9,6 +9,7 @@
 
 #define TOP_BAR [NSArray arrayWithObjects:trashButton, flexibleSpace, idButton, flexibleSpace, imageSettingButton, flexibleSpace, postButton, nil]
 #define BOTTOM_BAR [NSArray arrayWithObjects:settingButton, flexibleSpace, addButton, nil]
+#define BLANK @""
 
 @implementation ViewController
 @synthesize sv;
@@ -54,7 +55,7 @@
     //各種初期値をセット
     d = [NSUserDefaults standardUserDefaults];
     postedDic = [[NSMutableDictionary alloc] init];
-    postText.text = @"";
+    postText.text = BLANK;
     changeAccount = NO;
     actionSheetNo = 0;
     postedCount = 0;
@@ -154,7 +155,7 @@
         
         //スキームが保存されていない
         //空のキーを保存
-        [d setObject:@"" forKey:@"CallBackScheme"];
+        [d setObject:BLANK forKey:@"CallBackScheme"];
         
     }else {
         
@@ -181,9 +182,9 @@
         //Internet接続のチェック
         if ( [self reachability] ) {
             
-            NSString *text = [[[NSString alloc] initWithString:@""] autorelease];
+            NSString *text = [[[NSString alloc] initWithString:BLANK] autorelease];
             
-            if ( [postText.text isEqualToString:@""] ) {
+            if ( [postText.text isEqualToString:BLANK] ) {
 
                 //Post入力欄が空ならテスト用テキストを生成して投稿
                 NSString *testDate = [NSDateFormatter localizedStringFromDate:[NSDate date] 
@@ -213,7 +214,7 @@
                 postedCount++;
                 
                 //入力欄を空にする
-                postText.text = @"";
+                postText.text = BLANK;
              
             //画像が設定されている場合
             }else {
@@ -230,7 +231,7 @@
                 postedCount++;
                 
                 //入力欄と画像プレビューを空にする
-                postText.text = @"";
+                postText.text = BLANK;
                 imagePreview.image = nil;
             }
         }
@@ -302,20 +303,14 @@
     
     NSLog(@"Trash");
     
-    postText.text = @"";
+    postText.text = BLANK;
     imagePreview.image = nil;
 }
 
 - (IBAction)pushSettingButton:(id)sender {
     
     NSLog(@"Setting");
-    
-//    if ( imagePreview.image != nil ) {
-//        
-//        //for debug
-//        imagePreview.image = [ResizeImage aspectResize:imagePreview.image];
-//    }
-    
+        
     SettingViewController *dialog = [[[SettingViewController alloc] init] autorelease];
 	dialog.modalTransitionStyle = UIModalTransitionStyleCoverVertical;
 	[self presentModalViewController:dialog animated:YES];
@@ -619,6 +614,11 @@
                             [postText becomeFirstResponder];
                             [postText setSelectedRange:NSMakeRange(0, 0)];
                         }
+                    }else if ( length == 0 ) {
+                        
+                        //再生中でなかった場合
+                        ShowAlert *alert = [[[ShowAlert alloc] init] autorelease];
+                        [alert error:@"iPod再生中に使用してください。"];
                         
                     }else {
                         
@@ -784,7 +784,7 @@
     
     NSLog(@"nowPlaying");
     
-    NSMutableString *resultText = [NSMutableString stringWithString:@""];
+    NSMutableString *resultText = [NSMutableString stringWithString:BLANK];
     
     @try {
         
@@ -795,6 +795,11 @@
         NSString *albumTitle = [player.nowPlayingItem valueForProperty:MPMediaItemPropertyAlbumTitle];
         NSNumber *playCount = [player.nowPlayingItem valueForProperty:MPMediaItemPropertyPlayCount];
         NSNumber *ratingNum = [player.nowPlayingItem valueForProperty:MPMediaItemPropertyRating];
+        
+        //曲名が無い場合は終了
+        if ( songTitle.length == 0 ) {
+            return BLANK;
+        }
         
         //NSNumberをNSStringにキャスト
         int playCountInt = [playCount intValue];
@@ -819,37 +824,33 @@
             ratingStr = @"★★★★★";
         }
         
-        //曲名が空の場合は再生中じゃない
-        if ( songTitle != nil ){
+        //自分で設定した書式を使用しない場合
+        if ( [d boolForKey:@"NowPlayingEdit"] ) {
             
-            //自分で設定した書式を使用しない場合
-            if ( [d boolForKey:@"NowPlayingEdit"] ) {
+            NSLog(@"template");
+            
+            //自分で設定した書式に再生中の曲の情報を埋め込む
+            if ( [songTitle isEqualToString:albumTitle] ) {
                 
-                NSLog(@"template");
-                
-                //自分で設定した書式に再生中の曲の情報を埋め込む
-                if ( [songTitle isEqualToString:albumTitle] ) {
-                    
-                    resultText = [NSMutableString stringWithString:[d stringForKey:@"NowPlayingEditTextSub"]];
-                    
-                }else {
-                    
-                    resultText = [NSMutableString stringWithString:[d stringForKey:@"NowPlayingEditText"]];
-                }
-                
-                resultText = [ReplaceOrDelete replaceWordReturnMStr:resultText replaceWord:@"[st]" replacedWord:songTitle];
-                resultText = [ReplaceOrDelete replaceWordReturnMStr:resultText replaceWord:@"[ar]" replacedWord:songArtist];
-                resultText = [ReplaceOrDelete replaceWordReturnMStr:resultText replaceWord:@"[at]" replacedWord:albumTitle];
-                resultText = [ReplaceOrDelete replaceWordReturnMStr:resultText replaceWord:@"[pc]" replacedWord:playCountStr];
-                resultText = [ReplaceOrDelete replaceWordReturnMStr:resultText replaceWord:@"[rt]" replacedWord:ratingStr];
+                resultText = [NSMutableString stringWithString:[d stringForKey:@"NowPlayingEditTextSub"]];
                 
             }else {
                 
-                NSLog(@"default");
-                
-                //デフォルトの書式を適用
-                resultText = [NSMutableString stringWithFormat:@" #nowplaying %@ - %@ ", songTitle, songArtist];
+                resultText = [NSMutableString stringWithString:[d stringForKey:@"NowPlayingEditText"]];
             }
+            
+            resultText = [ReplaceOrDelete replaceWordReturnMStr:resultText replaceWord:@"[st]" replacedWord:songTitle];
+            resultText = [ReplaceOrDelete replaceWordReturnMStr:resultText replaceWord:@"[ar]" replacedWord:songArtist];
+            resultText = [ReplaceOrDelete replaceWordReturnMStr:resultText replaceWord:@"[at]" replacedWord:albumTitle];
+            resultText = [ReplaceOrDelete replaceWordReturnMStr:resultText replaceWord:@"[pc]" replacedWord:playCountStr];
+            resultText = [ReplaceOrDelete replaceWordReturnMStr:resultText replaceWord:@"[rt]" replacedWord:ratingStr];
+            
+        }else {
+            
+            NSLog(@"default");
+            
+            //デフォルトの書式を適用
+            resultText = [NSMutableString stringWithFormat:@" #nowplaying %@ - %@ ", songTitle, songArtist];
         }
         
     }@catch (NSException *e) {
