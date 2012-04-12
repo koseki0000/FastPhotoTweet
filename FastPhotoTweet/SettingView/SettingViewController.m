@@ -12,7 +12,7 @@
 //セクション0の項目数 (画像関連設定)
 #define SECTION_0 4
 //セクション1の項目数 (投稿関連設定)
-#define SECTION_1 5
+#define SECTION_1 6
 //セクション2の項目数 (その他の設定)
 #define SECTION_2 1
 
@@ -45,7 +45,8 @@
         [settingArray addObject:@"Retina解像度画像のリサイズを行わない"];
         
         //投稿関連設定
-        [settingArray addObject:@"NowPlaying時は必ずCallBackを行う"];
+        [settingArray addObject:@"NowPlaying時はFastPostを行う"];
+        [settingArray addObject:@"NowPlaying時はCallBackを行う"];
         [settingArray addObject:@"NowPlayingにカスタム書式を使用"];
         [settingArray addObject:@"カスタム書式を編集"];
         [settingArray addObject:@"曲名とアルバム名が同じな場合サブ書式を使用"];
@@ -80,6 +81,7 @@
     
     NSString *result = BLANK;
     
+    //画像投稿時リサイズを行う
     if ( index == 0 ) {
         
         if ( [d boolForKey:@"ResizeImage"] ) {
@@ -91,15 +93,42 @@
             result = @"OFF";
         }
         
+    //リサイズ最大長辺
     }else if ( index == 1 ) {
         
         result = [NSString stringWithFormat:@"%d", [d integerForKey:@"ImageMaxSize"]];
         
+    //画像形式
     }else if ( index == 2 ) {
         
         result = [NSString stringWithFormat:@"%@", [d objectForKey:@"SaveImageType"]];;
     
+    //Retina解像度画像のリサイズを行わない
     }else if ( index == 3 ) {
+        
+        if ( [d boolForKey:@"NoResizeIphone4Ss"] ) {
+            
+            result = @"ON";
+            
+        }else {
+            
+            result = @"OFF";
+        }
+    
+    //NowPlaying時はFastPostを行う
+    }else if ( index == 4 ) {
+        
+        if ( [d boolForKey:@"NowPlayingFastPost"] ) {
+            
+            result = @"ON";
+            
+        }else {
+            
+            result = @"OFF";
+        }
+        
+    //NowPlaying時はCallBackを行う
+    }else if ( index == 5 ) {
         
         if ( [d boolForKey:@"NowPlayingCallBack"] ) {
             
@@ -110,18 +139,8 @@
             result = @"OFF";
         }
         
-    }else if ( index == 4 ) {
-        
-        if ( [d boolForKey:@"NoResizeIphone4Ss"] ) {
-            
-            result = @"ON";
-            
-        }else {
-
-            result = @"OFF";
-        }
-    
-    }else if ( index == 5 ) {
+    //NowPlayingにカスタム書式を使用
+    }else if ( index == 6 ) {
         
         if ( [d boolForKey:@"NowPlayingEdit"] ) {
             
@@ -132,9 +151,11 @@
             result = @"OFF";
         }
         
-    }else if ( index == 6 ) {
-        //空のまま
+    //カスタム書式を編集
     }else if ( index == 7 ) {
+        //空のまま
+    //曲名とアルバム名が同じな場合サブ書式を使用
+    }else if ( index == 8 ) {
         
         if ( [d boolForKey:@"NowPlayingEditSub"] ) {
             
@@ -145,7 +166,8 @@
             result = @"OFF";
         }
         
-    }else if ( index == 8 ) {
+    //サブ書式を編集
+    }else if ( index == 9 ) {
         //空のまま
     }
         
@@ -286,9 +308,9 @@
         actionSheetNo = actionSheetNo + SECTION_0;
         
         if ( indexPath.row == 0 ) {
-            
+        
             sheet = [[UIActionSheet alloc]
-                     initWithTitle:@"NowPlaying時は必ずCallBackを行う"
+                     initWithTitle:@"NowPlaying時はFastPostを行う"
                      delegate:self
                      cancelButtonTitle:@"Cancel"
                      destructiveButtonTitle:nil
@@ -297,13 +319,22 @@
         }else if ( indexPath.row == 1 ) {
             
             sheet = [[UIActionSheet alloc]
+                     initWithTitle:@"NowPlaying時はCallBackを行う"
+                     delegate:self
+                     cancelButtonTitle:@"Cancel"
+                     destructiveButtonTitle:nil
+                     otherButtonTitles:@"ON", @"OFF", nil];
+            
+        }else if ( indexPath.row == 2 ) {
+            
+            sheet = [[UIActionSheet alloc]
                      initWithTitle:@"NowPlayingにカスタム書式を使用"
                      delegate:self
                      cancelButtonTitle:@"Cancel"
                      destructiveButtonTitle:nil
                      otherButtonTitles:@"ON", @"OFF", nil];
         
-        }else if ( indexPath.row == 2 ) {
+        }else if ( indexPath.row == 3 ) {
             
             alertTextNo = 0;
             
@@ -334,7 +365,7 @@
             
             return;
             
-        }else if ( indexPath.row == 3 ) {
+        }else if ( indexPath.row == 4 ) {
             
             sheet = [[UIActionSheet alloc]
                      initWithTitle:@"曲名とアルバム名が同じな場合サブ書式を使用"
@@ -343,7 +374,7 @@
                      destructiveButtonTitle:nil
                      otherButtonTitles:@"ON", @"OFF", nil];
             
-        }else if ( indexPath.row == 4 ) {
+        }else if ( indexPath.row == 5 ) {
             
             alertTextNo = 1;
             
@@ -455,34 +486,45 @@
         }else if ( buttonIndex == 3 ) {
             [d setObject:@"PNG" forKey:@"SaveImageType"];
         }
-        
+    
     }else if ( actionSheetNo == 3 ) {
+        if ( buttonIndex == 0 ) {
+            [d setBool:YES forKey:@"NoResizeIphone4Ss"];
+        }else if ( buttonIndex == 1 ) {
+            [d setBool:NO forKey:@"NoResizeIphone4Ss"];
+        }
+        
+    }else if ( actionSheetNo == 4 ) {
+        if ( buttonIndex == 0 ) {
+            [d setBool:YES forKey:@"NowPlayingFastPost"];
+        }else if ( buttonIndex == 1 ) {
+            [d setBool:NO forKey:@"NowPlayingFastPost"];
+        }
+        
+    }else if ( actionSheetNo == 5 ) {
         if ( buttonIndex == 0 ) {
             [d setBool:YES forKey:@"NowPlayingCallBack"];
         }else if ( buttonIndex == 1 ) {
             [d setBool:NO forKey:@"NowPlayingCallBack"];
         }
     
-    }else if ( actionSheetNo == 4 ) {
-        if ( buttonIndex == 0 ) {
-            [d setBool:YES forKey:@"NoResizeIphone4Ss"];
-        }else if ( buttonIndex == 1 ) {
-            [d setBool:NO forKey:@"NoResizeIphone4Ss"];
-        }
-    
-    }else if ( actionSheetNo == 5 ) {
+    }else if ( actionSheetNo == 6 ) {
         if ( buttonIndex == 0 ) {
             [d setBool:YES forKey:@"NowPlayingEdit"];
         }else if ( buttonIndex == 1 ) {
             [d setBool:NO forKey:@"NowPlayingEdit"];
         }
     
-    }else if ( actionSheetNo == 7 ) {
+//  }else if ( actionSheetNo == 7 ) {
+    
+    }else if ( actionSheetNo == 8 ) {
         if ( buttonIndex == 0 ) {
             [d setBool:YES forKey:@"NowPlayingEditSub"];
         }else if ( buttonIndex == 1 ) {
             [d setBool:NO forKey:@"NowPlayingEditSub"];
         }
+        
+//  }else if ( actionSheetNo == 9 ) {
     }
     
     //設定項目の表示を更新

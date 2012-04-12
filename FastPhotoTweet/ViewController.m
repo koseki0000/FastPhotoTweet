@@ -606,7 +606,7 @@
                     if ( length > 0 ) {
                         
                         //FastPostが有効、またはNowPlaying限定CallBackが有効
-                        if ( [d boolForKey:@"FastPost"] || [d boolForKey:@"NowPlayingCallBack"]) {
+                        if ( [d boolForKey:@"FastPost"] || [d boolForKey:@"NowPlayingFastPost"]) {
                             
                             NSArray *postData = [NSArray arrayWithObjects:nowPlayingText, nil, nil];
                             [TWSendTweet performSelectorInBackground:@selector(post:) withObject:postData];
@@ -626,6 +626,7 @@
                             [postText becomeFirstResponder];
                             [postText setSelectedRange:NSMakeRange(0, 0)];
                         }
+                        
                     }else if ( length == 0 ) {
                         
                         //再生中でなかった場合
@@ -637,6 +638,11 @@
                         //140字を超えていた場合
                         ShowAlert *alert = [[[ShowAlert alloc] init] autorelease];
                         [alert error:[NSString stringWithFormat:@"Post message is over 140: %d", length]];
+                        
+                        //入力欄に貼り付け
+                        postText.text = nowPlayingText;
+                        [postText becomeFirstResponder];
+                        [postText setSelectedRange:NSMakeRange(0, 0)];
                     }
                     
                 }else {
