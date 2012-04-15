@@ -67,6 +67,17 @@
     }
 }
 
+- (BOOL)application:(UIApplication *)application handleOpenURL:(NSURL *)schemeURL {
+
+    NSLog(@"handleOpenURL: %@", schemeURL.absoluteString);
+    
+    NSUserDefaults *d = [NSUserDefaults standardUserDefaults];
+    [d setBool:YES forKey:@"Notification"];
+    [d setObject:[schemeURL.absoluteString substringWithRange:NSMakeRange(6, schemeURL.absoluteString.length - 6)] forKey:@"NotificationType"];
+    
+    return YES;
+}
+
 - (BOOL)ios5Check {
     
     BOOL result = NO;

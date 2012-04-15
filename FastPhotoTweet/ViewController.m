@@ -69,6 +69,9 @@
     //保存されている情報をロード
     [self loadSettings];
     
+    //インターネット接続のチェック
+    [self reachability];
+    
     //iOSバージョン判定
     if ( [self ios5Check] ) {
         
@@ -176,6 +179,10 @@
         [d setObject:BLANK forKey:@"NowPlayingEditTextSub"];
     }
     
+    if ( ![EmptyCheck check:[d objectForKey:@"PhotoService"]] ) {
+        [d setObject:@"Twitter" forKey:@"PhotoService"];
+    }
+    
     //設定を即反映
     [d synchronize];
 }
@@ -225,13 +232,28 @@
             //画像が設定されている場合
             }else {
                 
-                //文字列と画像をバックグラウンドプロセスで投稿
-                NSArray *postData = [NSArray arrayWithObjects:text, imagePreview.image, nil];
-                [TWSendTweet performSelectorInBackground:@selector(post:) withObject:postData];
-                
-                //投稿失敗時の再投稿用に文字列と画像を保存
-                NSArray *saveArray = [NSArray arrayWithObjects:text, imagePreview.image, nil];
-                [postedDic setObject:saveArray forKey:[NSString stringWithFormat:@"%d", postedCount]];
+                //画像投稿先がTwitterの場合
+                if ( [[d objectForKey:@"PhotoService"] isEqualToString:@"Twitter"] ) {
+                    
+                    //文字列と画像をバックグラウンドプロセスで投稿
+                    NSArray *postData = [NSArray arrayWithObjects:text, imagePreview.image, nil];
+                    [TWSendTweet performSelectorInBackground:@selector(post:) withObject:postData];
+                    
+                    //投稿失敗時の再投稿用に文字列と画像を保存
+                    NSArray *saveArray = [NSArray arrayWithObjects:text, imagePreview.image, nil];
+                    [postedDic setObject:saveArray forKey:[NSString stringWithFormat:@"%d", postedCount]];
+                    
+                //画像投稿先がimg.urの場合
+                }else {
+                    
+                    //文字列をバックグラウンドプロセスで投稿
+                    NSArray *postData = [NSArray arrayWithObjects:text, nil, nil];
+                    [TWSendTweet performSelectorInBackground:@selector(post:) withObject:postData];
+                    
+                    //投稿失敗時の再投稿用に文字列を保存
+                    NSArray *saveArray = [NSArray arrayWithObjects:text, nil, nil];
+                    [postedDic setObject:saveArray forKey:[NSString stringWithFormat:@"%d", postedCount]];
+                }
                 
                 //投稿カウントを増やす
                 postedCount++;
@@ -369,11 +391,43 @@
                   editingInfo:(NSDictionary*)editingInfo {
 
     //画像が選択された場合
+    if ( [[d objectForKey:@"PhotoService"] isEqualToString:@"img.ur"] ) {
+        
+        //処理中を表すビューを表示
+        grayView = [[GrayView alloc] init];
+        [sv addSubview:grayView];
+        [grayView on];
+        
+        //画像をリサイズするか判定
+        if ( [d boolForKey:@"ResizeImage"] ) {
+            
+            //リサイズを行う
+            image = [ResizeImage aspectResize:image];
+        }
+        
+        //UIImageをNSDataに変換
+        NSData *imageData = [EncodeImage image:image];
+        
+        //リクエストURLを指定
+        NSURL *URL = [NSURL URLWithString:@"http://api.imgur.com/2/upload.json"];
+        
+        ASIFormDataRequest *request = [[[ASIFormDataRequest alloc] initWithURL:URL] autorelease];
+        [request addPostValue:@"6de089e68b55d6e390d246c4bf932901" forKey:@"key"];
+        [request addData:imageData forKey:@"image"];
+        [request setDelegate:self];
+        [request start];
+    }
+    
     //画像を設定
     imagePreview.image = image;
     
     //モーダルビューを閉じる
     [picPicker dismissModalViewControllerAnimated:YES];
+    
+    //Post入力状態にする
+    [postText becomeFirstResponder];
+    [postText setSelectedRange:NSMakeRange(0, 0)];
+    [self countText];
 }
 
 - (void)imagePickerControllerDidCancel:(UIImagePickerController *)picPicker {
@@ -381,6 +435,32 @@
     //画像選択がキャンセルされた場合
     //モーダルビューを閉じる
     [picPicker dismissModalViewControllerAnimated:YES];
+}
+
+- (void)requestFinished:(ASIHTTPRequest *)request {
+
+    //アップロードに成功した場合
+    
+    //レスポンスのStringからDictionaryを生成
+    NSDictionary *result = [request.responseString JSONValue];
+    
+    //Dictionaryから画像URLを抜き出す
+    NSString *imageURL = [[[result objectForKey:@"upload"] objectForKey:@"links"] objectForKey:@"original"];
+    
+    //Post入力欄の最後にURLを付ける
+    postText.text = [NSString stringWithFormat:@"%@ %@", postText.text, imageURL];
+    
+    //文字数カウントを行いラベルに反映
+    [self countText];
+    
+    //処理中表示をオフ
+    [grayView off];
+}
+
+- (void)requestFailed:(ASIHTTPRequest *)request {
+    
+    //アップロードに失敗した場合
+    [grayView off];
 }
 
 - (IBAction)callbackTextFieldEnter:(id)sender {
@@ -521,12 +601,22 @@
 
     //TextViewの内容が変更された時に呼ばれる
     
+    //文字数をカウントしてラベルに反映
+    [self countText];
+}
+
+- (void)countText {
+    
     //t.coを考慮した文字数カウントを行う
     int num = [TWTwitterCharCounter charCounter:postText.text];
     
-    //画像が設定されている場合入力可能文字数を21文字減らす
-    if ( imagePreview.image != nil ) {
-        num = num - 21;
+    //画像投稿先がTwitterの場合で画像が設定されている場合入力可能文字数を21文字減らす
+    if ( [[d objectForKey:@"PhotoService"] isEqualToString:@"Twitter"] ) {
+        
+        if ( imagePreview.image != nil ) {
+            
+            num = num - 21;
+        }
     }
     
     //結果をラベルに反映

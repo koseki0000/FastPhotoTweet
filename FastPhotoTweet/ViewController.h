@@ -10,6 +10,10 @@
 #import <Twitter/Twitter.h>
 #import <Accounts/Accounts.h>
 #import "JSON.h"
+#import <MobileCoreServices/MobileCoreServices.h>
+#import "ASIHTTPRequest.h"
+#import "ASIFormDataRequest.h"
+#import <CFNetwork/CFNetwork.h>
 #import <SystemConfiguration/SystemConfiguration.h>
 #import "Reachability.h"
 #import "Twitter/TWTwitterHeader.h"
@@ -72,6 +76,7 @@
 
 - (void)loadSettings;
 - (void)callback;
+- (void)countText;
 - (void)postDone:(NSNotification *)center;
 - (BOOL)ios5Check;
 - (BOOL)reachability;

@@ -10,11 +10,28 @@
 //セクション数
 #define SECTION_COUNT 3
 //セクション0の項目数 (画像関連設定)
-#define SECTION_0 4
+#define SECTION_0 5
 //セクション1の項目数 (投稿関連設定)
 #define SECTION_1 6
 //セクション2の項目数 (その他の設定)
 #define SECTION_2 1
+
+//設定項目名
+//画像関連設定
+#define NAME_0  @"画像投稿時リサイズを行う"
+#define NAME_1  @"リサイズ最大長辺"
+#define NAME_2  @"画像形式"
+#define NAME_3  @"Retina解像度画像のリサイズを行わない"
+#define NAME_4  @"画像投稿先"
+//投稿関連設定
+#define NAME_5  @"NowPlaying時はFastPostを行う"
+#define NAME_6  @"NowPlaying時はCallBackを行う"
+#define NAME_7  @"NowPlayingにカスタム書式を使用"
+#define NAME_8  @"カスタム書式を編集"
+#define NAME_9  @"曲名とアルバム名が同じな場合サブ書式を使用"
+#define NAME_10  @"サブ書式を編集"
+//その他の設定
+#define NAME_11 @"設定"
 
 #define BLANK @""
 
@@ -33,27 +50,13 @@
         NSLog(@"SettingView init");
         
         d = [NSUserDefaults standardUserDefaults];
-        settingArray = [NSMutableArray array];
         actionSheetNo = 0;
         alertTextNo = 0;
         
-        //設定項目を追加
-        //画像関連設定
-        [settingArray addObject:@"画像投稿時リサイズを行う"];
-        [settingArray addObject:@"リサイズ最大長辺"];
-        [settingArray addObject:@"画像形式"];
-        [settingArray addObject:@"Retina解像度画像のリサイズを行わない"];
-        
-        //投稿関連設定
-        [settingArray addObject:@"NowPlaying時はFastPostを行う"];
-        [settingArray addObject:@"NowPlaying時はCallBackを行う"];
-        [settingArray addObject:@"NowPlayingにカスタム書式を使用"];
-        [settingArray addObject:@"カスタム書式を編集"];
-        [settingArray addObject:@"曲名とアルバム名が同じな場合サブ書式を使用"];
-        [settingArray addObject:@"サブ書式を編集"];
-        
-        //その他の設定
-        [settingArray addObject:@"設定"];
+        //設定項目名を持った可変長配列を生成
+        settingArray = [NSMutableArray arrayWithObjects:NAME_0, NAME_1, NAME_2, NAME_3, 
+                                                        NAME_4, NAME_5, NAME_6, NAME_7, 
+                                                        NAME_8, NAME_9, NAME_10, NAME_11, nil];
         
         [settingArray retain];
     }
@@ -75,14 +78,14 @@
     [self dismissModalViewControllerAnimated:YES];
 }
 
-- (NSString *)getSettingState:(int)index {
+- (NSString *)getSettingState:(int)settingState {
     
     //NSLog(@"getSettingState: %d", index);
     
     NSString *result = BLANK;
     
     //画像投稿時リサイズを行う
-    if ( index == 0 ) {
+    if ( settingState == 0 ) {
         
         if ( [d boolForKey:@"ResizeImage"] ) {
             
@@ -94,17 +97,17 @@
         }
         
     //リサイズ最大長辺
-    }else if ( index == 1 ) {
+    }else if ( settingState == 1 ) {
         
         result = [NSString stringWithFormat:@"%d", [d integerForKey:@"ImageMaxSize"]];
         
     //画像形式
-    }else if ( index == 2 ) {
+    }else if ( settingState == 2 ) {
         
         result = [NSString stringWithFormat:@"%@", [d objectForKey:@"SaveImageType"]];;
     
     //Retina解像度画像のリサイズを行わない
-    }else if ( index == 3 ) {
+    }else if ( settingState == 3 ) {
         
         if ( [d boolForKey:@"NoResizeIphone4Ss"] ) {
             
@@ -114,9 +117,14 @@
             
             result = @"OFF";
         }
-    
+        
+    //画像投稿先
+    }else if ( settingState == 4 ) {
+        
+        result = [NSString stringWithFormat:@"%@", [d objectForKey:@"PhotoService"]];
+        
     //NowPlaying時はFastPostを行う
-    }else if ( index == 4 ) {
+    }else if ( settingState == 5 ) {
         
         if ( [d boolForKey:@"NowPlayingFastPost"] ) {
             
@@ -128,7 +136,7 @@
         }
         
     //NowPlaying時はCallBackを行う
-    }else if ( index == 5 ) {
+    }else if ( settingState == 6 ) {
         
         if ( [d boolForKey:@"NowPlayingCallBack"] ) {
             
@@ -140,7 +148,7 @@
         }
         
     //NowPlayingにカスタム書式を使用
-    }else if ( index == 6 ) {
+    }else if ( settingState == 7 ) {
         
         if ( [d boolForKey:@"NowPlayingEdit"] ) {
             
@@ -152,10 +160,12 @@
         }
         
     //カスタム書式を編集
-    }else if ( index == 7 ) {
+    }else if ( settingState == 8 ) {
+        
         //空のまま
+        
     //曲名とアルバム名が同じな場合サブ書式を使用
-    }else if ( index == 8 ) {
+    }else if ( settingState == 9 ) {
         
         if ( [d boolForKey:@"NowPlayingEditSub"] ) {
             
@@ -167,7 +177,8 @@
         }
         
     //サブ書式を編集
-    }else if ( index == 9 ) {
+    }else if ( settingState == 10 ) {
+        
         //空のまま
     }
         
@@ -184,15 +195,12 @@
     switch ( section ) {
 		case 0:
 			return SECTION_0;
-            break;
             
 		case 1:
 			return SECTION_1;
-            break;
             
         case 2:
 			return SECTION_2;
-            break;
 	}
     
 	return 0;
@@ -223,27 +231,16 @@
     NSString *settingName = BLANK;
     int settingState = 0;
     
-    switch ( indexPath.section ) {
-        
-        case 0:
-            //画像関連設定
-            settingName = [settingArray objectAtIndex:indexPath.row];
-            settingState = indexPath.row;
-            break;
-        
-        case 1:
-            //投稿関連設定
-            settingName = [settingArray objectAtIndex:indexPath.row + SECTION_0];
-            settingState = indexPath.row + SECTION_0;
-            break;
-            
-        case 2:
-            //その他の設定
-            settingName = [settingArray objectAtIndex:indexPath.row + SECTION_0 + SECTION_1];
-            settingState = indexPath.row + SECTION_0 + SECTION_1;
-            break;
+    if ( indexPath.section == 0 ) {
+        settingState = indexPath.row;
+    }else if ( indexPath.section == 1 ) {
+        settingState = indexPath.row + SECTION_0;
+    }else if ( indexPath.section == 2 ) {
+        settingState = indexPath.row + SECTION_0 + SECTION_1;
     }
     
+    settingName = [settingArray objectAtIndex:settingState];
+        
     cell.numberLabel.text = settingName;
     cell.textLabel.text = [self getSettingState:settingState];
     
@@ -268,8 +265,9 @@
         
         if ( indexPath.row == 0 ) {
             
+            //画像投稿時リサイズを行う
             sheet = [[UIActionSheet alloc]
-                     initWithTitle:@"画像投稿時リサイズを行う"
+                     initWithTitle:NAME_0
                      delegate:self
                      cancelButtonTitle:@"Cancel"
                      destructiveButtonTitle:nil
@@ -277,8 +275,9 @@
             
         }else if ( indexPath.row == 1 ) {
             
+            //リサイズ最大長辺
             sheet = [[UIActionSheet alloc]
-                     initWithTitle:@"リサイズ最大長辺"
+                     initWithTitle:NAME_1
                      delegate:self
                      cancelButtonTitle:@"Cancel"
                      destructiveButtonTitle:nil
@@ -286,8 +285,9 @@
             
         }else if ( indexPath.row == 2 ) {
             
+            //画像形式
             sheet = [[UIActionSheet alloc]
-                     initWithTitle:@"画像形式"
+                     initWithTitle:NAME_2
                      delegate:self
                      cancelButtonTitle:@"Cancel"
                      destructiveButtonTitle:nil
@@ -295,12 +295,23 @@
             
         }else if ( indexPath.row == 3 ) {
             
+            //Retina解像度画像のリサイズを行わない
             sheet = [[UIActionSheet alloc]
-                     initWithTitle:@"Retina解像度画像のリサイズを行わない"
+                     initWithTitle:NAME_3
                      delegate:self
                      cancelButtonTitle:@"Cancel"
                      destructiveButtonTitle:nil
                      otherButtonTitles:@"ON", @"OFF", nil];
+            
+        }else if ( indexPath.row == 4 ) {
+            
+            //画像投稿先
+            sheet = [[UIActionSheet alloc]
+                     initWithTitle:NAME_4
+                     delegate:self
+                     cancelButtonTitle:@"Cancel"
+                     destructiveButtonTitle:nil
+                     otherButtonTitles:@"Twitter", @"img.ur(複数枚投稿可)", nil];
         }
         
     }else if ( indexPath.section == 1 ) {
@@ -309,8 +320,9 @@
         
         if ( indexPath.row == 0 ) {
         
+            //NowPlaying時はFastPostを行う
             sheet = [[UIActionSheet alloc]
-                     initWithTitle:@"NowPlaying時はFastPostを行う"
+                     initWithTitle:NAME_5
                      delegate:self
                      cancelButtonTitle:@"Cancel"
                      destructiveButtonTitle:nil
@@ -318,8 +330,9 @@
             
         }else if ( indexPath.row == 1 ) {
             
+            //NowPlaying時はCallBackを行う
             sheet = [[UIActionSheet alloc]
-                     initWithTitle:@"NowPlaying時はCallBackを行う"
+                     initWithTitle:NAME_6
                      delegate:self
                      cancelButtonTitle:@"Cancel"
                      destructiveButtonTitle:nil
@@ -327,8 +340,9 @@
             
         }else if ( indexPath.row == 2 ) {
             
+            //NowPlayingにカスタム書式を使用
             sheet = [[UIActionSheet alloc]
-                     initWithTitle:@"NowPlayingにカスタム書式を使用"
+                     initWithTitle:NAME_7
                      delegate:self
                      cancelButtonTitle:@"Cancel"
                      destructiveButtonTitle:nil
@@ -336,6 +350,7 @@
         
         }else if ( indexPath.row == 3 ) {
             
+            //カスタム書式を編集
             alertTextNo = 0;
             
             NSString *message = @"\n曲名[st] アーティスト名[ar]\nアルバム名[at] 再生数[pc] レート[rt]";
@@ -345,7 +360,7 @@
                 alertMessage = [d objectForKey:@"NowPlayingEditText"];
             }
             
-            alert = [[UIAlertView alloc] initWithTitle:@"カスタム書式を編集" 
+            alert = [[UIAlertView alloc] initWithTitle:NAME_8 
                                                             message:message
                                                            delegate:self 
                                                   cancelButtonTitle:@"キャンセル" 
@@ -367,8 +382,9 @@
             
         }else if ( indexPath.row == 4 ) {
             
+            //曲名とアルバム名が同じな場合サブ書式を使用
             sheet = [[UIActionSheet alloc]
-                     initWithTitle:@"曲名とアルバム名が同じな場合サブ書式を使用"
+                     initWithTitle:NAME_9
                      delegate:self
                      cancelButtonTitle:@"Cancel"
                      destructiveButtonTitle:nil
@@ -376,16 +392,18 @@
             
         }else if ( indexPath.row == 5 ) {
             
+            //サブ書式を編集
             alertTextNo = 1;
             
+            NSString *message = @"\n曲名[st] アーティスト名[ar]\nアルバム名[at] 再生数[pc] レート[rt]";
             NSString *alertMessage = BLANK;
             
             if ( [EmptyCheck check:[d objectForKey:@"NowPlayingEditTextSub"]] ) {
                 alertMessage = [d objectForKey:@"NowPlayingEditTextSub"];
             }
             
-            alert = [[UIAlertView alloc] initWithTitle:@"サブ書式を編集" 
-                                               message:@"\n"
+            alert = [[UIAlertView alloc] initWithTitle:NAME_10 
+                                               message:message
                                               delegate:self 
                                      cancelButtonTitle:@"キャンセル" 
                                      otherButtonTitles:@"確定", nil];
@@ -496,35 +514,43 @@
         
     }else if ( actionSheetNo == 4 ) {
         if ( buttonIndex == 0 ) {
+            [d setObject:@"Twitter" forKey:@"PhotoService"];
+        }else if ( buttonIndex == 1 ) {
+            [d setObject:@"img.ur" forKey:@"PhotoService"];
+        }
+
+    }else if ( actionSheetNo == 5 ) {
+        if ( buttonIndex == 0 ) {
             [d setBool:YES forKey:@"NowPlayingFastPost"];
         }else if ( buttonIndex == 1 ) {
             [d setBool:NO forKey:@"NowPlayingFastPost"];
         }
         
-    }else if ( actionSheetNo == 5 ) {
+    }else if ( actionSheetNo == 6 ) {
         if ( buttonIndex == 0 ) {
             [d setBool:YES forKey:@"NowPlayingCallBack"];
         }else if ( buttonIndex == 1 ) {
             [d setBool:NO forKey:@"NowPlayingCallBack"];
         }
     
-    }else if ( actionSheetNo == 6 ) {
+    }else if ( actionSheetNo == 7 ) {
         if ( buttonIndex == 0 ) {
             [d setBool:YES forKey:@"NowPlayingEdit"];
         }else if ( buttonIndex == 1 ) {
             [d setBool:NO forKey:@"NowPlayingEdit"];
         }
     
-//  }else if ( actionSheetNo == 7 ) {
+//  }else if ( actionSheetNo == 8 ) {
     
-    }else if ( actionSheetNo == 8 ) {
+    }else if ( actionSheetNo == 9 ) {
         if ( buttonIndex == 0 ) {
             [d setBool:YES forKey:@"NowPlayingEditSub"];
         }else if ( buttonIndex == 1 ) {
             [d setBool:NO forKey:@"NowPlayingEditSub"];
         }
         
-//  }else if ( actionSheetNo == 9 ) {
+//  }else if ( actionSheetNo == 10 ) {
+        
     }
     
     //設定項目の表示を更新
@@ -540,15 +566,12 @@
             
         case 0:
             return @"画像関連設定";
-            break;
         
         case 1:
             return @"投稿関連設定";
-            break;
             
         case 2:
             return @"その他の設定";
-            break;
     }
     
     return nil;

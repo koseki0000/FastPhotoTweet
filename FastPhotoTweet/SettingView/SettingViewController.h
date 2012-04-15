@@ -26,7 +26,7 @@
 @property (retain, nonatomic) IBOutlet UINavigationBar *bar;
 @property (retain, nonatomic) IBOutlet UIBarButtonItem *saveButton;
 
-- (NSString *)getSettingState:(int)index;
+- (NSString *)getSettingState:(int)settingState;
 
 - (IBAction)pushDoneButton:(id)sender;
 

@@ -88,18 +88,7 @@
             }
             
             //UIImageをNSDataに変換
-            NSData *imageData;            
-            if ( [[d objectForKey:@"SaveImageType"] isEqualToString:@"JPG(Low)"] ) {
-                imageData = UIImageJPEGRepresentation(image, 0.6);
-            }else if ( [[d objectForKey:@"SaveImageType"] isEqualToString:@"JPG"] ) {
-                imageData = UIImageJPEGRepresentation(image, 0.8);
-            }else if ( [[d objectForKey:@"SaveImageType"] isEqualToString:@"JPG(High)"] ) {
-                imageData = UIImageJPEGRepresentation(image, 0.95);
-            }else if ( [[d objectForKey:@"SaveImageType"] isEqualToString:@"PNG"] ) {
-                imageData = UIImagePNGRepresentation(image);
-            }else {
-                imageData = UIImageJPEGRepresentation(image, 0.8);
-            }
+            NSData *imageData = [EncodeImage image:image];
             
             //画像を追加
             [postRequest addMultiPartData:imageData 

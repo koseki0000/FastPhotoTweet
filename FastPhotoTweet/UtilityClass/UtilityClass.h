@@ -13,3 +13,4 @@
 #import "PasteboardType.h"
 #import "EmptyCheck.h"
 #import "ResizeImage.h"
+#import "EncodeImage.h"
