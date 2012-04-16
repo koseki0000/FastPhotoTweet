@@ -947,12 +947,12 @@
             if ( [d boolForKey:@"NowPlayingEditSub"] != 2 ) {
                 
                 //サブ書式使用設定が完全一致かつ条件に当てはまる場合
-                if ( [d integerForKey:@"NowPlayingEditSub"] == 0 && [songTitle isEqualToString:albumTitle] ) {
+                if ( [d integerForKey:@"NowPlayingEditSub"] == 0 && [albumTitle isEqualToString:songTitle] ) {
                     
                     resultText = [NSMutableString stringWithString:[d stringForKey:@"NowPlayingEditTextSub"]];
                     
                 //サブ書式使用設定が前方一致かつ条件に当てはまる場合
-                }else if ( [d integerForKey:@"NowPlayingEditSub"] == 1 && [songTitle hasPrefix:albumTitle] ) {
+                }else if ( [d integerForKey:@"NowPlayingEditSub"] == 1 && [albumTitle hasPrefix:songTitle] ) {
                     
                     resultText = [NSMutableString stringWithString:[d stringForKey:@"NowPlayingEditTextSub"]];
                 }
