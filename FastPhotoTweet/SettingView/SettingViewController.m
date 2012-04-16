@@ -167,11 +167,15 @@
     //曲名とアルバム名が同じな場合サブ書式を使用
     }else if ( settingState == 9 ) {
         
-        if ( [d boolForKey:@"NowPlayingEditSub"] ) {
+        if ( [d integerForKey:@"NowPlayingEditSub"] == 0 ) {
             
-            result = @"ON";
+            result = @"ON\n(完全一致)";
             
-        }else {
+        }else if ( [d integerForKey:@"NowPlayingEditSub"] == 1 ) {
+            
+            result = @"ON\n(前方一致)";
+            
+        }else if ( [d integerForKey:@"NowPlayingEditSub"] == 2 ) {    
             
             result = @"OFF";
         }
@@ -388,7 +392,7 @@
                      delegate:self
                      cancelButtonTitle:@"Cancel"
                      destructiveButtonTitle:nil
-                     otherButtonTitles:@"ON", @"OFF", nil];
+                     otherButtonTitles:@"ON(完全一致)", @"ON(前方一致)", @"OFF", nil];
             
         }else if ( indexPath.row == 5 ) {
             
@@ -544,9 +548,11 @@
     
     }else if ( actionSheetNo == 9 ) {
         if ( buttonIndex == 0 ) {
-            [d setBool:YES forKey:@"NowPlayingEditSub"];
+            [d setInteger:0 forKey:@"NowPlayingEditSub"];
         }else if ( buttonIndex == 1 ) {
-            [d setBool:NO forKey:@"NowPlayingEditSub"];
+            [d setInteger:1 forKey:@"NowPlayingEditSub"];
+        }else if ( buttonIndex == 2 ) {
+            [d setInteger:2 forKey:@"NowPlayingEditSub"];
         }
         
 //  }else if ( actionSheetNo == 10 ) {

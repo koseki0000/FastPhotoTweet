@@ -170,15 +170,17 @@
         [d setInteger:640 forKey:@"ImageMaxSize"];
     }
     
-    //画像形式が設定されていない場合JPGを設定
+    //カスタム書式が設定されていない場合デフォルト書式を設定
     if ( ![EmptyCheck check:[d objectForKey:@"NowPlayingEditText"]] ) {
-        [d setObject:BLANK forKey:@"NowPlayingEditText"];
+        [d setObject:@" #nowplaying [st] - [ar] " forKey:@"NowPlayingEditText"];
     }
     
+    //サブ書式が設定されていない場合デフォルト書式を設定
     if ( ![EmptyCheck check:[d objectForKey:@"NowPlayingEditTextSub"]] ) {
-        [d setObject:BLANK forKey:@"NowPlayingEditTextSub"];
+        [d setObject:@" #nowplaying [st] - [ar] " forKey:@"NowPlayingEditTextSub"];
     }
     
+    //写真投稿先が設定されていない場合Twitterを設定
     if ( ![EmptyCheck check:[d objectForKey:@"PhotoService"]] ) {
         [d setObject:@"Twitter" forKey:@"PhotoService"];
     }
@@ -938,20 +940,24 @@
             NSLog(@"template");
             
             //自分で設定した書式に再生中の曲の情報を埋め込む
-            if ( [songTitle isEqualToString:albumTitle] ) {
-                
-                //サブ書式を使用するか判定
-                if ( [d boolForKey:@"NowPlayingEditSub"] ) {
-                    resultText = [NSMutableString stringWithString:[d stringForKey:@"NowPlayingEditTextSub"]];
-                }else {
-                    resultText = [NSMutableString stringWithString:[d stringForKey:@"NowPlayingEditText"]];
-                }
-                
-            }else {
-                
-                resultText = [NSMutableString stringWithString:[d stringForKey:@"NowPlayingEditText"]];
-            }
             
+            resultText = [NSMutableString stringWithString:[d stringForKey:@"NowPlayingEditText"]];
+            
+            //サブ書式使用設定が2(OFF)以外の場合
+            if ( [d boolForKey:@"NowPlayingEditSub"] != 2 ) {
+                
+                //サブ書式使用設定が完全一致かつ条件に当てはまる場合
+                if ( [d integerForKey:@"NowPlayingEditSub"] == 0 && [songTitle isEqualToString:albumTitle] ) {
+                    
+                    resultText = [NSMutableString stringWithString:[d stringForKey:@"NowPlayingEditTextSub"]];
+                    
+                //サブ書式使用設定が前方一致かつ条件に当てはまる場合
+                }else if ( [d integerForKey:@"NowPlayingEditSub"] == 1 && [songTitle hasPrefix:albumTitle] ) {
+                    
+                    resultText = [NSMutableString stringWithString:[d stringForKey:@"NowPlayingEditTextSub"]];
+                }
+            }
+                        
             //曲情報を書式に埋め込み
             resultText = [ReplaceOrDelete replaceWordReturnMStr:resultText replaceWord:@"[st]" replacedWord:songTitle];
             resultText = [ReplaceOrDelete replaceWordReturnMStr:resultText replaceWord:@"[ar]" replacedWord:songArtist];
