@@ -38,6 +38,11 @@
     [alert show];
 }
 
+-(void)alertView:(UIAlertView *)alertView clickedButtonAtIndex:(NSInteger)buttonIndex {
+
+    [self release];
+}
+
 - (void)dealloc {
     
     NSLog(@"ShowAlert dealloc");

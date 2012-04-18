@@ -96,6 +96,9 @@
                          
                          NSLog(@"twAccount: %@", twAccount);
                          
+                         //入力可能状態にする
+                         [postText becomeFirstResponder];
+                         
                      } else {
                          
                          twAccount = nil;
@@ -341,12 +344,9 @@
     
     NSLog(@"Setting");
     
-    dispatch_async(dispatch_get_main_queue(), ^{
-        
-        SettingViewController *dialog = [[[SettingViewController alloc] init] autorelease];
-        dialog.modalTransitionStyle = UIModalTransitionStyleCoverVertical;
-        [self presentModalViewController:dialog animated:YES];
-    });
+    SettingViewController *dialog = [[[SettingViewController alloc] init] autorelease];
+    dialog.modalTransitionStyle = UIModalTransitionStyleCoverVertical;
+    [self presentModalViewController:dialog animated:YES];
 }
 
 - (IBAction)pushIDButton:(id)sender {
@@ -355,12 +355,9 @@
     
     changeAccount = YES;
     
-    dispatch_async(dispatch_get_main_queue(), ^{
-        
-        IDChangeViewController *dialog = [[[IDChangeViewController alloc] init] autorelease];
-        dialog.modalTransitionStyle = UIModalTransitionStyleCoverVertical;
-        [self presentModalViewController:dialog animated:YES];
-    });
+    IDChangeViewController *dialog = [[[IDChangeViewController alloc] init] autorelease];
+    dialog.modalTransitionStyle = UIModalTransitionStyleCoverVertical;
+    [self presentModalViewController:dialog animated:YES];
 }
 
 - (IBAction)pushAddButton:(id)sender {
@@ -398,7 +395,8 @@
         //処理中を表すビューを表示
         grayView = [[GrayView alloc] init];
         [sv addSubview:grayView];
-        [grayView on];
+        [grayView onAndSetSize:postText.frame.origin.x   y:postText.frame.origin.y
+                             w:postText.frame.size.width h:postText.frame.size.height];
         
         //画像をリサイズするか判定
         if ( [d boolForKey:@"ResizeImage"] ) {
@@ -450,19 +448,20 @@
     NSString *imageURL = [[[result objectForKey:@"upload"] objectForKey:@"links"] objectForKey:@"original"];
     
     //Post入力欄の最後にURLを付ける
-    postText.text = [NSString stringWithFormat:@"%@ %@", postText.text, imageURL];
+    postText.text = [NSString stringWithFormat:@"%@ %@ ", postText.text, imageURL];
     
     //文字数カウントを行いラベルに反映
     [self countText];
     
-    //処理中表示をオフ
-    [grayView off];
+    //処理中表示を破棄
+    [grayView remove];
 }
 
 - (void)requestFailed:(ASIHTTPRequest *)request {
     
     //アップロードに失敗した場合
-    [grayView off];
+    //処理中表示を破棄
+    [grayView remove];
 }
 
 - (IBAction)callbackTextFieldEnter:(id)sender {
@@ -592,7 +591,7 @@
         
     }else {
         
-        ShowAlert *alert = [[[ShowAlert alloc] init] autorelease];
+        ShowAlert *alert = [[ShowAlert alloc] init];
         [alert error:@"No Internet connection"];
     }
     
@@ -676,7 +675,6 @@
             
             if ( twAccount == nil ) {
                 
-                //Twitterアカウントが見つからない場合設定に飛ばす
                 ShowAlert *alert = [[[ShowAlert alloc] init] autorelease];
                 [alert error:@"Twitter account nothing"];
                 
@@ -763,15 +761,44 @@
                             int num = [TWTwitterCharCounter charCounter:postText.text];
                             postCharLabel.text = [NSString stringWithFormat:@"%d", num];
                             
-                            //画像
+                        //画像
                         }else if ( pBoardType == 1 ) {
                             
                             NSLog(@"pBoardType Image");
                             
                             if ( [[d objectForKey:@"NotificationType"] isEqualToString:@"photo"] ) {
                                 
+                                UIImage *image = pboard.image;
+                                
+                                if ( [[d objectForKey:@"PhotoService"] isEqualToString:@"img.ur"] ) {
+                                    
+                                    //処理中を表すビューを表示
+                                    grayView = [[GrayView alloc] init];
+                                    [sv addSubview:grayView];
+                                    [grayView on];
+                                    
+                                    //画像をリサイズするか判定
+                                    if ( [d boolForKey:@"ResizeImage"] ) {
+                                        
+                                        //リサイズを行う
+                                        image = [ResizeImage aspectResize:image];
+                                    }
+                                    
+                                    //UIImageをNSDataに変換
+                                    NSData *imageData = [EncodeImage image:image];
+                                    
+                                    //リクエストURLを指定
+                                    NSURL *URL = [NSURL URLWithString:@"http://api.imgur.com/2/upload.json"];
+                                    
+                                    ASIFormDataRequest *request = [[[ASIFormDataRequest alloc] initWithURL:URL] autorelease];
+                                    [request addPostValue:@"6de089e68b55d6e390d246c4bf932901" forKey:@"key"];
+                                    [request addData:imageData forKey:@"image"];
+                                    [request setDelegate:self];
+                                    [request start];
+                                }
+                                
                                 //ペーストボードの画像をサムネイル表示
-                                imagePreview.image = pboard.image;
+                                imagePreview.image = image;
                                 
                             }else {
                                 
@@ -792,7 +819,7 @@
                         //Post入力状態にする
                         [postText becomeFirstResponder];
                         
-                        //FastPostが有効な場合
+                    //FastPostが有効な場合
                     }else {
                         
                         NSLog(@"FastPost Enable");
@@ -836,7 +863,7 @@
                         //CallBack
                         [self callback];
                         
-                        //投稿不可能な場合
+                    //投稿不可能な場合
                     }else {
                         
                         //ペーストボード内容をPost入力欄にコピー

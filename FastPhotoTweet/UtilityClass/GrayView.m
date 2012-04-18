@@ -44,6 +44,7 @@
 
 - (void)remove {
     created = NO;
+    self.userInteractionEnabled = YES;
     [self removeFromSuperview];
 }
 
