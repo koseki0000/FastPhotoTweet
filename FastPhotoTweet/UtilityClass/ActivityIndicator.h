@@ -11,6 +11,6 @@
     
 }
 
-+ (void)activityIndicatorVisible:(BOOL)visible;
++ (void)visible:(BOOL)visible;
 
 @end

@@ -138,6 +138,21 @@
 
 - (void)loadSettings {
     
+    if ( ![EmptyCheck check:[d objectForKey:@"UUID"]] ) {
+        
+        //UUIDを生成して保存
+        CFUUIDRef uuidObj = CFUUIDCreate(kCFAllocatorDefault);
+        NSString *uuidString = (NSString*)CFUUIDCreateString(nil, uuidObj);
+        CFRelease(uuidObj);
+        [d setObject:uuidString forKey:@"UUID"];
+        
+        NSLog(@"UUID: %@", uuidString);
+        
+    }else {
+        
+        NSLog(@"UUID: %@", [d objectForKey:@"UUID"]);
+    }
+    
     if ( [d boolForKey:@"CallBack"] ) {
         
         //オン
@@ -419,6 +434,10 @@
     SettingViewController *dialog = [[[SettingViewController alloc] init] autorelease];
     dialog.modalTransitionStyle = UIModalTransitionStyleCoverVertical;
     [self presentModalViewController:dialog animated:YES];
+
+//    OAuthSetupViewController *dialog = [[[OAuthSetupViewController alloc] init] autorelease];
+//    dialog.modalTransitionStyle = UIModalTransitionStyleCoverVertical;
+//    [self presentModalViewController:dialog animated:YES];
 }
 
 - (IBAction)pushIDButton:(id)sender {

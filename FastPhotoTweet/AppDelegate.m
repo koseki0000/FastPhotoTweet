@@ -8,14 +8,22 @@
 #import "AppDelegate.h"
 #import "ViewController.h"
 
+#define OAUTH_KEY @"dVbmOIma7UCc5ZkV3SckQ"
+#define OAUTH_SECRET @"wnDptUj4VpGLZebfLT3IInTZPkPS4XimYh6WXAmdI"
+
 @implementation AppDelegate
 
 @synthesize window = _window;
 @synthesize viewController = _viewController;
+@synthesize oaConsumer;
 
 - (BOOL)application:(UIApplication *)application didFinishLaunchingWithOptions:(NSDictionary *)launchOptions {
     
     NSLog(@"FinishLaunching");
+    
+    //OAConsumer設定
+    oaConsumer = [[OAConsumer alloc] initWithKey:OAUTH_KEY 
+                                          secret:OAUTH_SECRET];
     
     self.window = [[[UIWindow alloc] initWithFrame:[[UIScreen mainScreen] bounds]] autorelease];
     self.viewController = [[[ViewController alloc] initWithNibName:@"ViewController" bundle:nil] autorelease];
@@ -121,6 +129,7 @@
 
 - (void)dealloc {
     
+    [oaConsumer release];
     [_window release];
     [_viewController release];
     [super dealloc];

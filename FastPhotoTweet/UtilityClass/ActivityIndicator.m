@@ -9,7 +9,7 @@
 
 @implementation ActivityIndicator
 
-+ (void)activityIndicatorVisible:(BOOL)visible {
++ (void)visible:(BOOL)visible {
     
     if ( visible ) {
         

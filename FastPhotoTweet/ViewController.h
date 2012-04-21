@@ -21,7 +21,9 @@
 #import "UtilityClass.h"
 #import "IDChangeViewController.h"
 #import "SettingViewController.h"
+#import "OAuthSetupViewController.h"
 #import <MediaPlayer/MediaPlayer.h>
+#import "FBEncryptorAES.h"
 
 @interface ViewController : UIViewController <UINavigationControllerDelegate, UIImagePickerControllerDelegate, UIActionSheetDelegate> {
     

@@ -57,7 +57,7 @@
         postText = [postData objectAtIndex:0];
         
         //ステータスバーに処理中表示
-        [ActivityIndicator activityIndicatorVisible:YES];
+        [ActivityIndicator visible:YES];
         
         //リクエストURLを指定
         NSString *tReqURL;
@@ -203,7 +203,7 @@
                  }
                  
                  //ステータスバーの処理中表示オフ
-                 [ActivityIndicator activityIndicatorVisible:NO];
+                 [ActivityIndicator visible:NO];
              });
          }];
         
