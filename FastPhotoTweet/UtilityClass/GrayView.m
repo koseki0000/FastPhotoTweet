@@ -10,18 +10,23 @@
 @implementation GrayView
 
 - (void)on {
+    
     self.frame = [[UIScreen mainScreen] bounds];
     [self createView];
 }
 
 - (void)onAndSetSize:(int)x y:(int)y w:(int)w h:(int)h {
+    
     self.frame = CGRectMake(x, y, w, h);
     [self createView];
 }
 
 - (void)createView {
+        
+    count++;
     
-    if (!created) {
+    if ( !created ) {
+        
         created = YES;
         self.backgroundColor = [UIColor colorWithRed:0.0 green:0.0 blue:0.0 alpha:0.2];
         
@@ -37,18 +42,28 @@
 }
 
 - (void)off {
-    [activityIndicator stopAnimating];
-    self.userInteractionEnabled = YES;
-    self.frame = CGRectZero;
+    
+    count--;
+    
+    if ( count <= 0 ) {
+        
+        [activityIndicator stopAnimating];
+        self.userInteractionEnabled = YES;
+        self.frame = CGRectZero;
+    }
 }
 
 - (void)remove {
+    
+    count = 0;
+    
     created = NO;
     self.userInteractionEnabled = YES;
     [self removeFromSuperview];
 }
 
 - (void)dealloc {
+    
     [super dealloc];
 }
 

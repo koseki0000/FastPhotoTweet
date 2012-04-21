@@ -21,7 +21,7 @@
         if (twAccount == nil) {
             
             //アカウントデータが空
-            ShowAlert *alert = [[[ShowAlert alloc] init] autorelease];
+            ShowAlert *alert = [[ShowAlert alloc] init];
             [alert error:@"Can’t post"];
             
             return;
@@ -48,7 +48,7 @@
                 
                 NSLog(@"PostTextEmpty");
                 
-                ShowAlert *alert = [[[ShowAlert alloc] init] autorelease];
+                ShowAlert *alert = [[ShowAlert alloc] init];
                 [alert error:@"文字が入力されていません。"];
                 return;
             }
@@ -141,7 +141,7 @@
                      //エラー
                      NSString *errorText = [result objectForKey:@"error"];
                                           
-                     ShowAlert *alert = [[[ShowAlert alloc] init] autorelease];
+                     ShowAlert *alert = [[ShowAlert alloc] init];
                      [alert error:errorText];
                      
                      //通知にエラーをセット
@@ -172,7 +172,7 @@
                          NSString *errorText = [result objectForKey:@"error"];
                          
                          //textが空の場合は失敗してる
-                         ShowAlert *alert = [[[ShowAlert alloc] init] autorelease];
+                         ShowAlert *alert = [[ShowAlert alloc] init];
                          [alert error:errorText];
                          
                          NSLog(@"Post Error: %@", errorText);
@@ -212,7 +212,7 @@
     }else {
         
         //何らかの理由でTweet不可だった場合
-        ShowAlert *alert = [[[ShowAlert alloc] init] autorelease];
+        ShowAlert *alert = [[ShowAlert alloc] init];
         [alert error:@"Please try again later"];
         
     }

@@ -14,6 +14,7 @@
 #import "ASIHTTPRequest.h"
 #import "ASIFormDataRequest.h"
 #import <CFNetwork/CFNetwork.h>
+#import <QuartzCore/QuartzCore.h>
 #import <SystemConfiguration/SystemConfiguration.h>
 #import "Reachability.h"
 #import "Twitter/TWTwitterHeader.h"
@@ -75,6 +76,7 @@
 - (IBAction)svTapGesture:(id)sender;
 
 - (void)loadSettings;
+- (void)showInfomation;
 - (void)callback;
 - (void)countText;
 - (void)postDone:(NSNotification *)center;

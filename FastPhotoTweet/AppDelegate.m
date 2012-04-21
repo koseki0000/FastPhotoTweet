@@ -85,7 +85,7 @@
     if ([[[UIDevice currentDevice] systemVersion] floatValue] < 5.0) {
         
         //iOS5以前
-        ShowAlert *alert = [[[ShowAlert alloc] init] autorelease];
+        ShowAlert *alert = [[ShowAlert alloc] init];
         [alert error:@"Twitter API not available, please upgrade to iOS 5"];
         
     }else {

@@ -10,6 +10,7 @@
 @interface GrayView : UIView {
     
     BOOL created;
+    int count;
     
     UIActivityIndicatorView *activityIndicator;
 }

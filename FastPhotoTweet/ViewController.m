@@ -60,7 +60,14 @@
     actionSheetNo = 0;
     postedCount = 0;
     
+    postText.layer.borderWidth = 2;
+	postText.layer.borderColor = [[UIColor blackColor] CGColor];
+    
     [d removeObjectForKey:@"Notification"];
+    
+    //処理中を表すビューを生成
+    grayView = [[GrayView alloc] init];
+    [sv addSubview:grayView];
     
     //ツールバーにボタンをセット
     [topBar setItems:TOP_BAR animated:NO];
@@ -98,6 +105,9 @@
                          
                          //入力可能状態にする
                          [postText becomeFirstResponder];
+            
+                         //更新情報の表示
+                         [self showInfomation];
                          
                      } else {
                          
@@ -112,7 +122,6 @@
                      twAccount = nil;
                      
                      ShowAlert *alert = [[ShowAlert alloc] init];
-                     
                      [alert error:@"Twitter account access denied"];
                  }
              });
@@ -122,7 +131,7 @@
         
         twAccount = nil;
         
-        ShowAlert *alert = [[[ShowAlert alloc] init] autorelease];
+        ShowAlert *alert = [[ShowAlert alloc] init];
         [alert error:@"Twitter account access denied"];
     }
 }
@@ -187,6 +196,68 @@
     if ( ![EmptyCheck check:[d objectForKey:@"PhotoService"]] ) {
         [d setObject:@"Twitter" forKey:@"PhotoService"];
     }
+    
+    //設定を即反映
+    [d synchronize];
+}
+
+- (void)showInfomation {
+    
+    NSLog(@"showInfomation");
+    
+    BOOL check = YES;
+    NSMutableDictionary *information = [NSMutableDictionary dictionary];
+    
+    if ( ![EmptyCheck check:[d dictionaryForKey:@"information"]] ) {
+        
+        NSLog(@"init information");
+        [d setObject:[NSDictionary dictionary] forKey:@"information"];
+    }
+    
+    while ( check ) {
+                
+        if ( [[d dictionaryForKey:@"information"] valueForKey:@"FirstRun"] == 0 ) {
+            
+            NSLog(@"FirstRun");
+            
+            ShowAlert *alert = [[ShowAlert alloc] init];
+            [alert title:@"ようこそ" 
+                message:@"message"];
+            
+            information = [[d dictionaryForKey:@"information"] mutableCopy];
+            [information setValue:[NSNumber numberWithInt:1] forKey:@"FirstRun"];
+            
+            NSDictionary *dic = [[NSDictionary alloc] initWithDictionary:information];
+            [d setObject:dic forKey:@"information"];            
+            [dic release];
+            
+            continue;
+        }
+        
+        NSString *newVersion = @"1.0";
+        
+        if ( [[d dictionaryForKey:@"information"] valueForKey:newVersion] == 0 ) {
+            
+            NSLog(@"newVersion");
+            
+            ShowAlert *alert = [[ShowAlert alloc] init];
+            [alert title:[NSString stringWithFormat:@"FastPhotoTweet %@", newVersion] 
+                 message:@"message"];
+            
+            information = [[d dictionaryForKey:@"information"] mutableCopy];
+            [information setValue:[NSNumber numberWithInt:1] forKey:newVersion];
+            
+            NSDictionary *dic = [[NSDictionary alloc] initWithDictionary:information];
+            [d setObject:dic forKey:@"information"];
+            [dic release];
+            
+            continue;
+        }
+        
+        check = NO;
+    }
+    
+    NSLog(@"information: %@", [d dictionaryForKey:@"information"]);
     
     //設定を即反映
     [d synchronize];
@@ -338,6 +409,7 @@
     
     postText.text = BLANK;
     imagePreview.image = nil;
+    [self countText];
 }
 
 - (IBAction)pushSettingButton:(id)sender {
@@ -393,8 +465,6 @@
     if ( [[d objectForKey:@"PhotoService"] isEqualToString:@"img.ur"] ) {
         
         //処理中を表すビューを表示
-        grayView = [[GrayView alloc] init];
-        [sv addSubview:grayView];
         [grayView onAndSetSize:postText.frame.origin.x   y:postText.frame.origin.y
                              w:postText.frame.size.width h:postText.frame.size.height];
         
@@ -444,24 +514,31 @@
     //レスポンスのStringからDictionaryを生成
     NSDictionary *result = [request.responseString JSONValue];
     
+    NSLog(@"resultDic: %@", result);
+    
     //Dictionaryから画像URLを抜き出す
     NSString *imageURL = [[[result objectForKey:@"upload"] objectForKey:@"links"] objectForKey:@"original"];
     
     //Post入力欄の最後にURLを付ける
     postText.text = [NSString stringWithFormat:@"%@ %@ ", postText.text, imageURL];
     
+    //連続するスペースを1つにする
+    postText.text = [ReplaceOrDelete replaceWordReturnStr:postText.text 
+                                              replaceWord:@"  "
+                                             replacedWord:@" "];
+    
     //文字数カウントを行いラベルに反映
     [self countText];
     
-    //処理中表示を破棄
-    [grayView remove];
+    //処理中表示をオフ
+    [grayView off];
 }
 
 - (void)requestFailed:(ASIHTTPRequest *)request {
     
     //アップロードに失敗した場合
-    //処理中表示を破棄
-    [grayView remove];
+    //処理中表示をオフ
+    [grayView off];
 }
 
 - (IBAction)callbackTextFieldEnter:(id)sender {
@@ -570,7 +647,7 @@
     if ([[[UIDevice currentDevice] systemVersion] floatValue] < 5.0) {
         
         //iOS5以前
-        ShowAlert *alert = [[[ShowAlert alloc] init] autorelease];
+        ShowAlert *alert = [[ShowAlert alloc] init];
         [alert error:@"Twitter API not available, please upgrade to iOS 5"];
         
     }else {
@@ -639,6 +716,12 @@
     //アプリケーションがアクティブになった際に呼ばれる
     NSLog(@"becomeActive");
     
+    //設定が有効な場合Post入力可能状態にする
+    if ( [d boolForKey:@"ShowKeyboard"] ) {
+        
+        [postText becomeFirstResponder];
+    }
+    
     //通知判定がある場合
     if ( [d boolForKey:@"Notification"] ) {
         
@@ -664,7 +747,7 @@
                     
                 }else {
                     
-                    ShowAlert *alert = [[[ShowAlert alloc] init] autorelease];
+                    ShowAlert *alert = [[ShowAlert alloc] init];
                     [alert error:@"ペーストボード内が文字以外です。"];
                 }
                 
@@ -675,7 +758,7 @@
             
             if ( twAccount == nil ) {
                 
-                ShowAlert *alert = [[[ShowAlert alloc] init] autorelease];
+                ShowAlert *alert = [[ShowAlert alloc] init];
                 [alert error:@"Twitter account nothing"];
                 
                 return;
@@ -720,13 +803,13 @@
                     }else if ( length == 0 ) {
                         
                         //再生中でなかった場合
-                        ShowAlert *alert = [[[ShowAlert alloc] init] autorelease];
+                        ShowAlert *alert = [[ShowAlert alloc] init];
                         [alert error:@"iPod再生中に使用してください。"];
                         
                     }else {
                         
                         //140字を超えていた場合
-                        ShowAlert *alert = [[[ShowAlert alloc] init] autorelease];
+                        ShowAlert *alert = [[ShowAlert alloc] init];
                         [alert error:[NSString stringWithFormat:@"Post message is over 140: %d", length]];
                         
                         //入力欄に貼り付け
@@ -773,9 +856,8 @@
                                 if ( [[d objectForKey:@"PhotoService"] isEqualToString:@"img.ur"] ) {
                                     
                                     //処理中を表すビューを表示
-                                    grayView = [[GrayView alloc] init];
-                                    [sv addSubview:grayView];
-                                    [grayView on];
+                                    [grayView onAndSetSize:postText.frame.origin.x   y:postText.frame.origin.y
+                                                         w:postText.frame.size.width h:postText.frame.size.height];
                                     
                                     //画像をリサイズするか判定
                                     if ( [d boolForKey:@"ResizeImage"] ) {
@@ -842,7 +924,7 @@
                             if ( num < 0 ) {
                                 
                                 //140字を超えていた場合
-                                ShowAlert *alert = [[[ShowAlert alloc] init] autorelease];
+                                ShowAlert *alert = [[ShowAlert alloc] init];
                                 [alert error:[NSString stringWithFormat:@"Post message is over 140: %d", num]];
                                 
                             }else {
@@ -876,7 +958,7 @@
             }else {
                 
                 //インターネット接続されていない
-                ShowAlert *alert = [[[ShowAlert alloc] init] autorelease];
+                ShowAlert *alert = [[ShowAlert alloc] init];
                 [alert error:@"No internet connection"];
             }
         }
@@ -904,7 +986,7 @@
             
             NSLog(@"Can't callBack");
             
-            ShowAlert *alert = [[[ShowAlert alloc] init] autorelease];
+            ShowAlert *alert = [[ShowAlert alloc] init];
             [alert error:@"Can't callBack"];
             
             //コールバックスキームを開くことが出来る
@@ -971,10 +1053,10 @@
             resultText = [NSMutableString stringWithString:[d stringForKey:@"NowPlayingEditText"]];
             
             //サブ書式使用設定が2(OFF)以外の場合
-            if ( [d boolForKey:@"NowPlayingEditSub"] != 2 ) {
+            if ( [d boolForKey:@"NowPlayingEditSub"] != 0 ) {
                 
                 //サブ書式使用設定が完全一致かつ条件に当てはまる場合
-                if ( [d integerForKey:@"NowPlayingEditSub"] == 0 && [albumTitle isEqualToString:songTitle] ) {
+                if ( [d integerForKey:@"NowPlayingEditSub"] == 2 && [albumTitle isEqualToString:songTitle] ) {
                     
                     resultText = [NSMutableString stringWithString:[d stringForKey:@"NowPlayingEditTextSub"]];
                     

@@ -31,7 +31,7 @@
 #define NAME_9  @"曲名とアルバム名が同じな場合サブ書式を使用"
 #define NAME_10  @"サブ書式を編集"
 //その他の設定
-#define NAME_11 @"設定"
+#define NAME_11 @"アプリがアクティブになった際入力可能状態にする"
 
 #define BLANK @""
 
@@ -169,21 +169,32 @@
         
         if ( [d integerForKey:@"NowPlayingEditSub"] == 0 ) {
             
-            result = @"ON\n(完全一致)";
+            result = @"OFF";
             
         }else if ( [d integerForKey:@"NowPlayingEditSub"] == 1 ) {
             
             result = @"ON\n(前方一致)";
-            
+        
         }else if ( [d integerForKey:@"NowPlayingEditSub"] == 2 ) {    
             
-            result = @"OFF";
+            result = @"ON\n(完全一致)";
         }
         
     //サブ書式を編集
     }else if ( settingState == 10 ) {
         
         //空のまま
+    
+    }else if ( settingState == 11 ) {
+        
+        if ( [d boolForKey:@"ShowKeyboard"] ) {
+            
+            result = @"ON";
+            
+        }else {
+            
+            result = @"OFF";
+        }
     }
         
     return result;
@@ -255,12 +266,7 @@
     
     //セルの選択状態を解除
     [tableView deselectRowAtIndexPath:indexPath animated:YES];
-    
-    //for debug
-    if ( indexPath.section == 2 ) {
-        return;
-    }
-    
+        
     actionSheetNo = indexPath.row;
     
     UIActionSheet *sheet;
@@ -392,7 +398,7 @@
                      delegate:self
                      cancelButtonTitle:@"Cancel"
                      destructiveButtonTitle:nil
-                     otherButtonTitles:@"ON(完全一致)", @"ON(前方一致)", @"OFF", nil];
+                     otherButtonTitles:@"OFF", @"ON(前方一致)", @"ON(完全一致)", nil];
             
         }else if ( indexPath.row == 5 ) {
             
@@ -425,6 +431,20 @@
             [alertText release];
             
             return;
+        }
+    }else if ( indexPath.section == 2 ) {
+        
+        actionSheetNo = actionSheetNo + SECTION_0 + SECTION_1;
+        
+        if ( indexPath.row == 0 ) {
+            
+            //アプリがアクティブになった際入力可能状態にする
+            sheet = [[UIActionSheet alloc]
+                     initWithTitle:NAME_11
+                     delegate:self
+                     cancelButtonTitle:@"Cancel"
+                     destructiveButtonTitle:nil
+                     otherButtonTitles:@"ON", @"OFF", nil];
         }
     }
     
@@ -557,6 +577,12 @@
         
 //  }else if ( actionSheetNo == 10 ) {
         
+    }else if ( actionSheetNo == 11 ) {
+        if ( buttonIndex == 0 ) {
+            [d setBool:YES forKey:@"ShowKeyboard"];
+        }else if ( buttonIndex == 1 ) {
+            [d setBool:NO forKey:@"ShowKeyboard"];
+        }
     }
     
     //設定項目の表示を更新

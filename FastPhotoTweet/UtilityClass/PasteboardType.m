@@ -32,7 +32,7 @@
     }else {
         
         //得体の知れない物
-        ShowAlert *alert = [[[ShowAlert alloc] init] autorelease];
+        ShowAlert *alert = [[ShowAlert alloc] init];
         [alert error:@"ペーストボードの中身がテキストか画像以外です。"];
         
         return -1;
