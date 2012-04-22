@@ -53,6 +53,8 @@
         actionSheetNo = 0;
         alertTextNo = 0;
         
+        [d removeObjectForKey:@"TwitPicLinkMode"];
+        
         //設定項目名を持った可変長配列を生成
         settingArray = [NSMutableArray arrayWithObjects:NAME_0, NAME_1, NAME_2, NAME_3, 
                                                         NAME_4, NAME_5, NAME_6, NAME_7, 
@@ -80,9 +82,6 @@
         [d integerForKey:@"AccountCount"] == 0 ) {
         
         [d setObject:@"Twitter" forKey:@"PhotoService"];
-        
-        //設定項目の表示を更新
-        [tv reloadData];
     }
     
     if ( [d boolForKey:@"TwitPicLinkMode"] ) {
@@ -93,6 +92,9 @@
         dialog.modalTransitionStyle = UIModalTransitionStyleCoverVertical;
         [self presentModalViewController:dialog animated:YES];
     }
+    
+    //設定項目の表示を更新
+    [tv reloadData];
 }
 
 - (IBAction)pushDoneButton:(id)sender {
@@ -477,7 +479,7 @@
     }
     
     [sheet autorelease];
-    [sheet showInView:self.view];        
+    [sheet showInView:self.view];
 }
 
 - (void)alertView:(UIAlertView *)alertView clickedButtonAtIndex:(NSInteger)buttonIndex {
@@ -570,11 +572,51 @@
         }else if ( buttonIndex == 1 ) {
             [d setObject:@"img.ur" forKey:@"PhotoService"];
         }else if ( buttonIndex == 2 ) {
-            [d setObject:@"Twitpic" forKey:@"PhotoService"];
             
-            OAuthSetupViewController *dialog = [[[OAuthSetupViewController alloc] init] autorelease];
-            dialog.modalTransitionStyle = UIModalTransitionStyleCoverVertical;
-            [self presentModalViewController:dialog animated:YES];
+            NSDictionary *dic = [d dictionaryForKey:@"OAuthAccount"];
+            NSArray *oauthAccountNames = [dic allKeys];
+            
+            ACAccountStore *accountStore = [[[ACAccountStore alloc] init] autorelease];
+            ACAccountType *accountType = [accountStore accountTypeWithAccountTypeIdentifier:ACAccountTypeIdentifierTwitter];
+            
+            NSArray *twitterAccounts = [accountStore accountsWithAccountType:accountType];
+    
+            NSString *twitpicName = nil;
+            
+            for ( ACAccount *account in twitterAccounts ) {
+                for ( NSString *name in oauthAccountNames ) {
+                    if ( [account.username isEqualToString:name] ) {
+
+                        twitpicName = account.username;
+                    }
+                }
+            }
+            
+            ACAccount *twAccount = [TWGetAccount getTwitterAccount];
+            
+            if ( twitpicName == nil ) {
+                
+                ShowAlert *errorAlert = [[ShowAlert alloc] init];
+                [errorAlert error:[NSString stringWithFormat:@"現在使用中のアカウント %@ のTwitpicアカウントが見つかりません。アカウントを登録してください。", twAccount.username]];
+                
+                OAuthSetupViewController *dialog = [[[OAuthSetupViewController alloc] init] autorelease];
+                dialog.modalTransitionStyle = UIModalTransitionStyleCoverVertical;
+                [self presentModalViewController:dialog animated:YES];
+                
+            }else {
+                
+                actionSheetNo = 100;
+                
+                UIActionSheet *sheet = [[UIActionSheet alloc]
+                                        initWithTitle:@"Twitpicアカウントが見つかりました"
+                                        delegate:self
+                                        cancelButtonTitle:@"Cancel"
+                                        destructiveButtonTitle:nil
+                                        otherButtonTitles:[NSString stringWithFormat:@"%@ を使用", twAccount.username], 
+                                                          @"Twitpicアカウント登録", nil];
+                [sheet autorelease];
+                [sheet showInView:self.view];
+            }
         }
         
     }else if ( actionSheetNo == 5 ) {
@@ -616,6 +658,18 @@
             [d setBool:YES forKey:@"ShowKeyboard"];
         }else if ( buttonIndex == 1 ) {
             [d setBool:NO forKey:@"ShowKeyboard"];
+        }
+    
+    }else if ( actionSheetNo == 100 ) {
+        if ( buttonIndex == 0 ) {
+            
+            [d setObject:@"Twitpic" forKey:@"PhotoService"];
+            
+        }else if ( buttonIndex == 1 ) {
+            
+            OAuthSetupViewController *dialog = [[[OAuthSetupViewController alloc] init] autorelease];
+            dialog.modalTransitionStyle = UIModalTransitionStyleCoverVertical;
+            [self presentModalViewController:dialog animated:YES];
         }
     }
     

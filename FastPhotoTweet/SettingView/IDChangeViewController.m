@@ -62,6 +62,10 @@
     
     [super viewDidLoad];
     
+    if ( [d boolForKey:@"TwitPicLinkMode"] ) {
+        [topBar setRightBarButtonItem:nil animated:NO];
+    }
+    
     NSLog(@"IDChangeView viewDidLoad");
 }
 
@@ -150,6 +154,7 @@
         [saveDic release];
         
         [d setBool:YES forKey:@"ChangeAccount"];
+        [d setObject:@"Twitpic" forKey:@"PhotoService"];
         
         NSLog(@"OAuthAccount: %@", [d dictionaryForKey:@"OAuthAccount"]);
     }

@@ -11,6 +11,7 @@
 #import "EmptyCheck.h"
 #import "OAuthSetupViewController.h"
 #import "IDChangeViewController.h"
+#import "TWGetAccount.h"
 
 @interface SettingViewController : UIViewController <UIActionSheetDelegate, UITextFieldDelegate> {
     

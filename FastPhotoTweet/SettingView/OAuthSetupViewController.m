@@ -22,8 +22,6 @@
     if ( self ) {
 
         consumer = [((AppDelegate *)[[UIApplication sharedApplication] delegate]).oaConsumer retain];
-        
-        //NSLog(@"consumer.key: %@ consumer.secret: %@", consumer.key, consumer.secret);
     }
     
     return self;
@@ -32,6 +30,10 @@
 - (void)viewDidLoad {
     
     [super viewDidLoad];
+
+    grayView = [[GrayView alloc] init];
+    [self.view addSubview:grayView];
+    [grayView on];
     
     [self oaRequestStart];
 }
@@ -103,6 +105,8 @@
         
         [self enableButton];
     }
+    
+    [grayView off];
 }
 
 - (void)requestTokenTicket:(OAServiceTicket *)ticket didFailWithError:(NSError *)error {
@@ -163,6 +167,8 @@
 		        
         [d setBool:YES forKey:@"TwitPicLinkMode"];
         
+        [grayView off];
+        
 		[self dismissModalViewControllerAnimated:YES];
 		
 	}else {
@@ -189,9 +195,16 @@
 - (BOOL)webView:(UIWebView *)webView shouldStartLoadWithRequest:(NSURLRequest *)request 
  navigationType:(UIWebViewNavigationType)navigationType {
 	
+    //NSLog(@"URL: %@", [request URL].absoluteString);
+    
 	[ActivityIndicator visible:YES];
     
-    NSLog(@"%@", [request URL].absoluteURL);
+    if ( [[request URL].absoluteString isEqualToString:@"https://api.twitter.com/oauth/authorize"] ) {
+
+        NSLog(@"authorize");
+        
+        [grayView on];
+    }
     
 	return YES;
 }
@@ -200,10 +213,8 @@
 	
 	[ActivityIndicator visible:NO];
 	
-	if ([[[wv.request URL] absoluteString] isEqualToString:@"https://api.twitter.com/oauth/authorize"]) {
+	if ([[wv.request URL].absoluteString isEqualToString:@"https://api.twitter.com/oauth/authorize"]) {
 
-        NSLog(@"authorize");
-        
 		[self performSelector:@selector(setPinCode) withObject:nil afterDelay:0.1];
 	}
 }
@@ -312,6 +323,7 @@
 - (void)enableButton {
     
     doneButton.enabled = YES;
+    [grayView off];
 }
 
 - (IBAction)pushCloseButton:(id)sender {
