@@ -120,6 +120,7 @@
             NSDictionary *saveDic = [[NSDictionary alloc] initWithDictionary:dic];
             [d setObject:saveDic forKey:@"OAuthAccount"];
             [saveDic release];
+            [dic release];
             
             [d setBool:YES forKey:@"ChangeAccount"];
             [d setObject:@"Twitpic" forKey:@"PhotoService"];

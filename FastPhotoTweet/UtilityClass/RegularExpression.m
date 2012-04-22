@@ -23,11 +23,14 @@
                                                        range:NSMakeRange(0, matchString.length)];
     
     if (!error) {
+        
         if (match.numberOfRanges != 0) {
+            
             result = YES;
         }
         
     }else {
+        
         [RegularExpression regExpError];
     }
     
@@ -48,11 +51,14 @@
                                                        range:NSMakeRange(0, matchString.length)];
     
     if (!error) {
+        
         if (match.numberOfRanges != 0) {
+            
             result = [matchString substringWithRange:match.range];
         }
         
     }else {
+        
         [RegularExpression regExpError];
     }
     
@@ -73,11 +79,14 @@
                                                        range:NSMakeRange(0, matchString.length)];
     
     if (!error) {
+        
         if (match.numberOfRanges != 0) {
+            
             result = [NSMutableString stringWithString:[matchString substringWithRange:match.range]];
         }
         
     }else {
+        
         [RegularExpression regExpError];
     }
     
@@ -135,13 +144,17 @@
                                                          matchString.length)];
     
     if (!error) {
+        
         for (NSTextCheckingResult *result in match) {
+            
             tmp = [matchString substringWithRange:result.range];
             [resultArray addObject:tmp];
         }
         
     }else {
+        
         [RegularExpression regExpError];
+        
         return [NSMutableArray array];
     }
     
@@ -149,6 +162,7 @@
 }
 
 + (void)regExpError {
+    
     UIAlertView *alert = [[UIAlertView alloc] init];
     alert.delegate = self;
     alert.title = @"エラー";

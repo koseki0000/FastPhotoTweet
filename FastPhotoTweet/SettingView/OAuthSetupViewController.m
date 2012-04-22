@@ -358,7 +358,14 @@
     
     NSLog(@"OAuthSetupView dealloc");
     
-    [wv release];
+    if ( wv.loading ) {
+        
+        [wv stopLoading];
+    }
+    
+    wv.delegate = nil;
+    [wv removeFromSuperview];
+    
     [bar release];
     [closeButton release];
     [pinField release];

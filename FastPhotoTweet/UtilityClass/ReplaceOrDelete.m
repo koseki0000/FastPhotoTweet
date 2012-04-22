@@ -23,6 +23,7 @@
                                       range:NSMakeRange(0, mString.length)];
         
     }@catch (NSException *e) {
+        
         return [NSString stringWithString:string];
     }
     
@@ -42,6 +43,7 @@
                                       range:NSMakeRange(0, mString.length)];
         
     }@catch (NSException *e) {
+        
         return [NSString stringWithString:string];
     }
     
@@ -62,6 +64,7 @@
                                       range:NSMakeRange(0, mString.length)];
         
     }@catch (NSException *e) {
+        
         return [NSString stringWithString:string];
     }
     
@@ -81,6 +84,7 @@
                                       range:NSMakeRange(0, mString.length)];
         
     }@catch (NSException *e) {
+        
         return [NSString stringWithString:string];
     }
     

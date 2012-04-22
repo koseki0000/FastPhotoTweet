@@ -93,9 +93,11 @@
         ACAccountStore *accountStore = [[[ACAccountStore alloc] init] autorelease];
         ACAccountType *accountType = [accountStore accountTypeWithAccountTypeIdentifier:ACAccountTypeIdentifierTwitter];
         
-        [accountStore requestAccessToAccountsWithType:accountType withCompletionHandler:
-         ^( BOOL granted, NSError *error ) {
+        [accountStore requestAccessToAccountsWithType:accountType 
+                                withCompletionHandler:^( BOOL granted, NSError *error ) {
+            
              dispatch_sync(dispatch_get_main_queue(), ^{
+                 
                  if ( granted ) {
                      
                      NSArray *twitterAccounts = [accountStore accountsWithAccountType:accountType];

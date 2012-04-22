@@ -25,24 +25,31 @@
                                                            range:NSMakeRange(0, URLString.length)];
         
         if (!error) {
+            
             if (match.numberOfRanges != 0) {
+                
                 NSString *protocol = [URLString substringWithRange:match.range];
+                
                 if (![protocol hasPrefix:@"https"]) {
+                    
                     URLString = [URLString substringWithRange:NSMakeRange(protocol.length, 
                                                                           URLString.length - protocol.length)];
                 }
                 
                 if ([URLString hasSuffix:@"/"]) {
+                    
                     URLString = [URLString substringWithRange:NSMakeRange(0, 
                                                                           URLString.length - 1)];
                 }
             }
             
         }else {
+            
             return originalURLString;
         }
         
     }@catch (NSException *e) {
+        
         return originalURLString;
     }
     

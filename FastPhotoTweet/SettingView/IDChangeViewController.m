@@ -124,7 +124,6 @@
     if ( twitpicLinkMode ) {
         
         twitpicLinkMode = NO;
-        [d removeObjectForKey:@"TwitPicLinkMode"];
         
         NSLog(@"SelectAccount: %@", [accountList objectAtIndex:indexPath.row]);
         
@@ -153,9 +152,11 @@
         NSDictionary *saveDic = [[NSDictionary alloc] initWithDictionary:dic];
         [d setObject:saveDic forKey:@"OAuthAccount"];
         [saveDic release];
+        [dic release];
         
         [d setBool:YES forKey:@"ChangeAccount"];
         [d setObject:@"Twitpic" forKey:@"PhotoService"];
+        [d removeObjectForKey:@"TwitPicLinkMode"];
         
         NSLog(@"OAuthAccount: %@", [d dictionaryForKey:@"OAuthAccount"]);
     }
