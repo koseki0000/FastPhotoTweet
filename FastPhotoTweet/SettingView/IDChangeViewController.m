@@ -149,6 +149,8 @@
         [d setObject:saveDic forKey:@"OAuthAccount"];
         [saveDic release];
         
+        [d setBool:YES forKey:@"ChangeAccount"];
+        
         NSLog(@"OAuthAccount: %@", [d dictionaryForKey:@"OAuthAccount"]);
     }
     

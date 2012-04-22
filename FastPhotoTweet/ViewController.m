@@ -558,16 +558,31 @@
             NSLog(@"Twitpic upload");
             
             NSDictionary *dic = [d dictionaryForKey:@"OAuthAccount"];
-            NSString *key = [[dic objectForKey:twAccount.username] objectAtIndex:0];
-            NSString *secret = [[dic objectForKey:twAccount.username] objectAtIndex:1];
             
-            [request addPostValue:TWITPIC_API_KEY forKey:@"key"];
-            [request addPostValue:OAUTH_KEY forKey:@"consumer_token"];
-            [request addPostValue:OAUTH_SECRET forKey:@"consumer_secret"];
-            [request addPostValue:key forKey:@"oauth_token"];
-            [request addPostValue:secret forKey:@"oauth_secret"];
-            [request addPostValue:postText.text forKey:@"message"];
-            [request addData:imageData forKey:@"media"];
+            if ( [EmptyCheck check:[dic objectForKey:twAccount.username]] ) {
+                
+                NSString *key = [[dic objectForKey:twAccount.username] objectAtIndex:0];
+                NSString *secret = [[dic objectForKey:twAccount.username] objectAtIndex:1];
+                [request addPostValue:TWITPIC_API_KEY forKey:@"key"];
+                [request addPostValue:OAUTH_KEY forKey:@"consumer_token"];
+                [request addPostValue:OAUTH_SECRET forKey:@"consumer_secret"];
+                [request addPostValue:key forKey:@"oauth_token"];
+                [request addPostValue:secret forKey:@"oauth_secret"];
+                [request addPostValue:postText.text forKey:@"message"];
+                [request addData:imageData forKey:@"media"];
+                
+            }else {
+                
+                //Twitpic投稿が不可な場合はimg.urに投稿
+                request.url = [NSURL URLWithString:@"http://api.imgur.com/2/upload.json"];
+                
+                [d setObject:@"img.ur" forKey:@"PhotoService"];
+                [request addPostValue:IMGUR_API_KEY forKey:@"key"];
+                [request addData:imageData forKey:@"image"];
+                
+                ShowAlert *alert = [[ShowAlert alloc] init];
+                [alert error:[NSString stringWithFormat:@"%@のTwitpicアカウントが見つからなかったためimg.urに投稿しました。", twAccount.username]];
+            }
         }
         
         [request setDelegate:self];
@@ -1225,10 +1240,12 @@
     
     NSLog(@"viewDidAppear");
     
-    if ( changeAccount ) {
+    if ( changeAccount || [d boolForKey:@"ChangeAccount"] ) {
         
         NSLog(@"ChangeAccount");
         
+        [d removeObjectForKey:@"ChangeAccount"];
+        changeAccount = NO;
         [twAccount release];
         
         //アカウント設定を更新
@@ -1236,8 +1253,6 @@
         ACAccountType *accountType = [accountStore accountTypeWithAccountTypeIdentifier:ACAccountTypeIdentifierTwitter];
         NSArray *twitterAccounts = [accountStore accountsWithAccountType:accountType];
         twAccount = [[twitterAccounts objectAtIndex:[d integerForKey:@"UseAccount"]] retain];
-        
-        changeAccount = NO;
     }
 }
 
