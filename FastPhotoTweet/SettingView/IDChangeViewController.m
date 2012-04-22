@@ -63,6 +63,7 @@
     [super viewDidLoad];
     
     if ( [d boolForKey:@"TwitPicLinkMode"] ) {
+        
         [topBar setRightBarButtonItem:nil animated:NO];
     }
     

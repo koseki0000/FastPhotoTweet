@@ -69,6 +69,9 @@
 - (void)viewDidLoad {
 
     [super viewDidLoad];
+    
+    [d removeObjectForKey:@"AddTwitpicAccountName"];
+    [d removeObjectForKey:@"TwitPicLinkMode"];
 }
 
 - (void)viewDidAppear:(BOOL)animated {
@@ -88,9 +91,48 @@
         
         NSLog(@"TwitPic Link");
         
-        IDChangeViewController *dialog = [[[IDChangeViewController alloc] init] autorelease];
-        dialog.modalTransitionStyle = UIModalTransitionStyleCoverVertical;
-        [self presentModalViewController:dialog animated:YES];
+        if ( [EmptyCheck check:[d objectForKey:@"AddTwitpicAccountName"]] ) {
+            
+            [d removeObjectForKey:@"TwitPicLinkMode"];
+            
+            //仮登録された情報の名前を生成
+            NSString *searchAccountName = [NSString stringWithFormat:@"OAuthAccount_%d", [d integerForKey:@"AccountCount"]];
+            
+            NSLog(@"searchAccountName: %@", searchAccountName);
+            
+            //設定からアカウントリストを読み込む
+            NSMutableDictionary *dic = [[d dictionaryForKey:@"OAuthAccount"] mutableCopy];
+            
+            //key, secretを取得
+            NSString *key = [[dic objectForKey:searchAccountName] objectAtIndex:0];
+            NSString *secret = [[dic objectForKey:searchAccountName] objectAtIndex:1];
+            
+            //配列を生成
+            NSArray *accountData = [NSArray arrayWithObjects:key, secret, nil];
+            
+            //仮情報を削除
+            [dic removeObjectForKey:searchAccountName];
+            
+            //アカウント情報を登録
+            [dic setObject:accountData forKey:[d objectForKey:@"AddTwitpicAccountName"]];
+            
+            //設定に反映
+            NSDictionary *saveDic = [[NSDictionary alloc] initWithDictionary:dic];
+            [d setObject:saveDic forKey:@"OAuthAccount"];
+            [saveDic release];
+            
+            [d setBool:YES forKey:@"ChangeAccount"];
+            [d setObject:@"Twitpic" forKey:@"PhotoService"];
+            [d removeObjectForKey:@"AddTwitpicAccountName"];
+            
+            NSLog(@"OAuthAccount: %@", [d dictionaryForKey:@"OAuthAccount"]);
+            
+        }else {
+            
+            IDChangeViewController *dialog = [[[IDChangeViewController alloc] init] autorelease];
+            dialog.modalTransitionStyle = UIModalTransitionStyleCoverVertical;
+            [self presentModalViewController:dialog animated:YES];
+        }
     }
     
     //設定項目の表示を更新
@@ -576,28 +618,28 @@
             NSDictionary *dic = [d dictionaryForKey:@"OAuthAccount"];
             NSArray *oauthAccountNames = [dic allKeys];
             
-            ACAccountStore *accountStore = [[[ACAccountStore alloc] init] autorelease];
-            ACAccountType *accountType = [accountStore accountTypeWithAccountTypeIdentifier:ACAccountTypeIdentifierTwitter];
-            
-            NSArray *twitterAccounts = [accountStore accountsWithAccountType:accountType];
-    
+            ACAccount *twAccount = [TWGetAccount getTwitterAccount];
             NSString *twitpicName = nil;
             
-            for ( ACAccount *account in twitterAccounts ) {
-                for ( NSString *name in oauthAccountNames ) {
-                    if ( [account.username isEqualToString:name] ) {
-
-                        twitpicName = account.username;
-                    }
+            NSLog(@"oauthAccountNames: %@", oauthAccountNames);
+            
+            for ( NSString *accountName in oauthAccountNames ) {
+                if ( [accountName isEqualToString:twAccount.username] ) {
+                    
+                    twitpicName = accountName;
+                    
+                    NSLog(@"twitpicName: %@", twitpicName);
+                    
+                    break;
                 }
             }
-            
-            ACAccount *twAccount = [TWGetAccount getTwitterAccount];
             
             if ( twitpicName == nil ) {
                 
                 ShowAlert *errorAlert = [[ShowAlert alloc] init];
                 [errorAlert error:[NSString stringWithFormat:@"現在使用中のアカウント %@ のTwitpicアカウントが見つかりません。アカウントを登録してください。", twAccount.username]];
+                
+                [d setObject:twAccount.username forKey:@"AddTwitpicAccountName"];
                 
                 OAuthSetupViewController *dialog = [[[OAuthSetupViewController alloc] init] autorelease];
                 dialog.modalTransitionStyle = UIModalTransitionStyleCoverVertical;
