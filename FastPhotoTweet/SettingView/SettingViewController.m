@@ -69,6 +69,32 @@
     [super viewDidLoad];
 }
 
+- (void)viewDidAppear:(BOOL)animated {
+    
+    [super viewDidAppear:animated];
+    
+    NSLog(@"viewDidAppear");
+    
+    if ( [[d objectForKey:@"OAuthRequestTokenKey"] isEqualToString:BLANK] || 
+        [[d objectForKey:@"OAuthRequestTokenSecret"] isEqualToString:BLANK] ||
+        [d integerForKey:@"AccountCount"] == 0 ) {
+        
+        [d setObject:@"Twitter" forKey:@"PhotoService"];
+        
+        //設定項目の表示を更新
+        [tv reloadData];
+    }
+    
+    if ( [d boolForKey:@"TwitPicLinkMode"] ) {
+        
+        NSLog(@"TwitPic Link");
+        
+        IDChangeViewController *dialog = [[[IDChangeViewController alloc] init] autorelease];
+        dialog.modalTransitionStyle = UIModalTransitionStyleCoverVertical;
+        [self presentModalViewController:dialog animated:YES];
+    }
+}
+
 - (IBAction)pushDoneButton:(id)sender {
     
     NSLog(@"pushDoneButton");
@@ -321,7 +347,8 @@
                      delegate:self
                      cancelButtonTitle:@"Cancel"
                      destructiveButtonTitle:nil
-                     otherButtonTitles:@"Twitter", @"img.ur(複数枚投稿可)", nil];
+                     otherButtonTitles:@"Twitter", @"img.ur(複数枚投稿可)", 
+                                       @"Twitpic(複数枚投稿可)", nil];
         }
         
     }else if ( indexPath.section == 1 ) {
@@ -432,6 +459,7 @@
             
             return;
         }
+        
     }else if ( indexPath.section == 2 ) {
         
         actionSheetNo = actionSheetNo + SECTION_0 + SECTION_1;
@@ -541,8 +569,14 @@
             [d setObject:@"Twitter" forKey:@"PhotoService"];
         }else if ( buttonIndex == 1 ) {
             [d setObject:@"img.ur" forKey:@"PhotoService"];
+        }else if ( buttonIndex == 2 ) {
+            [d setObject:@"Twitpic" forKey:@"PhotoService"];
+            
+            OAuthSetupViewController *dialog = [[[OAuthSetupViewController alloc] init] autorelease];
+            dialog.modalTransitionStyle = UIModalTransitionStyleCoverVertical;
+            [self presentModalViewController:dialog animated:YES];
         }
-
+        
     }else if ( actionSheetNo == 5 ) {
         if ( buttonIndex == 0 ) {
             [d setBool:YES forKey:@"NowPlayingFastPost"];

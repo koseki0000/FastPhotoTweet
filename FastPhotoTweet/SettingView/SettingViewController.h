@@ -9,8 +9,12 @@
 #import "TableViewCell.h"
 #import "TableViewCellController.h"
 #import "EmptyCheck.h"
+#import "OAuthSetupViewController.h"
+#import "IDChangeViewController.h"
 
 @interface SettingViewController : UIViewController <UIActionSheetDelegate, UITextFieldDelegate> {
+    
+    GrayView *grayView;
     
     NSUserDefaults *d;
     NSMutableArray *settingArray;

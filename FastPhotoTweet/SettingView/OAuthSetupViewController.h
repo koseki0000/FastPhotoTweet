@@ -10,6 +10,7 @@
 #import "OAuthConsumer.h"
 #import "ShowAlert.h"
 #import "GrayView.h"
+#import "EmptyCheck.h"
 #import "ActivityIndicator.h"
 
 @interface OAuthSetupViewController : UIViewController <UIWebViewDelegate, UITextFieldDelegate> {

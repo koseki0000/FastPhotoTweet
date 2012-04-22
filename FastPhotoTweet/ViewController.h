@@ -77,6 +77,8 @@
 
 - (IBAction)svTapGesture:(id)sender;
 
+- (void)testMethod;
+
 - (void)loadSettings;
 - (void)showInfomation;
 - (void)callback;

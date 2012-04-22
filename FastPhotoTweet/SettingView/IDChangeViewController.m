@@ -27,8 +27,16 @@
         NSArray *twitterAccounts = [accountStore accountsWithAccountType:accountType];
         d = [NSUserDefaults standardUserDefaults];
         
+        if ( [d boolForKey:@"TwitPicLinkMode"] ) {
+            
+            twitpicLinkMode = YES;
+            
+            ShowAlert *alert = [[ShowAlert alloc] init];
+            [alert title:@"アカウントリンク" message:@"iOSに登録されているTwitterアカウントと、認証を行ったアカウントのリンクを行います。先程認証を行ったアカウントを選択してください。"];
+        }
+        
         if ( twitterAccounts != 0 ) {
-    
+            
             //可変長配列の初期化
             accountList = [NSMutableArray array];
             
@@ -60,6 +68,9 @@
 - (IBAction)pushCloseButton:(id)sender {
     
     NSLog(@"IDChangeView close");
+    
+    twitpicLinkMode = NO;
+    [d removeObjectForKey:@"TwitPicLinkMode"];
     
     //閉じる
     [self dismissModalViewControllerAnimated:YES];
@@ -105,11 +116,47 @@
 
 - (void)tableView:(UITableView *)tableView didSelectRowAtIndexPath:(NSIndexPath *)indexPath {
     
-    //セルの選択状態を解除
-	[tableView deselectRowAtIndexPath:indexPath animated:YES];
+    if ( twitpicLinkMode ) {
+        
+        twitpicLinkMode = NO;
+        [d removeObjectForKey:@"TwitPicLinkMode"];
+        
+        NSLog(@"SelectAccount: %@", [accountList objectAtIndex:indexPath.row]);
+        
+        //仮登録された情報の名前を生成
+        NSString *searchAccountName = [NSString stringWithFormat:@"OAuthAccount_%d", [d integerForKey:@"AccountCount"]];
+        
+        NSLog(@"searchAccountName: %@", searchAccountName);
+        
+        //設定からアカウントリストを読み込む
+        NSMutableDictionary *dic = [[d dictionaryForKey:@"OAuthAccount"] mutableCopy];
+        
+        //key, secretを取得
+        NSString *key = [[dic objectForKey:searchAccountName] objectAtIndex:0];
+        NSString *secret = [[dic objectForKey:searchAccountName] objectAtIndex:1];
+        
+        //配列を生成
+        NSArray *accountData = [NSArray arrayWithObjects:key, secret, nil];
+        
+        //仮情報を削除
+        [dic removeObjectForKey:searchAccountName];
+        
+        //アカウント情報を登録
+        [dic setObject:accountData forKey:[accountList objectAtIndex:indexPath.row]];
+        
+        //設定に反映
+        NSDictionary *saveDic = [[NSDictionary alloc] initWithDictionary:dic];
+        [d setObject:saveDic forKey:@"OAuthAccount"];
+        [saveDic release];
+        
+        NSLog(@"OAuthAccount: %@", [d dictionaryForKey:@"OAuthAccount"]);
+    }
     
     //使用アカウント情報を保存
     [d setInteger:indexPath.row forKey:@"UseAccount"];
+    
+    //セルの選択状態を解除
+	[tableView deselectRowAtIndexPath:indexPath animated:YES];
     
     //閉じる
     [self dismissModalViewControllerAnimated:YES];

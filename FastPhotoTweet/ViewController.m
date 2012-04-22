@@ -9,6 +9,12 @@
 
 #define TOP_BAR [NSArray arrayWithObjects:trashButton, flexibleSpace, idButton, flexibleSpace, imageSettingButton, flexibleSpace, postButton, nil]
 #define BOTTOM_BAR [NSArray arrayWithObjects:settingButton, flexibleSpace, addButton, nil]
+
+#define IMGUR_API_KEY @"6de089e68b55d6e390d246c4bf932901"
+#define TWITPIC_API_KEY @"95cf146048caad3267f95219b379e61c"
+#define OAUTH_KEY @"dVbmOIma7UCc5ZkV3SckQ"
+#define OAUTH_SECRET @"wnDptUj4VpGLZebfLT3IInTZPkPS4XimYh6WXAmdI"
+
 #define BLANK @""
 
 @implementation ViewController
@@ -134,6 +140,38 @@
         ShowAlert *alert = [[ShowAlert alloc] init];
         [alert error:@"Twitter account access denied"];
     }
+    
+    //for debug
+    [self testMethod];
+}
+
+- (void)testMethod {
+    
+//    NSString *token = @"256661477-33u58rEXykhIRwY6qinESqn2VhMZB1VAWEUj68P6";
+//    NSString *secret = @"6yWsVxP6ujuUAYT6sSJ6WsniDzAEyFMnkBRggtoGw";
+//    
+//    ACAccountStore *store = [[[ACAccountStore alloc] init] autorelease];
+//    ACAccountCredential *credential = [[[ACAccountCredential alloc] initWithOAuthToken:token tokenSecret:secret] autorelease];
+//    
+//    NSLog(@"credential: %@", credential);
+//    
+//    ACAccountType *twitterAcctType = [store accountTypeWithAccountTypeIdentifier:ACAccountTypeIdentifierTwitter];
+//    
+//    ACAccount *newAccount = [[[ACAccount alloc] initWithAccountType:twitterAcctType] autorelease];
+//    newAccount.credential = credential;
+//    
+//    NSLog(@"newAccount: %@", newAccount);
+//    
+//    [store saveAccount:newAccount withCompletionHandler:^(BOOL success, NSError *error) {
+//        
+//        if ( success ) {
+//            NSLog(@"Account was saved!");
+//        } else {
+//            NSLog(@"Account error");
+//        }
+//        
+//        NSLog(@"saveAccount: %@", newAccount);
+//    }];
 }
 
 - (void)loadSettings {
@@ -334,7 +372,7 @@
                     NSArray *saveArray = [NSArray arrayWithObjects:text, imagePreview.image, nil];
                     [postedDic setObject:saveArray forKey:[NSString stringWithFormat:@"%d", postedCount]];
                     
-                //画像投稿先がimg.urの場合
+                //画像投稿先がimg.urかTwitpicの場合
                 }else {
                     
                     //文字列をバックグラウンドプロセスで投稿
@@ -434,10 +472,6 @@
     SettingViewController *dialog = [[[SettingViewController alloc] init] autorelease];
     dialog.modalTransitionStyle = UIModalTransitionStyleCoverVertical;
     [self presentModalViewController:dialog animated:YES];
-
-//    OAuthSetupViewController *dialog = [[[OAuthSetupViewController alloc] init] autorelease];
-//    dialog.modalTransitionStyle = UIModalTransitionStyleCoverVertical;
-//    [self presentModalViewController:dialog animated:YES];
 }
 
 - (IBAction)pushIDButton:(id)sender {
@@ -481,7 +515,8 @@
                   editingInfo:(NSDictionary*)editingInfo {
 
     //画像が選択された場合
-    if ( [[d objectForKey:@"PhotoService"] isEqualToString:@"img.ur"] ) {
+    if ( [[d objectForKey:@"PhotoService"] isEqualToString:@"img.ur"] || 
+         [[d objectForKey:@"PhotoService"] isEqualToString:@"Twitpic"] ) {
         
         //処理中を表すビューを表示
         [grayView onAndSetSize:postText.frame.origin.x   y:postText.frame.origin.y
@@ -498,11 +533,43 @@
         NSData *imageData = [EncodeImage image:image];
         
         //リクエストURLを指定
-        NSURL *URL = [NSURL URLWithString:@"http://api.imgur.com/2/upload.json"];
+        NSURL *URL;
+        
+        if ( [[d objectForKey:@"PhotoService"] isEqualToString:@"img.ur"] ) {
+            
+            URL = [NSURL URLWithString:@"http://api.imgur.com/2/upload.json"];
+            
+        }else if ( [[d objectForKey:@"PhotoService"] isEqualToString:@"Twitpic"] ) {
+            
+            URL = [NSURL URLWithString:@"http://api.twitpic.com/1/upload.json"];
+        }
         
         ASIFormDataRequest *request = [[[ASIFormDataRequest alloc] initWithURL:URL] autorelease];
-        [request addPostValue:@"6de089e68b55d6e390d246c4bf932901" forKey:@"key"];
-        [request addData:imageData forKey:@"image"];
+        
+        if ( [[d objectForKey:@"PhotoService"] isEqualToString:@"img.ur"] ) {
+            
+            NSLog(@"img.ur upload");
+            
+            [request addPostValue:IMGUR_API_KEY forKey:@"key"];
+            [request addData:imageData forKey:@"image"];
+            
+        }else if ( [[d objectForKey:@"PhotoService"] isEqualToString:@"Twitpic"] ) {
+            
+            NSLog(@"Twitpic upload");
+            
+            NSDictionary *dic = [d dictionaryForKey:@"OAuthAccount"];
+            NSString *key = [[dic objectForKey:twAccount.username] objectAtIndex:0];
+            NSString *secret = [[dic objectForKey:twAccount.username] objectAtIndex:1];
+            
+            [request addPostValue:TWITPIC_API_KEY forKey:@"key"];
+            [request addPostValue:OAUTH_KEY forKey:@"consumer_token"];
+            [request addPostValue:OAUTH_SECRET forKey:@"consumer_secret"];
+            [request addPostValue:key forKey:@"oauth_token"];
+            [request addPostValue:secret forKey:@"oauth_secret"];
+            [request addPostValue:postText.text forKey:@"message"];
+            [request addData:imageData forKey:@"media"];
+        }
+        
         [request setDelegate:self];
         [request start];
     }
@@ -535,8 +602,17 @@
     
     NSLog(@"resultDic: %@", result);
     
+    NSString *imageURL;
+    
     //Dictionaryから画像URLを抜き出す
-    NSString *imageURL = [[[result objectForKey:@"upload"] objectForKey:@"links"] objectForKey:@"original"];
+    if ( [[d objectForKey:@"PhotoService"] isEqualToString:@"img.ur"] ) {
+        
+        imageURL = [[[result objectForKey:@"upload"] objectForKey:@"links"] objectForKey:@"original"];
+        
+    }else if ( [[d objectForKey:@"PhotoService"] isEqualToString:@"Twitpic"] ) {
+        
+        imageURL = [result objectForKey:@"url"];
+    }
     
     //Post入力欄の最後にURLを付ける
     postText.text = [NSString stringWithFormat:@"%@ %@ ", postText.text, imageURL];

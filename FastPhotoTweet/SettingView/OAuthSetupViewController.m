@@ -21,13 +21,48 @@
     
     if ( self ) {
 
-        grayView = [[GrayView alloc] init];
-        [wv addSubview:grayView];
-        
         consumer = [((AppDelegate *)[[UIApplication sharedApplication] delegate]).oaConsumer retain];
+        
+        //NSLog(@"consumer.key: %@ consumer.secret: %@", consumer.key, consumer.secret);
     }
     
     return self;
+}
+
+- (void)viewDidLoad {
+    
+    [super viewDidLoad];
+    
+    [self oaRequestStart];
+}
+
+- (void)oaRequestStart {
+    
+    NSLog(@"oaRequestStart");
+    
+    wv.delegate = self;
+	pinField.text = @"";
+	
+	NSURL *oaUrlGetRequestToken = [NSURL URLWithString:@"https://api.twitter.com/oauth/request_token"];
+	
+	OAMutableURLRequest *oaReqGetRequestToken = 
+    [[OAMutableURLRequest alloc] initWithURL:oaUrlGetRequestToken
+									consumer:consumer
+									   token:nil
+									   realm:nil
+						   signatureProvider:nil];
+    
+	[oaReqGetRequestToken setHTTPMethod:@"POST"];
+	
+	OADataFetcher *oaFetGetRequestToken = [[OADataFetcher alloc] init];
+	
+	[oaFetGetRequestToken fetchDataWithRequest:oaReqGetRequestToken
+                                      delegate:self
+                             didFinishSelector:@selector(requestTokenTicket:didFinishWithData:)
+                               didFailSelector:@selector(requestTokenTicket:didFailWithError:)];
+	
+	[oaReqGetRequestToken release];
+    [oaFetGetRequestToken release];
 }
 
 - (void)requestTokenTicket:(OAServiceTicket *)ticket didFinishWithData:(NSData *)data {
@@ -68,8 +103,6 @@
         
         [self enableButton];
     }
-    
-    [grayView off];
 }
 
 - (void)requestTokenTicket:(OAServiceTicket *)ticket didFailWithError:(NSError *)error {
@@ -78,9 +111,7 @@
     
 	ShowAlert *alert = [[ShowAlert alloc] init];
     [alert error:@"RequestTokenError"];
-    
-	[grayView off];
-    
+        
     [self enableButton];
 }
 
@@ -91,9 +122,7 @@
     if ( ticket.didSucceed ) {
         
         NSLog(@"ticket.didSucceed OK");
-        
-		[grayView off];
-		
+        		
 		NSString *responseBody = [[NSString alloc] initWithData:data
 														encoding:NSUTF8StringEncoding];
         
@@ -103,24 +132,45 @@
         NSLog(@"accessToken secret: %@", accessToken.secret);
         
 		NSUserDefaults *d = [NSUserDefaults standardUserDefaults];
-		
-        [d setObject:accessToken.key forKey:@"OAuthKey"];
-        [d setObject:accessToken.secret forKey:@"OAuthSecret"];
+        NSMutableDictionary *dic = [NSMutableDictionary dictionary];
+        
+        if ( ![EmptyCheck check:[d dictionaryForKey:@"OAuthAccount"]] ) {
+            
+            NSLog(@"init OAuthAccountDictionary");
+            [d setObject:[NSDictionary dictionary] forKey:@"OAuthAccount"];
+            
+        }else {
+            
+            dic = [[d dictionaryForKey:@"OAuthAccount"] mutableCopy];
+        }
+        
+        int count = [d integerForKey:@"AccountCount"];
+        count++;
+        [d setInteger:count forKey:@"AccountCount"];
+        
+        NSArray *accountData = [NSArray arrayWithObjects:accessToken.key, accessToken.secret, nil];
+        [dic setObject:accountData forKey:[NSString stringWithFormat:@"OAuthAccount_%d", count]];
+        
+        NSDictionary *saveDic = [[NSDictionary alloc] initWithDictionary:dic];
+        [d setObject:saveDic forKey:@"OAuthAccount"];
+        
+        [saveDic release];
+        
 		[d synchronize];
-                
+        
 		[responseBody release];
 		[accessToken release];
-		
+		        
+        [d setBool:YES forKey:@"TwitPicLinkMode"];
+        
 		[self dismissModalViewControllerAnimated:YES];
 		
-	} else {
+	}else {
         
         NSLog(@"ticket.didSucceed Error");
         
 		ShowAlert *alert = [[ShowAlert alloc] init];
         [alert error:@"AccessTokenError"];
-        
-        [grayView off];
         
         [self enableButton];
 	}
@@ -133,51 +183,15 @@
     ShowAlert *alert = [[ShowAlert alloc] init];
     [alert error:@"AccessTokenError"];
     
-	[grayView off];
-    
     [self enableButton];
-}
-
-- (void)viewDidLoad {
-
-    [super viewDidLoad];
-    
-    [self oaRequestStart];
-}
-
-- (void)oaRequestStart {
-    
-    NSLog(@"oaRequestStart");
-    
-    wv.delegate = self;
-	pinField.text = @"";
-	
-	NSURL *oaUrlGetRequestToken = [[NSURL URLWithString:@"https://api.twitter.com/oauth/request_token"] retain];
-	
-	OAMutableURLRequest *oaReqGetRequestToken = 
-    [[OAMutableURLRequest alloc] initWithURL:oaUrlGetRequestToken
-									consumer:consumer
-									   token:nil
-									   realm:nil
-						   signatureProvider:nil];
-
-	[oaReqGetRequestToken setHTTPMethod:@"POST"];
-	
-	OADataFetcher *oaFetGetRequestToken = [[OADataFetcher alloc] init];
-	
-	[oaFetGetRequestToken fetchDataWithRequest:oaReqGetRequestToken
-                                      delegate:self
-                             didFinishSelector:@selector(requestTokenTicket:didFinishWithData:)
-                               didFailSelector:@selector(requestTokenTicket:didFailWithError:)];
-	
-	[oaUrlGetRequestToken release];
-	[oaReqGetRequestToken release];
 }
 
 - (BOOL)webView:(UIWebView *)webView shouldStartLoadWithRequest:(NSURLRequest *)request 
  navigationType:(UIWebViewNavigationType)navigationType {
 	
 	[ActivityIndicator visible:YES];
+    
+    NSLog(@"%@", [request URL].absoluteURL);
     
 	return YES;
 }
@@ -188,7 +202,7 @@
 	
 	if ([[[wv.request URL] absoluteString] isEqualToString:@"https://api.twitter.com/oauth/authorize"]) {
 
-        [grayView on];
+        NSLog(@"authorize");
         
 		[self performSelector:@selector(setPinCode) withObject:nil afterDelay:0.1];
 	}
@@ -198,13 +212,15 @@
 	
     NSLog(@"setPinCode");
     
+    NSError *error = nil;
+    
 	NSData *response = [NSURLConnection sendSynchronousRequest:[wv request] 
                                              returningResponse:nil 
-                                                         error:nil];
+                                                         error:&error];
     
-	NSString *responseString = [[[NSString alloc] initWithData:response encoding:NSUTF8StringEncoding] autorelease];
+	NSString *responseString = [[[NSString alloc] initWithData:response 
+                                                      encoding:NSUTF8StringEncoding] autorelease];
 	
-	NSError *error = nil;
 	NSTextCheckingResult *match;
 	NSRegularExpression *regexp = 
     [NSRegularExpression regularExpressionWithPattern:@"<code>[0-9]+</code>"
@@ -216,7 +232,13 @@
 		match = [regexp firstMatchInString:responseString 
                                    options:0 
                                      range:NSMakeRange(0, responseString.length)];
-	}
+	}else {
+        
+        ShowAlert *alert = [[ShowAlert alloc] init];
+        [alert error:@"PinCodeError"];
+        
+        return;
+    }
 	
 	if ( match.numberOfRanges != 0 ) {
         
@@ -231,9 +253,7 @@
         
         ShowAlert *alert = [[ShowAlert alloc] init];
         [alert error:@"PinCodeError"];
-        
-        [grayView off];
-        
+                
         [self enableButton];
 	}
 }
@@ -281,8 +301,6 @@
 		[oaUrlAccessToken release];
 		[oaReqAccessToken release];
 	}
-    
-	[grayView off];
 }
 
 - (BOOL)textFieldShouldReturn:(UITextField *)sender {
@@ -306,7 +324,11 @@
 - (IBAction)pushDoneButton:(id)sender {
     
     [pinField resignFirstResponder];
-    [self setPinCode];
+    
+    if ( [EmptyCheck check:pinField.text] ) {
+        
+        [self setPinCode];
+    }
 }
 
 - (void)viewDidUnload {

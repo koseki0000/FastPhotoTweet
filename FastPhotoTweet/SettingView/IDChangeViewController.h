@@ -9,12 +9,15 @@
 #import <Accounts/Accounts.h>
 #import "TableViewCell.h"
 #import "TableViewCellController.h"
+#import "ShowAlert.h"
 
 @interface IDChangeViewController : UIViewController {
     
     NSUserDefaults *d;
     NSMutableArray *accountList;
     NSString *screenName;
+    
+    BOOL twitpicLinkMode;
 }
 
 @property (retain, nonatomic) IBOutlet UIScrollView *sv;
