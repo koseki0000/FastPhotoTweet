@@ -10,7 +10,7 @@
 @implementation TWTwitterCharCounter
 
 //現在入力されている文字数をt.coを考慮してカウントし、残りの入力可能文字数を返す
-//URLはどんな長さでも1つ20文字としてカウント
+//URLはどんな長さでも1つ21文字としてカウント
 //文頭、末尾にある半角スペースはカウントされない
 + (int)charCounter:(id)post {
     
@@ -65,8 +65,8 @@
                                                                             regExpPattern:@" *$"] 
                                                replacedWord:@""];
         
-        //残り入力可能文字数 = 140 - URL以外の文字数 - 行頭･末尾半角スペースの数 - URLの数 * 20
-        num = num - postString.length - urlCount * 20;
+        //残り入力可能文字数 = 140 - URL以外の文字数 - 行頭･末尾半角スペースの数 - URLの数 * 21
+        num = num - postString.length - urlCount * 21;
         
     }@catch ( NSException *e ) {
         
