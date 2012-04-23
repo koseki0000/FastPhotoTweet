@@ -10,7 +10,7 @@
 //セクション数
 #define SECTION_COUNT 3
 //セクション0の項目数 (画像関連設定)
-#define SECTION_0 5
+#define SECTION_0 6
 //セクション1の項目数 (投稿関連設定)
 #define SECTION_1 6
 //セクション2の項目数 (その他の設定)
@@ -23,15 +23,16 @@
 #define NAME_2  @"画像形式"
 #define NAME_3  @"Retina解像度画像のリサイズを行わない"
 #define NAME_4  @"画像投稿先"
+#define NAME_5  @"画像ソース"
 //投稿関連設定
-#define NAME_5  @"NowPlaying時はFastPostを行う"
-#define NAME_6  @"NowPlaying時はCallBackを行う"
-#define NAME_7  @"NowPlayingにカスタム書式を使用"
-#define NAME_8  @"カスタム書式を編集"
-#define NAME_9  @"曲名とアルバム名が同じな場合サブ書式を使用"
-#define NAME_10  @"サブ書式を編集"
+#define NAME_6  @"NowPlaying時はFastPostを行う"
+#define NAME_7  @"NowPlaying時はCallBackを行う"
+#define NAME_8  @"NowPlayingにカスタム書式を使用"
+#define NAME_9  @"カスタム書式を編集"
+#define NAME_10  @"曲名とアルバム名が同じな場合サブ書式を使用"
+#define NAME_11  @"サブ書式を編集"
 //その他の設定
-#define NAME_11 @"アプリがアクティブになった際入力可能状態にする"
+#define NAME_12 @"アプリがアクティブになった際入力可能状態にする"
 
 #define BLANK @""
 
@@ -58,7 +59,8 @@
         //設定項目名を持った可変長配列を生成
         settingArray = [NSMutableArray arrayWithObjects:NAME_0, NAME_1, NAME_2, NAME_3, 
                                                         NAME_4, NAME_5, NAME_6, NAME_7, 
-                                                        NAME_8, NAME_9, NAME_10, NAME_11, nil];
+                                                        NAME_8, NAME_9, NAME_10, NAME_11, 
+                                                        NAME_12, nil];
         
         [settingArray retain];
     }
@@ -194,8 +196,24 @@
         
         result = [NSString stringWithFormat:@"%@", [d objectForKey:@"PhotoService"]];
         
+    //画像ソース
+    }else if ( settingState == 5 ) {    
+        
+        if ( [d integerForKey:@"ImageSource"] == 0 ) {
+            
+            result = @"カメラロール";
+            
+        }else if ( [d integerForKey:@"ImageSource"] == 1 ) {
+            
+            result = @"カメラ";
+            
+        }else if ( [d integerForKey:@"ImageSource"] == 2 ) {
+            
+            result = @"投稿時選択";
+        }
+        
     //NowPlaying時はFastPostを行う
-    }else if ( settingState == 5 ) {
+    }else if ( settingState == 6 ) {
         
         if ( [d boolForKey:@"NowPlayingFastPost"] ) {
             
@@ -207,7 +225,7 @@
         }
         
     //NowPlaying時はCallBackを行う
-    }else if ( settingState == 6 ) {
+    }else if ( settingState == 7 ) {
         
         if ( [d boolForKey:@"NowPlayingCallBack"] ) {
             
@@ -219,7 +237,7 @@
         }
         
     //NowPlayingにカスタム書式を使用
-    }else if ( settingState == 7 ) {
+    }else if ( settingState == 8 ) {
         
         if ( [d boolForKey:@"NowPlayingEdit"] ) {
             
@@ -231,12 +249,12 @@
         }
         
     //カスタム書式を編集
-    }else if ( settingState == 8 ) {
+    }else if ( settingState == 9 ) {
         
         //空のまま
         
     //曲名とアルバム名が同じな場合サブ書式を使用
-    }else if ( settingState == 9 ) {
+    }else if ( settingState == 10 ) {
         
         if ( [d integerForKey:@"NowPlayingEditSub"] == 0 ) {
             
@@ -252,11 +270,12 @@
         }
         
     //サブ書式を編集
-    }else if ( settingState == 10 ) {
+    }else if ( settingState == 11 ) {
         
         //空のまま
     
-    }else if ( settingState == 11 ) {
+    //アプリがアクティブになった際入力可能状態にする
+    }else if ( settingState == 12 ) {
         
         if ( [d boolForKey:@"ShowKeyboard"] ) {
             
@@ -394,6 +413,16 @@
                      destructiveButtonTitle:nil
                      otherButtonTitles:@"Twitter", @"img.ur(複数枚投稿可)", 
                                        @"Twitpic(複数枚投稿可)", nil];
+            
+        }else if ( indexPath.row == 5 ) {
+            
+            //画像ソース
+            sheet = [[UIActionSheet alloc]
+                     initWithTitle:NAME_5
+                     delegate:self
+                     cancelButtonTitle:@"Cancel"
+                     destructiveButtonTitle:nil
+                     otherButtonTitles:@"カメラロール", @"カメラ", @"投稿時選択", nil];
         }
         
     }else if ( indexPath.section == 1 ) {
@@ -404,7 +433,7 @@
         
             //NowPlaying時はFastPostを行う
             sheet = [[UIActionSheet alloc]
-                     initWithTitle:NAME_5
+                     initWithTitle:NAME_6
                      delegate:self
                      cancelButtonTitle:@"Cancel"
                      destructiveButtonTitle:nil
@@ -414,7 +443,7 @@
             
             //NowPlaying時はCallBackを行う
             sheet = [[UIActionSheet alloc]
-                     initWithTitle:NAME_6
+                     initWithTitle:NAME_7
                      delegate:self
                      cancelButtonTitle:@"Cancel"
                      destructiveButtonTitle:nil
@@ -424,7 +453,7 @@
             
             //NowPlayingにカスタム書式を使用
             sheet = [[UIActionSheet alloc]
-                     initWithTitle:NAME_7
+                     initWithTitle:NAME_8
                      delegate:self
                      cancelButtonTitle:@"Cancel"
                      destructiveButtonTitle:nil
@@ -442,7 +471,7 @@
                 alertMessage = [d objectForKey:@"NowPlayingEditText"];
             }
             
-            alert = [[UIAlertView alloc] initWithTitle:NAME_8 
+            alert = [[UIAlertView alloc] initWithTitle:NAME_9 
                                                             message:message
                                                            delegate:self 
                                                   cancelButtonTitle:@"キャンセル" 
@@ -466,7 +495,7 @@
             
             //曲名とアルバム名が同じな場合サブ書式を使用
             sheet = [[UIActionSheet alloc]
-                     initWithTitle:NAME_9
+                     initWithTitle:NAME_10
                      delegate:self
                      cancelButtonTitle:@"Cancel"
                      destructiveButtonTitle:nil
@@ -484,7 +513,7 @@
                 alertMessage = [d objectForKey:@"NowPlayingEditTextSub"];
             }
             
-            alert = [[UIAlertView alloc] initWithTitle:NAME_10 
+            alert = [[UIAlertView alloc] initWithTitle:NAME_11 
                                                message:message
                                               delegate:self 
                                      cancelButtonTitle:@"キャンセル" 
@@ -513,7 +542,7 @@
             
             //アプリがアクティブになった際入力可能状態にする
             sheet = [[UIActionSheet alloc]
-                     initWithTitle:NAME_11
+                     initWithTitle:NAME_12
                      delegate:self
                      cancelButtonTitle:@"Cancel"
                      destructiveButtonTitle:nil
@@ -661,31 +690,62 @@
                 [sheet showInView:self.view];
             }
         }
-        
+    
     }else if ( actionSheetNo == 5 ) {
+        
+        //カメラが使われる可能性のある選択肢
+        if ( buttonIndex != 0 ) {
+            
+            //端末がカメラを使えるか判定
+            if ( [UIImagePickerController isSourceTypeAvailable:UIImagePickerControllerSourceTypeCamera] ) {
+                
+                //カメラが利用できる場合
+                
+                if ( buttonIndex == 1 ) {
+                    [d setInteger:1 forKey:@"ImageSource"];
+                }else if ( buttonIndex == 2 ) {    
+                    [d setInteger:2 forKey:@"ImageSource"];
+                }
+                
+            }else {
+                
+                //カメラが利用できない場合
+                
+                ShowAlert *errorAlert = [[ShowAlert alloc] init];
+                [errorAlert error:@"カメラが利用出来ない端末です。カメラロールが設定されます。"];
+                
+                [d setInteger:0 forKey:@"ImageSource"];
+            }
+            
+        }else {
+            
+            [d setInteger:0 forKey:@"ImageSource"];
+        }
+        
+    }else if ( actionSheetNo == 6 ) {
         if ( buttonIndex == 0 ) {
             [d setBool:YES forKey:@"NowPlayingFastPost"];
         }else if ( buttonIndex == 1 ) {
             [d setBool:NO forKey:@"NowPlayingFastPost"];
         }
         
-    }else if ( actionSheetNo == 6 ) {
+    }else if ( actionSheetNo == 7 ) {
         if ( buttonIndex == 0 ) {
             [d setBool:YES forKey:@"NowPlayingCallBack"];
         }else if ( buttonIndex == 1 ) {
             [d setBool:NO forKey:@"NowPlayingCallBack"];
         }
     
-    }else if ( actionSheetNo == 7 ) {
+    }else if ( actionSheetNo == 8 ) {
         if ( buttonIndex == 0 ) {
             [d setBool:YES forKey:@"NowPlayingEdit"];
         }else if ( buttonIndex == 1 ) {
             [d setBool:NO forKey:@"NowPlayingEdit"];
         }
     
-//  }else if ( actionSheetNo == 8 ) {
+//  }else if ( actionSheetNo == 9 ) {
     
-    }else if ( actionSheetNo == 9 ) {
+    }else if ( actionSheetNo == 10 ) {
         if ( buttonIndex == 0 ) {
             [d setInteger:0 forKey:@"NowPlayingEditSub"];
         }else if ( buttonIndex == 1 ) {
@@ -694,9 +754,9 @@
             [d setInteger:2 forKey:@"NowPlayingEditSub"];
         }
         
-//  }else if ( actionSheetNo == 10 ) {
+//  }else if ( actionSheetNo == 11 ) {
         
-    }else if ( actionSheetNo == 11 ) {
+    }else if ( actionSheetNo == 12 ) {
         if ( buttonIndex == 0 ) {
             [d setBool:YES forKey:@"ShowKeyboard"];
         }else if ( buttonIndex == 1 ) {
