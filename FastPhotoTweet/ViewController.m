@@ -10,10 +10,10 @@
 #define TOP_BAR [NSArray arrayWithObjects:trashButton, flexibleSpace, idButton, flexibleSpace, imageSettingButton, flexibleSpace, postButton, nil]
 #define BOTTOM_BAR [NSArray arrayWithObjects:settingButton, flexibleSpace, addButton, nil]
 
-#define IMGUR_API_KEY   @"6de089e68b55d6e390d246c4bf932901"
+#define IMGUR_API_KEY @"6de089e68b55d6e390d246c4bf932901"
 #define TWITPIC_API_KEY @"95cf146048caad3267f95219b379e61c"
-#define OAUTH_KEY       @"dVbmOIma7UCc5ZkV3SckQ"
-#define OAUTH_SECRET    @"wnDptUj4VpGLZebfLT3IInTZPkPS4XimYh6WXAmdI"
+#define OAUTH_KEY @"dVbmOIma7UCc5ZkV3SckQ"
+#define OAUTH_SECRET @"wnDptUj4VpGLZebfLT3IInTZPkPS4XimYh6WXAmdI"
 
 #define BLANK @""
 
@@ -148,6 +148,32 @@
 }
 
 - (void)testMethod {
+    
+//    NSString *token = @"256661477-33u58rEXykhIRwY6qinESqn2VhMZB1VAWEUj68P6";
+//    NSString *secret = @"6yWsVxP6ujuUAYT6sSJ6WsniDzAEyFMnkBRggtoGw";
+//    
+//    ACAccountStore *store = [[[ACAccountStore alloc] init] autorelease];
+//    ACAccountCredential *credential = [[[ACAccountCredential alloc] initWithOAuthToken:token tokenSecret:secret] autorelease];
+//    
+//    NSLog(@"credential: %@", credential);
+//    
+//    ACAccountType *twitterAcctType = [store accountTypeWithAccountTypeIdentifier:ACAccountTypeIdentifierTwitter];
+//    
+//    ACAccount *newAccount = [[[ACAccount alloc] initWithAccountType:twitterAcctType] autorelease];
+//    newAccount.credential = credential;
+//    
+//    NSLog(@"newAccount: %@", newAccount);
+//    
+//    [store saveAccount:newAccount withCompletionHandler:^(BOOL success, NSError *error) {
+//        
+//        if ( success ) {
+//            NSLog(@"Account was saved!");
+//        } else {
+//            NSLog(@"Account error");
+//        }
+//        
+//        NSLog(@"saveAccount: %@", newAccount);
+//    }];
 }
 
 - (void)loadSettings {
@@ -478,38 +504,10 @@
 
 - (IBAction)pushImageSettingButton:(id)sender {
     
-    NSLog(@"pushImageSettingButton");
-    
     //イメージピッカーを表示
     UIImagePickerController *picPicker = [[UIImagePickerController alloc] init];
-    
-    if ( [d integerForKey:@"ImageSource"] == 0 ) {
-        
-        picPicker.sourceType = UIImagePickerControllerSourceTypePhotoLibrary;
-        
-    }else if ( [d integerForKey:@"ImageSource"] == 1 ) {
-        
-        picPicker.sourceType = UIImagePickerControllerSourceTypeCamera;
-        
-    }else if ( [d integerForKey:@"ImageSource"] == 2 ) {
-        
-        actionSheetNo = 1;
-        
-        UIActionSheet *sheet = [[UIActionSheet alloc]
-                                initWithTitle:@"画像ソース"
-                                delegate:self
-                                cancelButtonTitle:@"Cancel"
-                                destructiveButtonTitle:nil
-                                otherButtonTitles:@"カメラロール", @"カメラ", nil];
-        [sheet autorelease];
-        [sheet showInView:self.view];
-        
-        [picPicker release];
-        
-        return;
-    }
-    
     picPicker.delegate = self;
+    picPicker.sourceType = UIImagePickerControllerSourceTypePhotoLibrary;
     [self presentModalViewController:picPicker animated:YES];
     [picPicker release];
 }
@@ -522,8 +520,75 @@
     if ( [[d objectForKey:@"PhotoService"] isEqualToString:@"img.ur"] || 
          [[d objectForKey:@"PhotoService"] isEqualToString:@"Twitpic"] ) {
         
-        //画像アップロード開始
-        [self uploadImage:image];
+        //処理中を表すビューを表示
+        [grayView onAndSetSize:postText.frame.origin.x   y:postText.frame.origin.y
+                             w:postText.frame.size.width h:postText.frame.size.height];
+        
+        //画像をリサイズするか判定
+        if ( [d boolForKey:@"ResizeImage"] ) {
+            
+            //リサイズを行う
+            image = [ResizeImage aspectResize:image];
+        }
+        
+        //UIImageをNSDataに変換
+        NSData *imageData = [EncodeImage image:image];
+        
+        //リクエストURLを指定
+        NSURL *URL;
+        
+        if ( [[d objectForKey:@"PhotoService"] isEqualToString:@"img.ur"] ) {
+            
+            URL = [NSURL URLWithString:@"http://api.imgur.com/2/upload.json"];
+            
+        }else if ( [[d objectForKey:@"PhotoService"] isEqualToString:@"Twitpic"] ) {
+            
+            URL = [NSURL URLWithString:@"http://api.twitpic.com/1/upload.json"];
+        }
+        
+        ASIFormDataRequest *request = [[[ASIFormDataRequest alloc] initWithURL:URL] autorelease];
+        
+        if ( [[d objectForKey:@"PhotoService"] isEqualToString:@"img.ur"] ) {
+            
+            NSLog(@"img.ur upload");
+            
+            [request addPostValue:IMGUR_API_KEY forKey:@"key"];
+            [request addData:imageData forKey:@"image"];
+            
+        }else if ( [[d objectForKey:@"PhotoService"] isEqualToString:@"Twitpic"] ) {
+            
+            NSLog(@"Twitpic upload");
+            
+            NSDictionary *dic = [d dictionaryForKey:@"OAuthAccount"];
+            
+            if ( [EmptyCheck check:[dic objectForKey:twAccount.username]] ) {
+                
+                NSString *key = [[dic objectForKey:twAccount.username] objectAtIndex:0];
+                NSString *secret = [[dic objectForKey:twAccount.username] objectAtIndex:1];
+                [request addPostValue:TWITPIC_API_KEY forKey:@"key"];
+                [request addPostValue:OAUTH_KEY forKey:@"consumer_token"];
+                [request addPostValue:OAUTH_SECRET forKey:@"consumer_secret"];
+                [request addPostValue:key forKey:@"oauth_token"];
+                [request addPostValue:secret forKey:@"oauth_secret"];
+                [request addPostValue:postText.text forKey:@"message"];
+                [request addData:imageData forKey:@"media"];
+                
+            }else {
+                
+                //Twitpic投稿が不可な場合はimg.urに投稿
+                request.url = [NSURL URLWithString:@"http://api.imgur.com/2/upload.json"];
+                
+                [d setObject:@"img.ur" forKey:@"PhotoService"];
+                [request addPostValue:IMGUR_API_KEY forKey:@"key"];
+                [request addData:imageData forKey:@"image"];
+                
+                ShowAlert *alert = [[ShowAlert alloc] init];
+                [alert error:[NSString stringWithFormat:@"%@のTwitpicアカウントが見つからなかったためimg.urに投稿しました。", twAccount.username]];
+            }
+        }
+        
+        [request setDelegate:self];
+        [request start];
     }
     
     //画像を設定
@@ -549,8 +614,6 @@
 
     //アップロードに成功した場合
     
-    NSLog(@"resultString: %@", request.responseString);
-    
     //レスポンスのStringからDictionaryを生成
     NSDictionary *result = [request.responseString JSONValue];
     
@@ -566,15 +629,6 @@
     }else if ( [[d objectForKey:@"PhotoService"] isEqualToString:@"Twitpic"] ) {
         
         imageURL = [result objectForKey:@"url"];
-    }
-    
-    //アップロードが成功しているかチェック
-    if ( ![EmptyCheck check:imageURL] ) {
-        
-        ShowAlert *alert = [[ShowAlert alloc] init];
-        [alert error:@"アップロードに失敗しました。"];
-        
-        return;
     }
     
     //Post入力欄の最後にURLを付ける
@@ -593,12 +647,6 @@
 }
 
 - (void)requestFailed:(ASIHTTPRequest *)request {
-    
-    NSLog(@"resultString: %@", request.responseString);
-    
-    NSDictionary *result = [request.responseString JSONValue];
-    
-    NSLog(@"resultDic: %@", result);
     
     //アップロードに失敗した場合
     //処理中表示をオフ
@@ -620,7 +668,7 @@
 - (IBAction)textFieldStartEdit:(id)sender {
     
     //ビューの位置を上げる
-    [sv setContentOffset:CGPointMake(0, 120) animated:YES];
+    [sv setContentOffset:CGPointMake(0, 60) animated:YES];
 }
 
 - (IBAction)svTapGesture:(id)sender {
@@ -701,33 +749,6 @@
         localPush.fireDate = [NSDate dateWithTimeIntervalSinceNow:0];
         [[UIApplication sharedApplication] scheduleLocalNotification:localPush];
         [localPush release];
-        
-    }else if ( actionSheetNo == 1 ) {
-        
-        //イメージピッカーを表示
-        UIImagePickerController *picPicker = [[UIImagePickerController alloc] init];
-        
-        if ( buttonIndex == 0 ) {
-            
-            //カメラロールを開く
-            picPicker.sourceType = UIImagePickerControllerSourceTypePhotoLibrary;
-            
-        }else if ( buttonIndex == 1 ) {
-            
-            //写真を撮る
-            picPicker.sourceType = UIImagePickerControllerSourceTypeCamera;
-            
-        }else {
-            
-            //キャンセル
-            [picPicker release];
-            
-            return;
-        }
-        
-        picPicker.delegate = self;
-        [self presentModalViewController:picPicker animated:YES];
-        [picPicker release];
     }
 }
 
@@ -802,79 +823,6 @@
     }
 }
 
-- (void)uploadImage:(UIImage *)image {
-    
-    //処理中を表すビューを表示
-    [grayView onAndSetSize:postText.frame.origin.x   y:postText.frame.origin.y
-                         w:postText.frame.size.width h:postText.frame.size.height];
-    
-    //画像をリサイズするか判定
-    if ( [d boolForKey:@"ResizeImage"] ) {
-        
-        //リサイズを行う
-        image = [ResizeImage aspectResize:image];
-    }
-    
-    //UIImageをNSDataに変換
-    NSData *imageData = [EncodeImage image:image];
-    
-    //リクエストURLを指定
-    NSURL *URL;
-    
-    if ( [[d objectForKey:@"PhotoService"] isEqualToString:@"img.ur"] ) {
-        
-        URL = [NSURL URLWithString:@"http://api.imgur.com/2/upload.json"];
-        
-    }else if ( [[d objectForKey:@"PhotoService"] isEqualToString:@"Twitpic"] ) {
-        
-        URL = [NSURL URLWithString:@"http://api.twitpic.com/1/upload.json"];
-    }
-    
-    ASIFormDataRequest *request = [[[ASIFormDataRequest alloc] initWithURL:URL] autorelease];
-    
-    if ( [[d objectForKey:@"PhotoService"] isEqualToString:@"img.ur"] ) {
-        
-        NSLog(@"img.ur upload");
-        
-        [request addPostValue:IMGUR_API_KEY forKey:@"key"];
-        [request addData:imageData forKey:@"image"];
-        
-    }else if ( [[d objectForKey:@"PhotoService"] isEqualToString:@"Twitpic"] ) {
-        
-        NSLog(@"Twitpic upload");
-        
-        NSDictionary *dic = [d dictionaryForKey:@"OAuthAccount"];
-        
-        if ( [EmptyCheck check:[dic objectForKey:twAccount.username]] ) {
-            
-            NSString *key = [[dic objectForKey:twAccount.username] objectAtIndex:0];
-            NSString *secret = [[dic objectForKey:twAccount.username] objectAtIndex:1];
-            [request addPostValue:TWITPIC_API_KEY forKey:@"key"];
-            [request addPostValue:OAUTH_KEY forKey:@"consumer_token"];
-            [request addPostValue:OAUTH_SECRET forKey:@"consumer_secret"];
-            [request addPostValue:key forKey:@"oauth_token"];
-            [request addPostValue:secret forKey:@"oauth_secret"];
-            [request addPostValue:postText.text forKey:@"message"];
-            [request addData:imageData forKey:@"media"];
-            
-        }else {
-            
-            //Twitpic投稿が不可な場合はimg.urに投稿
-            request.url = [NSURL URLWithString:@"http://api.imgur.com/2/upload.json"];
-            
-            [d setObject:@"img.ur" forKey:@"PhotoService"];
-            [request addPostValue:IMGUR_API_KEY forKey:@"key"];
-            [request addData:imageData forKey:@"image"];
-            
-            ShowAlert *alert = [[ShowAlert alloc] init];
-            [alert error:[NSString stringWithFormat:@"%@のTwitpicアカウントが見つからなかったためimg.urに投稿しました。", twAccount.username]];
-        }
-    }
-    
-    [request setDelegate:self];
-    [request start];
-}
-
 - (void)becomeActive:(NSNotification *)notification {
     
     //アプリケーションがアクティブになった際に呼ばれる
@@ -940,7 +888,6 @@
                     NSString *nowPlayingText = [self nowPlaying];
                     int length = [TWTwitterCharCounter charCounter:nowPlayingText];
                     
-                    //投稿可能文字数(1-140)
                     if ( length > 0 ) {
                         
                         //FastPostが有効、またはNowPlaying限定CallBackが有効
@@ -971,9 +918,9 @@
                         ShowAlert *alert = [[ShowAlert alloc] init];
                         [alert error:@"iPod再生中に使用してください。"];
                         
-                    //140字を超えていた場合
                     }else {
                         
+                        //140字を超えていた場合
                         ShowAlert *alert = [[ShowAlert alloc] init];
                         [alert error:[NSString stringWithFormat:@"Post message is over 140: %d", length]];
                         
@@ -999,55 +946,72 @@
                         
                         NSLog(@"FastPost Disable");
                         
-                        if ( [[d objectForKey:@"NotificationType"] isEqualToString:@"tweet"] ) {
+                        //テキスト
+                        if ( pBoardType == 0 ) {
                             
-                            NSLog(@"NotificationType tweet");
+                            NSLog(@"pBoardType Text");
                             
-                            if ( pBoardType == 0 ) {
-                                
-                                NSLog(@"pBoardType Text");
-                                
-                                //ペーストボード内容をPost入力欄にコピー
-                                postText.text = pboard.string;
-                                
-                            }else {
-                                
-                                NSLog(@"pBoardType not text");
-                            }
+                            //ペーストボード内容をPost入力欄にコピー
+                            postText.text = pboard.string;
+                            int num = [TWTwitterCharCounter charCounter:postText.text];
+                            postCharLabel.text = [NSString stringWithFormat:@"%d", num];
                             
-                            //Post入力状態にする
-                            [postText becomeFirstResponder];
+                        //画像
+                        }else if ( pBoardType == 1 ) {
                             
-                        }else if ( [[d objectForKey:@"NotificationType"] isEqualToString:@"photo"] ) {
+                            NSLog(@"pBoardType Image");
                             
-                            NSLog(@"NotificationType photo");
-                            
-                            if ( pBoardType == 1 ) {
-                                
-                                NSLog(@"pBoardType Photo");
+                            if ( [[d objectForKey:@"NotificationType"] isEqualToString:@"photo"] ) {
                                 
                                 UIImage *image = pboard.image;
                                 
-                                if ( [[d objectForKey:@"PhotoService"] isEqualToString:@"img.ur"] || 
-                                     [[d objectForKey:@"PhotoService"] isEqualToString:@"Twitpic"] ) {
+                                if ( [[d objectForKey:@"PhotoService"] isEqualToString:@"img.ur"] ) {
                                     
-                                    //画像アップロード開始
-                                    [self uploadImage:image];
+                                    //処理中を表すビューを表示
+                                    [grayView onAndSetSize:postText.frame.origin.x   y:postText.frame.origin.y
+                                                         w:postText.frame.size.width h:postText.frame.size.height];
+                                    
+                                    //画像をリサイズするか判定
+                                    if ( [d boolForKey:@"ResizeImage"] ) {
+                                        
+                                        //リサイズを行う
+                                        image = [ResizeImage aspectResize:image];
+                                    }
+                                    
+                                    //UIImageをNSDataに変換
+                                    NSData *imageData = [EncodeImage image:image];
+                                    
+                                    //リクエストURLを指定
+                                    NSURL *URL = [NSURL URLWithString:@"http://api.imgur.com/2/upload.json"];
+                                    
+                                    ASIFormDataRequest *request = [[[ASIFormDataRequest alloc] initWithURL:URL] autorelease];
+                                    [request addPostValue:@"6de089e68b55d6e390d246c4bf932901" forKey:@"key"];
+                                    [request addData:imageData forKey:@"image"];
+                                    [request setDelegate:self];
+                                    [request start];
                                 }
                                 
                                 //ペーストボードの画像をサムネイル表示
                                 imagePreview.image = image;
                                 
-                                //Post入力状態にする
-                                [postText becomeFirstResponder];
-                                
                             }else {
                                 
-                                NSLog(@"pBoardType not Photo");
-                                
-                                [self pushImageSettingButton:nil];
+                                if ( [EmptyCheck check:pboard.string] ) {
+                                    
+                                    //ペーストボードが空
+                                    //入力可能状態にする
+                                    [postText becomeFirstResponder];
+                                    
+                                }else {
+                                    
+                                    //入力欄にペーストボードのテキストをコピー
+                                    postText.text = pboard.string;
+                                }
                             }
                         }
+                        
+                        //Post入力状態にする
+                        [postText becomeFirstResponder];
                         
                     //FastPostが有効な場合
                     }else {
@@ -1080,24 +1044,26 @@
                                 //投稿可能文字数である
                                 canPost = YES;
                             }
-                            
-                            if ( canPost ) {
-                                
-                                //投稿処理
-                                NSString *text = [[[NSString alloc] initWithString:pboard.string] autorelease];
-                                NSArray *postData = [NSArray arrayWithObjects:text, nil, nil];
-                                [TWSendTweet performSelectorInBackground:@selector(post:) withObject:postData];
-                                
-                                //CallBack
-                                [self callback];
-                                
-                                //投稿不可能な場合
-                            }else {
-                                
-                                //ペーストボード内容をPost入力欄にコピー
-                                postText.text = pboard.string;
-                            }
                         }
+                    }
+                    
+                    if ( canPost ) {
+                        
+                        //投稿処理
+                        NSString *text = [[[NSString alloc] initWithString:pboard.string] autorelease];
+                        NSArray *postData = [NSArray arrayWithObjects:text, nil, nil];
+                        [TWSendTweet performSelectorInBackground:@selector(post:) withObject:postData];
+                        
+                        //CallBack
+                        [self callback];
+                        
+                    //投稿不可能な場合
+                    }else {
+                        
+                        //ペーストボード内容をPost入力欄にコピー
+                        postText.text = pboard.string;
+                        int num = [TWTwitterCharCounter charCounter:postText.text];
+                        postCharLabel.text = [NSString stringWithFormat:@"%d", num];
                     }
                 }
                 
@@ -1113,8 +1079,6 @@
         
         NSLog(@"Notification: NO");
     }
-    
-    [self countText];
 }
 
 - (void)callback {
