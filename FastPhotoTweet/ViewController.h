@@ -83,6 +83,7 @@
 - (void)showInfomation;
 - (void)callback;
 - (void)countText;
+- (void)uploadImage:(UIImage *)image;
 - (void)postDone:(NSNotification *)center;
 - (BOOL)ios5Check;
 - (BOOL)reachability;
