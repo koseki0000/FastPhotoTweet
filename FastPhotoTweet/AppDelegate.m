@@ -8,7 +8,7 @@
 #import "AppDelegate.h"
 #import "ViewController.h"
 
-#define OAUTH_KEY    @"dVbmOIma7UCc5ZkV3SckQ"
+#define OAUTH_KEY @"dVbmOIma7UCc5ZkV3SckQ"
 #define OAUTH_SECRET @"wnDptUj4VpGLZebfLT3IInTZPkPS4XimYh6WXAmdI"
 
 @implementation AppDelegate
@@ -29,7 +29,6 @@
     self.viewController = [[[ViewController alloc] initWithNibName:@"ViewController" bundle:nil] autorelease];
     self.window.rootViewController = self.viewController;
     [self.window makeKeyAndVisible];
-    
     return YES;
 }
 
@@ -131,7 +130,6 @@
 - (void)dealloc {
     
     [oaConsumer release];
-    
     [_window release];
     [_viewController release];
     [super dealloc];
