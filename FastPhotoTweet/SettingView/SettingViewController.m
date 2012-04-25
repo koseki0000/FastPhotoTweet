@@ -254,11 +254,11 @@
         
         if ( [d boolForKey:@"NowPlayingEdit"] ) {
             
-            result = @"OFF";
+            result = @"ON";
             
         }else {
             
-            result = @"ON";
+            result = @"OFF";
         }
         
     //カスタム書式を編集
@@ -456,7 +456,7 @@
         
             //NowPlaying時はFastPostを行う
             sheet = [[UIActionSheet alloc]
-                     initWithTitle:NAME_6
+                     initWithTitle:NAME_7
                      delegate:self
                      cancelButtonTitle:@"Cancel"
                      destructiveButtonTitle:nil
@@ -466,7 +466,7 @@
             
             //NowPlaying時はCallBackを行う
             sheet = [[UIActionSheet alloc]
-                     initWithTitle:NAME_7
+                     initWithTitle:NAME_8
                      delegate:self
                      cancelButtonTitle:@"Cancel"
                      destructiveButtonTitle:nil
@@ -476,7 +476,7 @@
             
             //NowPlayingにカスタム書式を使用
             sheet = [[UIActionSheet alloc]
-                     initWithTitle:NAME_8
+                     initWithTitle:NAME_9
                      delegate:self
                      cancelButtonTitle:@"Cancel"
                      destructiveButtonTitle:nil
@@ -494,7 +494,7 @@
                 alertMessage = [d objectForKey:@"NowPlayingEditText"];
             }
             
-            alert = [[UIAlertView alloc] initWithTitle:NAME_9 
+            alert = [[UIAlertView alloc] initWithTitle:NAME_10 
                                                             message:message
                                                            delegate:self 
                                                   cancelButtonTitle:@"キャンセル" 
@@ -518,7 +518,7 @@
             
             //曲名とアルバム名が同じな場合サブ書式を使用
             sheet = [[UIActionSheet alloc]
-                     initWithTitle:NAME_10
+                     initWithTitle:NAME_11
                      delegate:self
                      cancelButtonTitle:@"Cancel"
                      destructiveButtonTitle:nil
@@ -536,7 +536,7 @@
                 alertMessage = [d objectForKey:@"NowPlayingEditTextSub"];
             }
             
-            alert = [[UIAlertView alloc] initWithTitle:NAME_11 
+            alert = [[UIAlertView alloc] initWithTitle:NAME_12 
                                                message:message
                                               delegate:self 
                                      cancelButtonTitle:@"キャンセル" 
@@ -565,7 +565,7 @@
             
             //アプリがアクティブになった際入力可能状態にする
             sheet = [[UIActionSheet alloc]
-                     initWithTitle:NAME_12
+                     initWithTitle:NAME_13
                      delegate:self
                      cancelButtonTitle:@"Cancel"
                      destructiveButtonTitle:nil
