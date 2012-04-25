@@ -39,6 +39,7 @@
     
     BOOL changeAccount;
     BOOL cameraMode;
+    BOOL repeatedPost;
     int actionSheetNo;
     int postedCount;
 }
@@ -82,6 +83,7 @@
 
 - (void)loadSettings;
 - (void)showInfomation;
+- (void)showImagePicker;
 - (void)callback;
 - (void)countText;
 - (void)uploadImage:(UIImage *)image;

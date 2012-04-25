@@ -64,6 +64,7 @@
     postText.text = BLANK;
     changeAccount = NO;
     cameraMode = NO;
+    repeatedPost = NO;
     actionSheetNo = 0;
     postedCount = 0;
     
@@ -238,15 +239,15 @@
     BOOL check = YES;
     NSMutableDictionary *information = [NSMutableDictionary dictionary];
     
-    if ( ![EmptyCheck check:[d dictionaryForKey:@"information"]] ) {
+    if ( ![EmptyCheck check:[d dictionaryForKey:@"Information"]] ) {
         
-        NSLog(@"init information");
-        [d setObject:[NSDictionary dictionary] forKey:@"information"];
+        NSLog(@"init Information");
+        [d setObject:[NSDictionary dictionary] forKey:@"Information"];
     }
     
     while ( check ) {
                 
-        if ( [[d dictionaryForKey:@"information"] valueForKey:@"FirstRun"] == 0 ) {
+        if ( [[d dictionaryForKey:@"Information"] valueForKey:@"FirstRun"] == 0 ) {
             
             NSLog(@"FirstRun");
             
@@ -254,11 +255,11 @@
             [alert title:@"ようこそ" 
                 message:@"message"];
             
-            information = [[d dictionaryForKey:@"information"] mutableCopy];
+            information = [[d dictionaryForKey:@"Information"] mutableCopy];
             [information setValue:[NSNumber numberWithInt:1] forKey:@"FirstRun"];
             
             NSDictionary *dic = [[NSDictionary alloc] initWithDictionary:information];
-            [d setObject:dic forKey:@"information"];            
+            [d setObject:dic forKey:@"Information"];            
             [dic release];
             
             continue;
@@ -266,7 +267,7 @@
         
         NSString *newVersion = @"1.0";
         
-        if ( [[d dictionaryForKey:@"information"] valueForKey:newVersion] == 0 ) {
+        if ( [[d dictionaryForKey:@"Information"] valueForKey:newVersion] == 0 ) {
             
             NSLog(@"newVersion");
             
@@ -274,11 +275,11 @@
             [alert title:[NSString stringWithFormat:@"FastPhotoTweet %@", newVersion] 
                  message:@"message"];
             
-            information = [[d dictionaryForKey:@"information"] mutableCopy];
+            information = [[d dictionaryForKey:@"Information"] mutableCopy];
             [information setValue:[NSNumber numberWithInt:1] forKey:newVersion];
             
             NSDictionary *dic = [[NSDictionary alloc] initWithDictionary:information];
-            [d setObject:dic forKey:@"information"];
+            [d setObject:dic forKey:@"Information"];
             [dic release];
             
             continue;
@@ -287,7 +288,7 @@
         check = NO;
     }
     
-    NSLog(@"information: %@", [d dictionaryForKey:@"information"]);
+    NSLog(@"Information: %@", [d dictionaryForKey:@"Information"]);
     
     //設定を即反映
     [d synchronize];
@@ -481,6 +482,28 @@
     
     NSLog(@"pushImageSettingButton");
     
+    if ( [d boolForKey:@"RepeatedPost"] ) {
+        
+        actionSheetNo = 2;
+        UIActionSheet *sheet = [[UIActionSheet alloc]
+                                initWithTitle:@"連続投稿"
+                                delegate:self
+                                cancelButtonTitle:@"Cancel"
+                                destructiveButtonTitle:nil
+                                otherButtonTitles:@"ON", @"OFF", nil];
+        [sheet autorelease];
+        [sheet showInView:self.view];
+        
+    }else {
+
+        [self showImagePicker];
+    }
+}
+
+- (void)showImagePicker {
+    
+    NSLog(@"showImagePicker");
+    
     //イメージピッカーを表示
     UIImagePickerController *picPicker = [[UIImagePickerController alloc] init];
     
@@ -520,8 +543,7 @@
                   editingInfo:(NSDictionary*)editingInfo {
 
     //画像ソースがカメラの場合保存
-    if ( [d integerForKey:@"ImageSource"] == 1 ||
-         cameraMode == YES ) {
+    if ( [d integerForKey:@"ImageSource"] == 1 || cameraMode ) {
         
         UIImageWriteToSavedPhotosAlbum(image, nil, nil, nil);
     }
@@ -538,7 +560,10 @@
     imagePreview.image = image;
     
     //モーダルビューを閉じる
-    [picPicker dismissModalViewControllerAnimated:YES];
+    if ( !repeatedPost ) {
+        
+        [picPicker dismissModalViewControllerAnimated:YES];
+    }
     
     //Post入力状態にする
     [postText becomeFirstResponder];
@@ -550,6 +575,7 @@
  
     //画像選択がキャンセルされた場合
     //モーダルビューを閉じる
+    repeatedPost = NO;
     [picPicker dismissModalViewControllerAnimated:YES];
 }
 
@@ -709,6 +735,10 @@
             localPush.userInfo = [NSDictionary dictionaryWithObjectsAndKeys:@"music", @"scheme", nil];
             
             NSLog(@"Add NotificationCenter NowPlaying");
+            
+        }else {
+            
+            return;
         }
         
         localPush.fireDate = [NSDate dateWithTimeIntervalSinceNow:0];
@@ -743,6 +773,23 @@
         picPicker.delegate = self;
         [self presentModalViewController:picPicker animated:YES];
         [picPicker release];
+        
+    }else if ( actionSheetNo == 2 ) {
+        
+        if ( buttonIndex == 0 ) {
+            
+            repeatedPost = YES;
+            
+        }else if ( buttonIndex == 1 ) {
+            
+            repeatedPost = NO;
+            
+        }else {
+            
+            return;
+        }
+        
+        [self showImagePicker];
     }
 }
 
