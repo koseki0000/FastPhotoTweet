@@ -38,6 +38,7 @@
     UIImage *reSendImage;
     
     BOOL changeAccount;
+    BOOL cameraMode;
     int actionSheetNo;
     int postedCount;
 }

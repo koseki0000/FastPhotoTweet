@@ -63,6 +63,7 @@
     postedDic = [[NSMutableDictionary alloc] init];
     postText.text = BLANK;
     changeAccount = NO;
+    cameraMode = NO;
     actionSheetNo = 0;
     postedCount = 0;
     
@@ -518,6 +519,13 @@
         didFinishPickingImage:(UIImage *)image 
                   editingInfo:(NSDictionary*)editingInfo {
 
+    //画像ソースがカメラの場合保存
+    if ( [d integerForKey:@"ImageSource"] == 1 ||
+         cameraMode == YES ) {
+        
+        UIImageWriteToSavedPhotosAlbum(image, nil, nil, nil);
+    }
+    
     //画像が選択された場合
     if ( [[d objectForKey:@"PhotoService"] isEqualToString:@"img.ur"] || 
          [[d objectForKey:@"PhotoService"] isEqualToString:@"Twitpic"] ) {
@@ -546,50 +554,55 @@
 }
 
 - (void)requestFinished:(ASIHTTPRequest *)request {
-
+    
     //アップロードに成功した場合
     
-    NSLog(@"resultString: %@", request.responseString);
-    
-    //レスポンスのStringからDictionaryを生成
-    NSDictionary *result = [request.responseString JSONValue];
-    
-    NSLog(@"resultDic: %@", result);
-    
-    NSString *imageURL;
-    
-    //Dictionaryから画像URLを抜き出す
-    if ( [[d objectForKey:@"PhotoService"] isEqualToString:@"img.ur"] ) {
+    @try {
         
-        imageURL = [[[result objectForKey:@"upload"] objectForKey:@"links"] objectForKey:@"original"];
+        //レスポンスのStringからDictionaryを生成
+        NSDictionary *result = [request.responseString JSONValue];
         
-    }else if ( [[d objectForKey:@"PhotoService"] isEqualToString:@"Twitpic"] ) {
+        NSLog(@"resultDic: %@", result);
         
-        imageURL = [result objectForKey:@"url"];
+        NSString *imageURL;
+        
+        //Dictionaryから画像URLを抜き出す
+        if ( [[d objectForKey:@"PhotoService"] isEqualToString:@"img.ur"] ) {
+            
+            imageURL = [[[result objectForKey:@"upload"] objectForKey:@"links"] objectForKey:@"original"];
+            
+        }else if ( [[d objectForKey:@"PhotoService"] isEqualToString:@"Twitpic"] ) {
+            
+            imageURL = [result objectForKey:@"url"];
+        }
+        
+        //アップロードが成功しているかチェック
+        if ( ![EmptyCheck check:imageURL] ) {
+            
+            ShowAlert *alert = [[ShowAlert alloc] init];
+            [alert error:@"アップロードに失敗しました。"];
+            
+            return;
+        }
+        
+        //Post入力欄の最後にURLを付ける
+        postText.text = [NSString stringWithFormat:@"%@ %@ ", postText.text, imageURL];
+        
+        //連続するスペースを1つにする
+        postText.text = [ReplaceOrDelete replaceWordReturnStr:postText.text 
+                                                  replaceWord:@"  "
+                                                 replacedWord:@" "];
+        
+        //文字数カウントを行いラベルに反映
+        [self countText];
+        
+    }@catch ( NSException *e ) {
+        
+    }@finally {
+        
+        //処理中表示をオフ
+        [grayView off];
     }
-    
-    //アップロードが成功しているかチェック
-    if ( ![EmptyCheck check:imageURL] ) {
-        
-        ShowAlert *alert = [[ShowAlert alloc] init];
-        [alert error:@"アップロードに失敗しました。"];
-        
-        return;
-    }
-    
-    //Post入力欄の最後にURLを付ける
-    postText.text = [NSString stringWithFormat:@"%@ %@ ", postText.text, imageURL];
-    
-    //連続するスペースを1つにする
-    postText.text = [ReplaceOrDelete replaceWordReturnStr:postText.text 
-                                              replaceWord:@"  "
-                                             replacedWord:@" "];
-    
-    //文字数カウントを行いラベルに反映
-    [self countText];
-    
-    //処理中表示をオフ
-    [grayView off];
 }
 
 - (void)requestFailed:(ASIHTTPRequest *)request {
@@ -710,11 +723,13 @@
         if ( buttonIndex == 0 ) {
             
             //カメラロールを開く
+            cameraMode = NO;
             picPicker.sourceType = UIImagePickerControllerSourceTypePhotoLibrary;
             
         }else if ( buttonIndex == 1 ) {
             
             //写真を撮る
+            cameraMode = YES;
             picPicker.sourceType = UIImagePickerControllerSourceTypeCamera;
             
         }else {
