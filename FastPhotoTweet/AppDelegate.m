@@ -42,14 +42,6 @@
         
         NSUserDefaults *d = [NSUserDefaults standardUserDefaults];
         
-        if ( [d boolForKey:@"AddDic"] ) {
-            
-            //通知センターへの登録時は何もしない
-            [d removeObjectForKey:@"AddDic"];
-            
-            return;
-        }
-        
         if ( [d boolForKey:@"AddPhoto"] ) {
             
             //通知センターへの登録時は何もしない

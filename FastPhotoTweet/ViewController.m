@@ -472,8 +472,7 @@
                             delegate:self
                             cancelButtonTitle:@"Cancel"
                             destructiveButtonTitle:nil
-                            otherButtonTitles:@"Tweet", @"PhotoTweet", @"Dictionary",
-                                              @"NowPlaying", nil];
+                            otherButtonTitles:@"Tweet", @"PhotoTweet", @"NowPlaying", nil];
 	[sheet autorelease];
 	[sheet showInView:self.view];
 }
@@ -700,7 +699,7 @@
 - (void)actionSheet:(UIActionSheet *)actionSheet clickedButtonAtIndex:(NSInteger)buttonIndex {
     
     if ( actionSheetNo == 0 ) {
-             
+        
         //通知センターにアプリを登録
         //通知センター登録時は通知を受け取っても無視するように設定
         [d setBool:YES forKey:@"AddPhoto"];
@@ -723,13 +722,6 @@
             NSLog(@"Add NotificationCenter PhotoTweet");
             
         }else if ( buttonIndex == 2 ) {
-            
-            localPush.alertBody = @"Dictionary";
-            localPush.userInfo = [NSDictionary dictionaryWithObjectsAndKeys:@"dic", @"scheme", nil];
-            
-            NSLog(@"Add NotificationCenter Dictionary");
-            
-        }else if ( buttonIndex == 3 ) {
             
             localPush.alertBody = @"NowPlaying";
             localPush.userInfo = [NSDictionary dictionaryWithObjectsAndKeys:@"music", @"scheme", nil];
@@ -960,27 +952,6 @@
         if ( [self ios5Check] ) {
             
             UIPasteboard *pboard = [UIPasteboard generalPasteboard];
-            
-            //通知が辞書機能だった場合
-            if ( [[d objectForKey:@"NotificationType"] isEqualToString:@"dic"] ) {
-                
-                NSLog(@"Dictionary Start");
-                
-                if ( [PasteboardType check] == 0 ) {
-                    
-                    UIReferenceLibraryViewController *controller = [[[UIReferenceLibraryViewController alloc] initWithTerm:pboard.string] autorelease];
-                    [self presentModalViewController:controller animated:YES];
-                    
-                }else {
-                    
-                    ShowAlert *alert = [[ShowAlert alloc] init];
-                    [alert error:@"ペーストボード内が文字以外です。"];
-                }
-                
-                return;
-            }
-            
-            //以下通知がtweetだった場合
             
             if ( twAccount == nil ) {
                 
