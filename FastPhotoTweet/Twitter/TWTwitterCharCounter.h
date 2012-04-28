@@ -6,8 +6,6 @@
 //
 
 #import <Foundation/Foundation.h>
-#import "RegularExpression.h"
-#import "ReplaceOrDelete.h"
 
 @interface TWTwitterCharCounter : NSObject
 
