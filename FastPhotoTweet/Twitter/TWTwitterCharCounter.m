@@ -46,23 +46,12 @@
             //見つかったURLを保存
             NSString *matchString = [postString substringWithRange:result.range];
             [urlList addObject:matchString];
-            
-            //URLの個数カウントを増やす
-            urlCount++;
         }
+        
+        urlCount = urlList.count;
         
         //行頭スペースをカウントしない
         regexp = [NSRegularExpression regularExpressionWithPattern:@"^[ \n\t]+" 
-                                                           options:0 
-                                                             error:nil];
-                
-        postString = (NSMutableString *)[regexp stringByReplacingMatchesInString:postString
-                                                      options:0
-                                                        range:NSMakeRange(0, postString.length)
-                                                 withTemplate:@""];
-                    
-        //文末スペースをカウントしない
-        regexp = [NSRegularExpression regularExpressionWithPattern:@"[ \n\t]+$" 
                                                            options:0 
                                                              error:nil];
         
@@ -70,22 +59,49 @@
                                                                          options:0
                                                                            range:NSMakeRange(0, postString.length)
                                                                     withTemplate:@""];
+        
+        //文末スペースをカウントしない
+        regexp = [NSRegularExpression regularExpressionWithPattern:@"[ \n\t]+$" 
+                                                           options:0 
+                                                                error:nil];
+        
+        postString = (NSMutableString *)[regexp stringByReplacingMatchesInString:postString
+                                                                         options:0
+                                                                           range:NSMakeRange(0, postString.length)
+                                                                    withTemplate:@""];
+        
+        int i = 0;
+        for ( NSString *temp in urlList ) {
+            if ( [temp hasPrefix:@"http"] ) {
                 
-        for ( NSString *tmp in urlList ) {
-            
-            //オリジナルの文字列からURLを取り除く
-            [postString replaceOccurrencesOfString:tmp withString:@"" 
-                                           options:0 
-                                             range:NSMakeRange( 0, postString.length )];
+                //オリジナルの文字列からURLを取り除く
+                [postString replaceOccurrencesOfString:temp withString:@"" 
+                                               options:0 
+                                                 range:NSMakeRange( 0, postString.length )];
+                [urlList removeObjectAtIndex:i];
+                
+            }else {
+                
+                i++;
+            }
         }
         
-        //URLリストを破棄
-        [urlList removeAllObjects];
+        i = 0;
+        for ( NSString *temp in urlList ) {
+            
+            //オリジナルの文字列からURLを取り除く
+            [postString replaceOccurrencesOfString:temp withString:@"" 
+                                           options:0 
+                                             range:NSMakeRange( 0, postString.length )];
+            [urlList removeObjectAtIndex:i];
+        }
         
         //残り入力可能文字数 = 140 - URL以外の文字数 - 行頭･末尾半角スペースの数 - URLの数 * 20
         num = num - postString.length - urlCount * 20;
-                
+        
     }@catch ( NSException *e ) {
+        
+        NSLog(@"Exception: %@", e);
         
         //エラーの場合は取り敢えず140 - オリジナルの文字数を返しておく
         return originalCharNum;
