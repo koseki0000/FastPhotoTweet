@@ -7,6 +7,8 @@
 
 #import "TWTwitterCharCounter.h"
 
+#define URL_REGEXP @"(https?:([^\\x00-\\x20()\"<>\\x7F-\\xFF])*|([-\\w]+\\.)+(com|net|org|info|biz|name|pro|aero|coop|museum|jobs|travel|mail|cat|post|asia|mobi|tel|xxx|int|gov|edu|arpa))"
+
 @implementation TWTwitterCharCounter
 
 //現在入力されている文字数をt.coを考慮してカウントし、残りの入力可能文字数を返す
@@ -28,7 +30,7 @@
     @try {
         
         //URLを抽出する正規表現を設定
-        NSRegularExpression *regexp = [NSRegularExpression regularExpressionWithPattern:@"https?:([^\\x00-\\x20()\"<>\\x7F-\\xFF])*" 
+        NSRegularExpression *regexp = [NSRegularExpression regularExpressionWithPattern:URL_REGEXP 
                                                                                 options:0 
                                                                                   error:nil];
         
