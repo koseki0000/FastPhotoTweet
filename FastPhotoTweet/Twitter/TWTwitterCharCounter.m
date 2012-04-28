@@ -7,7 +7,7 @@
 
 #import "TWTwitterCharCounter.h"
 
-#define URL_REGEXP @"(https?:([^\\x00-\\x20()\"<>\\x7F-\\xFF])*|([-\\w]+\\.)+(com|net|org|info|biz|name|pro|aero|coop|museum|jobs|travel|mail|cat|post|asia|mobi|tel|xxx|int|gov|edu|arpa))"
+#define URL_REGEXP @"(https?:([^\\x00-\\x20()\"<>\\x7F-\\xFF])*|([-\\w]+\\.)+(com|net|org|info|biz|name|pro|aero|coop|museum|jobs|travel|mail|cat|post|asia|mobi|tel|xxx|int|gov|edu|arpa))([^\\x00-\\x20()\"<>\\x7F-\\xFF])*"
 
 @implementation TWTwitterCharCounter
 
