@@ -21,7 +21,7 @@
     NSMutableString *postString = (NSMutableString *)post;
     
     int num = 140;
-    int originalCharNum = postString.length;
+    int originalCharNum = num - postString.length;
     int urlCount = 0;
     NSMutableArray *urlList = [NSMutableArray array];
     
@@ -75,12 +75,15 @@
                                              range:NSMakeRange( 0, postString.length )];
         }
         
+        //URLリストを破棄
+        [urlList removeAllObjects];
+        
         //残り入力可能文字数 = 140 - URL以外の文字数 - 行頭･末尾半角スペースの数 - URLの数 * 20
         num = num - postString.length - urlCount * 20;
                 
     }@catch ( NSException *e ) {
         
-        //エラーの場合は取り敢えずオリジナルの文字数を返しておく
+        //エラーの場合は取り敢えず140 - オリジナルの文字数を返しておく
         return originalCharNum;
         
     }@finally {
