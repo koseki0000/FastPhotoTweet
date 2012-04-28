@@ -11,5 +11,6 @@
 @interface TWGetAccount : NSObject
 
 + (ACAccount *)getTwitterAccount;
++ (ACAccount *)getTwitterAccount:(int)num;
 
 @end

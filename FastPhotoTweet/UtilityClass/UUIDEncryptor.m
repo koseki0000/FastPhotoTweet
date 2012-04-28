@@ -20,12 +20,14 @@
         
         //UUIDを生成して保存
         CFUUIDRef uuidObj = CFUUIDCreate(kCFAllocatorDefault);
-        NSString *uuidString = (NSString*)CFUUIDCreateString(nil, uuidObj);
+        NSString *uuidString = (NSString *)CFUUIDCreateString(nil, uuidObj);
         CFRelease(uuidObj);
         
         [[NSUserDefaults standardUserDefaults] setObject:uuidString forKey:@"UUID"];
         
         NSLog(@"Create UUID: %@", uuidString);
+        
+        [uuidString release];
     }
     
     //受け取った文字列をUUIDをキーにAES256暗号化し返す

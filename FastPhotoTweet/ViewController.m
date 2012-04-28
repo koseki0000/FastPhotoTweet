@@ -7,7 +7,7 @@
 
 #import "ViewController.h"
 
-#define TOP_BAR [NSArray arrayWithObjects:trashButton, flexibleSpace, idButton, flexibleSpace, imageSettingButton, flexibleSpace, postButton, nil]
+#define TOP_BAR [NSArray arrayWithObjects:trashButton, flexibleSpace, idButton, flexibleSpace, resendButton, flexibleSpace, imageSettingButton, flexibleSpace, postButton, nil]
 #define BOTTOM_BAR [NSArray arrayWithObjects:settingButton, flexibleSpace, addButton, nil]
 
 #define IMGUR_API_KEY   @"6de089e68b55d6e390d246c4bf932901"
@@ -18,6 +18,7 @@
 #define BLANK @""
 
 @implementation ViewController
+@synthesize resendButton;
 @synthesize sv;
 @synthesize imageSettingButton;
 @synthesize postText;
@@ -60,13 +61,13 @@
     
     //各種初期値をセット
     d = [NSUserDefaults standardUserDefaults];
-    postedDic = [[NSMutableDictionary alloc] init];
+    appDelegate = (AppDelegate *)[[UIApplication sharedApplication] delegate];
     postText.text = BLANK;
     changeAccount = NO;
     cameraMode = NO;
     repeatedPost = NO;
+    resendImage = NO;
     actionSheetNo = 0;
-    postedCount = 0;
     
     postText.layer.borderWidth = 2;
 	postText.layer.borderColor = [[UIColor blackColor] CGColor];
@@ -150,6 +151,7 @@
 }
 
 - (void)testMethod {
+    
 }
 
 - (void)loadSettings {
@@ -327,13 +329,6 @@
                 NSArray *postData = [NSArray arrayWithObjects:text, nil, nil];
                 [TWSendTweet performSelectorInBackground:@selector(post:) withObject:postData];
                 
-                //投稿失敗時の再投稿用に文字列を保存
-                NSArray *saveArray = [NSArray arrayWithObjects:text, nil, nil];
-                [postedDic setObject:saveArray forKey:[NSString stringWithFormat:@"%d", postedCount]];
-                
-                //投稿カウントを増やす
-                postedCount++;
-                
                 //入力欄を空にする
                 postText.text = BLANK;
              
@@ -341,34 +336,24 @@
             }else {
                 
                 //画像投稿先がTwitterの場合
-                if ( [[d objectForKey:@"PhotoService"] isEqualToString:@"Twitter"] ) {
+                if ( [[d objectForKey:@"PhotoService"] isEqualToString:@"Twitter"] && !resendImage ) {
                     
                     //文字列と画像をバックグラウンドプロセスで投稿
                     NSArray *postData = [NSArray arrayWithObjects:text, imagePreview.image, nil];
                     [TWSendTweet performSelectorInBackground:@selector(post:) withObject:postData];
                     
-                    //投稿失敗時の再投稿用に文字列と画像を保存
-                    NSArray *saveArray = [NSArray arrayWithObjects:text, imagePreview.image, nil];
-                    [postedDic setObject:saveArray forKey:[NSString stringWithFormat:@"%d", postedCount]];
-                    
-                //画像投稿先がimg.urかTwitpicの場合
+                //画像投稿先がimg.urかTwitpicもしくは画像の再投稿
                 }else {
                     
                     //文字列をバックグラウンドプロセスで投稿
                     NSArray *postData = [NSArray arrayWithObjects:text, nil, nil];
                     [TWSendTweet performSelectorInBackground:@selector(post:) withObject:postData];
-                    
-                    //投稿失敗時の再投稿用に文字列を保存
-                    NSArray *saveArray = [NSArray arrayWithObjects:text, nil, nil];
-                    [postedDic setObject:saveArray forKey:[NSString stringWithFormat:@"%d", postedCount]];
                 }
-                
-                //投稿カウントを増やす
-                postedCount++;
                 
                 //入力欄と画像プレビューを空にする
                 postText.text = BLANK;
                 imagePreview.image = nil;
+                resendImage = NO;
             }
         }
     }
@@ -376,63 +361,46 @@
 
 - (void)postDone:(NSNotification *)center {
 
-    NSLog(@"PostedDic: %@", postedDic);
-    
-    reSendText = nil;
-    reSendImage = nil;
+    NSLog(@"postDone: %@", center.userInfo);
     
     NSString *result = [center.userInfo objectForKey:@"PostResult"];
+    
+    //[0]アカウント番号 [1]アカウント名 [2]テキスト [3]画像
     NSArray *resultData = [center.userInfo objectForKey:@"PostData"];
-    
-    //投稿完了した文字列
-    NSString *resultString = [resultData objectAtIndex:0];
-    NSLog(@"resultString: %@", resultString);
-    
-    NSArray *dicValue = [postedDic allValues];
-    NSArray *dicKey = [postedDic allKeys];
-    
-    //文字投稿成功
-    if ( [result isEqualToString:@"Success"] ||
-         [result isEqualToString:@"PhotoSuccess"] ) {
-        
-        NSLog(@"postDone: Success");
-        
-        int i = 0;
-        for ( id obj in dicValue ) {
-    
-            NSLog(@"obj%d: %@",i , [obj objectAtIndex:0]);
-            
-            if ( [resultString hasPrefix:[obj objectAtIndex:0]] ) {
-                
-                NSLog(@"Delete: %d", i);
-                [postedDic removeObjectForKey:[dicKey objectAtIndex:i]];
-            }
-            
-            i++;
-        }
 
-    //投稿失敗
+    if ( [result isEqualToString:@"Success"] ) {
+
+    }else if ( [result isEqualToString:@"PhotoSuccess"] ) {
+             
     }else if ( [result isEqualToString:@"Error"] ) {
         
-        NSLog(@"ReSend Text");
-        
-        if ( [EmptyCheck check:resultData] ) {
-            
-            postText.text = [resultData objectAtIndex:0];
-        }
+        [appDelegate.postError addObject:resultData];
         
     }else if ( [result isEqualToString:@"PhotoError"] ) {
         
-        NSLog(@"ReSend Text, Image");
-        
-        if ( [EmptyCheck check:resultData] ) {
-            
-            postText.text = [resultData objectAtIndex:0];
-            imagePreview.image = [resultData objectAtIndex:1];
-        }
+        [appDelegate.postError addObject:resultData];
     }
     
-    NSLog(@"PostedDic: %@", postedDic);
+    //再投稿ボタンの有効･無効切り替え
+    if ( appDelegate.postError.count == 0 ) {
+        
+        resendButton.enabled = YES;
+        
+    }else {
+        
+        resendButton.enabled = YES;
+    }
+}
+
+- (IBAction)pushResendButton:(id)sender {
+    
+    NSLog(@"pushResendButton");
+    
+    appDelegate.resendMode = [NSNumber numberWithInt:1];
+    
+    ResendViewController *dialog = [[[ResendViewController alloc] init] autorelease];
+    dialog.modalTransitionStyle = UIModalTransitionStyleCoverVertical;
+    [self presentModalViewController:dialog animated:YES];
 }
 
 - (IBAction)pushTrashButton:(id)sender {
@@ -441,6 +409,7 @@
     
     postText.text = BLANK;
     imagePreview.image = nil;
+    resendImage = NO;
     [self countText];
 }
 
@@ -1304,6 +1273,7 @@
     [self setIdButton:nil];
     [self setAddButton:nil];
     [self setTapGesture:nil];
+    [self setResendButton:nil];
     [super viewDidUnload];
 }
 
@@ -1336,6 +1306,31 @@
         ACAccountType *accountType = [accountStore accountTypeWithAccountTypeIdentifier:ACAccountTypeIdentifierTwitter];
         NSArray *twitterAccounts = [accountStore accountsWithAccountType:accountType];
         twAccount = [[twitterAccounts objectAtIndex:[d integerForKey:@"UseAccount"]] retain];
+        
+    }else if ( [appDelegate.resendMode intValue] != 0 ) {
+        
+        appDelegate.resendMode = [NSNumber numberWithInt:0];
+        
+        int indexNum = [appDelegate.resendNumber intValue];
+        NSArray *resendArray = [appDelegate.postError objectAtIndex:indexNum];
+        
+        int account = [[resendArray objectAtIndex:1] intValue];
+        [d setInteger:account forKey:@"UseAccount"];
+        
+        postText.text = [resendArray objectAtIndex:2];
+        
+        if ( resendArray.count == 3 ) {
+            
+            NSLog(@"Resend data set TEXT");
+            
+        }else {
+            
+            NSLog(@"Resend data set PHOTO");
+            resendImage = YES;
+            imagePreview.image = [resendArray objectAtIndex:3];
+        }
+        
+        [appDelegate.postError removeObjectAtIndex:indexNum];
     }
 }
 
@@ -1373,6 +1368,7 @@
     [idButton release];
     [addButton release];
     [tapGesture release];
+    [resendButton release];
     [super dealloc];
 }
 

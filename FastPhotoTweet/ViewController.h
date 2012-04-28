@@ -6,6 +6,7 @@
 //
 
 #import <UIKit/UIKit.h>
+#import "AppDelegate.h"
 #import <UIKit/UITextChecker.h>
 #import <Twitter/Twitter.h>
 #import <Accounts/Accounts.h>
@@ -24,24 +25,22 @@
 #import "OAuthSetupViewController.h"
 #import <MediaPlayer/MediaPlayer.h>
 #import "UUIDEncryptor.h"
+#import "ResendViewController.h"
 
 @interface ViewController : UIViewController <UINavigationControllerDelegate, UIImagePickerControllerDelegate, UIActionSheetDelegate> {
     
     GrayView *grayView;
     
     NSUserDefaults *d;
+    AppDelegate * appDelegate;
     ACAccount *twAccount;
-    
-    NSString *reSendText;
-    NSMutableDictionary *postedDic;
-    
-    UIImage *reSendImage;
     
     BOOL changeAccount;
     BOOL cameraMode;
     BOOL repeatedPost;
+    BOOL resendMode;
+    BOOL resendImage;
     int actionSheetNo;
-    int postedCount;
 }
 
 @property (retain, nonatomic) IBOutlet UIScrollView *sv;
@@ -58,6 +57,7 @@
 @property (retain, nonatomic) IBOutlet UIBarButtonItem *trashButton;
 @property (retain, nonatomic) IBOutlet UIBarButtonItem *postButton;
 @property (retain, nonatomic) IBOutlet UIBarButtonItem *imageSettingButton;
+@property (retain, nonatomic) IBOutlet UIBarButtonItem *resendButton;
 @property (retain, nonatomic) IBOutlet UIBarButtonItem *idButton;
 @property (retain, nonatomic) IBOutlet UIBarButtonItem *settingButton;
 @property (retain, nonatomic) IBOutlet UIBarButtonItem *flexibleSpace;
@@ -70,6 +70,7 @@
 - (IBAction)pushImageSettingButton:(id)sender;
 - (IBAction)pushIDButton:(id)sender;
 - (IBAction)pushAddButton:(id)sender;
+- (IBAction)pushResendButton:(id)sender;
 
 - (IBAction)callbackTextFieldEnter:(id)sender;
 - (IBAction)textFieldStartEdit:(id)sender;

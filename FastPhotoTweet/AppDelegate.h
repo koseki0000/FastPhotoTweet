@@ -14,11 +14,18 @@
     
     OAConsumer *oaConsumer;
     UIBackgroundTaskIdentifier backgroundTask;
+    
+    NSMutableArray *postError;
+    NSNumber *resendNumber;
+    NSNumber *resendMode;
 }
 
 @property (strong, nonatomic) UIWindow *window;
 @property (strong, nonatomic) ViewController *viewController;
 @property (nonatomic, retain) OAConsumer *oaConsumer;
+@property (nonatomic, retain) NSMutableArray *postError;
+@property (nonatomic, retain) NSNumber *resendNumber;
+@property (nonatomic, retain) NSNumber *resendMode;
 
 - (BOOL)ios5Check;
 

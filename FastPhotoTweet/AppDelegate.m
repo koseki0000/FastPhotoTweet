@@ -16,6 +16,9 @@
 @synthesize window = _window;
 @synthesize viewController = _viewController;
 @synthesize oaConsumer;
+@synthesize postError;
+@synthesize resendNumber;
+@synthesize resendMode;
 
 - (BOOL)application:(UIApplication *)application didFinishLaunchingWithOptions:(NSDictionary *)launchOptions {
     
@@ -24,6 +27,13 @@
     //OAConsumer設定
     oaConsumer = [[OAConsumer alloc] initWithKey:OAUTH_KEY 
                                           secret:OAUTH_SECRET];
+    
+    //再投稿用配列
+    postError = [NSMutableArray array];
+    [postError retain];
+    
+    resendNumber = [NSNumber numberWithInt:0];
+    resendMode = [NSNumber numberWithInt:0];
     
     self.window = [[[UIWindow alloc] initWithFrame:[[UIScreen mainScreen] bounds]] autorelease];
     self.viewController = [[[ViewController alloc] initWithNibName:@"ViewController" bundle:nil] autorelease];
@@ -115,7 +125,8 @@
 - (void)dealloc {
     
     [oaConsumer release];
-    
+    [postError release];
+
     [_window release];
     [_viewController release];
     [super dealloc];

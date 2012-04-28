@@ -148,23 +148,31 @@
                      if ( media ) {
                          
                          [postResult setObject:@"PhotoError" forKey:@"PostResult"];
+
+                         NSArray *resultArray = [NSArray arrayWithObjects:
+                                                 [NSNumber numberWithInt:[[NSUserDefaults standardUserDefaults] integerForKey:@"UseAccount"]], 
+                                                 twAccount.username, 
+                                                 text, 
+                                                 image, nil];
                          
-                         NSArray *resultArray = [NSArray arrayWithObjects:text, image, nil];
                          [postResult setObject:resultArray forKey:@"PostData"];
                          
                      }else {
                          
                          [postResult setObject:@"Error" forKey:@"PostResult"];
                          
-                         NSArray *resultArray = [NSArray arrayWithObjects:text, nil, nil];
+                         NSArray *resultArray = [NSArray arrayWithObjects:
+                                                 [NSNumber numberWithInt:[[NSUserDefaults standardUserDefaults] integerForKey:@"UseAccount"]], 
+                                                 twAccount.username,
+                                                 text, nil];
+                         
                          [postResult setObject:resultArray forKey:@"PostData"];
                      }
                      
                      //通知を実行
-                     [[NSNotificationCenter defaultCenter] postNotification:postNotification];
-                     
                      NSLog(@"PostErrorNotification: %@", errorText);
-                     
+                     [[NSNotificationCenter defaultCenter] postNotification:postNotification];
+
                  } else {
                      
                      if ( ![EmptyCheck check:text] ) {
@@ -184,21 +192,29 @@
                              
                              [postResult setObject:@"PhotoSuccess" forKey:@"PostResult"];
                              
-                             NSArray *resultArray = [NSArray arrayWithObjects:text, image, nil];
+                             NSArray *resultArray = [NSArray arrayWithObjects:
+                                                     [NSNumber numberWithInt:[[NSUserDefaults standardUserDefaults] integerForKey:@"UseAccount"]], 
+                                                     twAccount.username, 
+                                                     text, 
+                                                     image, nil];
+                             
                              [postResult setObject:resultArray forKey:@"PostData"];
                              
                          }else {
                              
                              [postResult setObject:@"Success" forKey:@"PostResult"];
                              
-                             NSArray *resultArray = [NSArray arrayWithObjects:text, nil, nil];
+                             NSArray *resultArray = [NSArray arrayWithObjects:
+                                                     [NSNumber numberWithInt:[[NSUserDefaults standardUserDefaults] integerForKey:@"UseAccount"]], 
+                                                     twAccount.username, 
+                                                     text, nil];
+                             
                              [postResult setObject:resultArray forKey:@"PostData"];
                          }
                          
                          //通知を実行
-                         [[NSNotificationCenter defaultCenter] postNotification:postNotification];
-                         
                          NSLog(@"PostSuccessNotification");
+                         [[NSNotificationCenter defaultCenter] postNotification:postNotification];
                      }
                  }
                  
@@ -214,7 +230,6 @@
         //何らかの理由でTweet不可だった場合
         ShowAlert *alert = [[ShowAlert alloc] init];
         [alert error:@"Please try again later"];
-        
     }
 }
 
