@@ -472,7 +472,7 @@
                             delegate:self
                             cancelButtonTitle:@"Cancel"
                             destructiveButtonTitle:nil
-                            otherButtonTitles:@"Tweet", @"PhotoTweet", @"NowPlaying", nil];
+                            otherButtonTitles:@"Tweet", @"FastTweet", @"PhotoTweet", @"NowPlaying", nil];
 	[sheet autorelease];
 	[sheet showInView:self.view];
 }
@@ -632,13 +632,14 @@
 
 - (void)requestFailed:(ASIHTTPRequest *)request {
     
-    NSLog(@"resultString: %@", request.responseString);
+    //アップロードに失敗した場合
     
     NSDictionary *result = [request.responseString JSONValue];
-    
     NSLog(@"resultDic: %@", result);
     
-    //アップロードに失敗した場合
+    ShowAlert *alert = [[ShowAlert alloc] init];
+    [alert error:@"アップロードに失敗しました。"];
+    
     //処理中表示をオフ
     [grayView off];
 }
@@ -702,7 +703,7 @@
         
         //通知センターにアプリを登録
         //通知センター登録時は通知を受け取っても無視するように設定
-        [d setBool:YES forKey:@"AddPhoto"];
+        [d setBool:YES forKey:@"AddNotificationCenter"];
         
         UILocalNotification *localPush = [[UILocalNotification alloc] init];
         localPush.timeZone = [NSTimeZone defaultTimeZone];
@@ -713,15 +714,22 @@
             localPush.userInfo = [NSDictionary dictionaryWithObjectsAndKeys:@"tweet", @"scheme", nil];
             
             NSLog(@"Add NotificationCenter Tweet");
-            
+        
         }else if ( buttonIndex == 1 ) {
+            
+            localPush.alertBody = @"FastTweet";
+            localPush.userInfo = [NSDictionary dictionaryWithObjectsAndKeys:@"fast", @"scheme", nil];
+            
+            NSLog(@"Add NotificationCenter FastTweet");
+            
+        }else if ( buttonIndex == 2 ) {
             
             localPush.alertBody = @"PhotoTweet";
             localPush.userInfo = [NSDictionary dictionaryWithObjectsAndKeys:@"photo", @"scheme", nil];
 
             NSLog(@"Add NotificationCenter PhotoTweet");
             
-        }else if ( buttonIndex == 2 ) {
+        }else if ( buttonIndex == 3 ) {
             
             localPush.alertBody = @"NowPlaying";
             localPush.userInfo = [NSDictionary dictionaryWithObjectsAndKeys:@"music", @"scheme", nil];
@@ -730,6 +738,7 @@
             
         }else {
             
+            [localPush release];
             return;
         }
         
@@ -977,7 +986,7 @@
                     if ( length > 0 ) {
                         
                         //FastPostが有効、またはNowPlaying限定CallBackが有効
-                        if ( [d boolForKey:@"FastPost"] || [d boolForKey:@"NowPlayingFastPost"]) {
+                        if ( [d boolForKey:@"FastPost"] || [d boolForKey:@"NowPlayingFastPost"] ) {
                             
                             NSArray *postData = [NSArray arrayWithObjects:nowPlayingText, nil, nil];
                             [TWSendTweet performSelectorInBackground:@selector(post:) withObject:postData];
@@ -1198,6 +1207,7 @@
         
         //曲名が無い場合は終了
         if ( songTitle.length == 0 ) {
+            
             return BLANK;
         }
         

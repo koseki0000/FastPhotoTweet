@@ -761,8 +761,19 @@
     //連続投稿確認表示
     }else if ( actionSheetNo == 6 ) {
         if ( buttonIndex == 0 ) {
+            
             [d setBool:YES forKey:@"RepeatedPost"];
+            
+            if ( [[d objectForKey:@"PhotoService"] isEqualToString:@"Twitter"] ) {
+                
+                ShowAlert *errorAlert = [[ShowAlert alloc] init];
+                [errorAlert error:@"Twitterへの画像投稿では連続投稿機能は使えません。"];
+                
+                [d setObject:@"img.ur" forKey:@"PhotoService"];
+            }
+            
         }else if ( buttonIndex == 1 ) {
+            
             [d setBool:NO forKey:@"RepeatedPost"];
         }
         

@@ -42,18 +42,10 @@
         
         NSUserDefaults *d = [NSUserDefaults standardUserDefaults];
         
-        if ( [d boolForKey:@"AddPhoto"] ) {
+        if ( [d boolForKey:@"AddNotificationCenter"] ) {
             
             //通知センターへの登録時は何もしない
-            [d removeObjectForKey:@"AddPhoto"];
-            
-            return;
-        }
-        
-        if ( [d boolForKey:@"AddTweet"] ) {
-            
-            //通知センターへの登録時は何もしない
-            [d removeObjectForKey:@"AddTweet"];
+            [d removeObjectForKey:@"AddNotificationCenter"];
             
             return;
         }
