@@ -50,7 +50,7 @@
         
         urlCount = urlList.count;
         
-        NSLog(@"urlList: %@", urlList);
+        //NSLog(@"urlList: %@", urlList);
         
         //行頭スペースをカウントしない
         regexp = [NSRegularExpression regularExpressionWithPattern:@"^[ \n\t]+" 

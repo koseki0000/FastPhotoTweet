@@ -2,8 +2,7 @@
 //  ResendViewController.h
 //  FastPhotoTweet
 //
-//  Created by Yuki Higurashi on 12/04/28.
-//  Copyright (c) 2012年 __MyCompanyName__. All rights reserved.
+//  Created by @peace3884 on 12/04/28.
 //
 
 #import <UIKit/UIKit.h>

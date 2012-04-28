@@ -23,11 +23,9 @@
 @synthesize imageSettingButton;
 @synthesize postText;
 @synthesize callbackLabel;
-@synthesize fastPostLabel;
 @synthesize postCharLabel;
 @synthesize callbackTextField;
 @synthesize callbackSwitch;
-@synthesize fastPostSwitch;
 @synthesize imagePreview;
 @synthesize topBar;
 @synthesize trashButton;
@@ -35,6 +33,8 @@
 @synthesize flexibleSpace;
 @synthesize addButton;
 @synthesize tapGesture;
+@synthesize rigthSwipe;
+@synthesize leftSwipe;
 @synthesize idButton;
 @synthesize bottomBar;
 @synthesize settingButton;
@@ -61,12 +61,12 @@
     
     //各種初期値をセット
     d = [NSUserDefaults standardUserDefaults];
+    pboard = [UIPasteboard generalPasteboard];
     appDelegate = (AppDelegate *)[[UIApplication sharedApplication] delegate];
     postText.text = BLANK;
     changeAccount = NO;
     cameraMode = NO;
     repeatedPost = NO;
-    resendImage = NO;
     actionSheetNo = 0;
     
     postText.layer.borderWidth = 2;
@@ -182,18 +182,7 @@
         //オフ
         callbackSwitch.on = NO;
     }
-    
-    if ( [d boolForKey:@"FastPost"] ) {
         
-        //オン
-        fastPostSwitch.on = YES;
-        
-    }else {
-        
-        //オフ
-        fastPostSwitch.on = NO;
-    }
-    
     if ( ![EmptyCheck check:[d objectForKey:@"CallBackScheme"]] ) {
         
         //スキームが保存されていない
@@ -336,7 +325,7 @@
             }else {
                 
                 //画像投稿先がTwitterの場合
-                if ( [[d objectForKey:@"PhotoService"] isEqualToString:@"Twitter"] && !resendImage ) {
+                if ( [[d objectForKey:@"PhotoService"] isEqualToString:@"Twitter"] ) {
                     
                     //文字列と画像をバックグラウンドプロセスで投稿
                     NSArray *postData = [NSArray arrayWithObjects:text, imagePreview.image, nil];
@@ -353,7 +342,6 @@
                 //入力欄と画像プレビューを空にする
                 postText.text = BLANK;
                 imagePreview.image = nil;
-                resendImage = NO;
             }
         }
     }
@@ -380,11 +368,11 @@
         
         [appDelegate.postError addObject:resultData];
     }
-    
+        
     //再投稿ボタンの有効･無効切り替え
     if ( appDelegate.postError.count == 0 ) {
         
-        resendButton.enabled = YES;
+        resendButton.enabled = NO;
         
     }else {
         
@@ -409,7 +397,6 @@
     
     postText.text = BLANK;
     imagePreview.image = nil;
-    resendImage = NO;
     [self countText];
 }
 
@@ -442,7 +429,8 @@
                             delegate:self
                             cancelButtonTitle:@"Cancel"
                             destructiveButtonTitle:nil
-                            otherButtonTitles:@"Tweet", @"FastTweet", @"PhotoTweet", @"NowPlaying", nil];
+                            otherButtonTitles:@"Tweet", @"FastTweet", @"PhotoTweet", 
+                                              @"NowPlaying", @"全て", nil];
 	[sheet autorelease];
 	[sheet showInView:self.view];
 }
@@ -451,29 +439,40 @@
     
     NSLog(@"pushImageSettingButton");
     
-    if ( [d boolForKey:@"RepeatedPost"] ) {
+    //カメラか投稿時選択
+    if ( [d integerForKey:@"ImageSource"] == 0 ||
+         [d integerForKey:@"ImageSource"] == 2 ) {
         
-        actionSheetNo = 2;
-        UIActionSheet *sheet = [[UIActionSheet alloc]
-                                initWithTitle:@"連続投稿"
-                                delegate:self
-                                cancelButtonTitle:@"Cancel"
-                                destructiveButtonTitle:nil
-                                otherButtonTitles:@"ON", @"OFF", nil];
-        [sheet autorelease];
-        [sheet showInView:self.view];
+        //連続投稿確認がON
+        if ( [d boolForKey:@"RepeatedPost"] ) {
+            
+            actionSheetNo = 2;
+            UIActionSheet *sheet = [[UIActionSheet alloc]
+                                    initWithTitle:@"連続投稿"
+                                    delegate:self
+                                    cancelButtonTitle:@"Cancel"
+                                    destructiveButtonTitle:nil
+                                    otherButtonTitles:@"ON", @"OFF", nil];
+            [sheet autorelease];
+            [sheet showInView:self.view];
         
+        //連続投稿確認がOFF
+        }else {
+            
+            repeatedPost = NO;
+            [self showImagePicker];
+        }
+        
+    //カメラ
     }else {
-
+        
+        repeatedPost = NO;
         [self showImagePicker];
     }
 }
 
 - (void)showImagePicker {
     
-    NSLog(@"showImagePicker");
-    
-    //イメージピッカーを表示
     UIImagePickerController *picPicker = [[UIImagePickerController alloc] init];
     
     if ( [d integerForKey:@"ImageSource"] == 0 ) {
@@ -484,8 +483,8 @@
         
         picPicker.sourceType = UIImagePickerControllerSourceTypeCamera;
         
-    }else if ( [d integerForKey:@"ImageSource"] == 2 ) {
-        
+    }else if ( [d integerForKey:@"ImageSource"] == 2 && !repeatedPost ) {
+    
         actionSheetNo = 1;
         
         UIActionSheet *sheet = [[UIActionSheet alloc]
@@ -500,6 +499,10 @@
         [picPicker release];
         
         return;
+        
+    }else {
+        
+        picPicker.sourceType = UIImagePickerControllerSourceTypePhotoLibrary;
     }
     
     picPicker.delegate = self;
@@ -629,7 +632,7 @@
 - (IBAction)textFieldStartEdit:(id)sender {
     
     //ビューの位置を上げる
-    [sv setContentOffset:CGPointMake(0, 120) animated:YES];
+    [sv setContentOffset:CGPointMake(0, 70) animated:YES];
 }
 
 - (IBAction)svTapGesture:(id)sender {
@@ -639,6 +642,27 @@
     [postText resignFirstResponder];
     [callbackTextField resignFirstResponder];
     [sv setContentOffset:CGPointMake(0, 0) animated:YES];
+}
+
+- (IBAction)swipeToMoveCursorRight:(id)sender {
+    
+    int location = postText.selectedRange.location + 1;
+    
+    if ( location <= postText.text.length ) {
+        
+        NSLog(@"swipeToMoveCursorRight");
+        [postText setSelectedRange:NSMakeRange( location, 0 ) ];   
+    }
+}
+
+- (IBAction)swipeToMoveCursorLeft:(id)sender {
+    
+    if ( postText.selectedRange.location != 0 ) {
+        
+        NSLog(@"swipeToMoveCursorLeft");
+        int location = postText.selectedRange.location - 1;
+        [postText setSelectedRange:NSMakeRange( location, 0 ) ];
+    }
 }
 
 - (IBAction)callbackSwitchDidChage:(id)sender {
@@ -651,19 +675,6 @@
     }else {
         
         [d setBool:NO forKey:@"CallBack"];
-    }
-}
-
-- (IBAction)fastPostSwitchDidChage:(id)sender {
-    
-    //スイッチの状態を保存
-    if ( fastPostSwitch.on ) {
-        
-        [d setBool:YES forKey:@"FastPost"];
-        
-    }else {
-        
-        [d setBool:NO forKey:@"FastPost"];
     }
 }
 
@@ -705,6 +716,28 @@
             localPush.userInfo = [NSDictionary dictionaryWithObjectsAndKeys:@"music", @"scheme", nil];
             
             NSLog(@"Add NotificationCenter NowPlaying");
+        
+        }else if ( buttonIndex == 4 ) {
+            
+            localPush.alertBody = @"NowPlaying";
+            localPush.userInfo = [NSDictionary dictionaryWithObjectsAndKeys:@"music", @"scheme", nil];
+            localPush.fireDate = [NSDate dateWithTimeIntervalSinceNow:0];
+            [[UIApplication sharedApplication] scheduleLocalNotification:localPush];
+            
+            localPush.alertBody = @"PhotoTweet";
+            localPush.userInfo = [NSDictionary dictionaryWithObjectsAndKeys:@"photo", @"scheme", nil];
+            localPush.fireDate = [NSDate dateWithTimeIntervalSinceNow:0];
+            [[UIApplication sharedApplication] scheduleLocalNotification:localPush];
+            
+            localPush.alertBody = @"FastTweet";
+            localPush.userInfo = [NSDictionary dictionaryWithObjectsAndKeys:@"fast", @"scheme", nil];
+            localPush.fireDate = [NSDate dateWithTimeIntervalSinceNow:0];
+            [[UIApplication sharedApplication] scheduleLocalNotification:localPush];
+            
+            localPush.alertBody = @"Tweet";
+            localPush.userInfo = [NSDictionary dictionaryWithObjectsAndKeys:@"tweet", @"scheme", nil];
+            
+            NSLog(@"Add NotificationCenter All");
             
         }else {
             
@@ -931,8 +964,7 @@
         //iOS5以降かチェック
         if ( [self ios5Check] ) {
             
-            UIPasteboard *pboard = [UIPasteboard generalPasteboard];
-            
+            //Twitterアカウントのチェック
             if ( twAccount == nil ) {
                 
                 ShowAlert *alert = [[ShowAlert alloc] init];
@@ -941,184 +973,34 @@
                 return;
             }
             
-            //インターネット接続のチェック
-            if ( [self reachability] ) {
+            //ペーストボードの内容をチェック
+            int pBoardType = [PasteboardType check];
+            
+            if ( pBoardType == -1 ) {
                 
-                BOOL canPost = NO;
+                //テキストか画像以外
+                return;
+            }
+            
+            if ( [[d objectForKey:@"NotificationType"] isEqualToString:@"tweet"] ) {
                 
-                if ( [[d objectForKey:@"NotificationType"] isEqualToString:@"music"] ) {
-                    
-                    NSLog(@"NowPlaying Start");
-                    
-                    NSString *nowPlayingText = [self nowPlaying];
-                    int length = [TWTwitterCharCounter charCounter:nowPlayingText];
-                    
-                    //投稿可能文字数(1-140)
-                    if ( length > 0 ) {
-                        
-                        //FastPostが有効、またはNowPlaying限定CallBackが有効
-                        if ( [d boolForKey:@"FastPost"] || [d boolForKey:@"NowPlayingFastPost"] ) {
-                            
-                            NSArray *postData = [NSArray arrayWithObjects:nowPlayingText, nil, nil];
-                            [TWSendTweet performSelectorInBackground:@selector(post:) withObject:postData];
-                            
-                            //CallBack、またはNowPlaying限定CallBackが有効
-                            if ( [d boolForKey:@"CallBack"] || [d boolForKey:@"NowPlayingCallBack"] ) {
-                                
-                                NSLog(@"Callback Enable");
-                                
-                                //CallBack
-                                [self callback];
-                            }
-                            
-                        }else {
-                            
-                            postText.text = nowPlayingText;
-                            [postText becomeFirstResponder];
-                            [postText setSelectedRange:NSMakeRange(0, 0)];
-                        }
-                        
-                    }else if ( length == 0 ) {
-                        
-                        //再生中でなかった場合
-                        ShowAlert *alert = [[ShowAlert alloc] init];
-                        [alert error:@"iPod再生中に使用してください。"];
-                        
-                    //140字を超えていた場合
-                    }else {
-                        
-                        ShowAlert *alert = [[ShowAlert alloc] init];
-                        [alert error:[NSString stringWithFormat:@"Post message is over 140: %d", length]];
-                        
-                        //入力欄に貼り付け
-                        postText.text = nowPlayingText;
-                        [postText becomeFirstResponder];
-                        [postText setSelectedRange:NSMakeRange(0, 0)];
-                    }
-                    
-                }else {
-                    
-                    //ペーストボードの内容をチェック
-                    int pBoardType = [PasteboardType check];
-                    
-                    if ( pBoardType == -1 ) {
-                        
-                        //テキストか画像以外
-                        return;
-                    }
-                    
-                    //FastPostが無効な場合
-                    if ( ![d boolForKey:@"FastPost"] ) {
-                        
-                        NSLog(@"FastPost Disable");
-                        
-                        if ( [[d objectForKey:@"NotificationType"] isEqualToString:@"tweet"] ) {
-                            
-                            NSLog(@"NotificationType tweet");
-                            
-                            if ( pBoardType == 0 ) {
-                                
-                                NSLog(@"pBoardType Text");
-                                
-                                //ペーストボード内容をPost入力欄にコピー
-                                postText.text = pboard.string;
-                                
-                            }else {
-                                
-                                NSLog(@"pBoardType not text");
-                            }
-                            
-                            //Post入力状態にする
-                            [postText becomeFirstResponder];
-                            
-                        }else if ( [[d objectForKey:@"NotificationType"] isEqualToString:@"photo"] ) {
-                            
-                            NSLog(@"NotificationType photo");
-                            
-                            if ( pBoardType == 1 ) {
-                                
-                                NSLog(@"pBoardType Photo");
-                                
-                                UIImage *image = pboard.image;
-                                
-                                if ( [[d objectForKey:@"PhotoService"] isEqualToString:@"img.ur"] || 
-                                     [[d objectForKey:@"PhotoService"] isEqualToString:@"Twitpic"] ) {
-                                    
-                                    //画像アップロード開始
-                                    [self uploadImage:image];
-                                }
-                                
-                                //ペーストボードの画像をサムネイル表示
-                                imagePreview.image = image;
-                                
-                                //Post入力状態にする
-                                [postText becomeFirstResponder];
-                                
-                            }else {
-                                
-                                NSLog(@"pBoardType not Photo");
-                                
-                                [self pushImageSettingButton:nil];
-                            }
-                        }
-                        
-                    //FastPostが有効な場合
-                    }else {
-                        
-                        NSLog(@"FastPost Enable");
-                        
-                        //コールバックが有効な場合
-                        if ( [d boolForKey:@"CallBack"] || [d boolForKey:@"NowPlayingCallBack"] ) {
-                            
-                            NSLog(@"Callback Enable");
-                            
-                            //CallBack
-                            [self callback];
-                        }
-                        
-                        //ペーストボード内がテキスト
-                        if ( pBoardType == 0 ) {
-                            
-                            //t.coを考慮した文字数カウントを行う
-                            int num = [TWTwitterCharCounter charCounter:pboard.string];
-                            
-                            if ( num < 0 ) {
-                                
-                                //140字を超えていた場合
-                                ShowAlert *alert = [[ShowAlert alloc] init];
-                                [alert error:[NSString stringWithFormat:@"Post message is over 140: %d", num]];
-                                
-                            }else {
-                                
-                                //投稿可能文字数である
-                                canPost = YES;
-                            }
-                            
-                            if ( canPost ) {
-                                
-                                //投稿処理
-                                NSString *text = [[[NSString alloc] initWithString:pboard.string] autorelease];
-                                NSArray *postData = [NSArray arrayWithObjects:text, nil, nil];
-                                [TWSendTweet performSelectorInBackground:@selector(post:) withObject:postData];
-                                
-                                //CallBack
-                                [self callback];
-                                
-                                //投稿不可能な場合
-                            }else {
-                                
-                                //ペーストボード内容をPost入力欄にコピー
-                                postText.text = pboard.string;
-                            }
-                        }
-                    }
-                }
+                NSLog(@"Post Start");
+                [self postNotification:pBoardType];
                 
-            }else {
+            }else if ( [[d objectForKey:@"NotificationType"] isEqualToString:@"fast"] ) {
                 
-                //インターネット接続されていない
-                ShowAlert *alert = [[ShowAlert alloc] init];
-                [alert error:@"No internet connection"];
+                NSLog(@"Fast Post Start");
+                [self fastPostNotification:pBoardType];
+                
+            }else if ( [[d objectForKey:@"NotificationType"] isEqualToString:@"photo"] ) {
+                
+                NSLog(@"Photo Start");
+                [self photoPostNotification:pBoardType];
+                
+            }else if ( [[d objectForKey:@"NotificationType"] isEqualToString:@"music"] ) {
+                
+                NSLog(@"NowPlaying Start");
+                [self nowPlayingNotification];
             }
         }
         
@@ -1128,6 +1010,156 @@
     }
     
     [self countText];
+}
+
+- (void)nowPlayingNotification {
+ 
+    NSString *nowPlayingText = [self nowPlaying];
+    int length = nowPlayingText.length;
+    
+    //投稿可能文字数(1-140)
+    if ( length > 0 ) {
+        
+        NSLog(@"SongTitleOK");
+        
+        //FastPostが有効、またはNowPlaying限定CallBackが有効
+        if ( [d boolForKey:@"NowPlayingFastPost"] ) {
+            
+            NSArray *postData = [NSArray arrayWithObjects:nowPlayingText, nil, nil];
+            [TWSendTweet performSelectorInBackground:@selector(post:) withObject:postData];
+            
+            //CallBack、またはNowPlaying限定CallBackが有効
+            if ( [d boolForKey:@"CallBack"] || [d boolForKey:@"NowPlayingCallBack"] ) {
+                
+                NSLog(@"Callback Enable");
+                
+                //CallBack
+                [self callback];
+            }
+            
+        }else {
+            
+            postText.text = nowPlayingText;
+            [postText becomeFirstResponder];
+            [postText setSelectedRange:NSMakeRange(0, 0)];
+        }
+        
+    }else if ( length == 0 ) {
+        
+        NSLog(@"SongTitleBlank");
+        
+        //再生中でなかった場合
+        ShowAlert *alert = [[ShowAlert alloc] init];
+        [alert error:@"iPod再生中に使用してください。"];
+        
+    //140字を超えていた場合
+    }else {
+        
+        NSLog(@"SongTitleOverCapacity");
+        
+        ShowAlert *alert = [[ShowAlert alloc] init];
+        [alert error:[NSString stringWithFormat:@"Post message is over capacity: %d", length]];
+        
+        //入力欄に貼り付け
+        postText.text = nowPlayingText;
+        [postText becomeFirstResponder];
+        [postText setSelectedRange:NSMakeRange(0, 0)];
+    }
+}
+
+- (void)postNotification:(int)pBoardType {
+    
+    if ( pBoardType == 0 ) {
+        
+        NSLog(@"pBoardType Text");
+        
+        //ペーストボード内容をPost入力欄にコピー
+        postText.text = pboard.string;
+        
+    }else {
+        
+        NSLog(@"pBoardType not text");
+    }
+    
+    //Post入力状態にする
+    [postText becomeFirstResponder];
+}
+
+- (void)fastPostNotification:(int)pBoardType {
+    
+    BOOL canPost = NO;
+    
+    //ペーストボード内がテキスト
+    if ( pBoardType == 0 ) {
+        
+        //t.coを考慮した文字数カウントを行う
+        int num = [TWTwitterCharCounter charCounter:pboard.string];
+        
+        if ( num < 0 ) {
+            
+            //140字を超えていた場合
+            ShowAlert *alert = [[ShowAlert alloc] init];
+            [alert error:[NSString stringWithFormat:@"Post message is over capacity: %d", num]];
+            
+        }else {
+            
+            //投稿可能文字数である
+            canPost = YES;
+        }
+        
+        if ( canPost ) {
+            
+            //投稿処理
+            NSString *text = [[[NSString alloc] initWithString:pboard.string] autorelease];
+            NSArray *postData = [NSArray arrayWithObjects:text, nil, nil];
+            [TWSendTweet performSelectorInBackground:@selector(post:) withObject:postData];
+     
+            //コールバックが有効な場合
+            if ( [d boolForKey:@"CallBack"] ) {
+                
+                NSLog(@"Callback Enable");
+                
+                //CallBack
+                [self callback];
+            }
+            
+        //投稿不可能な場合
+        }else {
+            
+            //ペーストボード内容をPost入力欄にコピー
+            postText.text = pboard.string;
+            [postText becomeFirstResponder];
+        }
+    }
+}
+
+- (void)photoPostNotification:(int)pBoardType {
+    
+    if ( pBoardType == 1 ) {
+        
+        NSLog(@"pBoardType Photo");
+        
+        UIImage *image = pboard.image;
+        
+        if ( [[d objectForKey:@"PhotoService"] isEqualToString:@"img.ur"] || 
+             [[d objectForKey:@"PhotoService"] isEqualToString:@"Twitpic"] ) {
+            
+            //画像アップロード開始
+            [self uploadImage:image];
+        }
+        
+        //ペーストボードの画像をサムネイル表示
+        imagePreview.image = image;
+        
+        //Post入力状態にする
+        [postText becomeFirstResponder];
+        
+    }else {
+        
+        NSLog(@"pBoardType not Photo");
+        
+        [self pushImageSettingButton:nil];
+    }
 }
 
 - (void)callback {
@@ -1258,8 +1290,6 @@
     [self setCallbackLabel:nil];
     [self setCallbackTextField:nil];
     [self setCallbackSwitch:nil];
-    [self setFastPostLabel:nil];
-    [self setFastPostSwitch:nil];
     [self setPostCharLabel:nil];
     [self setImagePreview:nil];
     [self setImageSettingButton:nil];
@@ -1274,6 +1304,8 @@
     [self setAddButton:nil];
     [self setTapGesture:nil];
     [self setResendButton:nil];
+    [self setRigthSwipe:nil];
+    [self setLeftSwipe:nil];
     [super viewDidUnload];
 }
 
@@ -1326,7 +1358,6 @@
         }else {
             
             NSLog(@"Resend data set PHOTO");
-            resendImage = YES;
             imagePreview.image = [resendArray objectAtIndex:3];
         }
         
@@ -1352,8 +1383,6 @@
     [callbackLabel release];
     [callbackTextField release];
     [callbackSwitch release];
-    [fastPostLabel release];
-    [fastPostSwitch release];
     [postCharLabel release];
     [imagePreview release];
     [imageSettingButton release];
@@ -1369,6 +1398,8 @@
     [addButton release];
     [tapGesture release];
     [resendButton release];
+    [rigthSwipe release];
+    [leftSwipe release];
     [super dealloc];
 }
 

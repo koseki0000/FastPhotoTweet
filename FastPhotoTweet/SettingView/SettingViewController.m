@@ -739,7 +739,16 @@
                 
                 if ( buttonIndex == 1 ) {
                     [d setInteger:1 forKey:@"ImageSource"];
-                }else if ( buttonIndex == 2 ) {    
+                    
+                    if ( [d boolForKey:@"RepeatedPost"] ) {
+                        
+                        [d setBool:NO forKey:@"RepeatedPost"];
+                        
+                        ShowAlert *errorAlert = [[ShowAlert alloc] init];
+                        [errorAlert error:@"カメラでは連続投稿が出来ません"];
+                    }
+                    
+                }else if ( buttonIndex == 2 ) {
                     [d setInteger:2 forKey:@"ImageSource"];
                 }
                 
@@ -771,6 +780,15 @@
                 
                 [d setObject:@"img.ur" forKey:@"PhotoService"];
             }
+            
+            if ( [d integerForKey:@"ImageSource"] == 1 ) {
+                
+                ShowAlert *errorAlert = [[ShowAlert alloc] init];
+                [errorAlert error:@"カメラでは連続投稿が出来ません"];
+                
+                [d setInteger:0 forKey:@"ImageSource"];
+            }
+
             
         }else if ( buttonIndex == 1 ) {
             

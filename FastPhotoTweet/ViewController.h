@@ -32,6 +32,7 @@
     GrayView *grayView;
     
     NSUserDefaults *d;
+    UIPasteboard *pboard;
     AppDelegate * appDelegate;
     ACAccount *twAccount;
     
@@ -39,18 +40,15 @@
     BOOL cameraMode;
     BOOL repeatedPost;
     BOOL resendMode;
-    BOOL resendImage;
     int actionSheetNo;
 }
 
 @property (retain, nonatomic) IBOutlet UIScrollView *sv;
 @property (retain, nonatomic) IBOutlet UITextView *postText;
 @property (retain, nonatomic) IBOutlet UILabel *callbackLabel;
-@property (retain, nonatomic) IBOutlet UILabel *fastPostLabel;
 @property (retain, nonatomic) IBOutlet UILabel *postCharLabel;
 @property (retain, nonatomic) IBOutlet UITextField *callbackTextField;
 @property (retain, nonatomic) IBOutlet UISwitch *callbackSwitch;
-@property (retain, nonatomic) IBOutlet UISwitch *fastPostSwitch;
 @property (retain, nonatomic) IBOutlet UIImageView *imagePreview;
 @property (retain, nonatomic) IBOutlet UIToolbar *topBar;
 @property (retain, nonatomic) IBOutlet UIToolbar *bottomBar;
@@ -63,6 +61,8 @@
 @property (retain, nonatomic) IBOutlet UIBarButtonItem *flexibleSpace;
 @property (retain, nonatomic) IBOutlet UIBarButtonItem *addButton;
 @property (retain, nonatomic) IBOutlet UITapGestureRecognizer *tapGesture;
+@property (retain, nonatomic) IBOutlet UISwipeGestureRecognizer *rigthSwipe;
+@property (retain, nonatomic) IBOutlet UISwipeGestureRecognizer *leftSwipe;
 
 - (IBAction)pushPostButton:(id)sender;
 - (IBAction)pushTrashButton:(id)sender;
@@ -76,9 +76,10 @@
 - (IBAction)textFieldStartEdit:(id)sender;
 
 - (IBAction)callbackSwitchDidChage:(id)sender;
-- (IBAction)fastPostSwitchDidChage:(id)sender;
 
 - (IBAction)svTapGesture:(id)sender;
+- (IBAction)swipeToMoveCursorRight:(id)sender;
+- (IBAction)swipeToMoveCursorLeft:(id)sender;
 
 - (void)testMethod;
 
@@ -92,5 +93,10 @@
 - (BOOL)ios5Check;
 - (BOOL)reachability;
 - (NSString *)nowPlaying;
+
+- (void)nowPlayingNotification;
+- (void)postNotification:(int)pBoardType;
+- (void)fastPostNotification:(int)pBoardType;
+- (void)photoPostNotification:(int)pBoardType;
 
 @end
