@@ -10,8 +10,8 @@
 @implementation TWTwitterCharCounter
 
 //現在入力されている文字数をt.coを考慮してカウントし、残りの入力可能文字数を返す
-//URLはどんな長さでも1つ21文字としてカウント
-//文頭、末尾にある半角スペースはカウントされない
+//URLはどんな長さでも1つ20文字としてカウント
+//文頭、末尾にある半角スペース･改行･タブはカウントされない
 + (int)charCounter:(id)post {
     
     //自動開放プールを生成
@@ -47,27 +47,37 @@
             urlCount++;
         }
         
+        //行頭スペースをカウントしない
+        regexp = [NSRegularExpression regularExpressionWithPattern:@"^[ \n\t]+" 
+                                                           options:0 
+                                                             error:nil];
+                
+        postString = (NSMutableString *)[regexp stringByReplacingMatchesInString:postString
+                                                      options:0
+                                                        range:NSMakeRange(0, postString.length)
+                                                 withTemplate:@""];
+                    
+        //文末スペースをカウントしない
+        regexp = [NSRegularExpression regularExpressionWithPattern:@"[ \n\t]+$" 
+                                                           options:0 
+                                                             error:nil];
+        
+        postString = (NSMutableString *)[regexp stringByReplacingMatchesInString:postString
+                                                                         options:0
+                                                                           range:NSMakeRange(0, postString.length)
+                                                                    withTemplate:@""];
+                
         for ( NSString *tmp in urlList ) {
             
             //オリジナルの文字列からURLを取り除く
             [postString replaceOccurrencesOfString:tmp withString:@"" 
-                                     options:0 
-                                       range:NSMakeRange( 0, postString.length )];
+                                           options:0 
+                                             range:NSMakeRange( 0, postString.length )];
         }
         
-        postString = [ReplaceOrDelete replaceWordReturnMStr:postString 
-                                                replaceWord:[RegularExpression mStrRegExp:postString 
-                                                                            regExpPattern:@"^ *"] 
-                                               replacedWord:@""];
-        
-        postString = [ReplaceOrDelete replaceWordReturnMStr:postString 
-                                                replaceWord:[RegularExpression mStrRegExp:postString 
-                                                                            regExpPattern:@" *$"] 
-                                               replacedWord:@""];
-        
-        //残り入力可能文字数 = 140 - URL以外の文字数 - 行頭･末尾半角スペースの数 - URLの数 * 21
-        num = num - postString.length - urlCount * 21;
-        
+        //残り入力可能文字数 = 140 - URL以外の文字数 - 行頭･末尾半角スペースの数 - URLの数 * 20
+        num = num - postString.length - urlCount * 20;
+                
     }@catch ( NSException *e ) {
         
         //エラーの場合は取り敢えずオリジナルの文字数を返しておく
