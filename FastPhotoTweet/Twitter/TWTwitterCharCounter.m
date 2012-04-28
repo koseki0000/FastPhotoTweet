@@ -50,6 +50,8 @@
         
         urlCount = urlList.count;
         
+        NSLog(@"urlList: %@", urlList);
+        
         //行頭スペースをカウントしない
         regexp = [NSRegularExpression regularExpressionWithPattern:@"^[ \n\t]+" 
                                                            options:0 
@@ -70,31 +72,56 @@
                                                                            range:NSMakeRange(0, postString.length)
                                                                     withTemplate:@""];
         
-        int i = 0;
-        for ( NSString *temp in urlList ) {
-            if ( [temp hasPrefix:@"http"] ) {
+        if ( urlList.count != 0 ) {
+            
+            for ( int i = 0; i < urlList.count; i++) {
                 
-                //オリジナルの文字列からURLを取り除く
-                [postString replaceOccurrencesOfString:temp withString:@"" 
-                                               options:0 
-                                                 range:NSMakeRange( 0, postString.length )];
-                [urlList removeObjectAtIndex:i];
+                NSString *temp = [urlList objectAtIndex:i];
                 
-            }else {
-                
-                i++;
+                if ( [temp hasPrefix:@"http"] ) {
+                    
+                    //オリジナルの文字列からプロトコルありURLを取り除く
+                    regexp = [NSRegularExpression regularExpressionWithPattern:temp 
+                                                                       options:0 
+                                                                         error:nil];
+                    
+                    NSTextCheckingResult *matchResult = [regexp firstMatchInString:postString 
+                                                                           options:0 
+                                                                             range:NSMakeRange( 0, postString.length )];
+                    
+                    [postString replaceOccurrencesOfString:temp withString:@"" 
+                                                   options:0 
+                                                     range:NSMakeRange( matchResult.range.location, 
+                                                                       matchResult.range.length )];
+                    [urlList removeObjectAtIndex:i];
+                    
+                    i--;
+                }
             }
         }
         
-        i = 0;
-        for ( NSString *temp in urlList ) {
+        if ( urlList.count != 0 ) {
             
-            //オリジナルの文字列からURLを取り除く
-            [postString replaceOccurrencesOfString:temp withString:@"" 
-                                           options:0 
-                                             range:NSMakeRange( 0, postString.length )];
-            [urlList removeObjectAtIndex:i];
+            for ( NSString *temp in urlList ) {
+                
+                //オリジナルの文字列からプロトコルなしURLを取り除く
+                regexp = [NSRegularExpression regularExpressionWithPattern:temp 
+                                                                   options:0 
+                                                                     error:nil];
+                
+                NSTextCheckingResult *matchResult = [regexp firstMatchInString:postString 
+                                                                       options:0 
+                                                                         range:NSMakeRange( 0, postString.length )];
+                
+                [postString replaceOccurrencesOfString:temp withString:@"" 
+                                               options:0 
+                                                 range:NSMakeRange( matchResult.range.location, 
+                                                                   matchResult.range.length )];
+            }
         }
+        
+        //URLリストを破棄
+        [urlList removeAllObjects];
         
         //残り入力可能文字数 = 140 - URL以外の文字数 - 行頭･末尾半角スペースの数 - URLの数 * 20
         num = num - postString.length - urlCount * 20;
