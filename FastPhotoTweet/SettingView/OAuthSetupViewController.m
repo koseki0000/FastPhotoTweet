@@ -80,12 +80,18 @@
         
         OAToken *requestToken = [[OAToken alloc] initWithHTTPResponseBody:responseBody];
         
+        //keyとsecretを暗号化
+        NSString *key = [UUIDEncryptor encryption:requestToken.key];
+        NSString *secret = [UUIDEncryptor encryption:requestToken.secret];
+        
         NSLog(@"requestToken key: %@", requestToken.key);
         NSLog(@"requestToken secret: %@", requestToken.secret);
         
         NSUserDefaults *d = [NSUserDefaults standardUserDefaults];
-        [d setObject:requestToken.key forKey:@"OAuthRequestTokenKey"];
-        [d setObject:requestToken.secret forKey:@"OAuthRequestTokenSecret"];
+        
+        //暗号化したkeyとsecretを保存
+        [d setObject:key forKey:@"OAuthRequestTokenKey"];
+        [d setObject:secret forKey:@"OAuthRequestTokenSecret"];
         [d synchronize];
 
         [responseBody release];
@@ -152,7 +158,11 @@
         count++;
         [d setInteger:count forKey:@"AccountCount"];
         
-        NSArray *accountData = [NSArray arrayWithObjects:accessToken.key, accessToken.secret, nil];
+        //keyとsecretを暗号化
+        NSString *key = [UUIDEncryptor encryption:accessToken.key];
+        NSString *secret = [UUIDEncryptor encryption:accessToken.secret];
+        
+        NSArray *accountData = [NSArray arrayWithObjects:key, secret, nil];
         [dic setObject:accountData forKey:[NSString stringWithFormat:@"OAuthAccount_%d", count]];
         
         NSDictionary *saveDic = [[NSDictionary alloc] initWithDictionary:dic];
@@ -286,8 +296,8 @@
         
 	} else {
         
-		OAToken *oaRequestToken = [[OAToken alloc] initWithKey:[d objectForKey:@"OAuthRequestTokenKey"]
-                                                        secret:[d objectForKey:@"OAuthRequestTokenSecret"]];
+		OAToken *oaRequestToken = [[OAToken alloc] initWithKey:[UUIDEncryptor decryption:[d objectForKey:@"OAuthRequestTokenKey"]]
+                                                        secret:[UUIDEncryptor decryption:[d objectForKey:@"OAuthRequestTokenSecret"]]];
         
 		NSURL *oaUrlAccessToken = [[NSURL URLWithString:@"https://api.twitter.com/oauth/access_token"] retain];
 		

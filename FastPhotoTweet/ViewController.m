@@ -160,9 +160,10 @@
         CFUUIDRef uuidObj = CFUUIDCreate(kCFAllocatorDefault);
         NSString *uuidString = (NSString*)CFUUIDCreateString(nil, uuidObj);
         CFRelease(uuidObj);
+        
         [d setObject:uuidString forKey:@"UUID"];
         
-        NSLog(@"UUID: %@", uuidString);
+        NSLog(@"Create UUID: %@", uuidString);
         
     }else {
         
@@ -910,8 +911,9 @@
         
         if ( [EmptyCheck check:[dic objectForKey:twAccount.username]] ) {
             
-            NSString *key = [[dic objectForKey:twAccount.username] objectAtIndex:0];
-            NSString *secret = [[dic objectForKey:twAccount.username] objectAtIndex:1];
+            NSString *key = [UUIDEncryptor decryption:[[dic objectForKey:twAccount.username] objectAtIndex:0]];
+            NSString *secret = [UUIDEncryptor decryption:[[dic objectForKey:twAccount.username] objectAtIndex:1]];
+            
             [request addPostValue:TWITPIC_API_KEY forKey:@"key"];
             [request addPostValue:OAUTH_KEY forKey:@"consumer_token"];
             [request addPostValue:OAUTH_SECRET forKey:@"consumer_secret"];

@@ -12,6 +12,7 @@
 #import "GrayView.h"
 #import "EmptyCheck.h"
 #import "ActivityIndicator.h"
+#import "UUIDEncryptor.h"
 
 @interface OAuthSetupViewController : UIViewController <UIWebViewDelegate, UITextFieldDelegate> {
     

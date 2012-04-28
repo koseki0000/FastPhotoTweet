@@ -23,7 +23,7 @@
 #import "SettingViewController.h"
 #import "OAuthSetupViewController.h"
 #import <MediaPlayer/MediaPlayer.h>
-#import "FBEncryptorAES.h"
+#import "UUIDEncryptor.h"
 
 @interface ViewController : UIViewController <UINavigationControllerDelegate, UIImagePickerControllerDelegate, UIActionSheetDelegate> {
     
