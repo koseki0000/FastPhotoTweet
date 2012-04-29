@@ -11,22 +11,22 @@
 
 + (NSData *)image:(UIImage *)encodeImage {
     
-    NSData *encodedImage;
+    NSData *encodedImageData;
     NSUserDefaults *d = [NSUserDefaults standardUserDefaults];
     
     if ( [[d objectForKey:@"SaveImageType"] isEqualToString:@"JPG(Low)"] ) {
-        encodedImage = UIImageJPEGRepresentation(encodeImage, 0.6);
+        encodedImageData = UIImageJPEGRepresentation(encodeImage, 0.6);
     }else if ( [[d objectForKey:@"SaveImageType"] isEqualToString:@"JPG"] ) {
-        encodedImage = UIImageJPEGRepresentation(encodeImage, 0.8);
+        encodedImageData = UIImageJPEGRepresentation(encodeImage, 0.8);
     }else if ( [[d objectForKey:@"SaveImageType"] isEqualToString:@"JPG(High)"] ) {
-        encodedImage = UIImageJPEGRepresentation(encodeImage, 0.95);
+        encodedImageData = UIImageJPEGRepresentation(encodeImage, 0.95);
     }else if ( [[d objectForKey:@"SaveImageType"] isEqualToString:@"PNG"] ) {
-        encodedImage = UIImagePNGRepresentation(encodeImage);
+        encodedImageData = UIImagePNGRepresentation(encodeImage);
     }else {
-        encodedImage = UIImageJPEGRepresentation(encodeImage, 0.8);
+        encodedImageData = UIImageJPEGRepresentation(encodeImage, 0.8);
     }
     
-    return encodedImage;
+    return encodedImageData;
 }
 
 @end

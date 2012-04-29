@@ -11,6 +11,8 @@
 
 + (void)post:(NSArray *)postData {
     
+    NSUserDefaults *d = [NSUserDefaults standardUserDefaults];
+    
     //Tweet可能な状態か判別
     if ( [TWTweetComposeViewController canSendTweet] ) {
         
@@ -32,7 +34,12 @@
         NSString *postText;
         UIImage *image = [[[UIImage alloc] init] autorelease];
         
-        NSLog(@"postData: %@", postData);
+        //投稿しようとしているPostを保存
+        AppDelegate *appDelegate = (AppDelegate *)[[UIApplication sharedApplication] delegate];
+        NSMutableArray *tempMArray = [NSMutableArray arrayWithArray:postData];
+        [tempMArray insertObject:[NSNumber numberWithInt:[d integerForKey:@"UseAccount"]] atIndex:0];
+        [tempMArray insertObject:twAccount.username atIndex:1];
+        [appDelegate.postError addObject:(NSArray *)tempMArray];
         
         //画像のチェック
         if ( postData.count == 1 ) {
@@ -68,7 +75,7 @@
             
         }else if ( postMode == 1 ) {
             
-            tReqURL = @"http://api.twitter.com/1/statuses/update.json";
+            tReqURL = @"https://api.twitter.com/1/statuses/update.json";
         }
         
         //リクエストの作成
@@ -77,8 +84,6 @@
                                                   requestMethod:TWRequestMethodPOST] autorelease];
         
         if ( postMode == 0 ) {
-            
-            NSUserDefaults *d = [NSUserDefaults standardUserDefaults];
             
             //画像をリサイズするか判定
             if ( [d boolForKey:@"ResizeImage"] ) {
@@ -120,6 +125,7 @@
                  NSString *responseDataString = [[[NSString alloc] initWithData:responseData encoding:NSUTF8StringEncoding] autorelease];
                  NSDictionary *result = [responseDataString JSONValue];
                  
+                 //NSLog(@"responseDataString: %@", responseDataString);
                  NSLog(@"ResultText: %@", [result objectForKey:@"text"]);
                  
                  BOOL media = NO;
@@ -138,6 +144,8 @@
                  
                  if (error != nil) {
                      
+                     NSLog(@"PostNSError: %@", error);
+                     
                      //エラー
                      NSString *errorText = [result objectForKey:@"error"];
                                           
@@ -148,25 +156,10 @@
                      if ( media ) {
                          
                          [postResult setObject:@"PhotoError" forKey:@"PostResult"];
-
-                         NSArray *resultArray = [NSArray arrayWithObjects:
-                                                 [NSNumber numberWithInt:[[NSUserDefaults standardUserDefaults] integerForKey:@"UseAccount"]], 
-                                                 twAccount.username, 
-                                                 text, 
-                                                 image, nil];
-                         
-                         [postResult setObject:resultArray forKey:@"PostData"];
                          
                      }else {
                          
                          [postResult setObject:@"Error" forKey:@"PostResult"];
-                         
-                         NSArray *resultArray = [NSArray arrayWithObjects:
-                                                 [NSNumber numberWithInt:[[NSUserDefaults standardUserDefaults] integerForKey:@"UseAccount"]], 
-                                                 twAccount.username,
-                                                 text, nil];
-                         
-                         [postResult setObject:resultArray forKey:@"PostData"];
                      }
                      
                      //通知を実行
@@ -183,7 +176,10 @@
                          ShowAlert *alert = [[ShowAlert alloc] init];
                          [alert error:errorText];
                          
-                         NSLog(@"Post Error: %@", errorText);
+                         [postResult setObject:@"Error" forKey:@"PostResult"];
+                         
+                         NSLog(@"PostErrorNotification: %@", errorText);
+                         [[NSNotificationCenter defaultCenter] postNotification:postNotification];
                          
                      }else {
                          
@@ -191,25 +187,12 @@
                          if ( media ) {
                              
                              [postResult setObject:@"PhotoSuccess" forKey:@"PostResult"];
-                             
-                             NSArray *resultArray = [NSArray arrayWithObjects:
-                                                     [NSNumber numberWithInt:[[NSUserDefaults standardUserDefaults] integerForKey:@"UseAccount"]], 
-                                                     twAccount.username, 
-                                                     text, 
-                                                     image, nil];
-                             
-                             [postResult setObject:resultArray forKey:@"PostData"];
+                             [postResult setObject:text forKey:@"SuccessText"];
                              
                          }else {
                              
                              [postResult setObject:@"Success" forKey:@"PostResult"];
-                             
-                             NSArray *resultArray = [NSArray arrayWithObjects:
-                                                     [NSNumber numberWithInt:[[NSUserDefaults standardUserDefaults] integerForKey:@"UseAccount"]], 
-                                                     twAccount.username, 
-                                                     text, nil];
-                             
-                             [postResult setObject:resultArray forKey:@"PostData"];
+                             [postResult setObject:text forKey:@"SuccessText"];
                          }
                          
                          //通知を実行

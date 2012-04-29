@@ -8,6 +8,7 @@
 #import <Foundation/Foundation.h>
 #import <Twitter/Twitter.h>
 #import <Accounts/Accounts.h>
+#import "AppDelegate.h"
 #import "JSON.h"
 #import "TWGetAccount.h"
 #import "UtilityClass.h"

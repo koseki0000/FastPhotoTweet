@@ -27,7 +27,7 @@
     //OAConsumer設定
     oaConsumer = [[OAConsumer alloc] initWithKey:OAUTH_KEY 
                                           secret:OAUTH_SECRET];
-    
+        
     //再投稿用配列
     postError = [NSMutableArray array];
     [postError retain];

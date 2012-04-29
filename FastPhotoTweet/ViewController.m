@@ -353,20 +353,38 @@
     
     NSString *result = [center.userInfo objectForKey:@"PostResult"];
     
-    //[0]アカウント番号 [1]アカウント名 [2]テキスト [3]画像
-    NSArray *resultData = [center.userInfo objectForKey:@"PostData"];
-
-    if ( [result isEqualToString:@"Success"] ) {
-
-    }else if ( [result isEqualToString:@"PhotoSuccess"] ) {
-             
-    }else if ( [result isEqualToString:@"Error"] ) {
+    if ( [result isEqualToString:@"Success"] || [result isEqualToString:@"PhotoSuccess"] ) {
         
-        [appDelegate.postError addObject:resultData];
+        //投稿成功
+        NSString *successText = [center.userInfo objectForKey:@"SuccessText"];
+        
+        //再投稿リストから投稿成功したものを探し削除        
+        int arrayIndex = 0;
+        BOOL find = NO;
+        for ( NSArray *temp in appDelegate.postError ) {
+            
+            if ( [successText hasPrefix:[temp objectAtIndex:2]] ) {
+                
+                //NSLog(@"SuccessPostFind\nSearch: %@\nFind%@",successText ,[temp objectAtIndex:2]);
+                
+                find = YES;
+                break;
+            }
+            
+            arrayIndex++;
+        }
+        
+        if ( find ) {
+            
+            //NSLog(@"DeleteSuccessPost:\n%@", [[appDelegate.postError objectAtIndex:arrayIndex] objectAtIndex:2]);
+            
+            [appDelegate.postError removeObjectAtIndex:arrayIndex];
+        }
+        
+    }else if ( [result isEqualToString:@"Error"] ) {
         
     }else if ( [result isEqualToString:@"PhotoError"] ) {
         
-        [appDelegate.postError addObject:resultData];
     }
         
     //再投稿ボタンの有効･無効切り替え
@@ -1362,6 +1380,16 @@
         }
         
         [appDelegate.postError removeObjectAtIndex:indexNum];
+    }
+    
+    //再投稿ボタンの有効･無効切り替え
+    if ( appDelegate.postError.count == 0 ) {
+        
+        resendButton.enabled = NO;
+        
+    }else {
+        
+        resendButton.enabled = YES;
     }
 }
 

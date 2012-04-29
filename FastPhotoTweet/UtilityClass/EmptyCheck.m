@@ -9,6 +9,7 @@
 
 @implementation EmptyCheck
 
+//YES: 空でない NO: 空
 + (BOOL)check:(id)obj {
     
     BOOL result = NO;
