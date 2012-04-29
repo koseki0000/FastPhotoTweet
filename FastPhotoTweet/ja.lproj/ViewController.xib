@@ -99,7 +99,6 @@
 						<string key="NSFrame">{{0, 416}, {320, 44}}</string>
 						<reference key="NSSuperview" ref="774585933"/>
 						<reference key="NSWindow"/>
-						<reference key="NSNextKeyView"/>
 						<string key="NSReuseIdentifierKey">_NS:9</string>
 						<bool key="IBUIOpaque">NO</bool>
 						<bool key="IBUIClearsContextBeforeDrawing">NO</bool>
@@ -110,6 +109,11 @@
 									<string key="NSClassName">NSImage</string>
 									<string key="NSResourceName">setting.png</string>
 								</object>
+								<string key="targetRuntimeIdentifier">IBCocoaTouchFramework</string>
+								<reference key="IBUIToolbar" ref="182738733"/>
+							</object>
+							<object class="IBUIBarButtonItem" id="359508074">
+								<string key="IBUITitle"> ♪ </string>
 								<string key="targetRuntimeIdentifier">IBCocoaTouchFramework</string>
 								<reference key="IBUIToolbar" ref="182738733"/>
 							</object>
@@ -289,8 +293,8 @@
 				<string key="targetRuntimeIdentifier">IBCocoaTouchFramework</string>
 			</object>
 			<object class="IBUITapGestureRecognizer" id="751522012"/>
-			<object class="IBUISwipeGestureRecognizer" id="801853812"/>
-			<object class="IBUISwipeGestureRecognizer" id="437498096">
+			<object class="IBUISwipeGestureRecognizer" id="1047389598"/>
+			<object class="IBUISwipeGestureRecognizer" id="125030489">
 				<int key="IBUIDirection">2</int>
 			</object>
 		</array>
@@ -452,7 +456,7 @@
 					<object class="IBCocoaTouchOutletConnection" key="connection">
 						<string key="label">rigthSwipe</string>
 						<reference key="source" ref="372490531"/>
-						<reference key="destination" ref="801853812"/>
+						<reference key="destination" ref="1047389598"/>
 					</object>
 					<int key="connectionID">92</int>
 				</object>
@@ -460,9 +464,17 @@
 					<object class="IBCocoaTouchOutletConnection" key="connection">
 						<string key="label">leftSwipe</string>
 						<reference key="source" ref="372490531"/>
-						<reference key="destination" ref="437498096"/>
+						<reference key="destination" ref="125030489"/>
 					</object>
 					<int key="connectionID">93</int>
+				</object>
+				<object class="IBConnectionRecord">
+					<object class="IBCocoaTouchOutletConnection" key="connection">
+						<string key="label">nowPlayingButton</string>
+						<reference key="source" ref="372490531"/>
+						<reference key="destination" ref="359508074"/>
+					</object>
+					<int key="connectionID">99</int>
 				</object>
 				<object class="IBConnectionRecord">
 					<object class="IBCocoaTouchOutletConnection" key="connection">
@@ -476,7 +488,7 @@
 					<object class="IBCocoaTouchOutletCollectionConnection" key="connection">
 						<string key="label">gestureRecognizers</string>
 						<reference key="source" ref="85058212"/>
-						<reference key="destination" ref="801853812"/>
+						<reference key="destination" ref="1047389598"/>
 						<string key="cachedDesigntimeCollectionClassName">NSArray</string>
 						<bool key="addsContentToExistingCollection">YES</bool>
 					</object>
@@ -486,7 +498,7 @@
 					<object class="IBCocoaTouchOutletCollectionConnection" key="connection">
 						<string key="label">gestureRecognizers</string>
 						<reference key="source" ref="85058212"/>
-						<reference key="destination" ref="437498096"/>
+						<reference key="destination" ref="125030489"/>
 						<string key="cachedDesigntimeCollectionClassName">NSArray</string>
 						<bool key="addsContentToExistingCollection">YES</bool>
 					</object>
@@ -612,7 +624,7 @@
 				<object class="IBConnectionRecord">
 					<object class="IBCocoaTouchOutletConnection" key="connection">
 						<string key="label">delegate</string>
-						<reference key="source" ref="801853812"/>
+						<reference key="source" ref="1047389598"/>
 						<reference key="destination" ref="372490531"/>
 					</object>
 					<int key="connectionID">94</int>
@@ -620,7 +632,7 @@
 				<object class="IBConnectionRecord">
 					<object class="IBCocoaTouchEventConnection" key="connection">
 						<string key="label">swipeToMoveCursorRight:</string>
-						<reference key="source" ref="801853812"/>
+						<reference key="source" ref="1047389598"/>
 						<reference key="destination" ref="372490531"/>
 					</object>
 					<int key="connectionID">95</int>
@@ -628,7 +640,7 @@
 				<object class="IBConnectionRecord">
 					<object class="IBCocoaTouchOutletConnection" key="connection">
 						<string key="label">delegate</string>
-						<reference key="source" ref="437498096"/>
+						<reference key="source" ref="125030489"/>
 						<reference key="destination" ref="372490531"/>
 					</object>
 					<int key="connectionID">96</int>
@@ -636,10 +648,18 @@
 				<object class="IBConnectionRecord">
 					<object class="IBCocoaTouchEventConnection" key="connection">
 						<string key="label">swipeToMoveCursorLeft:</string>
-						<reference key="source" ref="437498096"/>
+						<reference key="source" ref="125030489"/>
 						<reference key="destination" ref="372490531"/>
 					</object>
 					<int key="connectionID">97</int>
+				</object>
+				<object class="IBConnectionRecord">
+					<object class="IBCocoaTouchEventConnection" key="connection">
+						<string key="label">pushNowPlayingButton:</string>
+						<reference key="source" ref="359508074"/>
+						<reference key="destination" ref="372490531"/>
+					</object>
+					<int key="connectionID">100</int>
 				</object>
 			</array>
 			<object class="IBMutableOrderedSet" key="objectRecords">
@@ -759,6 +779,7 @@
 						<array class="NSMutableArray" key="children">
 							<reference ref="223703919"/>
 							<reference ref="571519832"/>
+							<reference ref="359508074"/>
 						</array>
 						<reference key="parent" ref="774585933"/>
 					</object>
@@ -784,13 +805,18 @@
 					</object>
 					<object class="IBObjectRecord">
 						<int key="objectID">88</int>
-						<reference key="object" ref="801853812"/>
+						<reference key="object" ref="1047389598"/>
 						<reference key="parent" ref="0"/>
 					</object>
 					<object class="IBObjectRecord">
 						<int key="objectID">90</int>
-						<reference key="object" ref="437498096"/>
+						<reference key="object" ref="125030489"/>
 						<reference key="parent" ref="0"/>
+					</object>
+					<object class="IBObjectRecord">
+						<int key="objectID">98</int>
+						<reference key="object" ref="359508074"/>
+						<reference key="parent" ref="182738733"/>
 					</object>
 				</array>
 			</object>
@@ -820,12 +846,13 @@
 				<string key="85.IBPluginDependency">com.apple.InterfaceBuilder.IBCocoaTouchPlugin</string>
 				<string key="88.IBPluginDependency">com.apple.InterfaceBuilder.IBCocoaTouchPlugin</string>
 				<string key="90.IBPluginDependency">com.apple.InterfaceBuilder.IBCocoaTouchPlugin</string>
+				<string key="98.IBPluginDependency">com.apple.InterfaceBuilder.IBCocoaTouchPlugin</string>
 			</dictionary>
 			<dictionary class="NSMutableDictionary" key="unlocalizedProperties"/>
 			<nil key="activeLocalization"/>
 			<dictionary class="NSMutableDictionary" key="localizations"/>
 			<nil key="sourceID"/>
-			<int key="maxID">97</int>
+			<int key="maxID">100</int>
 		</object>
 		<object class="IBClassDescriber" key="IBDocument.Classes">
 			<array class="NSMutableArray" key="referencedPartialClassDescriptions">
@@ -838,6 +865,7 @@
 						<string key="pushAddButton:">id</string>
 						<string key="pushIDButton:">id</string>
 						<string key="pushImageSettingButton:">id</string>
+						<string key="pushNowPlayingButton:">id</string>
 						<string key="pushPostButton:">id</string>
 						<string key="pushResendButton:">id</string>
 						<string key="pushSettingButton:">id</string>
@@ -866,6 +894,10 @@
 						</object>
 						<object class="IBActionInfo" key="pushImageSettingButton:">
 							<string key="name">pushImageSettingButton:</string>
+							<string key="candidateClassName">id</string>
+						</object>
+						<object class="IBActionInfo" key="pushNowPlayingButton:">
+							<string key="name">pushNowPlayingButton:</string>
 							<string key="candidateClassName">id</string>
 						</object>
 						<object class="IBActionInfo" key="pushPostButton:">
@@ -912,6 +944,7 @@
 						<string key="imagePreview">UIImageView</string>
 						<string key="imageSettingButton">UIBarButtonItem</string>
 						<string key="leftSwipe">UISwipeGestureRecognizer</string>
+						<string key="nowPlayingButton">UIBarButtonItem</string>
 						<string key="postButton">UIBarButtonItem</string>
 						<string key="postCharLabel">UILabel</string>
 						<string key="postText">UITextView</string>
@@ -963,6 +996,10 @@
 						<object class="IBToOneOutletInfo" key="leftSwipe">
 							<string key="name">leftSwipe</string>
 							<string key="candidateClassName">UISwipeGestureRecognizer</string>
+						</object>
+						<object class="IBToOneOutletInfo" key="nowPlayingButton">
+							<string key="name">nowPlayingButton</string>
+							<string key="candidateClassName">UIBarButtonItem</string>
 						</object>
 						<object class="IBToOneOutletInfo" key="postButton">
 							<string key="name">postButton</string>

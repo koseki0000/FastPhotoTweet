@@ -20,8 +20,6 @@
     self = [super initWithNibName:nibNameOrNil bundle:nibBundleOrNil];
     
     if ( self ) {
-
-        consumer = [((AppDelegate *)[[UIApplication sharedApplication] delegate]).oaConsumer retain];
     }
     
     return self;
@@ -31,6 +29,8 @@
     
     [super viewDidLoad];
 
+    consumer = [((AppDelegate *)[[UIApplication sharedApplication] delegate]).oaConsumer retain];
+    
     grayView = [[GrayView alloc] init];
     [self.view addSubview:grayView];
     [grayView on];
@@ -40,7 +40,7 @@
 
 - (void)oaRequestStart {
     
-    NSLog(@"oaRequestStart");
+    //NSLog(@"oaRequestStart");
     
     wv.delegate = self;
 	pinField.text = @"";
@@ -69,11 +69,11 @@
 
 - (void)requestTokenTicket:(OAServiceTicket *)ticket didFinishWithData:(NSData *)data {
     
-    NSLog(@"requestTokenTicket Finish");
+    //NSLog(@"requestTokenTicket Finish");
     
     if ( ticket.didSucceed ) {
         
-        NSLog(@"ticket.didSucceed OK");
+        //NSLog(@"ticket.didSucceed OK");
         
         NSString *responseBody = [[NSString alloc] initWithData:data 
                                                        encoding:NSUTF8StringEncoding];
@@ -84,8 +84,8 @@
         NSString *key = [UUIDEncryptor encryption:requestToken.key];
         NSString *secret = [UUIDEncryptor encryption:requestToken.secret];
         
-        NSLog(@"requestToken key: %@", requestToken.key);
-        NSLog(@"requestToken secret: %@", requestToken.secret);
+        //NSLog(@"requestToken key: %@", requestToken.key);
+        //NSLog(@"requestToken secret: %@", requestToken.secret);
         
         NSUserDefaults *d = [NSUserDefaults standardUserDefaults];
         
@@ -104,10 +104,10 @@
         
     } else {
         
-        NSLog(@"ticket.didSucceed Error");
+        //NSLog(@"ticket.didSucceed Error");
         
         ShowAlert *alert = [[ShowAlert alloc] init];
-        [alert error:@"RequestTokenError"];
+        [alert error:@"リクエストトークンの取得に失敗しました。"];
         
         [self enableButton];
     }
@@ -117,36 +117,36 @@
 
 - (void)requestTokenTicket:(OAServiceTicket *)ticket didFailWithError:(NSError *)error {
     
-    NSLog(@"requestTokenTicket Error");
+    //NSLog(@"requestTokenTicket Error");
     
 	ShowAlert *alert = [[ShowAlert alloc] init];
-    [alert error:@"RequestTokenError"];
+    [alert error:@"リクエストトークンの取得に失敗しました。"];
         
     [self enableButton];
 }
 
 - (void)accessTokenTicket:(OAServiceTicket *)ticket didFinishWithData:(NSData *)data {
     
-    NSLog(@"accessTokenTicket Finish");
+    //NSLog(@"accessTokenTicket Finish");
     
     if ( ticket.didSucceed ) {
         
-        NSLog(@"ticket.didSucceed OK");
+        //NSLog(@"ticket.didSucceed OK");
         		
 		NSString *responseBody = [[NSString alloc] initWithData:data
 														encoding:NSUTF8StringEncoding];
         
 		OAToken *accessToken = [[OAToken alloc] initWithHTTPResponseBody:responseBody];
 		
-        NSLog(@"accessToken key: %@", accessToken.key);
-        NSLog(@"accessToken secret: %@", accessToken.secret);
+        //NSLog(@"accessToken key: %@", accessToken.key);
+        //NSLog(@"accessToken secret: %@", accessToken.secret);
         
 		NSUserDefaults *d = [NSUserDefaults standardUserDefaults];
         NSMutableDictionary *dic = [NSMutableDictionary dictionary];
         
         if ( ![EmptyCheck check:[d dictionaryForKey:@"OAuthAccount"]] ) {
             
-            NSLog(@"init OAuthAccountDictionary");
+            //NSLog(@"init OAuthAccountDictionary");
             [d setObject:[NSDictionary dictionary] forKey:@"OAuthAccount"];
             
         }else {
@@ -183,10 +183,10 @@
 		
 	}else {
         
-        NSLog(@"ticket.didSucceed Error");
+        //NSLog(@"ticket.didSucceed Error");
         
 		ShowAlert *alert = [[ShowAlert alloc] init];
-        [alert error:@"AccessTokenError"];
+        [alert error:@"アクセストークンの取得に失敗しました。"];
         
         [self enableButton];
 	}
@@ -194,10 +194,10 @@
 
 - (void)accessTokenTicket:(OAServiceTicket *)ticket didFailWithError:(NSError *)error {
     
-    NSLog(@"accessTokenTicket Error");
+    //NSLog(@"accessTokenTicket Error");
     
     ShowAlert *alert = [[ShowAlert alloc] init];
-    [alert error:@"AccessTokenError"];
+    [alert error:@"アクセストークンの取得に失敗しました。"];
     
     [self enableButton];
 }
@@ -205,13 +205,13 @@
 - (BOOL)webView:(UIWebView *)webView shouldStartLoadWithRequest:(NSURLRequest *)request 
  navigationType:(UIWebViewNavigationType)navigationType {
 	
-    //NSLog(@"URL: %@", [request URL].absoluteString);
+    ////NSLog(@"URL: %@", [request URL].absoluteString);
     
 	[ActivityIndicator visible:YES];
     
     if ( [[request URL].absoluteString isEqualToString:@"https://api.twitter.com/oauth/authorize"] ) {
 
-        NSLog(@"authorize");
+        //NSLog(@"authorize");
         
         [grayView on];
     }
@@ -231,7 +231,7 @@
 
 - (void)setPinCode {
 	
-    NSLog(@"setPinCode");
+    //NSLog(@"setPinCode");
     
     NSError *error = nil;
     
@@ -256,7 +256,7 @@
 	}else {
         
         ShowAlert *alert = [[ShowAlert alloc] init];
-        [alert error:@"PinCodeError"];
+        [alert error:@"PINコードが不正です。"];
         
         return;
     }
@@ -273,7 +273,7 @@
 	}else {
         
         ShowAlert *alert = [[ShowAlert alloc] init];
-        [alert error:@"PinCodeError"];
+        [alert error:@"PINコードが不正です。"];
                 
         [self enableButton];
 	}
@@ -281,7 +281,7 @@
 
 - (void)finish {
     
-    NSLog(@"finish");
+    //NSLog(@"finish");
     
     NSUserDefaults *d = [NSUserDefaults standardUserDefaults];
     
@@ -290,7 +290,7 @@
          [d objectForKey:@"OAuthRequestTokenSecret"] == nil ) {
         
         ShowAlert *alert = [[ShowAlert alloc] init];
-        [alert error:@"UnknownError"];
+        [alert error:@"不明なエラーです。"];
         
         [self enableButton];
         
@@ -366,7 +366,7 @@
 
 - (void)dealloc {
     
-    NSLog(@"OAuthSetupView dealloc");
+    //NSLog(@"OAuthSetupView dealloc");
     
     if ( wv.loading ) {
         

@@ -21,13 +21,13 @@
     
     if (twitterAccounts.count > 0) {
         
-        NSLog(@"Account Success");
+        //NSLog(@"Account Success");
         
         twAccount = [twitterAccounts objectAtIndex:[d integerForKey:@"UseAccount"]];
         
     }else {
         
-        NSLog(@"Account Error");
+        //NSLog(@"Account Error");
     }
     
     return twAccount;
@@ -43,13 +43,13 @@
     
     if (twitterAccounts.count > 0) {
         
-        NSLog(@"Account Success");
+        //NSLog(@"Account Success");
         
         twAccount = [twitterAccounts objectAtIndex:num];
         
     }else {
         
-        NSLog(@"Account Error");
+        //NSLog(@"Account Error");
     }
     
     return twAccount;

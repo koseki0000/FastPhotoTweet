@@ -60,6 +60,7 @@
 @property (retain, nonatomic) IBOutlet UIBarButtonItem *settingButton;
 @property (retain, nonatomic) IBOutlet UIBarButtonItem *flexibleSpace;
 @property (retain, nonatomic) IBOutlet UIBarButtonItem *addButton;
+@property (retain, nonatomic) IBOutlet UIBarButtonItem *nowPlayingButton;
 @property (retain, nonatomic) IBOutlet UITapGestureRecognizer *tapGesture;
 @property (retain, nonatomic) IBOutlet UISwipeGestureRecognizer *rigthSwipe;
 @property (retain, nonatomic) IBOutlet UISwipeGestureRecognizer *leftSwipe;
@@ -71,6 +72,7 @@
 - (IBAction)pushIDButton:(id)sender;
 - (IBAction)pushAddButton:(id)sender;
 - (IBAction)pushResendButton:(id)sender;
+- (IBAction)pushNowPlayingButton:(id)sender;
 
 - (IBAction)callbackTextFieldEnter:(id)sender;
 - (IBAction)textFieldStartEdit:(id)sender;
@@ -93,6 +95,7 @@
 - (BOOL)ios5Check;
 - (BOOL)reachability;
 - (NSString *)nowPlaying;
+- (NSString *)deleteWhiteSpace:(NSString *)string;
 
 - (void)nowPlayingNotification;
 - (void)postNotification:(int)pBoardType;

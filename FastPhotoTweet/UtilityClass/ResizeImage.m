@@ -19,20 +19,20 @@
     int originalWidth = (int)image.size.width;
     
     //リサイズ前のログ
-    NSLog(@"OriginalSize w: %d h: %d", originalWidth, originalHeight);
-    NSLog(@"ImageMaxSize: %d", [d integerForKey:@"ImageMaxSize"]);
+    //NSLog(@"OriginalSize w: %d h: %d", originalWidth, originalHeight);
+    //NSLog(@"ImageMaxSize: %d", [d integerForKey:@"ImageMaxSize"]);
     
     //iPhone4解像度はリサイズしない
     if ( [d boolForKey:@"NoResizeIphone4Ss"] ){
         
 		if ( originalHeight == 640 && originalWidth == 960 ) {
             
-            NSLog(@"640x960");
+            //NSLog(@"640x960");
             return image;
             
 		}else if ( originalHeight == 960 && originalWidth == 640 ) {
             
-            NSLog(@"960x640");
+            //NSLog(@"960x640");
             return image;
         }
 	}
@@ -61,7 +61,7 @@
             //縦長
             if ( originalHeight > originalWidth ) {
                 
-                NSLog(@"H > W");
+                //NSLog(@"H > W");
                 
                 CGFloat ratio = image.size.height / [d integerForKey:@"ImageMaxSize"];
                 resizeWidth = image.size.width / ratio;
@@ -70,7 +70,7 @@
             //横長
             }else {
                 
-                NSLog(@"W > H");
+                //NSLog(@"W > H");
                 
                 CGFloat ratio = image.size.width / [d integerForKey:@"ImageMaxSize"];
                 resizeWidth = image.size.width / ratio;
@@ -80,13 +80,13 @@
         //指定サイズ以下、リサイズ無し
         }else {
             
-            NSLog(@"No resize");
+            //NSLog(@"No resize");
             
             return image;
         }
     }
     
-    NSLog(@"ResizeSize w: %lu h: %lu", resizeWidth, resizeHeight);
+    //NSLog(@"ResizeSize w: %lu h: %lu", resizeWidth, resizeHeight);
     
     UIGraphicsBeginImageContext( CGSizeMake( resizeWidth, resizeHeight ) );  
 	[image drawInRect:CGRectMake( 0, 0, resizeWidth, resizeHeight )];  
@@ -94,7 +94,7 @@
 	UIGraphicsEndImageContext();
     
     //リサイズ後のログ
-    NSLog(@"Resized Image w: %.0f h: %.0f", image.size.width, image.size.height);
+    //NSLog(@"Resized Image w: %.0f h: %.0f", image.size.width, image.size.height);
     
     return image;
 }
@@ -109,20 +109,20 @@
     int originalWidth = (int)image.size.width;
     
     //リサイズ前のログ
-    NSLog(@"OriginalSize w: %d h: %d", originalWidth, originalHeight);
-    NSLog(@"ImageMaxSize: %d", maxSize);
+    //NSLog(@"OriginalSize w: %d h: %d", originalWidth, originalHeight);
+    //NSLog(@"ImageMaxSize: %d", maxSize);
     
     //iPhone4解像度はリサイズしない
     if ( [d boolForKey:@"NoResizeIphone4Ss"] ){
         
 		if ( originalHeight == 640 && originalWidth == 960 ) {
             
-            NSLog(@"640x960");
+            //NSLog(@"640x960");
             return image;
             
 		}else if ( originalHeight == 960 && originalWidth == 640 ) {
             
-            NSLog(@"960x640");
+            //NSLog(@"960x640");
             return image;
         }
 	}
@@ -151,7 +151,7 @@
             //縦長
             if ( originalHeight > originalWidth ) {
                 
-                NSLog(@"H > W");
+                //NSLog(@"H > W");
                 
                 CGFloat ratio = image.size.height / maxSize;
                 resizeWidth = image.size.width / ratio;
@@ -160,7 +160,7 @@
                 //横長
             }else {
                 
-                NSLog(@"W > H");
+                //NSLog(@"W > H");
                 
                 CGFloat ratio = image.size.width / maxSize;
                 resizeWidth = image.size.width / ratio;
@@ -170,13 +170,13 @@
             //指定サイズ以下、リサイズ無し
         }else {
             
-            NSLog(@"No resize");
+            //NSLog(@"No resize");
             
             return image;
         }
     }
     
-    NSLog(@"ResizeSize w: %lu h: %lu", resizeWidth, resizeHeight);
+    //NSLog(@"ResizeSize w: %lu h: %lu", resizeWidth, resizeHeight);
     
     UIGraphicsBeginImageContext( CGSizeMake( resizeWidth, resizeHeight ) );  
 	[image drawInRect:CGRectMake( 0, 0, resizeWidth, resizeHeight )];  
@@ -184,7 +184,7 @@
 	UIGraphicsEndImageContext();
     
     //リサイズ後のログ
-    NSLog(@"Resized Image w: %.0f h: %.0f", image.size.width, image.size.height);
+    //NSLog(@"Resized Image w: %.0f h: %.0f", image.size.width, image.size.height);
     
     return image;
 }

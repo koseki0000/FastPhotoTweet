@@ -17,7 +17,7 @@
 
 - (id)initWithNibName:(NSString *)nibNameOrNil bundle:(NSBundle *)nibBundleOrNil {
     
-    NSLog(@"init ResendViewController");
+    //NSLog(@"init ResendViewController");
     
     self = [super initWithNibName:nibNameOrNil bundle:nibBundleOrNil];
     
@@ -33,7 +33,7 @@
     
     [super viewDidLoad];
     
-    NSLog(@"viewDidLoad ResendViewController");
+    //NSLog(@"viewDidLoad ResendViewController");
 }
 
 - (IBAction)pushTrashButton:(id)sender {
@@ -60,7 +60,7 @@
 
 - (UITableViewCell *)tableView:(UITableView *)tableView cellForRowAtIndexPath:(NSIndexPath *)indexPath {
     
-	NSLog(@"CreateCell");
+	//NSLog(@"CreateCell");
     
     //TableViewCellを生成
 	static NSString *identifier = @"ResendCell";
@@ -77,17 +77,17 @@
     
     NSArray *array = [appDelegate.postError objectAtIndex:indexPath.row];
     
-    NSLog(@"Resend[%d]: %@", array.count, array);
+    //NSLog(@"Resend[%d]: %@", array.count, array);
 
     if ( array.count == 3 ) {
         
-        NSLog(@"TextCell");
+        //NSLog(@"TextCell");
         cell.textLabel.text = [NSString stringWithFormat:@"%@: %@", [array objectAtIndex:1], 
                                                                     [array objectAtIndex:2]];
         
     }else if ( array.count == 4 ) {
         
-        NSLog(@"PhotoCell");
+        //NSLog(@"PhotoCell");
         cell.textLabel.text = [NSString stringWithFormat:@"%@: %@", [array objectAtIndex:1], 
                                                                     [array objectAtIndex:2]];
         
@@ -95,7 +95,7 @@
         
     }else {
         
-        NSLog(@"Error");
+        //NSLog(@"Error");
     }
     
     return cell;
@@ -125,7 +125,7 @@
 
 - (void)dealloc {
 
-    NSLog(@"dealloc ResendViewController");
+    //NSLog(@"dealloc ResendViewController");
     
     [bar release];
     [closeButton release];

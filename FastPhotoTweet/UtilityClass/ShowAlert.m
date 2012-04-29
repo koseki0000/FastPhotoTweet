@@ -45,7 +45,7 @@
 
 - (void)dealloc {
     
-    NSLog(@"ShowAlert dealloc");
+    //NSLog(@"ShowAlert dealloc");
     
     [super dealloc];
 }

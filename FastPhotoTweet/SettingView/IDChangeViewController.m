@@ -19,7 +19,7 @@
     
     if ( self ) {
         
-        NSLog(@"IDChangeView init");
+        //NSLog(@"IDChangeView init");
         
         //初期化処理
         ACAccountStore *accountStore = [[[ACAccountStore alloc] init] autorelease];
@@ -49,10 +49,10 @@
             }
             
             [accountList retain];
-            NSLog(@"accountList: %@", accountList);
+            //NSLog(@"accountList: %@", accountList);
         }
         
-        NSLog(@"AccountCount: %d", accountList.count);
+        //NSLog(@"AccountCount: %d", accountList.count);
     }
     
     return self;
@@ -67,12 +67,12 @@
         [topBar setRightBarButtonItem:nil animated:NO];
     }
     
-    NSLog(@"IDChangeView viewDidLoad");
+    //NSLog(@"IDChangeView viewDidLoad");
 }
 
 - (IBAction)pushCloseButton:(id)sender {
     
-    NSLog(@"IDChangeView close");
+    //NSLog(@"IDChangeView close");
     
     twitpicLinkMode = NO;
     [d removeObjectForKey:@"TwitPicLinkMode"];
@@ -91,7 +91,7 @@
 
 - (UITableViewCell *)tableView:(UITableView *)tableView cellForRowAtIndexPath:(NSIndexPath *)indexPath {
 
-	NSLog(@"CreateCell");
+	//NSLog(@"CreateCell");
     
     //TableViewCellを生成
 	static NSString *identifier = @"TableViewCell";
@@ -125,12 +125,12 @@
         
         twitpicLinkMode = NO;
         
-        NSLog(@"SelectAccount: %@", [accountList objectAtIndex:indexPath.row]);
+        //NSLog(@"SelectAccount: %@", [accountList objectAtIndex:indexPath.row]);
         
         //仮登録された情報の名前を生成
         NSString *searchAccountName = [NSString stringWithFormat:@"OAuthAccount_%d", [d integerForKey:@"AccountCount"]];
         
-        NSLog(@"searchAccountName: %@", searchAccountName);
+        //NSLog(@"searchAccountName: %@", searchAccountName);
         
         //設定からアカウントリストを読み込む
         NSMutableDictionary *dic = [[d dictionaryForKey:@"OAuthAccount"] mutableCopy];
@@ -158,7 +158,7 @@
         [d setObject:@"Twitpic" forKey:@"PhotoService"];
         [d removeObjectForKey:@"TwitPicLinkMode"];
         
-        NSLog(@"OAuthAccount: %@", [d dictionaryForKey:@"OAuthAccount"]);
+        //NSLog(@"OAuthAccount: %@", [d dictionaryForKey:@"OAuthAccount"]);
     }
     
     //使用アカウント情報を保存
@@ -184,7 +184,7 @@
 
 - (void)dealloc {
     
-    NSLog(@"IDChangeView dealloc");
+    //NSLog(@"IDChangeView dealloc");
     
     [accountList release];
     

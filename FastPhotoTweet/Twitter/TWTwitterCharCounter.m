@@ -53,7 +53,7 @@
         //NSLog(@"urlList: %@", urlList);
         
         //行頭スペースをカウントしない
-        regexp = [NSRegularExpression regularExpressionWithPattern:@"^[ \n\t]+" 
+        regexp = [NSRegularExpression regularExpressionWithPattern:@"^[\\s]+" 
                                                            options:0 
                                                              error:nil];
         
@@ -63,7 +63,7 @@
                                                                     withTemplate:@""];
         
         //文末スペースをカウントしない
-        regexp = [NSRegularExpression regularExpressionWithPattern:@"[ \n\t]+$" 
+        regexp = [NSRegularExpression regularExpressionWithPattern:@"[\\s]+$" 
                                                            options:0 
                                                                 error:nil];
         

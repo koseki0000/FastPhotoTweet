@@ -13,7 +13,7 @@
 
 + (NSString *)encryption:(NSString *)string {
      
-    NSLog(@"Encryption");
+    //NSLog(@"Encryption");
     
     //UUIDが存在するかチェック
     if ( ![EmptyCheck check:UUID] ) {
@@ -25,7 +25,7 @@
         
         [[NSUserDefaults standardUserDefaults] setObject:uuidString forKey:@"UUID"];
         
-        NSLog(@"Create UUID: %@", uuidString);
+        //NSLog(@"Create UUID: %@", uuidString);
         
         [uuidString release];
     }
@@ -38,7 +38,7 @@
 
 + (NSString *)decryption:(NSString *)string {
     
-    NSLog(@"Decryption");
+    //NSLog(@"Decryption");
     
     if ( ![EmptyCheck check:UUID] ) {
         

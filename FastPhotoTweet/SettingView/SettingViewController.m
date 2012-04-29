@@ -49,7 +49,7 @@
     //初期化処理
     if ( self ) {
 
-        NSLog(@"SettingView init");
+        //NSLog(@"SettingView init");
         
         d = [NSUserDefaults standardUserDefaults];
         actionSheetNo = 0;
@@ -81,7 +81,7 @@
     
     [super viewDidAppear:animated];
     
-    NSLog(@"viewDidAppear");
+    //NSLog(@"viewDidAppear");
     
     if ( [[d objectForKey:@"OAuthRequestTokenKey"] isEqualToString:BLANK] || 
         [[d objectForKey:@"OAuthRequestTokenSecret"] isEqualToString:BLANK] ||
@@ -92,7 +92,7 @@
     
     if ( [d boolForKey:@"TwitPicLinkMode"] ) {
         
-        NSLog(@"TwitPic Link");
+        //NSLog(@"TwitPic Link");
         
         if ( [EmptyCheck check:[d objectForKey:@"AddTwitpicAccountName"]] ) {
             
@@ -101,7 +101,7 @@
             //仮登録された情報の名前を生成
             NSString *searchAccountName = [NSString stringWithFormat:@"OAuthAccount_%d", [d integerForKey:@"AccountCount"]];
             
-            NSLog(@"searchAccountName: %@", searchAccountName);
+            //NSLog(@"searchAccountName: %@", searchAccountName);
             
             //設定からアカウントリストを読み込む
             NSMutableDictionary *dic = [[d dictionaryForKey:@"OAuthAccount"] mutableCopy];
@@ -129,7 +129,7 @@
             [d setObject:@"Twitpic" forKey:@"PhotoService"];
             [d removeObjectForKey:@"AddTwitpicAccountName"];
             
-            NSLog(@"OAuthAccount: %@", [d dictionaryForKey:@"OAuthAccount"]);
+            //NSLog(@"OAuthAccount: %@", [d dictionaryForKey:@"OAuthAccount"]);
             
         }else {
             
@@ -145,7 +145,7 @@
 
 - (IBAction)pushDoneButton:(id)sender {
     
-    NSLog(@"pushDoneButton");
+    //NSLog(@"pushDoneButton");
     
     //閉じる
     [settingArray release];
@@ -154,7 +154,7 @@
 
 - (NSString *)getSettingState:(int)settingState {
     
-    //NSLog(@"getSettingState: %d", index);
+    ////NSLog(@"getSettingState: %d", index);
     
     NSString *result = BLANK;
     
@@ -307,7 +307,7 @@
 
 - (NSInteger)tableView:(UITableView *)tableView numberOfRowsInSection:(NSInteger)section {
     
-    //NSLog(@"numberOfRowsInSection: %d", section);
+    ////NSLog(@"numberOfRowsInSection: %d", section);
     
     //各セクションの要素数を返す
     switch ( section ) {
@@ -326,7 +326,7 @@
 
 - (UITableViewCell *)tableView:(UITableView *)tableView cellForRowAtIndexPath:(NSIndexPath *)indexPath {
     
-	//NSLog(@"CreateCell");
+	////NSLog(@"CreateCell");
     
 	//TableViewCellを生成
 	static NSString *identifier = @"TableViewCell";
@@ -597,7 +597,7 @@
 
 - (BOOL)textFieldShouldReturn:(UITextField *)sender {
     
-    NSLog(@"Textfield Enter: %@", sender.text);
+    //NSLog(@"Textfield Enter: %@", sender.text);
     
     if ( alertTextNo == 0 ) {
         
@@ -621,7 +621,7 @@
 
 - (void)actionSheet:(UIActionSheet *)actionSheet clickedButtonAtIndex:(NSInteger)buttonIndex {
     
-    //NSLog(@"actionSheet: %d, buttonIndex: %d", actionSheetNo, buttonIndex);
+    ////NSLog(@"actionSheet: %d, buttonIndex: %d", actionSheetNo, buttonIndex);
     
     if ( actionSheetNo == 0 ) {
         if ( buttonIndex == 0 ) {
@@ -687,14 +687,14 @@
             ACAccount *twAccount = [TWGetAccount getTwitterAccount];
             NSString *twitpicName = nil;
             
-            NSLog(@"oauthAccountNames: %@", oauthAccountNames);
+            //NSLog(@"oauthAccountNames: %@", oauthAccountNames);
             
             for ( NSString *accountName in oauthAccountNames ) {
                 if ( [accountName isEqualToString:twAccount.username] ) {
                     
                     twitpicName = accountName;
                     
-                    NSLog(@"twitpicName: %@", twitpicName);
+                    //NSLog(@"twitpicName: %@", twitpicName);
                     
                     break;
                 }
@@ -855,7 +855,7 @@
 
 - (NSString *)tableView:(UITableView *)tableView titleForHeaderInSection:(NSInteger)section {
     
-    //NSLog(@"titleForHeaderInSection");
+    ////NSLog(@"titleForHeaderInSection");
     
     //セクションのタイトルを決定
     switch ( section ) {
@@ -875,7 +875,7 @@
 
 - (NSInteger)numberOfSectionsInTableView:(UITableView *)tableView {
     
-    //NSLog(@"numberOfSectionsInTableView");
+    ////NSLog(@"numberOfSectionsInTableView");
     
     //セクションの数を設定
 	return SECTION_COUNT;
@@ -893,7 +893,7 @@
 
 - (void)dealloc {
     
-    NSLog(@"SettingView dealloc");
+    //NSLog(@"SettingView dealloc");
     
     [tv release];
     [bar release];

@@ -8,7 +8,7 @@
 #import "ViewController.h"
 
 #define TOP_BAR [NSArray arrayWithObjects:trashButton, flexibleSpace, idButton, flexibleSpace, resendButton, flexibleSpace, imageSettingButton, flexibleSpace, postButton, nil]
-#define BOTTOM_BAR [NSArray arrayWithObjects:settingButton, flexibleSpace, addButton, nil]
+#define BOTTOM_BAR [NSArray arrayWithObjects:settingButton, flexibleSpace, nowPlayingButton, flexibleSpace, addButton, nil]
 
 #define IMGUR_API_KEY   @"6de089e68b55d6e390d246c4bf932901"
 #define TWITPIC_API_KEY @"95cf146048caad3267f95219b379e61c"
@@ -35,6 +35,7 @@
 @synthesize tapGesture;
 @synthesize rigthSwipe;
 @synthesize leftSwipe;
+@synthesize nowPlayingButton;
 @synthesize idButton;
 @synthesize bottomBar;
 @synthesize settingButton;
@@ -43,7 +44,7 @@
     
     [super viewDidLoad];
     
-    NSLog(@"viewDidLoad");
+    //NSLog(@"viewDidLoad");
     
     NSNotificationCenter *notificationCenter = [NSNotificationCenter defaultCenter];
     
@@ -112,7 +113,7 @@
                          ShowAlert *alert = [[ShowAlert alloc] init];
                          [alert title:@"Success" message:[NSString stringWithFormat:@"Account Name: %@", twAccount.username]];
                          
-                         NSLog(@"twAccount: %@", twAccount);
+                         //NSLog(@"twAccount: %@", twAccount);
                          
                          //入力可能状態にする
                          [postText becomeFirstResponder];
@@ -125,7 +126,7 @@
                          twAccount = nil;
                          
                          ShowAlert *alert = [[ShowAlert alloc] init];
-                         [alert error:@"Twitter account nothing"];
+                         [alert error:@"Twitterアカウントが見つかりませんでした。"];
                      }
                      
                  } else {
@@ -133,7 +134,7 @@
                      twAccount = nil;
                      
                      ShowAlert *alert = [[ShowAlert alloc] init];
-                     [alert error:@"Twitter account access denied"];
+                     [alert error:@"Twitterのアカウントへのアクセスが拒否されました。"];
                  }
              });
          }];
@@ -143,7 +144,7 @@
         twAccount = nil;
         
         ShowAlert *alert = [[ShowAlert alloc] init];
-        [alert error:@"Twitter account access denied"];
+        [alert error:@"Twitterのアカウントへのアクセスが拒否されました。"];
     }
     
     //for debug
@@ -165,11 +166,11 @@
         
         [d setObject:uuidString forKey:@"UUID"];
         
-        NSLog(@"Create UUID: %@", uuidString);
+        //NSLog(@"Create UUID: %@", uuidString);
         
     }else {
         
-        NSLog(@"UUID: %@", [d objectForKey:@"UUID"]);
+        //NSLog(@"UUID: %@", [d objectForKey:@"UUID"]);
     }
     
     if ( [d boolForKey:@"CallBack"] ) {
@@ -226,14 +227,14 @@
 
 - (void)showInfomation {
     
-    NSLog(@"showInfomation");
+    //NSLog(@"showInfomation");
     
     BOOL check = YES;
     NSMutableDictionary *information = [NSMutableDictionary dictionary];
     
     if ( ![EmptyCheck check:[d dictionaryForKey:@"Information"]] ) {
         
-        NSLog(@"init Information");
+        //NSLog(@"init Information");
         [d setObject:[NSDictionary dictionary] forKey:@"Information"];
     }
     
@@ -241,11 +242,11 @@
                 
         if ( [[d dictionaryForKey:@"Information"] valueForKey:@"FirstRun"] == 0 ) {
             
-            NSLog(@"FirstRun");
+            //NSLog(@"FirstRun");
             
             ShowAlert *alert = [[ShowAlert alloc] init];
             [alert title:@"ようこそ" 
-                message:@"message"];
+                message:@"FastPhotoTweetへようこそ\n通知センターから様々なTweetを素早くTwitterに投稿する事が出来ます。始めに画面右下から通知センターへの登録を行なってください。"];
             
             information = [[d dictionaryForKey:@"Information"] mutableCopy];
             [information setValue:[NSNumber numberWithInt:1] forKey:@"FirstRun"];
@@ -261,11 +262,11 @@
         
         if ( [[d dictionaryForKey:@"Information"] valueForKey:newVersion] == 0 ) {
             
-            NSLog(@"newVersion");
+            //NSLog(@"newVersion");
             
-            ShowAlert *alert = [[ShowAlert alloc] init];
-            [alert title:[NSString stringWithFormat:@"FastPhotoTweet %@", newVersion] 
-                 message:@"message"];
+//            ShowAlert *alert = [[ShowAlert alloc] init];
+//            [alert title:[NSString stringWithFormat:@"FastPhotoTweet %@", newVersion] 
+//                 message:@"message"];
             
             information = [[d dictionaryForKey:@"Information"] mutableCopy];
             [information setValue:[NSNumber numberWithInt:1] forKey:newVersion];
@@ -280,7 +281,7 @@
         check = NO;
     }
     
-    NSLog(@"Information: %@", [d dictionaryForKey:@"Information"]);
+    //NSLog(@"Information: %@", [d dictionaryForKey:@"Information"]);
     
     //設定を即反映
     [d synchronize];
@@ -296,26 +297,21 @@
             
             NSString *text = [[[NSString alloc] initWithString:BLANK] autorelease];
             
-            if ( [postText.text isEqualToString:BLANK] ) {
-
-                //Post入力欄が空ならテスト用テキストを生成して投稿
-                NSString *testDate = [NSDateFormatter localizedStringFromDate:[NSDate date] 
-                                                                    dateStyle:kCFDateFormatterNoStyle
-                                                                    timeStyle:kCFDateFormatterMediumStyle];
+            text = postText.text;
+            
+            if ( ![EmptyCheck check:text] ) {
                 
-                text = [NSString stringWithFormat:@"TestDate: %@", testDate];
+                ShowAlert *alert = [[ShowAlert alloc] init];
+                [alert error:@"文字が入力されていません。"];
                 
-            }else {
-
-                //文字が入力されている場合はそちらを投稿
-                text = postText.text;
+                return;
             }
             
             //画像が設定されていない場合
             if ( imagePreview.image == nil ) {
                 
                 //文字列をバックグラウンドプロセスで投稿
-                NSArray *postData = [NSArray arrayWithObjects:text, nil, nil];
+                NSArray *postData = [NSArray arrayWithObjects:[self deleteWhiteSpace:text], nil, nil];
                 [TWSendTweet performSelectorInBackground:@selector(post:) withObject:postData];
                 
                 //入力欄を空にする
@@ -328,14 +324,14 @@
                 if ( [[d objectForKey:@"PhotoService"] isEqualToString:@"Twitter"] ) {
                     
                     //文字列と画像をバックグラウンドプロセスで投稿
-                    NSArray *postData = [NSArray arrayWithObjects:text, imagePreview.image, nil];
+                    NSArray *postData = [NSArray arrayWithObjects:[self deleteWhiteSpace:text], imagePreview.image, nil];
                     [TWSendTweet performSelectorInBackground:@selector(post:) withObject:postData];
                     
                 //画像投稿先がimg.urかTwitpicもしくは画像の再投稿
                 }else {
                     
                     //文字列をバックグラウンドプロセスで投稿
-                    NSArray *postData = [NSArray arrayWithObjects:text, nil, nil];
+                    NSArray *postData = [NSArray arrayWithObjects:[self deleteWhiteSpace:text], nil, nil];
                     [TWSendTweet performSelectorInBackground:@selector(post:) withObject:postData];
                 }
                 
@@ -349,7 +345,7 @@
 
 - (void)postDone:(NSNotification *)center {
 
-    NSLog(@"postDone: %@", center.userInfo);
+    //NSLog(@"postDone: %@", center.userInfo);
     
     NSString *result = [center.userInfo objectForKey:@"PostResult"];
     
@@ -365,7 +361,7 @@
             
             if ( [successText hasPrefix:[temp objectAtIndex:2]] ) {
                 
-                //NSLog(@"SuccessPostFind\nSearch: %@\nFind%@",successText ,[temp objectAtIndex:2]);
+                ////NSLog(@"SuccessPostFind\nSearch: %@\nFind%@",successText ,[temp objectAtIndex:2]);
                 
                 find = YES;
                 break;
@@ -376,9 +372,10 @@
         
         if ( find ) {
             
-            //NSLog(@"DeleteSuccessPost:\n%@", [[appDelegate.postError objectAtIndex:arrayIndex] objectAtIndex:2]);
+            ////NSLog(@"DeleteSuccessPost:\n%@", [[appDelegate.postError objectAtIndex:arrayIndex] objectAtIndex:2]);
             
             [appDelegate.postError removeObjectAtIndex:arrayIndex];
+            //NSLog(@"TempPostDeleted");
         }
         
     }else if ( [result isEqualToString:@"Error"] ) {
@@ -398,9 +395,38 @@
     }
 }
 
+- (NSString *)deleteWhiteSpace:(NSString *)string {
+    
+    NSRegularExpression *regexp = [NSRegularExpression regularExpressionWithPattern:@"^[\\s]+" 
+                                                                            options:0 
+                                                                              error:nil];
+    
+    string = [regexp stringByReplacingMatchesInString:string
+                                              options:0
+                                                range:NSMakeRange(0, string.length)
+                                         withTemplate:@""];
+    
+    regexp = [NSRegularExpression regularExpressionWithPattern:@"[\\s]+$" 
+                                                       options:0 
+                                                         error:nil];
+    
+    string = [regexp stringByReplacingMatchesInString:string
+                                              options:0
+                                                range:NSMakeRange(0, string.length)
+                                         withTemplate:@""];
+    
+    return string;
+}
+
+- (IBAction)pushNowPlayingButton:(id)sender {
+    
+    //NSLog(@"pushNowPlayingButton");
+    [self nowPlayingNotification];
+}
+
 - (IBAction)pushResendButton:(id)sender {
     
-    NSLog(@"pushResendButton");
+    //NSLog(@"pushResendButton");
     
     appDelegate.resendMode = [NSNumber numberWithInt:1];
     
@@ -411,7 +437,7 @@
 
 - (IBAction)pushTrashButton:(id)sender {
     
-    NSLog(@"Trash");
+    //NSLog(@"Trash");
     
     postText.text = BLANK;
     imagePreview.image = nil;
@@ -420,7 +446,7 @@
 
 - (IBAction)pushSettingButton:(id)sender {
     
-    NSLog(@"Setting");
+    //NSLog(@"Setting");
     
     SettingViewController *dialog = [[[SettingViewController alloc] init] autorelease];
     dialog.modalTransitionStyle = UIModalTransitionStyleCoverVertical;
@@ -429,7 +455,7 @@
 
 - (IBAction)pushIDButton:(id)sender {
     
-    NSLog(@"ID Change");
+    //NSLog(@"ID Change");
     
     changeAccount = YES;
     
@@ -455,7 +481,7 @@
 
 - (IBAction)pushImageSettingButton:(id)sender {
     
-    NSLog(@"pushImageSettingButton");
+    //NSLog(@"pushImageSettingButton");
     
     //カメラか投稿時選択
     if ( [d integerForKey:@"ImageSource"] == 0 ||
@@ -578,7 +604,7 @@
         //レスポンスのStringからDictionaryを生成
         NSDictionary *result = [request.responseString JSONValue];
         
-        NSLog(@"resultDic: %@", result);
+        //NSLog(@"resultDic: %@", result);
         
         NSString *imageURL;
         
@@ -626,7 +652,7 @@
     //アップロードに失敗した場合
     
     NSDictionary *result = [request.responseString JSONValue];
-    NSLog(@"resultDic: %@", result);
+    //NSLog(@"resultDic: %@", result);
     
     ShowAlert *alert = [[ShowAlert alloc] init];
     [alert error:@"アップロードに失敗しました。"];
@@ -655,7 +681,7 @@
 
 - (IBAction)svTapGesture:(id)sender {
     
-    NSLog(@"svTapGesture");
+    //NSLog(@"svTapGesture");
     
     [postText resignFirstResponder];
     [callbackTextField resignFirstResponder];
@@ -668,7 +694,7 @@
     
     if ( location <= postText.text.length ) {
         
-        NSLog(@"swipeToMoveCursorRight");
+        //NSLog(@"swipeToMoveCursorRight");
         [postText setSelectedRange:NSMakeRange( location, 0 ) ];   
     }
 }
@@ -677,7 +703,7 @@
     
     if ( postText.selectedRange.location != 0 ) {
         
-        NSLog(@"swipeToMoveCursorLeft");
+        //NSLog(@"swipeToMoveCursorLeft");
         int location = postText.selectedRange.location - 1;
         [postText setSelectedRange:NSMakeRange( location, 0 ) ];
     }
@@ -702,7 +728,6 @@
         
         //通知センターにアプリを登録
         //通知センター登録時は通知を受け取っても無視するように設定
-        [d setBool:YES forKey:@"AddNotificationCenter"];
         
         UILocalNotification *localPush = [[UILocalNotification alloc] init];
         localPush.timeZone = [NSTimeZone defaultTimeZone];
@@ -711,29 +736,33 @@
 
             localPush.alertBody = @"Tweet";
             localPush.userInfo = [NSDictionary dictionaryWithObjectsAndKeys:@"tweet", @"scheme", nil];
+            [d setBool:YES forKey:@"AddNotificationCenterTweet"];
             
-            NSLog(@"Add NotificationCenter Tweet");
+            //NSLog(@"Add NotificationCenter Tweet");
         
         }else if ( buttonIndex == 1 ) {
             
             localPush.alertBody = @"FastTweet";
             localPush.userInfo = [NSDictionary dictionaryWithObjectsAndKeys:@"fast", @"scheme", nil];
+            [d setBool:YES forKey:@"AddNotificationCenterFastTweet"];
             
-            NSLog(@"Add NotificationCenter FastTweet");
+            //NSLog(@"Add NotificationCenter FastTweet");
             
         }else if ( buttonIndex == 2 ) {
             
             localPush.alertBody = @"PhotoTweet";
             localPush.userInfo = [NSDictionary dictionaryWithObjectsAndKeys:@"photo", @"scheme", nil];
-
-            NSLog(@"Add NotificationCenter PhotoTweet");
+            [d setBool:YES forKey:@"AddNotificationCenterPhotoTweet"];
+            
+            //NSLog(@"Add NotificationCenter PhotoTweet");
             
         }else if ( buttonIndex == 3 ) {
             
             localPush.alertBody = @"NowPlaying";
             localPush.userInfo = [NSDictionary dictionaryWithObjectsAndKeys:@"music", @"scheme", nil];
+            [d setBool:YES forKey:@"AddNotificationCenterNowPlaying"];
             
-            NSLog(@"Add NotificationCenter NowPlaying");
+            //NSLog(@"Add NotificationCenter NowPlaying");
         
         }else if ( buttonIndex == 4 ) {
             
@@ -741,21 +770,25 @@
             localPush.userInfo = [NSDictionary dictionaryWithObjectsAndKeys:@"music", @"scheme", nil];
             localPush.fireDate = [NSDate dateWithTimeIntervalSinceNow:0];
             [[UIApplication sharedApplication] scheduleLocalNotification:localPush];
+            [d setBool:YES forKey:@"AddNotificationCenterNowPlaying"];
             
             localPush.alertBody = @"PhotoTweet";
             localPush.userInfo = [NSDictionary dictionaryWithObjectsAndKeys:@"photo", @"scheme", nil];
             localPush.fireDate = [NSDate dateWithTimeIntervalSinceNow:0];
             [[UIApplication sharedApplication] scheduleLocalNotification:localPush];
+            [d setBool:YES forKey:@"AddNotificationCenterPhotoTweet"];
             
             localPush.alertBody = @"FastTweet";
             localPush.userInfo = [NSDictionary dictionaryWithObjectsAndKeys:@"fast", @"scheme", nil];
             localPush.fireDate = [NSDate dateWithTimeIntervalSinceNow:0];
             [[UIApplication sharedApplication] scheduleLocalNotification:localPush];
+            [d setBool:YES forKey:@"AddNotificationCenterFastTweet"];
             
             localPush.alertBody = @"Tweet";
             localPush.userInfo = [NSDictionary dictionaryWithObjectsAndKeys:@"tweet", @"scheme", nil];
+            [d setBool:YES forKey:@"AddNotificationCenterTweet"];
             
-            NSLog(@"Add NotificationCenter All");
+            //NSLog(@"Add NotificationCenter All");
             
         }else {
             
@@ -823,7 +856,7 @@
         
         //iOS5以前
         ShowAlert *alert = [[ShowAlert alloc] init];
-        [alert error:@"Twitter API not available, please upgrade to iOS 5"];
+        [alert error:@"Twitter APIはiOS5以降で使用できます。最新OSに更新してください。"];
         
     }else {
         
@@ -844,7 +877,7 @@
     }else {
         
         ShowAlert *alert = [[ShowAlert alloc] init];
-        [alert error:@"No Internet connection"];
+        [alert error:@"インターネットに接続されていません。"];
     }
     
     return result;
@@ -918,14 +951,14 @@
     
     if ( [[d objectForKey:@"PhotoService"] isEqualToString:@"img.ur"] ) {
         
-        NSLog(@"img.ur upload");
+        //NSLog(@"img.ur upload");
         
         [request addPostValue:IMGUR_API_KEY forKey:@"key"];
         [request addData:imageData forKey:@"image"];
         
     }else if ( [[d objectForKey:@"PhotoService"] isEqualToString:@"Twitpic"] ) {
         
-        NSLog(@"Twitpic upload");
+        //NSLog(@"Twitpic upload");
         
         NSDictionary *dic = [d dictionaryForKey:@"OAuthAccount"];
         
@@ -963,7 +996,7 @@
 - (void)becomeActive:(NSNotification *)notification {
     
     //アプリケーションがアクティブになった際に呼ばれる
-    NSLog(@"becomeActive");
+    //NSLog(@"becomeActive");
     
     //設定が有効な場合Post入力可能状態にする
     if ( [d boolForKey:@"ShowKeyboard"] ) {
@@ -974,7 +1007,7 @@
     //通知判定がある場合
     if ( [d boolForKey:@"Notification"] ) {
         
-        NSLog(@"Notification: YES");
+        //NSLog(@"Notification: YES");
         
         //通知判定を削除
         [d removeObjectForKey:@"Notification"];
@@ -986,7 +1019,15 @@
             if ( twAccount == nil ) {
                 
                 ShowAlert *alert = [[ShowAlert alloc] init];
-                [alert error:@"Twitter account nothing"];
+                [alert error:@"Twitterアカウントが見つかりませんでした。"];
+                
+                return;
+            }
+            
+            if ( [[d objectForKey:@"NotificationType"] isEqualToString:@"music"] ) {
+                
+                //NSLog(@"NowPlaying Start");
+                [self nowPlayingNotification];
                 
                 return;
             }
@@ -1002,29 +1043,24 @@
             
             if ( [[d objectForKey:@"NotificationType"] isEqualToString:@"tweet"] ) {
                 
-                NSLog(@"Post Start");
+                //NSLog(@"Post Start");
                 [self postNotification:pBoardType];
                 
             }else if ( [[d objectForKey:@"NotificationType"] isEqualToString:@"fast"] ) {
                 
-                NSLog(@"Fast Post Start");
+                //NSLog(@"Fast Post Start");
                 [self fastPostNotification:pBoardType];
                 
             }else if ( [[d objectForKey:@"NotificationType"] isEqualToString:@"photo"] ) {
                 
-                NSLog(@"Photo Start");
+                //NSLog(@"Photo Start");
                 [self photoPostNotification:pBoardType];
-                
-            }else if ( [[d objectForKey:@"NotificationType"] isEqualToString:@"music"] ) {
-                
-                NSLog(@"NowPlaying Start");
-                [self nowPlayingNotification];
             }
         }
         
     }else {
         
-        NSLog(@"Notification: NO");
+        //NSLog(@"Notification: NO");
     }
     
     [self countText];
@@ -1038,18 +1074,18 @@
     //投稿可能文字数(1-140)
     if ( length > 0 ) {
         
-        NSLog(@"SongTitleOK");
+        //NSLog(@"SongTitleOK");
         
         //FastPostが有効、またはNowPlaying限定CallBackが有効
         if ( [d boolForKey:@"NowPlayingFastPost"] ) {
             
-            NSArray *postData = [NSArray arrayWithObjects:nowPlayingText, nil, nil];
+            NSArray *postData = [NSArray arrayWithObjects:[self deleteWhiteSpace:nowPlayingText], nil, nil];
             [TWSendTweet performSelectorInBackground:@selector(post:) withObject:postData];
             
             //CallBack、またはNowPlaying限定CallBackが有効
             if ( [d boolForKey:@"CallBack"] || [d boolForKey:@"NowPlayingCallBack"] ) {
                 
-                NSLog(@"Callback Enable");
+                //NSLog(@"Callback Enable");
                 
                 //CallBack
                 [self callback];
@@ -1064,7 +1100,7 @@
         
     }else if ( length == 0 ) {
         
-        NSLog(@"SongTitleBlank");
+        //NSLog(@"SongTitleBlank");
         
         //再生中でなかった場合
         ShowAlert *alert = [[ShowAlert alloc] init];
@@ -1073,10 +1109,10 @@
     //140字を超えていた場合
     }else {
         
-        NSLog(@"SongTitleOverCapacity");
+        //NSLog(@"SongTitleOverCapacity");
         
         ShowAlert *alert = [[ShowAlert alloc] init];
-        [alert error:[NSString stringWithFormat:@"Post message is over capacity: %d", length]];
+        [alert error:@"文章が140字を超えています。"];
         
         //入力欄に貼り付け
         postText.text = nowPlayingText;
@@ -1089,14 +1125,14 @@
     
     if ( pBoardType == 0 ) {
         
-        NSLog(@"pBoardType Text");
+        //NSLog(@"pBoardType Text");
         
         //ペーストボード内容をPost入力欄にコピー
         postText.text = pboard.string;
         
     }else {
         
-        NSLog(@"pBoardType not text");
+        //NSLog(@"pBoardType not text");
     }
     
     //Post入力状態にする
@@ -1117,7 +1153,7 @@
             
             //140字を超えていた場合
             ShowAlert *alert = [[ShowAlert alloc] init];
-            [alert error:[NSString stringWithFormat:@"Post message is over capacity: %d", num]];
+            [alert error:@"文章が140字を超えています。"];
             
         }else {
             
@@ -1129,13 +1165,13 @@
             
             //投稿処理
             NSString *text = [[[NSString alloc] initWithString:pboard.string] autorelease];
-            NSArray *postData = [NSArray arrayWithObjects:text, nil, nil];
+            NSArray *postData = [NSArray arrayWithObjects:[self deleteWhiteSpace:text], nil, nil];
             [TWSendTweet performSelectorInBackground:@selector(post:) withObject:postData];
      
             //コールバックが有効な場合
             if ( [d boolForKey:@"CallBack"] ) {
                 
-                NSLog(@"Callback Enable");
+                //NSLog(@"Callback Enable");
                 
                 //CallBack
                 [self callback];
@@ -1155,7 +1191,7 @@
     
     if ( pBoardType == 1 ) {
         
-        NSLog(@"pBoardType Photo");
+        //NSLog(@"pBoardType Photo");
         
         UIImage *image = pboard.image;
         
@@ -1174,7 +1210,7 @@
         
     }else {
         
-        NSLog(@"pBoardType not Photo");
+        //NSLog(@"pBoardType not Photo");
         
         [self pushImageSettingButton:nil];
     }
@@ -1182,7 +1218,7 @@
 
 - (void)callback {
     
-    NSLog(@"Callback Start");
+    //NSLog(@"Callback Start");
     
     BOOL canOpen = NO;
     
@@ -1195,15 +1231,15 @@
         //コールバックスキームが開けない
         if ( !canOpen ) {
             
-            NSLog(@"Can't callBack");
+            //NSLog(@"Can't callBack");
             
             ShowAlert *alert = [[ShowAlert alloc] init];
-            [alert error:@"Can't callBack"];
+            [alert error:@"コールバックスキームが有効でありません。"];
             
             //コールバックスキームを開くことが出来る
         }else {
             
-            NSLog(@"CallBack");
+            //NSLog(@"CallBack");
             
             [[UIApplication sharedApplication] openURL:[NSURL URLWithString:[d objectForKey:@"CallBackScheme"]]];
         }
@@ -1212,7 +1248,7 @@
 
 - (NSString *)nowPlaying {
     
-    NSLog(@"nowPlaying");
+    //NSLog(@"nowPlaying");
     
     NSMutableString *resultText = [NSMutableString stringWithString:BLANK];
     
@@ -1258,7 +1294,7 @@
         //自分で設定した書式を使用しない場合
         if ( [d boolForKey:@"NowPlayingEdit"] ) {
             
-            NSLog(@"template");
+            //NSLog(@"template");
             
             //自分で設定した書式に再生中の曲の情報を埋め込む
             
@@ -1288,7 +1324,7 @@
             
         }else {
             
-            NSLog(@"default");
+            //NSLog(@"default");
             
             //デフォルトの書式を適用
             resultText = [NSMutableString stringWithFormat:@" #nowplaying %@ - %@ ", songTitle, songArtist];
@@ -1296,7 +1332,7 @@
         
     }@catch (NSException *e) {
         
-        NSLog(@"Exception: %@", e);
+        //NSLog(@"Exception: %@", e);
     }
     
     return (NSString *)resultText;
@@ -1324,6 +1360,7 @@
     [self setResendButton:nil];
     [self setRigthSwipe:nil];
     [self setLeftSwipe:nil];
+    [self setNowPlayingButton:nil];
     [super viewDidUnload];
 }
 
@@ -1341,11 +1378,11 @@
     
     [super viewDidAppear:animated];
     
-    NSLog(@"viewDidAppear");
+    //NSLog(@"viewDidAppear");
     
     if ( changeAccount || [d boolForKey:@"ChangeAccount"] ) {
         
-        NSLog(@"ChangeAccount");
+        //NSLog(@"ChangeAccount");
         
         [d removeObjectForKey:@"ChangeAccount"];
         changeAccount = NO;
@@ -1371,11 +1408,11 @@
         
         if ( resendArray.count == 3 ) {
             
-            NSLog(@"Resend data set TEXT");
+            //NSLog(@"Resend data set TEXT");
             
         }else {
             
-            NSLog(@"Resend data set PHOTO");
+            //NSLog(@"Resend data set PHOTO");
             imagePreview.image = [resendArray objectAtIndex:3];
         }
         
@@ -1428,6 +1465,7 @@
     [resendButton release];
     [rigthSwipe release];
     [leftSwipe release];
+    [nowPlayingButton release];
     [super dealloc];
 }
 

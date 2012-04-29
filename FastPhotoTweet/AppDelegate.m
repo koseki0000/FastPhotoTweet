@@ -22,7 +22,7 @@
 
 - (BOOL)application:(UIApplication *)application didFinishLaunchingWithOptions:(NSDictionary *)launchOptions {
     
-    NSLog(@"FinishLaunching");
+    //NSLog(@"FinishLaunching");
     
     //OAConsumer設定
     oaConsumer = [[OAConsumer alloc] initWithKey:OAUTH_KEY 
@@ -45,24 +45,41 @@
 
 - (void)application:(UIApplication *)application didReceiveLocalNotification:(UILocalNotification *)notification {
     
-    NSLog(@"Notification");
+    //NSLog(@"Notification");
     
     //iOS5以降かチェック
     if ( [self ios5Check] ) {
         
         NSUserDefaults *d = [NSUserDefaults standardUserDefaults];
         
-        if ( [d boolForKey:@"AddNotificationCenter"] ) {
-            
-            //通知センターへの登録時は何もしない
-            [d removeObjectForKey:@"AddNotificationCenter"];
-            
-            return;
-        }
-        
         //通知の判別
         NSString *itemName = [notification.userInfo objectForKey:@"scheme"];
-        NSLog(@"itemName: %@", itemName);
+        //NSLog(@"itemName: %@", itemName);
+        
+        if ( [itemName isEqualToString:@"tweet"] ) {
+            
+            //NSLog(@"DeleteNotificationTweet");
+            [d removeObjectForKey:@"AddNotificationCenterTweet"];
+            return;
+            
+        }else if ( [itemName isEqualToString:@"fast"] ) {
+            
+            //NSLog(@"DeleteNotificationFastTweet");
+            [d removeObjectForKey:@"AddNotificationCenterFastTweet"];
+            return;
+            
+        }else if ( [itemName isEqualToString:@"photo"] ) {
+            
+            //NSLog(@"DeleteNotificationPhotoTweet");
+            [d removeObjectForKey:@"AddNotificationCenterPhotoTweet"];
+            return;
+            
+        }else if ( [itemName isEqualToString:@"music"] ) {
+            
+            //NSLog(@"DeleteNotificationNowPlaying");
+            [d removeObjectForKey:@"AddNotificationCenterNowPlaying"];
+            return;
+        }
         
         //通知フラグと種類を登録
         [d setBool:YES forKey:@"Notification"];
@@ -72,7 +89,7 @@
 
 - (BOOL)application:(UIApplication *)application handleOpenURL:(NSURL *)schemeURL {
 
-    NSLog(@"handleOpenURL: %@", schemeURL.absoluteString);
+    //NSLog(@"handleOpenURL: %@", schemeURL.absoluteString);
     
     NSUserDefaults *d = [NSUserDefaults standardUserDefaults];
     [d setBool:YES forKey:@"Notification"];
@@ -89,7 +106,7 @@
         
         //iOS5以前
         ShowAlert *alert = [[ShowAlert alloc] init];
-        [alert error:@"Twitter API not available, please upgrade to iOS 5"];
+        [alert error:@"Twitter APIはiOS5以降で使用できます。最新OSに更新してください。"];
         
     }else {
         

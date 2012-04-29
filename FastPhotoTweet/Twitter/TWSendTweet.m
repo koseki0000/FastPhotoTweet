@@ -24,7 +24,7 @@
             
             //アカウントデータが空
             ShowAlert *alert = [[ShowAlert alloc] init];
-            [alert error:@"Can’t post"];
+            [alert error:@"アカウントが取得できませんでした。"];
             
             return;
         }
@@ -53,7 +53,7 @@
                 
             }else {
                 
-                NSLog(@"PostTextEmpty");
+                //NSLog(@"PostTextEmpty");
                 
                 ShowAlert *alert = [[ShowAlert alloc] init];
                 [alert error:@"文字が入力されていません。"];
@@ -114,7 +114,7 @@
         NSNotification *postNotification =[NSNotification notificationWithName:@"PostDone" 
                                                                         object:self 
                                                                       userInfo:postResult];
-        NSLog(@"SetNotification");
+        //NSLog(@"SetNotification");
         
         [postRequest performRequestWithHandler:
          ^( NSData *responseData, NSHTTPURLResponse *urlResponse, NSError *error ) {
@@ -126,7 +126,7 @@
                  NSDictionary *result = [responseDataString JSONValue];
                  
                  //NSLog(@"responseDataString: %@", responseDataString);
-                 NSLog(@"ResultText: %@", [result objectForKey:@"text"]);
+                 //NSLog(@"ResultText: %@", [result objectForKey:@"text"]);
                  
                  BOOL media = NO;
                  NSString *entities = [[result objectForKey:@"entities"] objectForKey:@"media"];
@@ -140,11 +140,11 @@
                  
                  //Postしたテキスト
                  NSString *text = [result objectForKey:@"text"];
-                 NSLog(@"Text: %@", text);
+                 //NSLog(@"Text: %@", text);
                  
                  if (error != nil) {
                      
-                     NSLog(@"PostNSError: %@", error);
+                     //NSLog(@"PostNSError: %@", error);
                      
                      //エラー
                      NSString *errorText = [result objectForKey:@"error"];
@@ -163,22 +163,19 @@
                      }
                      
                      //通知を実行
-                     NSLog(@"PostErrorNotification: %@", errorText);
+                     //NSLog(@"PostErrorNotification: %@", errorText);
                      [[NSNotificationCenter defaultCenter] postNotification:postNotification];
 
                  } else {
                      
                      if ( ![EmptyCheck check:text] ) {
                          
-                         NSString *errorText = [result objectForKey:@"error"];
-                         
                          //textが空の場合は失敗してる
                          ShowAlert *alert = [[ShowAlert alloc] init];
-                         [alert error:errorText];
+                         [alert error:@"Tweet text is empty"];
                          
                          [postResult setObject:@"Error" forKey:@"PostResult"];
                          
-                         NSLog(@"PostErrorNotification: %@", errorText);
                          [[NSNotificationCenter defaultCenter] postNotification:postNotification];
                          
                      }else {
@@ -196,7 +193,7 @@
                          }
                          
                          //通知を実行
-                         NSLog(@"PostSuccessNotification");
+                         //NSLog(@"PostSuccessNotification");
                          [[NSNotificationCenter defaultCenter] postNotification:postNotification];
                      }
                  }
@@ -206,13 +203,13 @@
              });
          }];
         
-        NSLog(@"Post sended: %@", twAccount.username);
+        //NSLog(@"Post sended: %@", twAccount.username);
         
     }else {
         
         //何らかの理由でTweet不可だった場合
         ShowAlert *alert = [[ShowAlert alloc] init];
-        [alert error:@"Please try again later"];
+        [alert error:@"不明なエラーが発生しました。やり直してください。"];
     }
 }
 
