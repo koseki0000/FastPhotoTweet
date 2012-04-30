@@ -11,5 +11,7 @@
 @interface PasteboardType : NSObject
 
 + (int)check;
++ (BOOL)isText;
++ (BOOL)isImage;
 
 @end

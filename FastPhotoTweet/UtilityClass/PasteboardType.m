@@ -14,31 +14,68 @@
     UIPasteboard *pboard = [UIPasteboard generalPasteboard];
     //NSLog(@"pboard: %@", pboard.pasteboardTypes);
     
-    int pBoardType = 0;
+    int pBoardType = -1;
+    int i = 0;
     
-    if ( [[pboard.pasteboardTypes objectAtIndex:0] isEqualToString:@"public.text"] ) {
+    for ( NSString *temp in pboard.pasteboardTypes ) {
+     
+        if ( [[pboard.pasteboardTypes objectAtIndex:i] isEqualToString:@"public.text"] ) {
+            
+            //テキストの場合
+            return 0;
+            
+        }else if ( [[pboard.pasteboardTypes objectAtIndex:i] isEqualToString:@"public.jpeg"] ||
+                   [[pboard.pasteboardTypes objectAtIndex:i] isEqualToString:@"public.png"] ||
+                   [[pboard.pasteboardTypes objectAtIndex:i] isEqualToString:@"public.gif"] ||
+                   [[pboard.pasteboardTypes objectAtIndex:i] isEqualToString:@"public.bmp"] ) {
+            
+            //画像の場合
+            return 1;
+        }
         
-        //テキストの場合
-        pBoardType = 0;
+        i++;
+    }
         
-    }else if ( [[pboard.pasteboardTypes objectAtIndex:0] isEqualToString:@"public.jpeg"] ||
-               [[pboard.pasteboardTypes objectAtIndex:0] isEqualToString:@"public.png"] ||
-               [[pboard.pasteboardTypes objectAtIndex:0] isEqualToString:@"public.gif"] ||
-               [[pboard.pasteboardTypes objectAtIndex:0] isEqualToString:@"public.bmp"] ) {
+    return pBoardType;
+}
+
++ (BOOL)isText {
+    
+    UIPasteboard *pboard = [UIPasteboard generalPasteboard];
+    int i = 0;
+    BOOL result = NO;
+    
+    for ( NSString *temp in pboard.pasteboardTypes ) {
         
-        //画像の場合
-        pBoardType = 1;
-        
-    }else {
-        
-        //得体の知れない物
-        ShowAlert *alert = [[ShowAlert alloc] init];
-        [alert error:@"ペーストボードの中身がテキストか画像以外です。"];
-        
-        return -1;
+        if ( [[pboard.pasteboardTypes objectAtIndex:i] isEqualToString:@"public.text"] ) {
+            
+            //テキストの場合
+            result = YES;
+        }
     }
     
-    return pBoardType;
+    return result;
+}
+
++ (BOOL)isImage {
+    
+    UIPasteboard *pboard = [UIPasteboard generalPasteboard];
+    int i = 0;
+    BOOL result = NO;
+    
+    for ( NSString *temp in pboard.pasteboardTypes ) {
+        
+        if ( [[pboard.pasteboardTypes objectAtIndex:i] isEqualToString:@"public.jpeg"] ||
+             [[pboard.pasteboardTypes objectAtIndex:i] isEqualToString:@"public.png"] ||
+             [[pboard.pasteboardTypes objectAtIndex:i] isEqualToString:@"public.gif"] ||
+             [[pboard.pasteboardTypes objectAtIndex:i] isEqualToString:@"public.bmp"] ) {
+            
+            //画像の場合
+            result = YES;
+        }
+    }
+    
+    return result;
 }
 
 @end

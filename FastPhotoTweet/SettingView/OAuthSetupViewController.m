@@ -142,17 +142,15 @@
         //NSLog(@"accessToken secret: %@", accessToken.secret);
         
 		NSUserDefaults *d = [NSUserDefaults standardUserDefaults];
-        NSMutableDictionary *dic = [NSMutableDictionary dictionary];
+        NSMutableDictionary *dic = [NSMutableArray array];
         
         if ( ![EmptyCheck check:[d dictionaryForKey:@"OAuthAccount"]] ) {
             
             //NSLog(@"init OAuthAccountDictionary");
             [d setObject:[NSDictionary dictionary] forKey:@"OAuthAccount"];
-            
-        }else {
-            
-            dic = [[d dictionaryForKey:@"OAuthAccount"] mutableCopy];
         }
+        
+        dic = [NSMutableDictionary dictionaryWithDictionary:[d dictionaryForKey:@"OAuthAccount"]];
         
         int count = [d integerForKey:@"AccountCount"];
         count++;
@@ -165,10 +163,8 @@
         NSArray *accountData = [NSArray arrayWithObjects:key, secret, nil];
         [dic setObject:accountData forKey:[NSString stringWithFormat:@"OAuthAccount_%d", count]];
         
-        NSDictionary *saveDic = [[NSDictionary alloc] initWithDictionary:dic];
+        NSMutableDictionary *saveDic = [[[NSMutableDictionary alloc] initWithDictionary:dic] autorelease];
         [d setObject:saveDic forKey:@"OAuthAccount"];
-        
-        [saveDic release];
         
 		[d synchronize];
         
@@ -372,7 +368,7 @@
         
         [wv stopLoading];
     }
-    
+
     wv.delegate = nil;
     [wv removeFromSuperview];
     

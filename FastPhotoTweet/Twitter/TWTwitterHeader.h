@@ -9,3 +9,4 @@
 #import "TWSendTweet.h"
 #import "TWGetAccount.h"
 #import "TWTwitterCharCounter.h"
+#import "TWEntities.h"

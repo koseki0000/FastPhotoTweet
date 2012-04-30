@@ -8,13 +8,15 @@
 #import "SettingViewController.h"
 
 //セクション数
-#define SECTION_COUNT 3
+#define SECTION_COUNT 4
 //セクション0の項目数 (画像関連設定)
 #define SECTION_0 7
 //セクション1の項目数 (投稿関連設定)
 #define SECTION_1 6
 //セクション2の項目数 (その他の設定)
 #define SECTION_2 1
+//セクション3の項目数 (ライセンス)
+#define SECTION_3 1
 
 //設定項目名
 //画像関連設定
@@ -34,6 +36,8 @@
 #define NAME_12  @"サブ書式を編集"
 //その他の設定
 #define NAME_13 @"アプリがアクティブになった際入力可能状態にする"
+//ライセンス
+#define NAME_14 @"ライセンス"
 
 #define BLANK @""
 
@@ -61,7 +65,7 @@
         settingArray = [NSMutableArray arrayWithObjects:NAME_0,  NAME_1,  NAME_2,  NAME_3, 
                                                         NAME_4,  NAME_5,  NAME_6,  NAME_7, 
                                                         NAME_8,  NAME_9,  NAME_10, NAME_11, 
-                                                        NAME_12, NAME_13, nil];
+                                                        NAME_12, NAME_13, NAME_14, nil];
         
         [settingArray retain];
     }
@@ -298,6 +302,10 @@
             
             result = @"OFF";
         }
+    
+    }else if ( settingState == 14 ) {
+        
+        //空のまま
     }
         
     return result;
@@ -319,6 +327,9 @@
             
         case 2:
 			return SECTION_2;
+
+        case 3:
+			return SECTION_3;
 	}
     
 	return 0;
@@ -355,6 +366,8 @@
         settingState = indexPath.row + SECTION_0;
     }else if ( indexPath.section == 2 ) {
         settingState = indexPath.row + SECTION_0 + SECTION_1;
+    }else if ( indexPath.section == 3 ) {
+        settingState = indexPath.row + SECTION_0 + SECTION_1 + SECTION_2;
     }
     
     settingName = [settingArray objectAtIndex:settingState];
@@ -570,6 +583,17 @@
                      cancelButtonTitle:@"Cancel"
                      destructiveButtonTitle:nil
                      otherButtonTitles:@"ON", @"OFF", nil];
+        }
+        
+    }else if ( indexPath.section == 3 ) {
+        
+        if ( indexPath.row == 0 ) {
+            
+            LicenseViewController *dialog = [[[LicenseViewController alloc] init] autorelease];
+            dialog.modalTransitionStyle = UIModalTransitionStyleCoverVertical;
+            [self presentModalViewController:dialog animated:YES];
+            
+            return;
         }
     }
     
@@ -868,6 +892,9 @@
             
         case 2:
             return @"その他の設定";
+            
+        case 3:
+            return BLANK;
     }
     
     return nil;

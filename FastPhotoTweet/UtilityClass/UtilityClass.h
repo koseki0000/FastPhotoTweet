@@ -14,3 +14,4 @@
 #import "EmptyCheck.h"
 #import "ResizeImage.h"
 #import "EncodeImage.h"
+#import "HankakuKana.h"

@@ -33,6 +33,7 @@
     
     NSUserDefaults *d;
     UIPasteboard *pboard;
+    UIImage *errorImage;
     AppDelegate * appDelegate;
     ACAccount *twAccount;
     
@@ -61,6 +62,7 @@
 @property (retain, nonatomic) IBOutlet UIBarButtonItem *flexibleSpace;
 @property (retain, nonatomic) IBOutlet UIBarButtonItem *addButton;
 @property (retain, nonatomic) IBOutlet UIBarButtonItem *nowPlayingButton;
+@property (retain, nonatomic) IBOutlet UIBarButtonItem *actionButton;
 @property (retain, nonatomic) IBOutlet UITapGestureRecognizer *tapGesture;
 @property (retain, nonatomic) IBOutlet UISwipeGestureRecognizer *rigthSwipe;
 @property (retain, nonatomic) IBOutlet UISwipeGestureRecognizer *leftSwipe;
@@ -73,6 +75,7 @@
 - (IBAction)pushAddButton:(id)sender;
 - (IBAction)pushResendButton:(id)sender;
 - (IBAction)pushNowPlayingButton:(id)sender;
+- (IBAction)pushActionButton:(id)sender;
 
 - (IBAction)callbackTextFieldEnter:(id)sender;
 - (IBAction)textFieldStartEdit:(id)sender;

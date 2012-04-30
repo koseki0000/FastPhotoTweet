@@ -58,27 +58,39 @@
         
         if ( [itemName isEqualToString:@"tweet"] ) {
             
-            //NSLog(@"DeleteNotificationTweet");
-            [d removeObjectForKey:@"AddNotificationCenterTweet"];
-            return;
+            if ( [d boolForKey:@"AddNotificationCenterTweet"] ) { 
+                
+                //NSLog(@"DeleteNotificationTweet");
+                [d removeObjectForKey:@"AddNotificationCenterTweet"];
+                return;   
+            }
             
         }else if ( [itemName isEqualToString:@"fast"] ) {
             
-            //NSLog(@"DeleteNotificationFastTweet");
-            [d removeObjectForKey:@"AddNotificationCenterFastTweet"];
-            return;
+            if ( [d boolForKey:@"AddNotificationCenterFastTweet"] ) { 
+                
+                //NSLog(@"DeleteNotificationFastTweet");
+                [d removeObjectForKey:@"AddNotificationCenterFastTweet"];
+                return;
+            }
             
         }else if ( [itemName isEqualToString:@"photo"] ) {
             
-            //NSLog(@"DeleteNotificationPhotoTweet");
-            [d removeObjectForKey:@"AddNotificationCenterPhotoTweet"];
-            return;
+            if ( [d boolForKey:@"AddNotificationCenterFastTweet"] ) { 
+                
+                //NSLog(@"DeleteNotificationPhotoTweet");
+                [d removeObjectForKey:@"AddNotificationCenterPhotoTweet"];
+                return;
+            }
             
         }else if ( [itemName isEqualToString:@"music"] ) {
             
-            //NSLog(@"DeleteNotificationNowPlaying");
-            [d removeObjectForKey:@"AddNotificationCenterNowPlaying"];
-            return;
+            if ( [d boolForKey:@"AddNotificationCenterFastTweet"] ) {
+                
+                //NSLog(@"DeleteNotificationNowPlaying");
+                [d removeObjectForKey:@"AddNotificationCenterNowPlaying"];
+                return;
+            }
         }
         
         //通知フラグと種類を登録

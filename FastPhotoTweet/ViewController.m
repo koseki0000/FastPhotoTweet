@@ -8,7 +8,7 @@
 #import "ViewController.h"
 
 #define TOP_BAR [NSArray arrayWithObjects:trashButton, flexibleSpace, idButton, flexibleSpace, resendButton, flexibleSpace, imageSettingButton, flexibleSpace, postButton, nil]
-#define BOTTOM_BAR [NSArray arrayWithObjects:settingButton, flexibleSpace, nowPlayingButton, flexibleSpace, addButton, nil]
+#define BOTTOM_BAR [NSArray arrayWithObjects:settingButton, flexibleSpace, actionButton, flexibleSpace, nowPlayingButton, flexibleSpace, addButton, nil]
 
 #define IMGUR_API_KEY   @"6de089e68b55d6e390d246c4bf932901"
 #define TWITPIC_API_KEY @"95cf146048caad3267f95219b379e61c"
@@ -35,6 +35,7 @@
 @synthesize tapGesture;
 @synthesize rigthSwipe;
 @synthesize leftSwipe;
+@synthesize actionButton;
 @synthesize nowPlayingButton;
 @synthesize idButton;
 @synthesize bottomBar;
@@ -63,6 +64,7 @@
     //各種初期値をセット
     d = [NSUserDefaults standardUserDefaults];
     pboard = [UIPasteboard generalPasteboard];
+    errorImage = nil;
     appDelegate = (AppDelegate *)[[UIApplication sharedApplication] delegate];
     postText.text = BLANK;
     changeAccount = NO;
@@ -311,7 +313,7 @@
             if ( imagePreview.image == nil ) {
                 
                 //文字列をバックグラウンドプロセスで投稿
-                NSArray *postData = [NSArray arrayWithObjects:[self deleteWhiteSpace:text], nil, nil];
+                NSArray *postData = [NSArray arrayWithObjects:[self deleteWhiteSpace:text], nil];
                 [TWSendTweet performSelectorInBackground:@selector(post:) withObject:postData];
                 
                 //入力欄を空にする
@@ -331,7 +333,7 @@
                 }else {
                     
                     //文字列をバックグラウンドプロセスで投稿
-                    NSArray *postData = [NSArray arrayWithObjects:[self deleteWhiteSpace:text], nil, nil];
+                    NSArray *postData = [NSArray arrayWithObjects:[self deleteWhiteSpace:text], nil];
                     [TWSendTweet performSelectorInBackground:@selector(post:) withObject:postData];
                 }
                 
@@ -339,6 +341,8 @@
                 postText.text = BLANK;
                 imagePreview.image = nil;
             }
+            
+            [self callback];
         }
     }
 }
@@ -361,8 +365,6 @@
             
             if ( [successText hasPrefix:[temp objectAtIndex:2]] ) {
                 
-                ////NSLog(@"SuccessPostFind\nSearch: %@\nFind%@",successText ,[temp objectAtIndex:2]);
-                
                 find = YES;
                 break;
             }
@@ -372,16 +374,13 @@
         
         if ( find ) {
             
-            ////NSLog(@"DeleteSuccessPost:\n%@", [[appDelegate.postError objectAtIndex:arrayIndex] objectAtIndex:2]);
-            
             [appDelegate.postError removeObjectAtIndex:arrayIndex];
-            //NSLog(@"TempPostDeleted");
         }
         
-    }else if ( [result isEqualToString:@"Error"] ) {
+    }else if ( [result isEqualToString:@"Error"] || [result isEqualToString:@"PhotoError"]) {
         
-    }else if ( [result isEqualToString:@"PhotoError"] ) {
-        
+        ShowAlert *alert = [[ShowAlert alloc] init];
+        [alert error:@"投稿に失敗しました。失敗したPostは上部中央のボタンから再投稿出来ます。"];
     }
         
     //再投稿ボタンの有効･無効切り替え
@@ -442,6 +441,20 @@
     postText.text = BLANK;
     imagePreview.image = nil;
     [self countText];
+}
+
+- (IBAction)pushActionButton:(id)sender {
+    
+    actionSheetNo = 4;
+    
+    UIActionSheet *sheet = [[UIActionSheet alloc]
+                            initWithTitle:@"機能選択"
+                            delegate:self
+                            cancelButtonTitle:@"Cancel"
+                            destructiveButtonTitle:nil
+                            otherButtonTitles:@"半角カナ変換", nil];
+	[sheet autorelease];
+	[sheet showInView:self.view];
 }
 
 - (IBAction)pushSettingButton:(id)sender {
@@ -561,7 +574,7 @@
     //画像ソースがカメラの場合保存
     if ( [d integerForKey:@"ImageSource"] == 1 || cameraMode ) {
         
-        UIImageWriteToSavedPhotosAlbum(image, nil, nil, nil);
+        UIImageWriteToSavedPhotosAlbum(image, self, @selector(savingImageIsFinished:didFinishSavingWithError:contextInfo:), nil);
     }
     
     //画像が選択された場合
@@ -593,6 +606,29 @@
     //モーダルビューを閉じる
     repeatedPost = NO;
     [picPicker dismissModalViewControllerAnimated:YES];
+}
+
+- (void)savingImageIsFinished:(UIImage *)image
+     didFinishSavingWithError:(NSError *)error
+                  contextInfo:(void *)contextInfo {
+    
+    //NSLog(@"savingImageIsFinished");
+    
+    if( error ){
+        
+        errorImage = image;
+        
+        actionSheetNo = 3;
+        
+        UIActionSheet *sheet = [[UIActionSheet alloc]
+                                initWithTitle:@"写真の保存に失敗しました。"
+                                delegate:self
+                                cancelButtonTitle:@"Cancel"
+                                destructiveButtonTitle:nil
+                                otherButtonTitles:@"再保存", @"破棄", nil];
+        [sheet autorelease];
+        [sheet showInView:self.view];
+    }
 }
 
 - (void)requestFinished:(ASIHTTPRequest *)request {
@@ -651,7 +687,7 @@
     
     //アップロードに失敗した場合
     
-    NSDictionary *result = [request.responseString JSONValue];
+    //NSDictionary *result = [request.responseString JSONValue];
     //NSLog(@"resultDic: %@", result);
     
     ShowAlert *alert = [[ShowAlert alloc] init];
@@ -845,6 +881,49 @@
         }
         
         [self showImagePicker];
+        
+    }else if ( actionSheetNo == 3 ) {
+    
+        if ( buttonIndex == 0 ) {
+            
+//          NSLog(@"PhotoReSave");
+            UIImageWriteToSavedPhotosAlbum(errorImage, self, @selector(savingImageIsFinished:didFinishSavingWithError:contextInfo:), nil);
+
+        }else {
+            
+//          NSLog(@"PhotoTrash");
+            errorImage = nil;
+        }
+    }else if ( actionSheetNo == 4 ) {
+        
+        if ( buttonIndex == 0 ) {
+            
+            actionSheetNo = 5;
+            
+            UIActionSheet *sheet = [[UIActionSheet alloc]
+                                    initWithTitle:@"半角カナ変換"
+                                    delegate:self
+                                    cancelButtonTitle:@"Cancel"
+                                    destructiveButtonTitle:nil
+                                    otherButtonTitles:@"半角カナ変換(カタカナ)", @"半角カナ変換(ひらがな)", @"半角カナ変換(カタカナ+ひらがな)", nil];
+            [sheet autorelease];
+            [sheet showInView:self.view];
+        }
+    
+    }else if ( actionSheetNo == 5 ) {
+        
+        if ( buttonIndex == 0 ) {
+            
+            postText.text = [HankakuKana kana:postText.text];
+            
+        }else if ( buttonIndex == 1 ) {
+            
+            postText.text = [HankakuKana hiragana:postText.text];
+            
+        }else if ( buttonIndex == 2 ) {
+            
+            postText.text = [HankakuKana kanaHiragana:postText.text];
+        }
     }
 }
 
@@ -1035,12 +1114,6 @@
             //ペーストボードの内容をチェック
             int pBoardType = [PasteboardType check];
             
-            if ( pBoardType == -1 ) {
-                
-                //テキストか画像以外
-                return;
-            }
-            
             if ( [[d objectForKey:@"NotificationType"] isEqualToString:@"tweet"] ) {
                 
                 //NSLog(@"Post Start");
@@ -1079,7 +1152,7 @@
         //FastPostが有効、またはNowPlaying限定CallBackが有効
         if ( [d boolForKey:@"NowPlayingFastPost"] ) {
             
-            NSArray *postData = [NSArray arrayWithObjects:[self deleteWhiteSpace:nowPlayingText], nil, nil];
+            NSArray *postData = [NSArray arrayWithObjects:[self deleteWhiteSpace:nowPlayingText], nil];
             [TWSendTweet performSelectorInBackground:@selector(post:) withObject:postData];
             
             //CallBack、またはNowPlaying限定CallBackが有効
@@ -1165,7 +1238,7 @@
             
             //投稿処理
             NSString *text = [[[NSString alloc] initWithString:pboard.string] autorelease];
-            NSArray *postData = [NSArray arrayWithObjects:[self deleteWhiteSpace:text], nil, nil];
+            NSArray *postData = [NSArray arrayWithObjects:[self deleteWhiteSpace:text], nil];
             [TWSendTweet performSelectorInBackground:@selector(post:) withObject:postData];
      
             //コールバックが有効な場合
@@ -1184,6 +1257,10 @@
             postText.text = pboard.string;
             [postText becomeFirstResponder];
         }
+        
+    }else {
+        
+        [postText becomeFirstResponder];
     }
 }
 
@@ -1219,6 +1296,11 @@
 - (void)callback {
     
     //NSLog(@"Callback Start");
+    
+    if ( ![d boolForKey:@"CallBack"] ) {
+        
+        return;
+    }
     
     BOOL canOpen = NO;
     
@@ -1338,42 +1420,6 @@
     return (NSString *)resultText;
 }
 
-- (void)viewDidUnload {
-    
-    [self setPostText:nil];
-    [self setCallbackLabel:nil];
-    [self setCallbackTextField:nil];
-    [self setCallbackSwitch:nil];
-    [self setPostCharLabel:nil];
-    [self setImagePreview:nil];
-    [self setImageSettingButton:nil];
-    [self setSv:nil];
-    [self setTopBar:nil];
-    [self setTrashButton:nil];
-    [self setPostButton:nil];
-    [self setFlexibleSpace:nil];
-    [self setSettingButton:nil];
-    [self setBottomBar:nil];
-    [self setIdButton:nil];
-    [self setAddButton:nil];
-    [self setTapGesture:nil];
-    [self setResendButton:nil];
-    [self setRigthSwipe:nil];
-    [self setLeftSwipe:nil];
-    [self setNowPlayingButton:nil];
-    [super viewDidUnload];
-}
-
-- (void)didReceiveMemoryWarning {
-    
-    [super didReceiveMemoryWarning];
-}
-
-- (void)viewWillAppear:(BOOL)animated {
-    
-    [super viewWillAppear:animated];
-}
-
 - (void)viewDidAppear:(BOOL)animated {
     
     [super viewDidAppear:animated];
@@ -1430,6 +1476,43 @@
     }
 }
 
+- (void)didReceiveMemoryWarning {
+    
+    [super didReceiveMemoryWarning];
+}
+
+- (void)viewDidUnload {
+    
+    [self setPostText:nil];
+    [self setCallbackLabel:nil];
+    [self setCallbackTextField:nil];
+    [self setCallbackSwitch:nil];
+    [self setPostCharLabel:nil];
+    [self setImagePreview:nil];
+    [self setImageSettingButton:nil];
+    [self setSv:nil];
+    [self setTopBar:nil];
+    [self setTrashButton:nil];
+    [self setPostButton:nil];
+    [self setFlexibleSpace:nil];
+    [self setSettingButton:nil];
+    [self setBottomBar:nil];
+    [self setIdButton:nil];
+    [self setAddButton:nil];
+    [self setTapGesture:nil];
+    [self setResendButton:nil];
+    [self setRigthSwipe:nil];
+    [self setLeftSwipe:nil];
+    [self setNowPlayingButton:nil];
+    [self setActionButton:nil];
+    [super viewDidUnload];
+}
+
+- (void)viewWillAppear:(BOOL)animated {
+    
+    [super viewWillAppear:animated];
+}
+
 - (void)viewWillDisappear:(BOOL)animated {
     
 	[super viewWillDisappear:animated];
@@ -1466,6 +1549,7 @@
     [rigthSwipe release];
     [leftSwipe release];
     [nowPlayingButton release];
+    [actionButton release];
     [super dealloc];
 }
 

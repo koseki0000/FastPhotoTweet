@@ -70,12 +70,12 @@
         NSString *tReqURL;
         if ( postMode == 0 ) {
             
-            tReqURL = @"https://upload.twitter.com/1/statuses/update_with_media.json";
+            tReqURL = @"https://upload.twitter.com/1/statuses/update_with_media.json?include_entities=true";
             image = [postData objectAtIndex:1];
             
         }else if ( postMode == 1 ) {
             
-            tReqURL = @"https://api.twitter.com/1/statuses/update.json";
+            tReqURL = @"https://api.twitter.com/1/statuses/update.json?include_entities=true";
         }
         
         //リクエストの作成
@@ -127,6 +127,7 @@
                  
                  //NSLog(@"responseDataString: %@", responseDataString);
                  //NSLog(@"ResultText: %@", [result objectForKey:@"text"]);
+                 //NSLog(@"Result: %@", result);
                  
                  BOOL media = NO;
                  NSString *entities = [[result objectForKey:@"entities"] objectForKey:@"media"];
@@ -138,9 +139,9 @@
                      media = YES;
                  }
                  
-                 //Postしたテキスト
-                 NSString *text = [result objectForKey:@"text"];
-                 //NSLog(@"Text: %@", text);
+                 //Postしたテキストのt.coを展開
+                 NSString *text = [TWEntities replace:result];
+                 //NSLog(@"text: %@", text);
                  
                  if (error != nil) {
                      
@@ -170,9 +171,16 @@
                      
                      if ( ![EmptyCheck check:text] ) {
                          
+                         NSString *errorText = [result objectForKey:@"error"];
+                         
+                         if ( ![EmptyCheck check:errorText] ) {
+                             
+                             errorText = @"不明なエラーです。";
+                         }
+                         
                          //textが空の場合は失敗してる
                          ShowAlert *alert = [[ShowAlert alloc] init];
-                         [alert error:@"Tweet text is empty"];
+                         [alert error:errorText];
                          
                          [postResult setObject:@"Error" forKey:@"PostResult"];
                          

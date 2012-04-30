@@ -11,6 +11,7 @@
 #import "AppDelegate.h"
 #import "JSON.h"
 #import "TWGetAccount.h"
+#import "TWEntities.h"
 #import "UtilityClass.h"
 
 @interface TWSendTweet : NSObject
