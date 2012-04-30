@@ -142,7 +142,7 @@
         //NSLog(@"accessToken secret: %@", accessToken.secret);
         
 		NSUserDefaults *d = [NSUserDefaults standardUserDefaults];
-        NSMutableDictionary *dic = [NSMutableArray array];
+        NSMutableDictionary *dic = [NSMutableDictionary dictionary];
         
         if ( ![EmptyCheck check:[d dictionaryForKey:@"OAuthAccount"]] ) {
             
