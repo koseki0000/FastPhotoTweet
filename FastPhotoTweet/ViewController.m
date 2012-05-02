@@ -70,6 +70,7 @@
     changeAccount = NO;
     cameraMode = NO;
     repeatedPost = NO;
+    webBrowserMode = NO;
     actionSheetNo = 0;
     
     postText.layer.borderWidth = 2;
@@ -1103,6 +1104,7 @@
 
 - (void)startWebBrowsing {
     
+    webBrowserMode = YES;
     WebViewExController *dialog = [[[WebViewExController alloc] init] autorelease];
     dialog.modalTransitionStyle = UIModalTransitionStyleCoverVertical;
     [self presentModalViewController:dialog animated:YES];
@@ -1600,13 +1602,20 @@
     
     //NSLog(@"viewDidAppear");
     
-    if ( [appDelegate.fastGoogleMode intValue] == 1 ) {
+    if ( webBrowserMode && [EmptyCheck check:appDelegate.postText] ) {
         
+        webBrowserMode = NO;
         appDelegate.fastGoogleMode = [NSNumber numberWithInt:0];
         postText.text = [NSString stringWithFormat:@"%@ ", [self deleteWhiteSpace:[NSString stringWithFormat:@"%@ %@", postText.text, appDelegate.postText]]];
         [postText becomeFirstResponder];
         
         appDelegate.postText = BLANK;
+        
+        return;
+        
+    }else if ( webBrowserMode ) {
+        
+        webBrowserMode = NO;
         
         return;
     }
