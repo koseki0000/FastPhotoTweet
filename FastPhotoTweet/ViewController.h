@@ -23,6 +23,7 @@
 #import "IDChangeViewController.h"
 #import "SettingViewController.h"
 #import "OAuthSetupViewController.h"
+#import "WebViewExController.h"
 #import <MediaPlayer/MediaPlayer.h>
 #import "UUIDEncryptor.h"
 #import "ResendViewController.h"
@@ -41,6 +42,7 @@
     BOOL cameraMode;
     BOOL repeatedPost;
     BOOL resendMode;
+    BOOL webBrowserMode;
     int actionSheetNo;
 }
 
@@ -93,6 +95,7 @@
 - (void)showImagePicker;
 - (void)callback;
 - (void)countText;
+- (void)startWebBrowsing;
 - (void)uploadImage:(UIImage *)image;
 - (void)postDone:(NSNotification *)center;
 - (BOOL)ios5Check;
@@ -104,5 +107,6 @@
 - (void)postNotification:(int)pBoardType;
 - (void)fastPostNotification:(int)pBoardType;
 - (void)photoPostNotification:(int)pBoardType;
+- (void)webPageShareNotification:(int)pBoardType;
 
 @end

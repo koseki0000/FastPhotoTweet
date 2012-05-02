@@ -12,7 +12,7 @@
 + (int)check {
     
     UIPasteboard *pboard = [UIPasteboard generalPasteboard];
-    //NSLog(@"pboard: %@", pboard.pasteboardTypes);
+    NSLog(@"pboard: %@", pboard.pasteboardTypes);
     
     int pBoardType = -1;
     int i = 0;

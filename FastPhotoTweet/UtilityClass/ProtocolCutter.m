@@ -9,7 +9,7 @@
 
 @implementation ProtocolCutter
 
-+ (NSString *)protocolCutter:(NSString *)URLString {
++ (NSString *)url:(NSString *)URLString {
     
     NSString *originalURLString = URLString;
     

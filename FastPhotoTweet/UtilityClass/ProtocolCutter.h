@@ -9,6 +9,6 @@
 
 @interface ProtocolCutter : NSObject
 
-+ (NSString *)protocolCutter:(NSString *)URLString;
++ (NSString *)url:(NSString *)URLString;
 
 @end

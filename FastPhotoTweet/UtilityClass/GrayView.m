@@ -11,11 +11,15 @@
 
 - (void)on {
     
+    NSLog(@"GrayView On");
+    
     self.frame = [[UIScreen mainScreen] bounds];
     [self createView];
 }
 
 - (void)onAndSetSize:(int)x y:(int)y w:(int)w h:(int)h {
+    
+    NSLog(@"GrayView OnAndSetSize");
     
     self.frame = CGRectMake(x, y, w, h);
     [self createView];
@@ -43,6 +47,8 @@
 
 - (void)off {
     
+    NSLog(@"GrayView Off");
+    
     count--;
     
     if ( count <= 0 ) {
@@ -54,6 +60,8 @@
 }
 
 - (void)remove {
+    
+    NSLog(@"GrayView Remove");
     
     count = 0;
     

@@ -155,6 +155,7 @@
 
 - (void)testMethod {
     
+    
 }
 
 - (void)loadSettings {
@@ -260,15 +261,15 @@
             continue;
         }
         
-        NSString *newVersion = @"1.0";
+        NSString *newVersion = @"1.1";
         
         if ( [[d dictionaryForKey:@"Information"] valueForKey:newVersion] == 0 ) {
             
             //NSLog(@"newVersion");
             
-//            ShowAlert *alert = [[ShowAlert alloc] init];
-//            [alert title:[NSString stringWithFormat:@"FastPhotoTweet %@", newVersion] 
-//                 message:@"message"];
+            ShowAlert *alert = [[ShowAlert alloc] init];
+            [alert title:[NSString stringWithFormat:@"FastPhotoTweet %@", newVersion] 
+                 message:@"\n・「FastGoogle」機能を追加\n通知センターからペーストボード内の文字列を素早くGoogle検索する事が出来ます。\n・「WebPageShare」機能を追加\nURLの含まれる文字列がペーストボード内にある状態で使うと、ページタイトルを取得し、書式を整えた状態に変換されワンタッチでTwitterでリンクを共有する事が出来ます。"];
             
             information = [[d dictionaryForKey:@"Information"] mutableCopy];
             [information setValue:[NSNumber numberWithInt:1] forKey:newVersion];
@@ -452,7 +453,7 @@
                             delegate:self
                             cancelButtonTitle:@"Cancel"
                             destructiveButtonTitle:nil
-                            otherButtonTitles:@"半角カナ変換", nil];
+                            otherButtonTitles:@"半角カナ変換", @"ブラウザ", nil];
 	[sheet autorelease];
 	[sheet showInView:self.view];
 }
@@ -487,7 +488,7 @@
                             cancelButtonTitle:@"Cancel"
                             destructiveButtonTitle:nil
                             otherButtonTitles:@"Tweet", @"FastTweet", @"PhotoTweet", 
-                                              @"NowPlaying", @"全て", nil];
+                                              @"NowPlaying", @"FastGoogle", @"FastPagePost", @"全て", nil];
 	[sheet autorelease];
 	[sheet showInView:self.view];
 }
@@ -802,6 +803,30 @@
         
         }else if ( buttonIndex == 4 ) {
             
+            localPush.alertBody = @"FastGoogle";
+            localPush.userInfo = [NSDictionary dictionaryWithObjectsAndKeys:@"google", @"scheme", nil];
+            [d setBool:YES forKey:@"AddNotificationCenterFastGoogle"];
+            
+        }else if ( buttonIndex == 5 ) {
+            
+            localPush.alertBody = @"WebPageShare";
+            localPush.userInfo = [NSDictionary dictionaryWithObjectsAndKeys:@"page", @"scheme", nil];
+            [d setBool:YES forKey:@"AddNotificationCenterWebPageShare"];
+            
+        }else if ( buttonIndex == 6 ) {
+            
+            localPush.alertBody = @"WebPageShare";
+            localPush.userInfo = [NSDictionary dictionaryWithObjectsAndKeys:@"page", @"scheme", nil];
+            localPush.fireDate = [NSDate dateWithTimeIntervalSinceNow:0];
+            [[UIApplication sharedApplication] scheduleLocalNotification:localPush];
+            [d setBool:YES forKey:@"AddNotificationCenterWebPageShare"];
+            
+            localPush.alertBody = @"FastGoogle";
+            localPush.userInfo = [NSDictionary dictionaryWithObjectsAndKeys:@"google", @"scheme", nil];
+            localPush.fireDate = [NSDate dateWithTimeIntervalSinceNow:0];
+            [[UIApplication sharedApplication] scheduleLocalNotification:localPush];
+            [d setBool:YES forKey:@"AddNotificationCenterFastGoogle"];
+            
             localPush.alertBody = @"NowPlaying";
             localPush.userInfo = [NSDictionary dictionaryWithObjectsAndKeys:@"music", @"scheme", nil];
             localPush.fireDate = [NSDate dateWithTimeIntervalSinceNow:0];
@@ -908,6 +933,10 @@
                                     otherButtonTitles:@"半角カナ変換(カタカナ)", @"半角カナ変換(ひらがな)", @"半角カナ変換(カタカナ+ひらがな)", nil];
             [sheet autorelease];
             [sheet showInView:self.view];
+            
+        }else if ( buttonIndex == 1 ) {
+            
+            [self startWebBrowsing];
         }
     
     }else if ( actionSheetNo == 5 ) {
@@ -1072,10 +1101,17 @@
     [request start];
 }
 
+- (void)startWebBrowsing {
+    
+    WebViewExController *dialog = [[[WebViewExController alloc] init] autorelease];
+    dialog.modalTransitionStyle = UIModalTransitionStyleCoverVertical;
+    [self presentModalViewController:dialog animated:YES];
+}
+
 - (void)becomeActive:(NSNotification *)notification {
     
     //アプリケーションがアクティブになった際に呼ばれる
-    //NSLog(@"becomeActive");
+    NSLog(@"becomeActive");
     
     //設定が有効な場合Post入力可能状態にする
     if ( [d boolForKey:@"ShowKeyboard"] ) {
@@ -1128,6 +1164,39 @@
                 
                 //NSLog(@"Photo Start");
                 [self photoPostNotification:pBoardType];
+            
+            }else if ( [[d objectForKey:@"NotificationType"] isEqualToString:@"google"] ) {
+                
+                NSLog(@"Google Start");
+                
+                if ( pBoardType == 0 ) {
+                    
+                    NSString *searchURL = @"http://www.google.co.jp/search?q=";
+                    NSString *encodedSearchWord = [((NSString *)CFURLCreateStringByAddingPercentEscapes(kCFAllocatorDefault, 
+                                                                                                        (CFStringRef)pboard.string, 
+                                                                                                        NULL, 
+                                                                                                        (CFStringRef)@"!*'();:@&=+$,/?%#[]", 
+                                                                                                        kCFStringEncodingShiftJIS)) autorelease];
+                    
+                    appDelegate.openURL = [NSString stringWithFormat:@"%@%@", searchURL, encodedSearchWord];
+                }
+                
+                if ( [appDelegate.isBrowserOpen intValue] == 0 ) {
+                
+                    [self startWebBrowsing];
+                }
+                
+            }else if ( [[d objectForKey:@"NotificationType"] isEqualToString:@"page"] ) {
+                
+                NSLog(@"WebPageShare Start");
+                
+                dispatch_async(dispatch_get_main_queue(), ^{
+                    
+                    //処理中を表すビューを表示
+                    [ActivityIndicator visible:YES];
+                    
+                    [self webPageShareNotification:(int)pBoardType];
+                });
             }
         }
         
@@ -1137,6 +1206,111 @@
     }
     
     [self countText];
+}
+
+- (void)webPageShareNotification:(int)pBoardType {
+    
+    @try {
+        
+        NSString *pboardString = nil;
+        NSError *error = nil;
+        
+        //URLを抽出する正規表現を設定
+        NSRegularExpression *regexp = [NSRegularExpression regularExpressionWithPattern:@"https?:([^\\x00-\\x20()\"<>\\x7F-\\xFF])*" 
+                                                                                options:0 
+                                                                                  error:&error];
+		
+		NSTextCheckingResult *matchResult = [regexp firstMatchInString:pboard.string 
+                                                               options:0 
+                                                                 range:NSMakeRange( 0, pboard.string.length )];
+        if ( !error ) {
+            
+            if (matchResult.numberOfRanges != 0) {
+                
+                pboardString = [pboard.string substringWithRange:matchResult.range];
+            }
+            
+        }else {
+            
+            ShowAlert *errorAlert = [[ShowAlert alloc] init];
+            [errorAlert error:error.localizedDescription];
+            return;
+        }
+        
+        if ( pBoardType != 0 || pboardString == nil ) {
+            
+            ShowAlert *errorAlert = [[ShowAlert alloc] init];
+            [errorAlert error:@"ペーストボード内にURLがありません。"];
+            return;
+        }
+        
+        NSURLRequest *request = [NSURLRequest requestWithURL:[NSURL URLWithString:pboardString]];
+        
+        NSData *response = [NSURLConnection sendSynchronousRequest:request 
+                                                 returningResponse:nil 
+                                                             error:&error];
+        
+        int encodingList[] = {
+            
+            NSUTF8StringEncoding,			// UTF-8
+            NSShiftJISStringEncoding,		// Shift_JIS
+            NSJapaneseEUCStringEncoding,	// EUC-JP
+            NSISO2022JPStringEncoding,		// JIS
+            NSUnicodeStringEncoding,		// Unicode
+            NSASCIIStringEncoding			// ASCII
+        };
+        
+        NSString *dataStr = nil;
+        int max = sizeof( encodingList ) / sizeof( encodingList[0] );
+        
+        for ( int i = 0; i < max; i++ ) {
+            
+            dataStr = [[[NSString alloc] initWithData:response encoding:encodingList[i]] autorelease];
+            
+            if ( dataStr != nil ) {
+                
+                break;
+            }
+        }
+        
+        if ( error ) {
+            
+            ShowAlert *errorAlert = [[ShowAlert alloc] init];
+            [errorAlert error:error.localizedDescription];
+            return;
+        }
+        
+        if ( ![EmptyCheck check:dataStr] ) {
+            
+            ShowAlert *errorAlert = [[ShowAlert alloc] init];
+            [errorAlert error:@"正常にデータが取得できませんでした。"];
+            return;
+        }
+        
+        NSMutableString *title = [RegularExpression mStrRegExp:dataStr regExpPattern:@"<title>.+</title>"];
+        title = (NSMutableString *)[title substringWithRange:NSMakeRange( 7, title.length - 15 )];
+        
+        if ( ![EmptyCheck check:title] ) {
+            
+            ShowAlert *errorAlert = [[ShowAlert alloc] init];
+            [errorAlert error:@"正常にタイトルが取得できませんでした。"];
+            return;
+        }
+        
+        NSString *shareString = [NSString stringWithFormat:@"\"%@\" %@", title, pboardString];
+        
+        postText.text = [NSString stringWithFormat:@"%@ ", [self deleteWhiteSpace:[NSString stringWithFormat:@"%@ %@", postText.text, shareString]]];
+        [postText becomeFirstResponder];
+        
+    }@catch ( NSException *e ) {
+        
+        ShowAlert *errorAlert = [[ShowAlert alloc] init];
+        [errorAlert error:@"原因不明なエラーが発生しました。"];
+        
+    }@finally {
+        
+        [ActivityIndicator visible:NO];
+    }
 }
 
 - (void)nowPlayingNotification {
@@ -1425,6 +1599,17 @@
     [super viewDidAppear:animated];
     
     //NSLog(@"viewDidAppear");
+    
+    if ( [appDelegate.fastGoogleMode intValue] == 1 ) {
+        
+        appDelegate.fastGoogleMode = [NSNumber numberWithInt:0];
+        postText.text = [NSString stringWithFormat:@"%@ ", [self deleteWhiteSpace:[NSString stringWithFormat:@"%@ %@", postText.text, appDelegate.postText]]];
+        [postText becomeFirstResponder];
+        
+        appDelegate.postText = BLANK;
+        
+        return;
+    }
     
     if ( changeAccount || [d boolForKey:@"ChangeAccount"] ) {
         
