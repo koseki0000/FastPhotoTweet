@@ -5,6 +5,10 @@
 //  Created by @peace3884 on 12/05/02.
 //
 
+/////////////////////////////
+//////// ARC ENABLED ////////
+/////////////////////////////
+
 #import "WebViewEx.h"
 
 //WebViewExをautoreleaseで生成するか
@@ -366,21 +370,24 @@
     [self stopLoading];
     [UIApplication sharedApplication].networkActivityIndicatorVisible = NO;    
     self.delegate = nil;
-    [self removeFromSuperview];
     
     if ( AUTORELEASE == NO ) {
         
-        //NSLog(@"release");
+        NSLog(@"release");
         
-        [self release];
+        //[self release];
     }
 }
 
-- (void)dealloc {
-    
-    NSLog(@"WebViewEx dealloc");
-    
-    [super dealloc];
-}
+//- (void)dealloc {
+//    
+//    NSLog(@"WebViewEx dealloc");
+//    
+//    //メモリキャッシュの削除
+//    NSURLCache *cache = [NSURLCache sharedURLCache];
+//    [cache removeAllCachedResponses];
+//    
+//    [super dealloc];
+//}
 
 @end

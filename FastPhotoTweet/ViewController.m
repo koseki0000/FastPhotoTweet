@@ -442,6 +442,8 @@
     
     postText.text = BLANK;
     imagePreview.image = nil;
+    appDelegate.fastGoogleMode = [NSNumber numberWithInt:0];
+    appDelegate.webPageShareMode = [NSNumber numberWithInt:0];
     [self countText];
 }
 
@@ -1173,6 +1175,8 @@
                 
                 if ( pBoardType == 0 ) {
                     
+                    NSLog(@"pBoardType == 0");
+                    
                     NSString *searchURL = @"http://www.google.co.jp/search?q=";
                     NSString *encodedSearchWord = [((NSString *)CFURLCreateStringByAddingPercentEscapes(kCFAllocatorDefault, 
                                                                                                         (CFStringRef)pboard.string, 
@@ -1181,11 +1185,20 @@
                                                                                                         kCFStringEncodingShiftJIS)) autorelease];
                     
                     appDelegate.openURL = [NSString stringWithFormat:@"%@%@", searchURL, encodedSearchWord];
+                    
+                }else {
+                    
+                    NSLog(@"pBoardType != 0");
                 }
                 
                 if ( [appDelegate.isBrowserOpen intValue] == 0 ) {
                 
+                    NSLog(@"Open Browser");
                     [self startWebBrowsing];
+                    
+                }else {
+                    
+                    NSLog(@"Opened Browser");
                 }
                 
             }else if ( [[d objectForKey:@"NotificationType"] isEqualToString:@"page"] ) {
@@ -1275,6 +1288,8 @@
             }
         }
         
+        //NSLog(@"dataStr: %@", dataStr);
+        
         if ( error ) {
             
             ShowAlert *errorAlert = [[ShowAlert alloc] init];
@@ -1290,13 +1305,19 @@
         }
         
         NSMutableString *title = [RegularExpression mStrRegExp:dataStr regExpPattern:@"<title>.+</title>"];
-        title = (NSMutableString *)[title substringWithRange:NSMakeRange( 7, title.length - 15 )];
+        title = [ReplaceOrDelete deleteWordReturnMStr:title deleteWord:@"<title>"];
+        title = [ReplaceOrDelete deleteWordReturnMStr:title deleteWord:@"</title>"];
         
         if ( ![EmptyCheck check:title] ) {
             
-            ShowAlert *errorAlert = [[ShowAlert alloc] init];
-            [errorAlert error:@"正常にタイトルが取得できませんでした。"];
-            return;
+            title = (NSMutableString *)[pboardString lastPathComponent];
+            
+            if ( ![EmptyCheck check:title] ) {
+            
+                ShowAlert *errorAlert = [[ShowAlert alloc] init];
+                [errorAlert error:@"正常にタイトルが取得できませんでした。"];
+                return;
+            }
         }
         
         NSString *shareString = [NSString stringWithFormat:@"\"%@\" %@", title, pboardString];
@@ -1307,7 +1328,7 @@
     }@catch ( NSException *e ) {
         
         ShowAlert *errorAlert = [[ShowAlert alloc] init];
-        [errorAlert error:@"原因不明なエラーが発生しました。"];
+        [errorAlert error:[NSString stringWithFormat:@"原因不明なエラーが発生しました。\n%@", e]];
         
     }@finally {
         

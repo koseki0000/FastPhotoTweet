@@ -112,6 +112,12 @@
     [self dismissModalViewControllerAnimated:YES];
 }
 
+- (void)tableView:(UITableView *)tableView commitEditingStyle:(UITableViewCellEditingStyle)editingStyle forRowAtIndexPath:(NSIndexPath *)indexPath {
+    
+    [appDelegate.postError removeObjectAtIndex:indexPath.row];
+    [resendTable reloadData];
+}
+
 /* TableView必須メソッドここまで */
 
 - (void)viewDidUnload {

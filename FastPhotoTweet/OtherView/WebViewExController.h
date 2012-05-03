@@ -11,16 +11,21 @@
 #import "WebViewEx.h"
 #import "UtilityClass.h"
 
-@interface WebViewExController : UIViewController <UIWebViewDelegate, UIActionSheetDelegate> {
+@interface WebViewExController : UIViewController <UIWebViewDelegate, UIActionSheetDelegate, UITextFieldDelegate> {
     
     AppDelegate *appDelegate;
-    WebViewEx *wv;
+
+    UIAlertView *alert;
+    UITextField *alertText;
     
     NSUserDefaults *d;
     NSString *accessURL;
     
     int actionSheetNo;
+    int alertTextNo;
 }
+
+@property (retain, nonatomic) IBOutlet WebViewEx *wv;
 
 @property (retain, nonatomic) IBOutlet UIToolbar *topBar;
 @property (retain, nonatomic) IBOutlet UITextField *urlField;

@@ -5,6 +5,10 @@
 //  Created by @peace3884 on 12/05/02.
 //
 
+/////////////////////////////
+//////// ARC ENABLED ////////
+/////////////////////////////
+
 #import "WebViewExController.h"
 
 #define TOP_BAR [NSArray arrayWithObjects:nil]
@@ -13,6 +17,7 @@
 #define BLANK @""
 
 @implementation WebViewExController
+@synthesize wv;
 @synthesize topBar;
 @synthesize urlField;
 @synthesize searchField;
@@ -40,6 +45,9 @@
 
     [super viewDidLoad];
     
+    //メモリ管理が正常になるらしい呪文(本来は電話番号やら住所の文字の自動リンク)
+    wv.dataDetectorTypes = UIDataDetectorTypeNone;
+
     //アプリがアクティブになった場合の通知を受け取る設定
     NSNotificationCenter *notificationCenter = [NSNotificationCenter defaultCenter];
     
@@ -50,20 +58,15 @@
     
     d = [NSUserDefaults standardUserDefaults];
     appDelegate = (AppDelegate *)[[UIApplication sharedApplication] delegate];
-    NSLog(@"%d", appDelegate.retainCount);
     
     accessURL = BLANK;
-    [accessURL retain];
+    //[accessURL retain];
     
     [self setSearchEngine];
     
     //ツールバーにボタンをセット
     [bottomBar setItems:BOTTOM_BAR animated:NO];
     
-    wv = [[[WebViewEx alloc] initWithSizeTopAndBottomBar] autorelease];
-    wv.scalesPageToFit = YES;
-    wv.delegate = self;
-    [self.view addSubview:wv];
     
     if ( [EmptyCheck check:appDelegate.reopenURL] && appDelegate.fastGoogleMode == 0 ) {
         
@@ -123,20 +126,35 @@
                             destructiveButtonTitle:nil
                             otherButtonTitles:@"Google", @"Amazon", @"Yahoo!オークション", 
                                               @"Wikipedia", @"Twitter検索", nil];
-    [sheet autorelease];
+    //[sheet autorelease];
     [sheet showInView:self.view];
 }
 
 - (IBAction)pushComposeButton:(id)sender {
  
+    appDelegate.isBrowserOpen = [NSNumber numberWithInt:0];
     appDelegate.reopenURL = [[wv.request URL] absoluteString];
+    
+    if ( wv.loading ) [wv stopLoading];
+    wv.delegate = nil;
+    [wv removeFromSuperview];
+    
+    [ActivityIndicator visible:NO];
+    
     [self dismissModalViewControllerAnimated:YES];
 }
 
 - (IBAction)pushCloseButton:(id)sender {
     
+    appDelegate.isBrowserOpen = [NSNumber numberWithInt:0];
     appDelegate.reopenURL = BLANK;
     appDelegate.openURL = [d objectForKey:@"HomePageURL"];
+    
+    if ( wv.loading ) [wv stopLoading];
+    wv.delegate = nil;
+    [wv removeFromSuperview];
+    
+    [ActivityIndicator visible:NO];
     
     [self dismissModalViewControllerAnimated:YES];
 }
@@ -174,8 +192,8 @@
                             delegate:self
                             cancelButtonTitle:@"Cancel"
                             destructiveButtonTitle:nil
-                            otherButtonTitles:@"開いているページを投稿", nil];
-    [sheet autorelease];
+                            otherButtonTitles:@"開いているページを投稿", @"ホームページを変更", nil];
+    //[sheet autorelease];
     [sheet showInView:self.view];
 }
 
@@ -210,11 +228,11 @@
         searchURL = @"https://mobile.twitter.com/searches?q=";
     }
     
-    NSString *encodedSearchWord = [((NSString *)CFURLCreateStringByAddingPercentEscapes(kCFAllocatorDefault, 
-                                                                                (CFStringRef)searchField.text, 
+    NSString *encodedSearchWord = ((__bridge NSString *)CFURLCreateStringByAddingPercentEscapes(kCFAllocatorDefault, 
+                                                                                (__bridge CFStringRef)searchField.text, 
                                                                                 NULL, 
                                                                                 (CFStringRef)@"!*'();:@&=+$,/?%#[]", 
-                                                                                kCFStringEncodingShiftJIS)) autorelease];
+                                                                                kCFStringEncodingShiftJIS));
     
     NSLog(@"URL: %@", [NSString stringWithFormat:@"%@%@", searchURL, encodedSearchWord]);
     
@@ -342,8 +360,66 @@
             
             appDelegate.postText = [NSString stringWithFormat:@"\"%@\" %@", wv.pageTitle, [[wv.request URL] absoluteString]];
             [self pushComposeButton:nil];
+            
+        }else if ( buttonIndex == 1 ) {
+            
+            alertTextNo = 1;
+            
+            alert = [[UIAlertView alloc] initWithTitle:@"ホームページURL" 
+                                               message:@"\n"
+                                              delegate:self 
+                                     cancelButtonTitle:@"キャンセル" 
+                                     otherButtonTitles:@"確定", nil];
+            
+            alertText = [[UITextField alloc] initWithFrame:CGRectMake(12, 40, 260, 25)];
+            [alertText setBackgroundColor:[UIColor whiteColor]];
+            alertText.contentVerticalAlignment = UIControlContentVerticalAlignmentCenter;
+            alertText.delegate = self;
+            
+            [alert addSubview:alertText];
+            [alert show];
+            //[alert release];
+            [alertText becomeFirstResponder];
+            //[alertText release];
         }
     }
+}
+
+- (void)alertView:(UIAlertView *)alertView clickedButtonAtIndex:(NSInteger)buttonIndex {
+    
+    if ( alertTextNo == 1 ) {
+    
+        if ( buttonIndex == 1 ) {
+     
+            NSLog(@"SetHomePage: %@", alertText.text);
+            [d setObject:alertText.text forKey:@"HomePageURL"];
+            
+            alertTextNo = 0;
+            alertText.text = BLANK;
+        }
+    }
+}
+
+- (BOOL)textFieldShouldReturn:(UITextField *)sender {
+
+    NSLog(@"textFieldShouldReturn");
+    
+    if ( alertTextNo == 1 ) {
+    
+        NSLog(@"SetHomePage: %@", alertText.text);
+        [d setObject:alertText.text forKey:@"HomePageURL"];
+        
+        alertTextNo = 0;
+        alertText.text = BLANK;
+        
+        //キーボードを閉じる
+        [sender resignFirstResponder];
+        
+        //アラートを閉じる
+        [alert dismissWithClickedButtonIndex:1 animated:YES];
+    }
+            
+    return YES;
 }
 
 /* WebView */
@@ -351,9 +427,11 @@
 - (BOOL)webView:(UIWebView *)webView shouldStartLoadWithRequest:(NSURLRequest *)request 
  navigationType:(UIWebViewNavigationType)navigationType {
     
-    [accessURL release];
+    //NSLog(@"URL: %@", [[request URL] absoluteString]);
+    
+    //[accessURL release];
     accessURL = [[request URL] absoluteString];
-    [accessURL retain];
+    //[accessURL retain];
     
     urlField.text = [ProtocolCutter url:[[request URL] absoluteString]];
     [ActivityIndicator visible:YES];
@@ -361,13 +439,13 @@
     return YES;
 }
 
-- (void)webViewDidFinishLoad:(UIWebView*)webView {
+- (void)webViewDidFinishLoad:(UIWebView *)webView {
     
     [ActivityIndicator visible:NO];
     [self updateWebBrowser];
 }
 
-- (void)webViewDidStartLoad:(UIWebView*)webView {
+- (void)webViewDidStartLoad:(UIWebView *)webView {
 }
 
 - (void)webView:(UIWebView *)webView didFailLoadWithError:(NSError *)error {
@@ -415,14 +493,22 @@
         
     }else {
         
-        ShowAlert *alert = [[ShowAlert alloc] init];
-        [alert error:@"インターネットに接続されていません。"];
+        ShowAlert *errorAlert = [[ShowAlert alloc] init];
+        [errorAlert error:@"インターネットに接続されていません。"];
     }
     
     return result;
 }
 
 - (void)viewDidUnload {
+    
+    NSLog(@"WebViewExController viewDidUnload");
+    
+    appDelegate.isBrowserOpen = [NSNumber numberWithInt:0];
+    appDelegate.fastGoogleMode = [NSNumber numberWithInt:0];
+    appDelegate.webPageShareMode = [NSNumber numberWithInt:0];
+    appDelegate.reopenURL = BLANK;
+    appDelegate.openURL = [d objectForKey:@"HomePageURL"];
     
     [self setTopBar:nil];
     [self setBottomBar:nil];
@@ -436,32 +522,36 @@
     [self setUrlField:nil];
     [self setSearchField:nil];
     [self setComposeButton:nil];
+    [self setWv:nil];
     [super viewDidUnload];
 }
 
-- (void)dealloc {
-    
-    NSLog(@"WebViewExController dealloc");
-    
-    appDelegate.isBrowserOpen = [NSNumber numberWithInt:0];
-    
-    [wv close];
-    
-    [accessURL release];
-    
-    [topBar release];
-    [bottomBar release];
-    [searchButton release];
-    [closeButton release];
-    [reloadButton release];
-    [backButton release];
-    [forwardButton release];
-    [menuButton release];
-    [flexibleSpace release];
-    [urlField release];
-    [searchField release];
-    [composeButton release];
-    [super dealloc];
-}
+//- (void)dealloc {
+//    
+//    NSLog(@"WebViewExController dealloc");
+//    
+//    appDelegate.isBrowserOpen = [NSNumber numberWithInt:0];
+//    
+//    [accessURL release];
+//    
+//    [topBar release];
+//    [bottomBar release];
+//    [searchButton release];
+//    [closeButton release];
+//    [reloadButton release];
+//    [backButton release];
+//    [forwardButton release];
+//    [menuButton release];
+//    [flexibleSpace release];
+//    [urlField release];
+//    [searchField release];
+//    [composeButton release];
+//    
+//    if ( wv.loading ) [wv stopLoading];
+//    wv.delegate = nil;
+//    [wv release];
+//
+//    [super dealloc];
+//}
 
 @end

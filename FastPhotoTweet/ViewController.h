@@ -30,12 +30,12 @@
 
 @interface ViewController : UIViewController <UINavigationControllerDelegate, UIImagePickerControllerDelegate, UIActionSheetDelegate> {
     
+    AppDelegate * appDelegate;
     GrayView *grayView;
     
     NSUserDefaults *d;
     UIPasteboard *pboard;
     UIImage *errorImage;
-    AppDelegate * appDelegate;
     ACAccount *twAccount;
     
     BOOL changeAccount;

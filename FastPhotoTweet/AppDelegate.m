@@ -44,11 +44,11 @@
         [D setObject:@"http://www.google.com/" forKey:@"HomePageURL"];
     }
     
+    //各種初期化
     openURL = [D objectForKey:@"HomePageURL"];
     reopenURL = BLANK;
     postText = BLANK;
     
-    //再投稿用配列
     postError = [NSMutableArray array];
     [postError retain];
     
@@ -159,10 +159,12 @@
         
         NSLog(@"Set webBrowsingMode");
         fastGoogleMode = [NSNumber numberWithInt:1];
+        webPageShareMode = [NSNumber numberWithInt:0];
         
     }else if ( [scheme isEqualToString:@"page"] ) {
         
         NSLog(@"Set webPageShareMode");
+        fastGoogleMode = [NSNumber numberWithInt:0];
         webPageShareMode = [NSNumber numberWithInt:1];
     }
     

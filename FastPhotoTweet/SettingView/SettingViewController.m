@@ -634,11 +634,11 @@
         [d setObject:alertText.text forKey:@"NowPlayingEditTextSub"];
     }
     
-    //アラートを閉じる
-    [alert dismissWithClickedButtonIndex:0 animated:YES];
-    
     //キーボードを閉じる
     [sender resignFirstResponder];
+    
+    //アラートを閉じる
+    [alert dismissWithClickedButtonIndex:0 animated:YES];
     
     return YES;
 }
