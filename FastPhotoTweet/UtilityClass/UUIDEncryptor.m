@@ -43,8 +43,7 @@
     if ( ![EmptyCheck check:UUID] ) {
         
         //復号化時にUUIDがないのは完全にロジックエラー
-        ShowAlert *errorAlert = [[ShowAlert alloc] init];
-        [errorAlert error:@"UUIDがありません。"];
+        [ShowAlert error:@"UUIDがありません。"];
         
         return nil;
     }

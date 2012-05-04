@@ -355,8 +355,7 @@
     
     if ( error ) {
         
-        ShowAlert *errorAlert = [[ShowAlert alloc] init];
-        [errorAlert error:error.localizedDescription];
+        [ShowAlert error:error.localizedDescription];
     }
     
     return sourceCodeString;

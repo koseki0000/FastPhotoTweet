@@ -113,8 +113,7 @@
                          
                          twAccount = [[twitterAccounts objectAtIndex:[d integerForKey:@"UseAccount"]] retain];
                          
-                         ShowAlert *alert = [[ShowAlert alloc] init];
-                         [alert title:@"Success" message:[NSString stringWithFormat:@"Account Name: %@", twAccount.username]];
+                         [ShowAlert title:@"Success" message:[NSString stringWithFormat:@"Account Name: %@", twAccount.username]];
                          
                          //NSLog(@"twAccount: %@", twAccount);
                          
@@ -128,16 +127,14 @@
                          
                          twAccount = nil;
                          
-                         ShowAlert *alert = [[ShowAlert alloc] init];
-                         [alert error:@"Twitterアカウントが見つかりませんでした。"];
+                         [ShowAlert error:@"Twitterアカウントが見つかりませんでした。"];
                      }
                      
                  } else {
                      
                      twAccount = nil;
                      
-                     ShowAlert *alert = [[ShowAlert alloc] init];
-                     [alert error:@"Twitterのアカウントへのアクセスが拒否されました。"];
+                     [ShowAlert error:@"Twitterのアカウントへのアクセスが拒否されました。"];
                  }
              });
          }];
@@ -146,8 +143,7 @@
         
         twAccount = nil;
         
-        ShowAlert *alert = [[ShowAlert alloc] init];
-        [alert error:@"Twitterのアカウントへのアクセスが拒否されました。"];
+        [ShowAlert error:@"Twitterのアカウントへのアクセスが拒否されました。"];
     }
     
     //for debug
@@ -248,8 +244,7 @@
             
             //NSLog(@"FirstRun");
             
-            ShowAlert *alert = [[ShowAlert alloc] init];
-            [alert title:@"ようこそ" 
+            [ShowAlert title:@"ようこそ" 
                 message:@"FastPhotoTweetへようこそ\n通知センターから様々なTweetを素早くTwitterに投稿する事が出来ます。始めに画面右下から通知センターへの登録を行なってください。"];
             
             information = [[d dictionaryForKey:@"Information"] mutableCopy];
@@ -268,8 +263,7 @@
             
             //NSLog(@"newVersion");
             
-            ShowAlert *alert = [[ShowAlert alloc] init];
-            [alert title:[NSString stringWithFormat:@"FastPhotoTweet %@", newVersion] 
+            [ShowAlert title:[NSString stringWithFormat:@"FastPhotoTweet %@", newVersion] 
                  message:@"\n・「FastGoogle」機能を追加\n通知センターからペーストボード内の文字列を素早くGoogle検索する事が出来ます。\n・「WebPageShare」機能を追加\nURLの含まれる文字列がペーストボード内にある状態で使うと、ページタイトルを取得し、書式を整えた状態に変換されワンタッチでTwitterでリンクを共有する事が出来ます。"];
             
             information = [[d dictionaryForKey:@"Information"] mutableCopy];
@@ -305,8 +299,7 @@
             
             if ( ![EmptyCheck check:text] ) {
                 
-                ShowAlert *alert = [[ShowAlert alloc] init];
-                [alert error:@"文字が入力されていません。"];
+                [ShowAlert error:@"文字が入力されていません。"];
                 
                 return;
             }
@@ -381,8 +374,7 @@
         
     }else if ( [result isEqualToString:@"Error"] || [result isEqualToString:@"PhotoError"]) {
         
-        ShowAlert *alert = [[ShowAlert alloc] init];
-        [alert error:@"投稿に失敗しました。失敗したPostは上部中央のボタンから再投稿出来ます。"];
+        [ShowAlert error:@"投稿に失敗しました。失敗したPostは上部中央のボタンから再投稿出来ます。"];
     }
         
     //再投稿ボタンの有効･無効切り替え
@@ -661,8 +653,7 @@
         //アップロードが成功しているかチェック
         if ( ![EmptyCheck check:imageURL] ) {
             
-            ShowAlert *alert = [[ShowAlert alloc] init];
-            [alert error:@"アップロードに失敗しました。"];
+            [ShowAlert error:@"アップロードに失敗しました。"];
             
             return;
         }
@@ -694,8 +685,7 @@
     //NSDictionary *result = [request.responseString JSONValue];
     //NSLog(@"resultDic: %@", result);
     
-    ShowAlert *alert = [[ShowAlert alloc] init];
-    [alert error:@"アップロードに失敗しました。"];
+    [ShowAlert error:@"アップロードに失敗しました。"];
     
     //処理中表示をオフ
     [grayView off];
@@ -966,8 +956,7 @@
     if ([[[UIDevice currentDevice] systemVersion] floatValue] < 5.0) {
         
         //iOS5以前
-        ShowAlert *alert = [[ShowAlert alloc] init];
-        [alert error:@"Twitter APIはiOS5以降で使用できます。最新OSに更新してください。"];
+        [ShowAlert error:@"Twitter APIはiOS5以降で使用できます。最新OSに更新してください。"];
         
     }else {
         
@@ -987,8 +976,7 @@
         
     }else {
         
-        ShowAlert *alert = [[ShowAlert alloc] init];
-        [alert error:@"インターネットに接続されていません。"];
+        [ShowAlert error:@"インターネットに接続されていません。"];
     }
     
     return result;
@@ -1095,8 +1083,7 @@
             [request addPostValue:IMGUR_API_KEY forKey:@"key"];
             [request addData:imageData forKey:@"image"];
             
-            ShowAlert *alert = [[ShowAlert alloc] init];
-            [alert error:[NSString stringWithFormat:@"%@のTwitpicアカウントが見つからなかったためimg.urに投稿しました。", twAccount.username]];
+            [ShowAlert error:[NSString stringWithFormat:@"%@のTwitpicアカウントが見つからなかったためimg.urに投稿しました。", twAccount.username]];
         }
     }
     
@@ -1137,8 +1124,7 @@
             //Twitterアカウントのチェック
             if ( twAccount == nil ) {
                 
-                ShowAlert *alert = [[ShowAlert alloc] init];
-                [alert error:@"Twitterアカウントが見つかりませんでした。"];
+                [ShowAlert error:@"Twitterアカウントが見つかりませんでした。"];
                 
                 return;
             }
@@ -1247,15 +1233,13 @@
             
         }else {
             
-            ShowAlert *errorAlert = [[ShowAlert alloc] init];
-            [errorAlert error:error.localizedDescription];
+            [ShowAlert error:error.localizedDescription];
             return;
         }
         
         if ( pBoardType != 0 || pboardString == nil ) {
             
-            ShowAlert *errorAlert = [[ShowAlert alloc] init];
-            [errorAlert error:@"ペーストボード内にURLがありません。"];
+            [ShowAlert error:@"ペーストボード内にURLがありません。"];
             return;
         }
         
@@ -1292,15 +1276,13 @@
         
         if ( error ) {
             
-            ShowAlert *errorAlert = [[ShowAlert alloc] init];
-            [errorAlert error:error.localizedDescription];
+            [ShowAlert error:error.localizedDescription];
             return;
         }
         
         if ( ![EmptyCheck check:dataStr] ) {
             
-            ShowAlert *errorAlert = [[ShowAlert alloc] init];
-            [errorAlert error:@"正常にデータが取得できませんでした。"];
+            [ShowAlert error:@"正常にデータが取得できませんでした。"];
             return;
         }
         
@@ -1314,8 +1296,7 @@
             
             if ( ![EmptyCheck check:title] ) {
             
-                ShowAlert *errorAlert = [[ShowAlert alloc] init];
-                [errorAlert error:@"正常にタイトルが取得できませんでした。"];
+                [ShowAlert error:@"正常にタイトルが取得できませんでした。"];
                 return;
             }
         }
@@ -1327,8 +1308,7 @@
         
     }@catch ( NSException *e ) {
         
-        ShowAlert *errorAlert = [[ShowAlert alloc] init];
-        [errorAlert error:[NSString stringWithFormat:@"原因不明なエラーが発生しました。\n%@", e]];
+        [ShowAlert error:[NSString stringWithFormat:@"原因不明なエラーが発生しました。\n%@", e]];
         
     }@finally {
         
@@ -1373,16 +1353,14 @@
         //NSLog(@"SongTitleBlank");
         
         //再生中でなかった場合
-        ShowAlert *alert = [[ShowAlert alloc] init];
-        [alert error:@"iPod再生中に使用してください。"];
+        [ShowAlert error:@"iPod再生中に使用してください。"];
         
     //140字を超えていた場合
     }else {
         
         //NSLog(@"SongTitleOverCapacity");
         
-        ShowAlert *alert = [[ShowAlert alloc] init];
-        [alert error:@"文章が140字を超えています。"];
+        [ShowAlert error:@"文章が140字を超えています。"];
         
         //入力欄に貼り付け
         postText.text = nowPlayingText;
@@ -1422,8 +1400,7 @@
         if ( num < 0 ) {
             
             //140字を超えていた場合
-            ShowAlert *alert = [[ShowAlert alloc] init];
-            [alert error:@"文章が140字を超えています。"];
+            [ShowAlert error:@"文章が140字を超えています。"];
             
         }else {
             
@@ -1512,8 +1489,7 @@
             
             //NSLog(@"Can't callBack");
             
-            ShowAlert *alert = [[ShowAlert alloc] init];
-            [alert error:@"コールバックスキームが有効でありません。"];
+            [ShowAlert error:@"コールバックスキームが有効でありません。"];
             
             //コールバックスキームを開くことが出来る
         }else {

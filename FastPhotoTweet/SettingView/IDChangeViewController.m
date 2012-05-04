@@ -31,8 +31,7 @@
             
             twitpicLinkMode = YES;
             
-            ShowAlert *alert = [[ShowAlert alloc] init];
-            [alert title:@"アカウントリンク" message:@"iOSに登録されているTwitterアカウントと、認証を行ったアカウントのリンクを行います。先程認証を行ったアカウントを選択してください。"];
+            [ShowAlert title:@"アカウントリンク" message:@"iOSに登録されているTwitterアカウントと、認証を行ったアカウントのリンクを行います。先程認証を行ったアカウントを選択してください。"];
         }
         
         if ( twitterAccounts != 0 ) {

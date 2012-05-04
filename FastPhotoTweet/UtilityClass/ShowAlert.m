@@ -9,7 +9,7 @@
 
 @implementation ShowAlert
 
-- (void)title:(NSString *)title message:(NSString *)message {
++ (void)title:(NSString *)title message:(NSString *)message {
     
     UIAlertView *alert = [[[UIAlertView alloc] init] autorelease];
     alert.delegate = self;
@@ -19,7 +19,7 @@
     [alert show];
 }
 
-- (void)noTitle:(NSString *)message {
++ (void)noTitle:(NSString *)message {
     
     UIAlertView *alert = [[[UIAlertView alloc] init] autorelease];
     alert.delegate = self;
@@ -28,7 +28,7 @@
     [alert show];
 }
 
-- (void)error:(NSString *)message {
++ (void)error:(NSString *)message {
     
     UIAlertView *alert = [[[UIAlertView alloc] init] autorelease];
     alert.delegate = self;

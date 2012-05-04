@@ -228,12 +228,12 @@
         searchURL = @"https://mobile.twitter.com/searches?q=";
     }
     
-    NSString *encodedSearchWord = ((__bridge NSString *)CFURLCreateStringByAddingPercentEscapes(kCFAllocatorDefault, 
-                                                                                (__bridge CFStringRef)searchField.text, 
+    NSString *encodedSearchWord = ((__bridge_transfer NSString *)CFURLCreateStringByAddingPercentEscapes(kCFAllocatorDefault, 
+                                                                                (__bridge_retained CFStringRef)searchField.text, 
                                                                                 NULL, 
                                                                                 (CFStringRef)@"!*'();:@&=+$,/?%#[]", 
-                                                                                kCFStringEncodingShiftJIS));
-    
+                                                                                kCFStringEncodingUTF8));
+
     NSLog(@"URL: %@", [NSString stringWithFormat:@"%@%@", searchURL, encodedSearchWord]);
     
     [wv loadRequestWithString:[NSString stringWithFormat:@"%@%@", searchURL, encodedSearchWord]];
@@ -452,8 +452,7 @@
     
     NSLog(@"%@", error.description);
     
-    ShowAlert *errorAlert = [[ShowAlert alloc] init];
-    [errorAlert error:error.localizedDescription];
+    [ShowAlert error:error.localizedDescription];
     
     [ActivityIndicator visible:NO];
     [self updateWebBrowser];
@@ -493,8 +492,7 @@
         
     }else {
         
-        ShowAlert *errorAlert = [[ShowAlert alloc] init];
-        [errorAlert error:@"インターネットに接続されていません。"];
+        [ShowAlert error:@"インターネットに接続されていません。"];
     }
     
     return result;

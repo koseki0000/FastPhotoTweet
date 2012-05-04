@@ -181,8 +181,7 @@
     if ([[[UIDevice currentDevice] systemVersion] floatValue] < 5.0) {
         
         //iOS5以前
-        ShowAlert *alert = [[ShowAlert alloc] init];
-        [alert error:@"Twitter APIはiOS5以降で使用できます。最新OSに更新してください。"];
+        [ShowAlert error:@"Twitter APIはiOS5以降で使用できます。最新OSに更新してください。"];
         
     }else {
         

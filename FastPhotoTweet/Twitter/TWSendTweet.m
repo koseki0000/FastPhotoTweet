@@ -27,8 +27,7 @@
             if (twAccount == nil) {
                 
                 //アカウントデータが空
-                ShowAlert *alert = [[ShowAlert alloc] init];
-                [alert error:@"アカウントが取得できませんでした。"];
+                [ShowAlert error:@"アカウントが取得できませんでした。"];
                 
                 return;
             }
@@ -59,8 +58,7 @@
                     
                     //NSLog(@"PostTextEmpty");
                     
-                    ShowAlert *alert = [[ShowAlert alloc] init];
-                    [alert error:@"文字が入力されていません。"];
+                    [ShowAlert error:@"文字が入力されていません。"];
                     return;
                 }
             }
@@ -154,8 +152,7 @@
                          //エラー
                          NSString *errorText = [result objectForKey:@"error"];
                          
-                         ShowAlert *alert = [[ShowAlert alloc] init];
-                         [alert error:errorText];
+                         [ShowAlert error:errorText];
                          
                          //通知にエラーをセット
                          if ( media ) {
@@ -183,8 +180,7 @@
                              }
                              
                              //textが空の場合は失敗してる
-                             ShowAlert *alert = [[ShowAlert alloc] init];
-                             [alert error:errorText];
+                             [ShowAlert error:errorText];
                              
                              [postResult setObject:@"Error" forKey:@"PostResult"];
                              
@@ -220,8 +216,7 @@
         }else {
             
             //何らかの理由でTweet不可だった場合
-            ShowAlert *alert = [[ShowAlert alloc] init];
-            [alert error:@"不明なエラーが発生しました。やり直してください。"];
+            [ShowAlert error:@"不明なエラーが発生しました。やり直してください。"];
         }
         
     }@catch ( NSException *e ) {

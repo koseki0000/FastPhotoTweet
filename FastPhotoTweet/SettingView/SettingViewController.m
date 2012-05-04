@@ -693,8 +693,7 @@
             
             if ( [d boolForKey:@"RepeatedPost"] ) {
                 
-                ShowAlert *errorAlert = [[ShowAlert alloc] init];
-                [errorAlert error:@"Twitterへの画像投稿では連続投稿機能は使えません。"];
+                [ShowAlert error:@"Twitterへの画像投稿では連続投稿機能は使えません。"];
                 
                 [d setBool:NO forKey:@"RepeatedPost"];
             }
@@ -726,8 +725,7 @@
             
             if ( twitpicName == nil ) {
                 
-                ShowAlert *errorAlert = [[ShowAlert alloc] init];
-                [errorAlert error:[NSString stringWithFormat:@"現在使用中のアカウント %@ のTwitpicアカウントが見つかりません。アカウントを登録してください。", twAccount.username]];
+                [ShowAlert error:[NSString stringWithFormat:@"現在使用中のアカウント %@ のTwitpicアカウントが見つかりません。アカウントを登録してください。", twAccount.username]];
                 
                 [d setObject:twAccount.username forKey:@"AddTwitpicAccountName"];
                 
@@ -768,8 +766,7 @@
                         
                         [d setBool:NO forKey:@"RepeatedPost"];
                         
-                        ShowAlert *errorAlert = [[ShowAlert alloc] init];
-                        [errorAlert error:@"カメラでは連続投稿が出来ません"];
+                        [ShowAlert error:@"カメラでは連続投稿が出来ません"];
                     }
                     
                 }else if ( buttonIndex == 2 ) {
@@ -778,10 +775,8 @@
                 
             }else {
                 
-                //カメラが利用できない場合
-                
-                ShowAlert *errorAlert = [[ShowAlert alloc] init];
-                [errorAlert error:@"カメラが利用出来ない端末です。カメラロールが設定されます。"];
+                //カメラが利用できない場合                
+                [ShowAlert error:@"カメラが利用出来ない端末です。カメラロールが設定されます。"];
                 
                 [d setInteger:0 forKey:@"ImageSource"];
             }
@@ -799,16 +794,14 @@
             
             if ( [[d objectForKey:@"PhotoService"] isEqualToString:@"Twitter"] ) {
                 
-                ShowAlert *errorAlert = [[ShowAlert alloc] init];
-                [errorAlert error:@"Twitterへの画像投稿では連続投稿機能は使えません。"];
+                [ShowAlert error:@"Twitterへの画像投稿では連続投稿機能は使えません。"];
                 
                 [d setObject:@"img.ur" forKey:@"PhotoService"];
             }
             
             if ( [d integerForKey:@"ImageSource"] == 1 ) {
                 
-                ShowAlert *errorAlert = [[ShowAlert alloc] init];
-                [errorAlert error:@"カメラでは連続投稿が出来ません"];
+                [ShowAlert error:@"カメラでは連続投稿が出来ません"];
                 
                 [d setInteger:0 forKey:@"ImageSource"];
             }

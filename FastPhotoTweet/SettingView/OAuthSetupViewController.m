@@ -106,8 +106,7 @@
         
         //NSLog(@"ticket.didSucceed Error");
         
-        ShowAlert *alert = [[ShowAlert alloc] init];
-        [alert error:@"リクエストトークンの取得に失敗しました。"];
+        [ShowAlert error:@"リクエストトークンの取得に失敗しました。"];
         
         [self enableButton];
     }
@@ -119,8 +118,7 @@
     
     //NSLog(@"requestTokenTicket Error");
     
-	ShowAlert *alert = [[ShowAlert alloc] init];
-    [alert error:@"リクエストトークンの取得に失敗しました。"];
+    [ShowAlert error:@"リクエストトークンの取得に失敗しました。"];
         
     [self enableButton];
 }
@@ -181,8 +179,7 @@
         
         //NSLog(@"ticket.didSucceed Error");
         
-		ShowAlert *alert = [[ShowAlert alloc] init];
-        [alert error:@"アクセストークンの取得に失敗しました。"];
+        [ShowAlert error:@"アクセストークンの取得に失敗しました。"];
         
         [self enableButton];
 	}
@@ -192,8 +189,7 @@
     
     //NSLog(@"accessTokenTicket Error");
     
-    ShowAlert *alert = [[ShowAlert alloc] init];
-    [alert error:@"アクセストークンの取得に失敗しました。"];
+    [ShowAlert error:@"アクセストークンの取得に失敗しました。"];
     
     [self enableButton];
 }
@@ -251,8 +247,7 @@
                                      range:NSMakeRange(0, responseString.length)];
 	}else {
         
-        ShowAlert *alert = [[ShowAlert alloc] init];
-        [alert error:@"PINコードが不正です。"];
+        [ShowAlert error:@"PINコードが不正です。"];
         
         return;
     }
@@ -268,8 +263,7 @@
         
 	}else {
         
-        ShowAlert *alert = [[ShowAlert alloc] init];
-        [alert error:@"PINコードが不正です。"];
+        [ShowAlert error:@"PINコードが不正です。"];
                 
         [self enableButton];
 	}
@@ -285,8 +279,7 @@
          [d objectForKey:@"OAuthRequestTokenKey"] == nil ||
          [d objectForKey:@"OAuthRequestTokenSecret"] == nil ) {
         
-        ShowAlert *alert = [[ShowAlert alloc] init];
-        [alert error:@"不明なエラーです。"];
+        [ShowAlert error:@"不明なエラーです。"];
         
         [self enableButton];
         
