@@ -7,6 +7,8 @@
 
 #import "ViewController.h"
 
+#define APP_VERSION @"1.1"
+
 #define TOP_BAR [NSArray arrayWithObjects:trashButton, flexibleSpace, idButton, flexibleSpace, resendButton, flexibleSpace, imageSettingButton, flexibleSpace, postButton, nil]
 #define BOTTOM_BAR [NSArray arrayWithObjects:settingButton, flexibleSpace, actionButton, flexibleSpace, nowPlayingButton, flexibleSpace, addButton, nil]
 
@@ -151,8 +153,7 @@
 }
 
 - (void)testMethod {
-    
-    
+
 }
 
 - (void)loadSettings {
@@ -230,7 +231,7 @@
     //NSLog(@"showInfomation");
     
     BOOL check = YES;
-    NSMutableDictionary *information = [NSMutableDictionary dictionary];
+    NSMutableDictionary *information;
     
     if ( ![EmptyCheck check:[d dictionaryForKey:@"Information"]] ) {
         
@@ -247,31 +248,27 @@
             [ShowAlert title:@"ようこそ" 
                 message:@"FastPhotoTweetへようこそ\n通知センターから様々なTweetを素早くTwitterに投稿する事が出来ます。始めに画面右下から通知センターへの登録を行なってください。"];
             
-            information = [[d dictionaryForKey:@"Information"] mutableCopy];
+            information = [[[NSMutableDictionary alloc] initWithDictionary:[d dictionaryForKey:@"Information"]] autorelease];
             [information setValue:[NSNumber numberWithInt:1] forKey:@"FirstRun"];
             
-            NSDictionary *dic = [[NSDictionary alloc] initWithDictionary:information];
-            [d setObject:dic forKey:@"Information"];            
-            [dic release];
+            NSDictionary *dic = [[[NSDictionary alloc] initWithDictionary:information] autorelease];
+            [d setObject:dic forKey:@"Information"];
             
             continue;
         }
         
-        NSString *newVersion = @"1.1";
-        
-        if ( [[d dictionaryForKey:@"Information"] valueForKey:newVersion] == 0 ) {
+        if ( [[d dictionaryForKey:@"Information"] valueForKey:APP_VERSION] == 0 ) {
             
             //NSLog(@"newVersion");
             
-            [ShowAlert title:[NSString stringWithFormat:@"FastPhotoTweet %@", newVersion] 
+            [ShowAlert title:[NSString stringWithFormat:@"FastPhotoTweet %@", APP_VERSION] 
                  message:@"\n・「FastGoogle」機能を追加\n通知センターからペーストボード内の文字列を素早くGoogle検索する事が出来ます。\n・「WebPageShare」機能を追加\nURLの含まれる文字列がペーストボード内にある状態で使うと、ページタイトルを取得し、書式を整えた状態に変換されワンタッチでTwitterでリンクを共有する事が出来ます。"];
             
-            information = [[d dictionaryForKey:@"Information"] mutableCopy];
-            [information setValue:[NSNumber numberWithInt:1] forKey:newVersion];
+            information = [[[NSMutableDictionary alloc] initWithDictionary:[d dictionaryForKey:@"Information"]] autorelease];
+            [information setValue:[NSNumber numberWithInt:1] forKey:APP_VERSION];
             
-            NSDictionary *dic = [[NSDictionary alloc] initWithDictionary:information];
+            NSDictionary *dic = [[[NSDictionary alloc] initWithDictionary:information] autorelease];
             [d setObject:dic forKey:@"Information"];
-            [dic release];
             
             continue;
         }
@@ -300,7 +297,6 @@
             if ( ![EmptyCheck check:text] ) {
                 
                 [ShowAlert error:@"文字が入力されていません。"];
-                
                 return;
             }
             
@@ -535,7 +531,7 @@
 
 - (void)showImagePicker {
     
-    UIImagePickerController *picPicker = [[UIImagePickerController alloc] init];
+    UIImagePickerController *picPicker = [[[UIImagePickerController alloc] init] autorelease];
     
     if ( [d integerForKey:@"ImageSource"] == 0 ) {
         
@@ -558,8 +554,6 @@
         [sheet autorelease];
         [sheet showInView:self.view];
         
-        [picPicker release];
-        
         return;
         
     }else {
@@ -569,12 +563,11 @@
     
     picPicker.delegate = self;
     [self presentModalViewController:picPicker animated:YES];
-    [picPicker release];
 }
 
 - (void)imagePickerController:(UIImagePickerController *)picPicker
         didFinishPickingImage:(UIImage *)image 
-                  editingInfo:(NSDictionary*)editingInfo {
+                  editingInfo:(NSDictionary *)editingInfo {
 
     //画像ソースがカメラの場合保存
     if ( [d integerForKey:@"ImageSource"] == 1 || cameraMode ) {
@@ -680,6 +673,8 @@
         
     }@catch ( NSException *e ) {
         
+        [ShowAlert error:@"アップロード開始処理中に原因不明なエラーが発生しました。"];
+        
     }@finally {
         
         //処理中表示をオフ
@@ -694,10 +689,19 @@
     //NSDictionary *result = [request.responseString JSONValue];
     //NSLog(@"resultDic: %@", result);
     
-    [ShowAlert error:@"アップロードに失敗しました。"];
-    
     //処理中表示をオフ
     [grayView off];
+    
+    actionSheetNo = 6;
+    
+    UIActionSheet *sheet = [[UIActionSheet alloc]
+                            initWithTitle:@"アップロードに失敗しました。\n現在プレビューされている画像が再投稿されます。"
+                            delegate:self
+                            cancelButtonTitle:@"Cancel"
+                            destructiveButtonTitle:nil
+                            otherButtonTitles:@"再投稿", @"破棄", nil];
+    [sheet autorelease];
+    [sheet showInView:self.view];
 }
 
 - (IBAction)callbackTextFieldEnter:(id)sender {
@@ -768,7 +772,7 @@
         //通知センターにアプリを登録
         //通知センター登録時は通知を受け取っても無視するように設定
         
-        UILocalNotification *localPush = [[UILocalNotification alloc] init];
+        UILocalNotification *localPush = [[[UILocalNotification alloc] init] autorelease];
         localPush.timeZone = [NSTimeZone defaultTimeZone];
         
         if ( buttonIndex == 0 ) {
@@ -855,13 +859,11 @@
             
         }else {
             
-            [localPush release];
             return;
         }
         
         localPush.fireDate = [NSDate dateWithTimeIntervalSinceNow:0];
         [[UIApplication sharedApplication] scheduleLocalNotification:localPush];
-        [localPush release];
         
     }else if ( actionSheetNo == 1 ) {
         
@@ -921,6 +923,7 @@
 //          NSLog(@"PhotoTrash");
             errorImage = nil;
         }
+        
     }else if ( actionSheetNo == 4 ) {
         
         if ( buttonIndex == 0 ) {
@@ -954,6 +957,13 @@
         }else if ( buttonIndex == 2 ) {
             
             postText.text = [HankakuKana kanaHiragana:postText.text];
+        }
+    
+    }else if ( actionSheetNo == 6 ) {
+        
+        if ( buttonIndex == 0 ) {
+            
+            [self uploadImage:imagePreview.image];
         }
     }
 }
