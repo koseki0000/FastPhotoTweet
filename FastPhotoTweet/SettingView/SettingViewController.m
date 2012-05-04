@@ -398,6 +398,8 @@
                      cancelButtonTitle:@"Cancel"
                      destructiveButtonTitle:nil
                      otherButtonTitles:@"ON", @"OFF", nil];
+            [sheet autorelease];
+            [sheet showInView:self.view];
             
         }else if ( indexPath.row == 1 ) {
             
@@ -408,6 +410,8 @@
                      cancelButtonTitle:@"Cancel"
                      destructiveButtonTitle:nil
                      otherButtonTitles:@"320", @"640", @"800", @"960",@"1280", nil];
+            [sheet autorelease];
+            [sheet showInView:self.view];
             
         }else if ( indexPath.row == 2 ) {
             
@@ -418,6 +422,8 @@
                      cancelButtonTitle:@"Cancel"
                      destructiveButtonTitle:nil
                      otherButtonTitles:@"JPG(Low)", @"JPG", @"JPG(High)", @"PNG", nil];
+            [sheet autorelease];
+            [sheet showInView:self.view];
             
         }else if ( indexPath.row == 3 ) {
             
@@ -428,6 +434,8 @@
                      cancelButtonTitle:@"Cancel"
                      destructiveButtonTitle:nil
                      otherButtonTitles:@"ON", @"OFF", nil];
+            [sheet autorelease];
+            [sheet showInView:self.view];
             
         }else if ( indexPath.row == 4 ) {
             
@@ -439,6 +447,8 @@
                      destructiveButtonTitle:nil
                      otherButtonTitles:@"Twitter", @"img.ur(複数枚投稿可)", 
                                        @"Twitpic(複数枚投稿可)", nil];
+            [sheet autorelease];
+            [sheet showInView:self.view];
             
         }else if ( indexPath.row == 5 ) {
             
@@ -449,6 +459,8 @@
                      cancelButtonTitle:@"Cancel"
                      destructiveButtonTitle:nil
                      otherButtonTitles:@"カメラロール", @"カメラ", @"投稿時選択", nil];
+            [sheet autorelease];
+            [sheet showInView:self.view];
         
         }else if ( indexPath.row == 6 ) {
             
@@ -459,6 +471,8 @@
                      cancelButtonTitle:@"Cancel"
                      destructiveButtonTitle:nil
                      otherButtonTitles:@"ON", @"OFF", nil];
+            [sheet autorelease];
+            [sheet showInView:self.view];
         }
         
     }else if ( indexPath.section == 1 ) {
@@ -474,6 +488,8 @@
                      cancelButtonTitle:@"Cancel"
                      destructiveButtonTitle:nil
                      otherButtonTitles:@"ON", @"OFF", nil];
+            [sheet autorelease];
+            [sheet showInView:self.view];
             
         }else if ( indexPath.row == 1 ) {
             
@@ -484,6 +500,8 @@
                      cancelButtonTitle:@"Cancel"
                      destructiveButtonTitle:nil
                      otherButtonTitles:@"ON", @"OFF", nil];
+            [sheet autorelease];
+            [sheet showInView:self.view];
             
         }else if ( indexPath.row == 2 ) {
             
@@ -494,6 +512,8 @@
                      cancelButtonTitle:@"Cancel"
                      destructiveButtonTitle:nil
                      otherButtonTitles:@"ON", @"OFF", nil];
+            [sheet autorelease];
+            [sheet showInView:self.view];
         
         }else if ( indexPath.row == 3 ) {
             
@@ -536,6 +556,8 @@
                      cancelButtonTitle:@"Cancel"
                      destructiveButtonTitle:nil
                      otherButtonTitles:@"OFF", @"ON(前方一致)", @"ON(完全一致)", nil];
+            [sheet autorelease];
+            [sheet showInView:self.view];
             
         }else if ( indexPath.row == 5 ) {
             
@@ -583,6 +605,8 @@
                      cancelButtonTitle:@"Cancel"
                      destructiveButtonTitle:nil
                      otherButtonTitles:@"ON", @"OFF", nil];
+            [sheet autorelease];
+            [sheet showInView:self.view];
         }
         
     }else if ( indexPath.section == 3 ) {
@@ -596,9 +620,6 @@
             return;
         }
     }
-    
-    [sheet autorelease];
-    [sheet showInView:self.view];
 }
 
 - (void)alertView:(UIAlertView *)alertView clickedButtonAtIndex:(NSInteger)buttonIndex {

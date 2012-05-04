@@ -12,5 +12,7 @@
 }
 
 + (void)visible:(BOOL)visible;
++ (void)on;
++ (void)off;
 
 @end

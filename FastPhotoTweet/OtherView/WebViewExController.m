@@ -229,11 +229,11 @@
     }
     
     NSString *encodedSearchWord = ((__bridge_transfer NSString *)CFURLCreateStringByAddingPercentEscapes(kCFAllocatorDefault, 
-                                                                                (__bridge_retained CFStringRef)searchField.text, 
-                                                                                NULL, 
-                                                                                (CFStringRef)@"!*'();:@&=+$,/?%#[]", 
-                                                                                kCFStringEncodingUTF8));
-
+                                                                                                (__bridge CFStringRef)searchField.text, 
+                                                                                                NULL, 
+                                                                                                (CFStringRef)@"!*'();:@&=+$,/?%#[]", 
+                                                                                                kCFStringEncodingUTF8));
+    
     NSLog(@"URL: %@", [NSString stringWithFormat:@"%@%@", searchURL, encodedSearchWord]);
     
     [wv loadRequestWithString:[NSString stringWithFormat:@"%@%@", searchURL, encodedSearchWord]];

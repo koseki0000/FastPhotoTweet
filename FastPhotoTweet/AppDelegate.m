@@ -160,7 +160,7 @@
         NSLog(@"Set webBrowsingMode");
         fastGoogleMode = [NSNumber numberWithInt:1];
         webPageShareMode = [NSNumber numberWithInt:0];
-        
+
     }else if ( [scheme isEqualToString:@"page"] ) {
         
         NSLog(@"Set webPageShareMode");

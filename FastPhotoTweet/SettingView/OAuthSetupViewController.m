@@ -140,7 +140,6 @@
         //NSLog(@"accessToken secret: %@", accessToken.secret);
         
 		NSUserDefaults *d = [NSUserDefaults standardUserDefaults];
-        NSMutableDictionary *dic = [NSMutableArray array];
         
         if ( ![EmptyCheck check:[d dictionaryForKey:@"OAuthAccount"]] ) {
             
@@ -148,7 +147,7 @@
             [d setObject:[NSDictionary dictionary] forKey:@"OAuthAccount"];
         }
         
-        dic = [NSMutableDictionary dictionaryWithDictionary:[d dictionaryForKey:@"OAuthAccount"]];
+        NSMutableDictionary *dic = [NSMutableDictionary dictionaryWithDictionary:[d dictionaryForKey:@"OAuthAccount"]];
         
         int count = [d integerForKey:@"AccountCount"];
         count++;

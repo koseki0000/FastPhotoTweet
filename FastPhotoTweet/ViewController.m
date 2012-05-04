@@ -307,9 +307,12 @@
             //画像が設定されていない場合
             if ( imagePreview.image == nil ) {
                 
-                //文字列をバックグラウンドプロセスで投稿
-                NSArray *postData = [NSArray arrayWithObjects:[self deleteWhiteSpace:text], nil];
-                [TWSendTweet performSelectorInBackground:@selector(post:) withObject:postData];
+                @autoreleasepool {
+                    
+                    //文字列をバックグラウンドプロセスで投稿
+                    NSArray *postData = [NSArray arrayWithObjects:[self deleteWhiteSpace:text], nil];
+                    [TWSendTweet performSelectorInBackground:@selector(post:) withObject:postData];
+                }
                 
                 //入力欄を空にする
                 postText.text = BLANK;
@@ -320,16 +323,22 @@
                 //画像投稿先がTwitterの場合
                 if ( [[d objectForKey:@"PhotoService"] isEqualToString:@"Twitter"] ) {
                     
-                    //文字列と画像をバックグラウンドプロセスで投稿
-                    NSArray *postData = [NSArray arrayWithObjects:[self deleteWhiteSpace:text], imagePreview.image, nil];
-                    [TWSendTweet performSelectorInBackground:@selector(post:) withObject:postData];
+                    @autoreleasepool {
+                        
+                        //文字列と画像をバックグラウンドプロセスで投稿
+                        NSArray *postData = [NSArray arrayWithObjects:[self deleteWhiteSpace:text], imagePreview.image, nil];
+                        [TWSendTweet performSelectorInBackground:@selector(post:) withObject:postData];
+                    }
                     
                 //画像投稿先がimg.urかTwitpicもしくは画像の再投稿
                 }else {
                     
-                    //文字列をバックグラウンドプロセスで投稿
-                    NSArray *postData = [NSArray arrayWithObjects:[self deleteWhiteSpace:text], nil];
-                    [TWSendTweet performSelectorInBackground:@selector(post:) withObject:postData];
+                    @autoreleasepool {
+                        
+                        //文字列をバックグラウンドプロセスで投稿
+                        NSArray *postData = [NSArray arrayWithObjects:[self deleteWhiteSpace:text], nil];
+                        [TWSendTweet performSelectorInBackground:@selector(post:) withObject:postData];
+                    }
                 }
                 
                 //入力欄と画像プレビューを空にする
@@ -764,83 +773,83 @@
         
         if ( buttonIndex == 0 ) {
 
+            [d setBool:YES forKey:@"AddNotificationCenterTweet"];
             localPush.alertBody = @"Tweet";
             localPush.userInfo = [NSDictionary dictionaryWithObjectsAndKeys:@"tweet", @"scheme", nil];
-            [d setBool:YES forKey:@"AddNotificationCenterTweet"];
             
             //NSLog(@"Add NotificationCenter Tweet");
         
         }else if ( buttonIndex == 1 ) {
             
+            [d setBool:YES forKey:@"AddNotificationCenterFastTweet"];
             localPush.alertBody = @"FastTweet";
             localPush.userInfo = [NSDictionary dictionaryWithObjectsAndKeys:@"fast", @"scheme", nil];
-            [d setBool:YES forKey:@"AddNotificationCenterFastTweet"];
             
             //NSLog(@"Add NotificationCenter FastTweet");
             
         }else if ( buttonIndex == 2 ) {
             
+            [d setBool:YES forKey:@"AddNotificationCenterPhotoTweet"];
             localPush.alertBody = @"PhotoTweet";
             localPush.userInfo = [NSDictionary dictionaryWithObjectsAndKeys:@"photo", @"scheme", nil];
-            [d setBool:YES forKey:@"AddNotificationCenterPhotoTweet"];
             
             //NSLog(@"Add NotificationCenter PhotoTweet");
             
         }else if ( buttonIndex == 3 ) {
             
+            [d setBool:YES forKey:@"AddNotificationCenterNowPlaying"];
             localPush.alertBody = @"NowPlaying";
             localPush.userInfo = [NSDictionary dictionaryWithObjectsAndKeys:@"music", @"scheme", nil];
-            [d setBool:YES forKey:@"AddNotificationCenterNowPlaying"];
             
             //NSLog(@"Add NotificationCenter NowPlaying");
         
         }else if ( buttonIndex == 4 ) {
             
+            [d setBool:YES forKey:@"AddNotificationCenterFastGoogle"];
             localPush.alertBody = @"FastGoogle";
             localPush.userInfo = [NSDictionary dictionaryWithObjectsAndKeys:@"google", @"scheme", nil];
-            [d setBool:YES forKey:@"AddNotificationCenterFastGoogle"];
             
         }else if ( buttonIndex == 5 ) {
             
+            [d setBool:YES forKey:@"AddNotificationCenterWebPageShare"];
             localPush.alertBody = @"WebPageShare";
             localPush.userInfo = [NSDictionary dictionaryWithObjectsAndKeys:@"page", @"scheme", nil];
-            [d setBool:YES forKey:@"AddNotificationCenterWebPageShare"];
             
         }else if ( buttonIndex == 6 ) {
             
+            [d setBool:YES forKey:@"AddNotificationCenterWebPageShare"];
             localPush.alertBody = @"WebPageShare";
             localPush.userInfo = [NSDictionary dictionaryWithObjectsAndKeys:@"page", @"scheme", nil];
             localPush.fireDate = [NSDate dateWithTimeIntervalSinceNow:0];
             [[UIApplication sharedApplication] scheduleLocalNotification:localPush];
-            [d setBool:YES forKey:@"AddNotificationCenterWebPageShare"];
             
+            [d setBool:YES forKey:@"AddNotificationCenterFastGoogle"];
             localPush.alertBody = @"FastGoogle";
             localPush.userInfo = [NSDictionary dictionaryWithObjectsAndKeys:@"google", @"scheme", nil];
             localPush.fireDate = [NSDate dateWithTimeIntervalSinceNow:0];
             [[UIApplication sharedApplication] scheduleLocalNotification:localPush];
-            [d setBool:YES forKey:@"AddNotificationCenterFastGoogle"];
             
+            [d setBool:YES forKey:@"AddNotificationCenterNowPlaying"];
             localPush.alertBody = @"NowPlaying";
             localPush.userInfo = [NSDictionary dictionaryWithObjectsAndKeys:@"music", @"scheme", nil];
             localPush.fireDate = [NSDate dateWithTimeIntervalSinceNow:0];
             [[UIApplication sharedApplication] scheduleLocalNotification:localPush];
-            [d setBool:YES forKey:@"AddNotificationCenterNowPlaying"];
             
+            [d setBool:YES forKey:@"AddNotificationCenterPhotoTweet"];
             localPush.alertBody = @"PhotoTweet";
             localPush.userInfo = [NSDictionary dictionaryWithObjectsAndKeys:@"photo", @"scheme", nil];
             localPush.fireDate = [NSDate dateWithTimeIntervalSinceNow:0];
             [[UIApplication sharedApplication] scheduleLocalNotification:localPush];
-            [d setBool:YES forKey:@"AddNotificationCenterPhotoTweet"];
             
+            [d setBool:YES forKey:@"AddNotificationCenterFastTweet"];
             localPush.alertBody = @"FastTweet";
             localPush.userInfo = [NSDictionary dictionaryWithObjectsAndKeys:@"fast", @"scheme", nil];
             localPush.fireDate = [NSDate dateWithTimeIntervalSinceNow:0];
             [[UIApplication sharedApplication] scheduleLocalNotification:localPush];
-            [d setBool:YES forKey:@"AddNotificationCenterFastTweet"];
             
+            [d setBool:YES forKey:@"AddNotificationCenterTweet"];
             localPush.alertBody = @"Tweet";
             localPush.userInfo = [NSDictionary dictionaryWithObjectsAndKeys:@"tweet", @"scheme", nil];
-            [d setBool:YES forKey:@"AddNotificationCenterTweet"];
             
             //NSLog(@"Add NotificationCenter All");
             
@@ -1125,15 +1134,14 @@
             if ( twAccount == nil ) {
                 
                 [ShowAlert error:@"Twitterアカウントが見つかりませんでした。"];
-                
                 return;
             }
             
             if ( [[d objectForKey:@"NotificationType"] isEqualToString:@"music"] ) {
                 
                 //NSLog(@"NowPlaying Start");
-                [self nowPlayingNotification];
                 
+                [self nowPlayingNotification];
                 return;
             }
             
@@ -1143,16 +1151,19 @@
             if ( [[d objectForKey:@"NotificationType"] isEqualToString:@"tweet"] ) {
                 
                 //NSLog(@"Post Start");
+                
                 [self postNotification:pBoardType];
                 
             }else if ( [[d objectForKey:@"NotificationType"] isEqualToString:@"fast"] ) {
                 
                 //NSLog(@"Fast Post Start");
+                
                 [self fastPostNotification:pBoardType];
                 
             }else if ( [[d objectForKey:@"NotificationType"] isEqualToString:@"photo"] ) {
                 
                 //NSLog(@"Photo Start");
+                
                 [self photoPostNotification:pBoardType];
             
             }else if ( [[d objectForKey:@"NotificationType"] isEqualToString:@"google"] ) {
@@ -1180,6 +1191,7 @@
                 if ( [appDelegate.isBrowserOpen intValue] == 0 ) {
                 
                     NSLog(@"Open Browser");
+                    
                     [self startWebBrowsing];
                     
                 }else {
@@ -1191,13 +1203,12 @@
                 
                 NSLog(@"WebPageShare Start");
                 
-                dispatch_async(dispatch_get_main_queue(), ^{
-                    
-                    //処理中を表すビューを表示
-                    [ActivityIndicator visible:YES];
-                    
-                    [self webPageShareNotification:(int)pBoardType];
-                });
+                @autoreleasepool {
+                 
+                    [ActivityIndicator performSelectorInBackground:@selector(on) withObject:nil];
+                }
+                
+                [self webPageShareNotification:pBoardType];
             }
         }
         
@@ -1264,6 +1275,8 @@
         
         for ( int i = 0; i < max; i++ ) {
             
+            NSLog(@"encoding: %d", encodingList[i]);
+            
             dataStr = [[[NSString alloc] initWithData:response encoding:encodingList[i]] autorelease];
             
             if ( dataStr != nil ) {
@@ -1272,7 +1285,7 @@
             }
         }
         
-        //NSLog(@"dataStr: %@", dataStr);
+        NSLog(@"dataStr.length: %d", dataStr.length);
         
         if ( error ) {
             
@@ -1329,8 +1342,11 @@
         //FastPostが有効、またはNowPlaying限定CallBackが有効
         if ( [d boolForKey:@"NowPlayingFastPost"] ) {
             
-            NSArray *postData = [NSArray arrayWithObjects:[self deleteWhiteSpace:nowPlayingText], nil];
-            [TWSendTweet performSelectorInBackground:@selector(post:) withObject:postData];
+            @autoreleasepool {
+             
+                NSArray *postData = [NSArray arrayWithObjects:[self deleteWhiteSpace:nowPlayingText], nil];
+                [TWSendTweet performSelectorInBackground:@selector(post:) withObject:postData];
+            }
             
             //CallBack、またはNowPlaying限定CallBackが有効
             if ( [d boolForKey:@"CallBack"] || [d boolForKey:@"NowPlayingCallBack"] ) {
@@ -1410,11 +1426,14 @@
         
         if ( canPost ) {
             
-            //投稿処理
-            NSString *text = [[[NSString alloc] initWithString:pboard.string] autorelease];
-            NSArray *postData = [NSArray arrayWithObjects:[self deleteWhiteSpace:text], nil];
-            [TWSendTweet performSelectorInBackground:@selector(post:) withObject:postData];
-     
+            @autoreleasepool {
+            
+                //投稿処理
+                NSString *text = [[[NSString alloc] initWithString:pboard.string] autorelease];
+                NSArray *postData = [NSArray arrayWithObjects:[self deleteWhiteSpace:text], nil];
+                [TWSendTweet performSelectorInBackground:@selector(post:) withObject:postData];
+            }
+            
             //コールバックが有効な場合
             if ( [d boolForKey:@"CallBack"] ) {
                 
@@ -1491,7 +1510,7 @@
             
             [ShowAlert error:@"コールバックスキームが有効でありません。"];
             
-            //コールバックスキームを開くことが出来る
+        //コールバックスキームを開くことが出来る
         }else {
             
             //NSLog(@"CallBack");

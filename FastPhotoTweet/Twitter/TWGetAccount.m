@@ -17,7 +17,6 @@
     ACAccountType *accountType = [accountStore accountTypeWithAccountTypeIdentifier:ACAccountTypeIdentifierTwitter];
     NSArray *twitterAccounts = [accountStore accountsWithAccountType:accountType];
     ACAccount *twAccount = [[[ACAccount alloc] init] autorelease];
-    twAccount = nil;
     
     if (twitterAccounts.count > 0) {
         
@@ -39,7 +38,6 @@
     ACAccountType *accountType = [accountStore accountTypeWithAccountTypeIdentifier:ACAccountTypeIdentifierTwitter];
     NSArray *twitterAccounts = [accountStore accountsWithAccountType:accountType];
     ACAccount *twAccount = [[[ACAccount alloc] init] autorelease];
-    twAccount = nil;
     
     if (twitterAccounts.count > 0) {
         

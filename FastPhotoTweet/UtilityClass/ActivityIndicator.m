@@ -22,4 +22,14 @@
     }
 }
 
++ (void)on {
+    
+    [UIApplication sharedApplication].networkActivityIndicatorVisible = YES;
+}
+
++ (void)off {
+    
+    [UIApplication sharedApplication].networkActivityIndicatorVisible = NO;
+}
+
 @end
