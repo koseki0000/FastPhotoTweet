@@ -21,7 +21,6 @@
 @synthesize viewController = _viewController;
 @synthesize oaConsumer;
 @synthesize openURL;
-@synthesize reopenURL;
 @synthesize postText;
 @synthesize postError;
 @synthesize resendNumber;
@@ -46,7 +45,6 @@
     
     //各種初期化
     openURL = [D objectForKey:@"HomePageURL"];
-    reopenURL = BLANK;
     postText = BLANK;
     
     postError = [NSMutableArray array];
@@ -97,7 +95,7 @@
             
         }else if ( [itemName isEqualToString:@"photo"] ) {
             
-            if ( [D boolForKey:@"AddNotificationCenterFastTweet"] ) { 
+            if ( [D boolForKey:@"AddNotificationCenterPhotoTweet"] ) { 
                 
                 //NSLog(@"DeleteNotificationPhotoTweet");
                 [D removeObjectForKey:@"AddNotificationCenterPhotoTweet"];
@@ -106,7 +104,7 @@
             
         }else if ( [itemName isEqualToString:@"music"] ) {
             
-            if ( [D boolForKey:@"AddNotificationCenterFastTweet"] ) {
+            if ( [D boolForKey:@"AddNotificationCenterNowPlaying"] ) {
                 
                 //NSLog(@"DeleteNotificationNowPlaying");
                 [D removeObjectForKey:@"AddNotificationCenterNowPlaying"];

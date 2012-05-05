@@ -37,6 +37,7 @@
 @synthesize tapGesture;
 @synthesize rigthSwipe;
 @synthesize leftSwipe;
+@synthesize inputFunctionButton;
 @synthesize actionButton;
 @synthesize nowPlayingButton;
 @synthesize idButton;
@@ -73,6 +74,7 @@
     cameraMode = NO;
     repeatedPost = NO;
     webBrowserMode = NO;
+    artWorkUploading = NO;
     actionSheetNo = 0;
     
     postText.layer.borderWidth = 2;
@@ -162,12 +164,14 @@
         
         //UUIDを生成して保存
         CFUUIDRef uuidObj = CFUUIDCreate(kCFAllocatorDefault);
-        NSString *uuidString = (NSString*)CFUUIDCreateString(nil, uuidObj);
+        NSString *uuidString = (NSString *)CFUUIDCreateString(nil, uuidObj);
         CFRelease(uuidObj);
         
         [d setObject:uuidString forKey:@"UUID"];
         
         //NSLog(@"Create UUID: %@", uuidString);
+        
+        [uuidString release];
         
     }else {
         
@@ -453,7 +457,7 @@
                             delegate:self
                             cancelButtonTitle:@"Cancel"
                             destructiveButtonTitle:nil
-                            otherButtonTitles:@"半角カナ変換", @"ブラウザ", nil];
+                            otherButtonTitles:@"ブラウザ", nil];
 	[sheet autorelease];
 	[sheet showInView:self.view];
 }
@@ -656,7 +660,6 @@
         if ( ![EmptyCheck check:imageURL] ) {
             
             [ShowAlert error:@"アップロードに失敗しました。"];
-            
             return;
         }
         
@@ -750,6 +753,24 @@
         int location = postText.selectedRange.location - 1;
         [postText setSelectedRange:NSMakeRange( location, 0 ) ];
     }
+}
+
+- (IBAction)pushInputFunctionButton:(id)sender {
+    
+    NSLog(@"pushInputFunctionButton");
+    
+    actionSheetNo = 5;
+    
+    UIActionSheet *sheet = [[UIActionSheet alloc]
+                            initWithTitle:@"入力支援機能"
+                            delegate:self
+                            cancelButtonTitle:@"Cancel"
+                            destructiveButtonTitle:nil
+                            otherButtonTitles:@"半角カナ変換(カタカナ)", @"半角カナ変換(ひらがな)", @"半角カナ変換(カタカナ+ひらがな)", 
+                                              @"ペーストボードへコピー", @"ペーストボードからコピー", 
+                                              @"現在位置から右を削除", @"現在位置から左を削除", nil];
+    [sheet autorelease];
+    [sheet showInView:self.view];
 }
 
 - (IBAction)callbackSwitchDidChage:(id)sender {
@@ -868,7 +889,7 @@
     }else if ( actionSheetNo == 1 ) {
         
         //イメージピッカーを表示
-        UIImagePickerController *picPicker = [[UIImagePickerController alloc] init];
+        UIImagePickerController *picPicker = [[[UIImagePickerController alloc] init] autorelease];
         
         if ( buttonIndex == 0 ) {
             
@@ -885,14 +906,11 @@
         }else {
             
             //キャンセル
-            [picPicker release];
-            
             return;
         }
         
         picPicker.delegate = self;
         [self presentModalViewController:picPicker animated:YES];
-        [picPicker release];
         
     }else if ( actionSheetNo == 2 ) {
         
@@ -928,19 +946,6 @@
         
         if ( buttonIndex == 0 ) {
             
-            actionSheetNo = 5;
-            
-            UIActionSheet *sheet = [[UIActionSheet alloc]
-                                    initWithTitle:@"半角カナ変換"
-                                    delegate:self
-                                    cancelButtonTitle:@"Cancel"
-                                    destructiveButtonTitle:nil
-                                    otherButtonTitles:@"半角カナ変換(カタカナ)", @"半角カナ変換(ひらがな)", @"半角カナ変換(カタカナ+ひらがな)", nil];
-            [sheet autorelease];
-            [sheet showInView:self.view];
-            
-        }else if ( buttonIndex == 1 ) {
-            
             [self startWebBrowsing];
         }
     
@@ -957,6 +962,30 @@
         }else if ( buttonIndex == 2 ) {
             
             postText.text = [HankakuKana kanaHiragana:postText.text];
+        
+        }else if ( buttonIndex == 3 ) {
+            
+            [pboard setString:postText.text];
+            
+        }else if ( buttonIndex == 4 ) {
+            
+            postText.text = [NSString stringWithFormat:@"%@%@", postText.text, pboard.string];
+        
+        }else if ( buttonIndex == 5 ) {
+            
+            if ( ![postText.text isEqualToString:@""] ) {
+                
+                postText.text = [NSString stringWithString:[postText.text substringWithRange:NSMakeRange( 0, postText.selectedRange.location )]];
+                [postText setSelectedRange:NSMakeRange( postText.text.length, 0 )];
+            }
+            
+        }else if ( buttonIndex == 6 ) {
+        
+            if ( ![postText.text isEqualToString:@""] ) {
+                
+                postText.text = [NSString stringWithString:[postText.text substringWithRange:NSMakeRange( postText.selectedRange.location, postText.text.length - ( postText.selectedRange.location ))]];
+                [postText setSelectedRange:NSMakeRange( 0, 0 )];
+            }
         }
     
     }else if ( actionSheetNo == 6 ) {
@@ -1185,11 +1214,11 @@
                     NSLog(@"pBoardType == 0");
                     
                     NSString *searchURL = @"http://www.google.co.jp/search?q=";
-                    NSString *encodedSearchWord = [((NSString *)CFURLCreateStringByAddingPercentEscapes(kCFAllocatorDefault, 
+                    NSString *encodedSearchWord = [(NSString *)CFURLCreateStringByAddingPercentEscapes(kCFAllocatorDefault, 
                                                                                                         (CFStringRef)pboard.string, 
                                                                                                         NULL, 
                                                                                                         (CFStringRef)@"!*'();:@&=+$,/?%#[]", 
-                                                                                                        kCFStringEncodingShiftJIS)) autorelease];
+                                                                                                        kCFStringEncodingShiftJIS) autorelease];
                     
                     appDelegate.openURL = [NSString stringWithFormat:@"%@%@", searchURL, encodedSearchWord];
                     
@@ -1254,13 +1283,13 @@
             
         }else {
             
-            [ShowAlert error:error.localizedDescription];
+            [ShowAlert error:[NSString stringWithFormat:@"CODE: 01\n%@", error.localizedDescription]];
             return;
         }
         
         if ( pBoardType != 0 || pboardString == nil ) {
             
-            [ShowAlert error:@"ペーストボード内にURLがありません。"];
+            [ShowAlert error:@"CODE: 02\nペーストボード内にURLがありません。"];
             return;
         }
         
@@ -1299,13 +1328,7 @@
         
         if ( error ) {
             
-            [ShowAlert error:error.localizedDescription];
-            return;
-        }
-        
-        if ( ![EmptyCheck check:dataStr] ) {
-            
-            [ShowAlert error:@"正常にデータが取得できませんでした。"];
+            [ShowAlert error:[NSString stringWithFormat:@"CODE: 03\n%@", error.localizedDescription]];
             return;
         }
         
@@ -1319,7 +1342,7 @@
             
             if ( ![EmptyCheck check:title] ) {
             
-                [ShowAlert error:@"正常にタイトルが取得できませんでした。"];
+                [ShowAlert error:@"CODE: 04\n正常にタイトルが取得できませんでした。"];
                 return;
             }
         }
@@ -1331,7 +1354,7 @@
         
     }@catch ( NSException *e ) {
         
-        [ShowAlert error:[NSString stringWithFormat:@"原因不明なエラーが発生しました。\n%@", e]];
+        [ShowAlert error:[NSString stringWithFormat:@"CODE: 00\n原因不明なエラーが発生しました。\n%@", e]];
         
     }@finally {
         
@@ -1350,12 +1373,28 @@
         //NSLog(@"SongTitleOK");
         
         //FastPostが有効、またはNowPlaying限定CallBackが有効
-        if ( [d boolForKey:@"NowPlayingFastPost"] ) {
+        if ( [d boolForKey:@"NowPlayingFastPost"] && !artWorkUploading ) {
             
             @autoreleasepool {
              
-                NSArray *postData = [NSArray arrayWithObjects:[self deleteWhiteSpace:nowPlayingText], nil];
-                [TWSendTweet performSelectorInBackground:@selector(post:) withObject:postData];
+                if ( [[d objectForKey:@"PhotoService"] isEqualToString:@"Twitter"] ) {
+                
+                    if ( imagePreview.image != nil ) {
+                        
+                        NSArray *postData = [NSArray arrayWithObjects:[self deleteWhiteSpace:nowPlayingText], imagePreview.image, nil];
+                        [TWSendTweet performSelectorInBackground:@selector(post:) withObject:postData];
+                        
+                    }else {
+                        
+                        NSArray *postData = [NSArray arrayWithObjects:[self deleteWhiteSpace:nowPlayingText], nil];
+                        [TWSendTweet performSelectorInBackground:@selector(post:) withObject:postData];
+                    }
+                    
+                }else {
+                    
+                    NSArray *postData = [NSArray arrayWithObjects:[self deleteWhiteSpace:nowPlayingText], nil];
+                    [TWSendTweet performSelectorInBackground:@selector(post:) withObject:postData];
+                }
             }
             
             //CallBack、またはNowPlaying限定CallBackが有効
@@ -1546,6 +1585,17 @@
         NSNumber *playCount = [player.nowPlayingItem valueForProperty:MPMediaItemPropertyPlayCount];
         NSNumber *ratingNum = [player.nowPlayingItem valueForProperty:MPMediaItemPropertyRating];
         
+        if ( [d boolForKey:@"NowPlayingArtWork"] ) {
+            
+            imagePreview.image = [[player.nowPlayingItem valueForProperty:MPMediaItemPropertyArtwork] imageWithSize:CGSizeMake(500, 500)];
+            
+            if ( ![[d objectForKey:@"PhotoService"] isEqualToString:@"Twitter"] ) {
+                
+                artWorkUploading = YES;
+                [self uploadImage:imagePreview.image];
+            }
+        }
+        
         //曲名が無い場合は終了
         if ( songTitle.length == 0 ) {
             
@@ -1725,6 +1775,7 @@
     [self setLeftSwipe:nil];
     [self setNowPlayingButton:nil];
     [self setActionButton:nil];
+    [self setInputFunctionButton:nil];
     [super viewDidUnload];
 }
 
@@ -1770,6 +1821,7 @@
     [leftSwipe release];
     [nowPlayingButton release];
     [actionButton release];
+    [inputFunctionButton release];
     [super dealloc];
 }
 

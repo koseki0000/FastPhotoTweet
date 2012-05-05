@@ -43,6 +43,7 @@
     BOOL repeatedPost;
     BOOL resendMode;
     BOOL webBrowserMode;
+    BOOL artWorkUploading;
     int actionSheetNo;
 }
 
@@ -68,6 +69,7 @@
 @property (retain, nonatomic) IBOutlet UITapGestureRecognizer *tapGesture;
 @property (retain, nonatomic) IBOutlet UISwipeGestureRecognizer *rigthSwipe;
 @property (retain, nonatomic) IBOutlet UISwipeGestureRecognizer *leftSwipe;
+@property (retain, nonatomic) IBOutlet UIButton *inputFunctionButton;
 
 - (IBAction)pushPostButton:(id)sender;
 - (IBAction)pushTrashButton:(id)sender;
@@ -78,6 +80,7 @@
 - (IBAction)pushResendButton:(id)sender;
 - (IBAction)pushNowPlayingButton:(id)sender;
 - (IBAction)pushActionButton:(id)sender;
+- (IBAction)pushInputFunctionButton:(id)sender;
 
 - (IBAction)callbackTextFieldEnter:(id)sender;
 - (IBAction)textFieldStartEdit:(id)sender;

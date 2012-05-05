@@ -58,6 +58,15 @@
     
     d = [NSUserDefaults standardUserDefaults];
     appDelegate = (AppDelegate *)[[UIApplication sharedApplication] delegate];
+
+    if ( [d boolForKey:@"ClearBrowserSearchField"] ) {
+     
+        searchField.clearsOnBeginEditing = YES;
+        
+    }else {
+        
+        searchField.clearsOnBeginEditing = NO;
+    }
     
     accessURL = BLANK;
     //[accessURL retain];
@@ -67,19 +76,8 @@
     //ツールバーにボタンをセット
     [bottomBar setItems:BOTTOM_BAR animated:NO];
     
-    
-    if ( [EmptyCheck check:appDelegate.reopenURL] && appDelegate.fastGoogleMode == 0 ) {
-        
-        NSLog(@"ReOpen: %@", appDelegate.reopenURL);
-        
-        [wv loadRequestWithString:appDelegate.reopenURL];
-        
-    }else {
-        
-        NSLog(@"Open: %@", appDelegate.openURL);
-        
-        [wv loadRequestWithString:appDelegate.openURL];
-    }
+    //ページをロード
+    [wv loadRequestWithString:appDelegate.openURL];
     
     appDelegate.isBrowserOpen = [NSNumber numberWithInt:1];
 }
@@ -133,7 +131,7 @@
 - (IBAction)pushComposeButton:(id)sender {
  
     appDelegate.isBrowserOpen = [NSNumber numberWithInt:0];
-    appDelegate.reopenURL = [[wv.request URL] absoluteString];
+    appDelegate.openURL = [[wv.request URL] absoluteString];
     
     if ( wv.loading ) [wv stopLoading];
     wv.delegate = nil;
@@ -147,7 +145,6 @@
 - (IBAction)pushCloseButton:(id)sender {
     
     appDelegate.isBrowserOpen = [NSNumber numberWithInt:0];
-    appDelegate.reopenURL = BLANK;
     appDelegate.openURL = [d objectForKey:@"HomePageURL"];
     
     if ( wv.loading ) [wv stopLoading];
@@ -228,11 +225,11 @@
         searchURL = @"https://mobile.twitter.com/searches?q=";
     }
     
-    NSString *encodedSearchWord = ((__bridge_transfer NSString *)CFURLCreateStringByAddingPercentEscapes(kCFAllocatorDefault, 
+    NSString *encodedSearchWord = (__bridge_transfer NSString *)CFURLCreateStringByAddingPercentEscapes(kCFAllocatorDefault, 
                                                                                                 (__bridge CFStringRef)searchField.text, 
                                                                                                 NULL, 
                                                                                                 (CFStringRef)@"!*'();:@&=+$,/?%#[]", 
-                                                                                                kCFStringEncodingUTF8));
+                                                                                                kCFStringEncodingUTF8);
     
     NSLog(@"URL: %@", [NSString stringWithFormat:@"%@%@", searchURL, encodedSearchWord]);
     
@@ -450,12 +447,15 @@
 
 - (void)webView:(UIWebView *)webView didFailLoadWithError:(NSError *)error {
     
-    NSLog(@"%@", error.description);
-    
-    [ShowAlert error:error.localizedDescription];
-    
-    [ActivityIndicator visible:NO];
-    [self updateWebBrowser];
+    if ( error.code != -999 ) {
+     
+        NSLog(@"%@", error.description);
+        
+        [ShowAlert error:error.localizedDescription];
+        
+        [ActivityIndicator visible:NO];
+        [self updateWebBrowser];
+    }
 }
 
 - (void)updateWebBrowser {
@@ -505,7 +505,6 @@
     appDelegate.isBrowserOpen = [NSNumber numberWithInt:0];
     appDelegate.fastGoogleMode = [NSNumber numberWithInt:0];
     appDelegate.webPageShareMode = [NSNumber numberWithInt:0];
-    appDelegate.reopenURL = BLANK;
     appDelegate.openURL = [d objectForKey:@"HomePageURL"];
     
     [self setTopBar:nil];

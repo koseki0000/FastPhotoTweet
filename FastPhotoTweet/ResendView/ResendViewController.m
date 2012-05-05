@@ -115,7 +115,7 @@
 - (void)tableView:(UITableView *)tableView commitEditingStyle:(UITableViewCellEditingStyle)editingStyle forRowAtIndexPath:(NSIndexPath *)indexPath {
     
     [appDelegate.postError removeObjectAtIndex:indexPath.row];
-    [resendTable reloadData];
+    [resendTable deleteRowsAtIndexPaths:[NSArray arrayWithObject:indexPath] withRowAnimation:UITableViewRowAnimationLeft];
 }
 
 /* TableView必須メソッドここまで */

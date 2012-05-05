@@ -12,9 +12,9 @@
 //セクション0の項目数 (画像関連設定)
 #define SECTION_0 7
 //セクション1の項目数 (投稿関連設定)
-#define SECTION_1 6
+#define SECTION_1 7
 //セクション2の項目数 (その他の設定)
-#define SECTION_2 1
+#define SECTION_2 2
 //セクション3の項目数 (ライセンス)
 #define SECTION_3 1
 
@@ -28,16 +28,18 @@
 #define NAME_5  @"画像ソース"
 #define NAME_6  @"連続投稿確認表示"
 //投稿関連設定
-#define NAME_7  @"NowPlaying時はFastPostを行う"
+#define NAME_7  @"NowPlaying時はFastTweetを行う"
 #define NAME_8  @"NowPlaying時はCallBackを行う"
 #define NAME_9  @"NowPlayingにカスタム書式を使用"
-#define NAME_10  @"カスタム書式を編集"
-#define NAME_11  @"曲名とアルバム名が同じな場合サブ書式を使用"
-#define NAME_12  @"サブ書式を編集"
+#define NAME_10 @"カスタム書式を編集"
+#define NAME_11 @"曲名とアルバム名が同じな場合サブ書式を使用"
+#define NAME_12 @"サブ書式を編集"
+#define NAME_13 @"NowPlaying時にアートワークを投稿"
 //その他の設定
-#define NAME_13 @"アプリがアクティブになった際入力可能状態にする"
+#define NAME_14 @"アプリがアクティブになった際入力可能状態にする"
+#define NAME_15 @"ブラウザの検索ワードを毎回リセット"
 //ライセンス
-#define NAME_14 @"ライセンス"
+#define NAME_16 @"ライセンス"
 
 #define BLANK @""
 
@@ -65,7 +67,8 @@
         settingArray = [NSMutableArray arrayWithObjects:NAME_0,  NAME_1,  NAME_2,  NAME_3, 
                                                         NAME_4,  NAME_5,  NAME_6,  NAME_7, 
                                                         NAME_8,  NAME_9,  NAME_10, NAME_11, 
-                                                        NAME_12, NAME_13, NAME_14, nil];
+                                                        NAME_12, NAME_13, NAME_14, NAME_15, 
+                                                        NAME_16, nil];
         
         [settingArray retain];
     }
@@ -291,8 +294,20 @@
         
         //空のまま
     
+    //NowPlaying時にアートワークを投稿
+    }else if ( settingState == 13 ) {    
+        
+        if ( [d boolForKey:@"NowPlayingArtWork"] ) {
+            
+            result = @"ON";
+            
+        }else {
+            
+            result = @"OFF";
+        }
+        
     //アプリがアクティブになった際入力可能状態にする
-    }else if ( settingState == 13 ) {
+    }else if ( settingState == 14 ) {
         
         if ( [d boolForKey:@"ShowKeyboard"] ) {
             
@@ -303,8 +318,18 @@
             result = @"OFF";
         }
     
-    }else if ( settingState == 14 ) {
+    }else if ( settingState == 15 ) {
         
+        if ( [d boolForKey:@"ClearBrowserSearchField"] ) {
+            
+            result = @"ON";
+            
+        }else {
+            
+            result = @"OFF";
+        }
+        
+    }else if ( settingState == 16 ) {
         //空のまま
     }
         
@@ -590,6 +615,18 @@
             [alertText release];
             
             return;
+        
+        }else if ( indexPath.row == 6 ) {
+            
+            //NowPlaying時にアートワークを投稿
+            sheet = [[UIActionSheet alloc]
+                     initWithTitle:NAME_13
+                     delegate:self
+                     cancelButtonTitle:@"Cancel"
+                     destructiveButtonTitle:nil
+                     otherButtonTitles:@"ON", @"OFF", nil];
+            [sheet autorelease];
+            [sheet showInView:self.view];
         }
         
     }else if ( indexPath.section == 2 ) {
@@ -600,7 +637,19 @@
             
             //アプリがアクティブになった際入力可能状態にする
             sheet = [[UIActionSheet alloc]
-                     initWithTitle:NAME_13
+                     initWithTitle:NAME_14
+                     delegate:self
+                     cancelButtonTitle:@"Cancel"
+                     destructiveButtonTitle:nil
+                     otherButtonTitles:@"ON", @"OFF", nil];
+            [sheet autorelease];
+            [sheet showInView:self.view];
+        
+        }else if ( indexPath.row == 1 ) {
+            
+            //ブラウザの検索ワードを毎回リセット
+            sheet = [[UIActionSheet alloc]
+                     initWithTitle:NAME_15
                      delegate:self
                      cancelButtonTitle:@"Cancel"
                      destructiveButtonTitle:nil
@@ -864,16 +913,29 @@
         }else if ( buttonIndex == 2 ) {
             [d setInteger:2 forKey:@"NowPlayingEditSub"];
         }
-        
-//  }else if ( actionSheetNo == 12 ) {
-        
+    
     }else if ( actionSheetNo == 13 ) {
+        
+        if ( buttonIndex == 0 ) {
+            [d setBool:YES forKey:@"NowPlayingArtWork"];
+        }else if ( buttonIndex == 1 ) {
+            [d setBool:NO forKey:@"NowPlayingArtWork"];
+        }
+                
+    }else if ( actionSheetNo == 14 ) {
         if ( buttonIndex == 0 ) {
             [d setBool:YES forKey:@"ShowKeyboard"];
         }else if ( buttonIndex == 1 ) {
             [d setBool:NO forKey:@"ShowKeyboard"];
         }
     
+    }else if ( actionSheetNo == 15 ) {
+        if ( buttonIndex == 0 ) {
+            [d setBool:YES forKey:@"ClearBrowserSearchField"];
+        }else if ( buttonIndex == 1 ) {
+            [d setBool:NO forKey:@"ClearBrowserSearchField"];
+        }
+        
     }else if ( actionSheetNo == 100 ) {
         if ( buttonIndex == 0 ) {
             

@@ -16,7 +16,6 @@
     UIBackgroundTaskIdentifier backgroundTask;
     
     NSString *openURL;
-    NSString *reopenURL;
     NSString *postText;
     NSMutableArray *postError;
     NSNumber *resendNumber;
@@ -30,7 +29,6 @@
 @property (strong, nonatomic) ViewController *viewController;
 @property (nonatomic, retain) OAConsumer *oaConsumer;
 @property (nonatomic, retain) NSString *openURL;
-@property (nonatomic, retain) NSString *reopenURL;
 @property (nonatomic, retain) NSString *postText;
 @property (nonatomic, retain) NSMutableArray *postError;
 @property (nonatomic, retain) NSNumber *resendNumber;
