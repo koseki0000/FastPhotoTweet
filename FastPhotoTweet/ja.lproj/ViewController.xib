@@ -58,25 +58,37 @@
 						<string key="targetRuntimeIdentifier">IBCocoaTouchFramework</string>
 						<array class="NSMutableArray" key="IBUIItems">
 							<object class="IBUIBarButtonItem" id="415297992">
+								<object class="NSCustomResource" key="IBUIImage">
+									<string key="NSClassName">NSImage</string>
+									<string key="NSResourceName">trash.png</string>
+								</object>
 								<string key="targetRuntimeIdentifier">IBCocoaTouchFramework</string>
 								<reference key="IBUIToolbar" ref="973125730"/>
-								<int key="IBUISystemItemIdentifier">16</int>
 							</object>
 							<object class="IBUIBarButtonItem" id="1005223833">
-								<string key="IBUITitle">ID</string>
+								<object class="NSCustomResource" key="IBUIImage">
+									<string key="NSClassName">NSImage</string>
+									<string key="NSResourceName">account.png</string>
+								</object>
 								<string key="targetRuntimeIdentifier">IBCocoaTouchFramework</string>
 								<reference key="IBUIToolbar" ref="973125730"/>
 							</object>
 							<object class="IBUIBarButtonItem" id="153448968">
 								<bool key="IBUIEnabled">NO</bool>
+								<object class="NSCustomResource" key="IBUIImage">
+									<string key="NSClassName">NSImage</string>
+									<string key="NSResourceName">reload.png</string>
+								</object>
 								<string key="targetRuntimeIdentifier">IBCocoaTouchFramework</string>
 								<reference key="IBUIToolbar" ref="973125730"/>
-								<int key="IBUISystemItemIdentifier">13</int>
 							</object>
 							<object class="IBUIBarButtonItem" id="196058876">
+								<object class="NSCustomResource" key="IBUIImage">
+									<string key="NSClassName">NSImage</string>
+									<string key="NSResourceName">photo.png</string>
+								</object>
 								<string key="targetRuntimeIdentifier">IBCocoaTouchFramework</string>
 								<reference key="IBUIToolbar" ref="973125730"/>
-								<int key="IBUISystemItemIdentifier">15</int>
 							</object>
 							<object class="IBUIBarButtonItem" id="73854314">
 								<string key="targetRuntimeIdentifier">IBCocoaTouchFramework</string>
@@ -84,9 +96,12 @@
 								<int key="IBUISystemItemIdentifier">5</int>
 							</object>
 							<object class="IBUIBarButtonItem" id="435630089">
+								<object class="NSCustomResource" key="IBUIImage">
+									<string key="NSClassName">NSImage</string>
+									<string key="NSResourceName">compose.png</string>
+								</object>
 								<string key="targetRuntimeIdentifier">IBCocoaTouchFramework</string>
 								<reference key="IBUIToolbar" ref="973125730"/>
-								<int key="IBUISystemItemIdentifier">7</int>
 							</object>
 						</array>
 						<object class="NSColor" key="IBUITintColor" id="359044786">
@@ -115,19 +130,28 @@
 								<reference key="IBUIToolbar" ref="182738733"/>
 							</object>
 							<object class="IBUIBarButtonItem" id="45948953">
+								<object class="NSCustomResource" key="IBUIImage">
+									<string key="NSClassName">NSImage</string>
+									<string key="NSResourceName">browser.png</string>
+								</object>
 								<string key="targetRuntimeIdentifier">IBCocoaTouchFramework</string>
 								<reference key="IBUIToolbar" ref="182738733"/>
-								<int key="IBUISystemItemIdentifier">9</int>
 							</object>
 							<object class="IBUIBarButtonItem" id="359508074">
-								<string key="IBUITitle"> ♪ </string>
+								<object class="NSCustomResource" key="IBUIImage">
+									<string key="NSClassName">NSImage</string>
+									<string key="NSResourceName">ipod.png</string>
+								</object>
 								<string key="targetRuntimeIdentifier">IBCocoaTouchFramework</string>
 								<reference key="IBUIToolbar" ref="182738733"/>
 							</object>
 							<object class="IBUIBarButtonItem" id="223703919">
+								<object class="NSCustomResource" key="IBUIImage">
+									<string key="NSClassName">NSImage</string>
+									<string key="NSResourceName">notificationcenter.png</string>
+								</object>
 								<string key="targetRuntimeIdentifier">IBCocoaTouchFramework</string>
 								<reference key="IBUIToolbar" ref="182738733"/>
-								<int key="IBUISystemItemIdentifier">4</int>
 							</object>
 						</array>
 						<reference key="IBUITintColor" ref="359044786"/>
@@ -145,7 +169,7 @@
 								<reference key="NSNextKeyView" ref="432185424"/>
 								<string key="NSReuseIdentifierKey">_NS:9</string>
 								<int key="IBUIContentMode">1</int>
-								<bool key="IBUIUserInteractionEnabled">NO</bool>
+								<array key="IBUIGestureRecognizers" id="0"/>
 								<string key="targetRuntimeIdentifier">IBCocoaTouchFramework</string>
 							</object>
 							<object class="IBUITextView" id="85058212">
@@ -162,7 +186,7 @@
 								</object>
 								<bool key="IBUIClipsSubviews">YES</bool>
 								<bool key="IBUIMultipleTouchEnabled">YES</bool>
-								<array key="IBUIGestureRecognizers" id="0"/>
+								<reference key="IBUIGestureRecognizers" ref="0"/>
 								<string key="targetRuntimeIdentifier">IBCocoaTouchFramework</string>
 								<string key="IBUIText"/>
 								<object class="IBUITextInputTraits" key="IBUITextInputTraits">
@@ -722,11 +746,11 @@
 				</object>
 				<object class="IBConnectionRecord">
 					<object class="IBCocoaTouchEventConnection" key="connection">
-						<string key="label">pushActionButton:</string>
+						<string key="label">pushBrowserButton:</string>
 						<reference key="source" ref="45948953"/>
 						<reference key="destination" ref="372490531"/>
 					</object>
-					<int key="connectionID">103</int>
+					<int key="connectionID">122</int>
 				</object>
 				<object class="IBConnectionRecord">
 					<object class="IBCocoaTouchEventConnection" key="connection">
@@ -810,6 +834,7 @@
 					<object class="IBObjectRecord">
 						<int key="objectID">34</int>
 						<reference key="object" ref="714561017"/>
+						<array class="NSMutableArray" key="children"/>
 						<reference key="parent" ref="1020051047"/>
 					</object>
 					<object class="IBObjectRecord">
@@ -943,7 +968,7 @@
 			<nil key="activeLocalization"/>
 			<dictionary class="NSMutableDictionary" key="localizations"/>
 			<nil key="sourceID"/>
-			<int key="maxID">121</int>
+			<int key="maxID">126</int>
 		</object>
 		<object class="IBClassDescriber" key="IBDocument.Classes">
 			<array class="NSMutableArray" key="referencedPartialClassDescriptions">
@@ -953,8 +978,8 @@
 					<dictionary class="NSMutableDictionary" key="actions">
 						<string key="callbackSwitchDidChage:">id</string>
 						<string key="callbackTextFieldEnter:">id</string>
-						<string key="pushActionButton:">id</string>
 						<string key="pushAddButton:">id</string>
+						<string key="pushBrowserButton:">id</string>
 						<string key="pushIDButton:">id</string>
 						<string key="pushImageSettingButton:">id</string>
 						<string key="pushInputFunctionButton:">id</string>
@@ -977,12 +1002,12 @@
 							<string key="name">callbackTextFieldEnter:</string>
 							<string key="candidateClassName">id</string>
 						</object>
-						<object class="IBActionInfo" key="pushActionButton:">
-							<string key="name">pushActionButton:</string>
-							<string key="candidateClassName">id</string>
-						</object>
 						<object class="IBActionInfo" key="pushAddButton:">
 							<string key="name">pushAddButton:</string>
+							<string key="candidateClassName">id</string>
+						</object>
+						<object class="IBActionInfo" key="pushBrowserButton:">
+							<string key="name">pushBrowserButton:</string>
 							<string key="candidateClassName">id</string>
 						</object>
 						<object class="IBActionInfo" key="pushIDButton:">
@@ -1168,10 +1193,17 @@
 		</object>
 		<bool key="IBDocument.PluginDeclaredDependenciesTrackSystemTargetVersion">YES</bool>
 		<int key="IBDocument.defaultPropertyAccessControl">3</int>
-		<object class="NSMutableDictionary" key="IBDocument.LastKnownImageSizes">
-			<string key="NS.key.0">setting.png</string>
-			<string key="NS.object.0">{30, 30}</string>
-		</object>
+		<dictionary class="NSMutableDictionary" key="IBDocument.LastKnownImageSizes">
+			<string key="account.png">{30, 30}</string>
+			<string key="browser.png">{30, 30}</string>
+			<string key="compose.png">{30, 30}</string>
+			<string key="ipod.png">{30, 30}</string>
+			<string key="notificationcenter.png">{30, 30}</string>
+			<string key="photo.png">{30, 30}</string>
+			<string key="reload.png">{30, 30}</string>
+			<string key="setting.png">{30, 30}</string>
+			<string key="trash.png">{30, 30}</string>
+		</dictionary>
 		<string key="IBCocoaTouchPluginVersion">1181</string>
 	</data>
 </archive>

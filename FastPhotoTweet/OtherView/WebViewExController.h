@@ -14,12 +14,16 @@
 @interface WebViewExController : UIViewController <UIWebViewDelegate, UIActionSheetDelegate, UITextFieldDelegate> {
     
     AppDelegate *appDelegate;
+    GrayView *grayView;
 
     UIAlertView *alert;
     UITextField *alertText;
     
     NSUserDefaults *d;
     NSString *accessURL;
+    NSString *saveFileName;
+    NSURLConnection *asyncConnection;
+    NSMutableData *asyncData;
     
     int actionSheetNo;
     int alertTextNo;
@@ -62,5 +66,9 @@
 - (void)setSearchEngine;
 - (void)updateWebBrowser;
 - (void)backForwordButtonVisible;
+- (void)closeWebView;
+
+- (void)saveImage;
+- (void)requestStart;
 
 @end

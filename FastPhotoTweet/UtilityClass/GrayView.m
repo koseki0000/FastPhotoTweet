@@ -42,7 +42,6 @@
     }
     
     [activityIndicator startAnimating];
-    self.userInteractionEnabled = NO;
 }
 
 - (void)off {
@@ -54,7 +53,6 @@
     if ( count <= 0 ) {
         
         [activityIndicator stopAnimating];
-        self.userInteractionEnabled = YES;
         self.frame = CGRectZero;
     }
 }
@@ -66,7 +64,6 @@
     count = 0;
     
     created = NO;
-    self.userInteractionEnabled = YES;
     [self removeFromSuperview];
 }
 

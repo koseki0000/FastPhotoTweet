@@ -48,6 +48,9 @@
     //メモリ管理が正常になるらしい呪文(本来は電話番号やら住所の文字の自動リンク)
     wv.dataDetectorTypes = UIDataDetectorTypeNone;
 
+    grayView = [[GrayView alloc] init];
+    [wv addSubview:grayView];
+    
     //アプリがアクティブになった場合の通知を受け取る設定
     NSNotificationCenter *notificationCenter = [NSNotificationCenter defaultCenter];
     
@@ -124,28 +127,25 @@
                             destructiveButtonTitle:nil
                             otherButtonTitles:@"Google", @"Amazon", @"Yahoo!オークション", 
                                               @"Wikipedia", @"Twitter検索", nil];
-    //[sheet autorelease];
     [sheet showInView:self.view];
 }
 
 - (IBAction)pushComposeButton:(id)sender {
  
-    appDelegate.isBrowserOpen = [NSNumber numberWithInt:0];
     appDelegate.openURL = [[wv.request URL] absoluteString];
     
-    if ( wv.loading ) [wv stopLoading];
-    wv.delegate = nil;
-    [wv removeFromSuperview];
-    
-    [ActivityIndicator visible:NO];
-    
-    [self dismissModalViewControllerAnimated:YES];
+    [self closeWebView];
 }
 
 - (IBAction)pushCloseButton:(id)sender {
     
-    appDelegate.isBrowserOpen = [NSNumber numberWithInt:0];
     appDelegate.openURL = [d objectForKey:@"HomePageURL"];
+    
+    [self closeWebView];
+}
+
+- (void)closeWebView {
+    appDelegate.isBrowserOpen = [NSNumber numberWithInt:0];
     
     if ( wv.loading ) [wv stopLoading];
     wv.delegate = nil;
@@ -189,8 +189,7 @@
                             delegate:self
                             cancelButtonTitle:@"Cancel"
                             destructiveButtonTitle:nil
-                            otherButtonTitles:@"開いているページを投稿", @"ホームページを変更", nil];
-    //[sheet autorelease];
+                            otherButtonTitles:@"開いているページを投稿", @"ホームページを変更", @"Safariで開く", @"保存", nil];
     [sheet showInView:self.view];
 }
 
@@ -375,11 +374,76 @@
             
             [alert addSubview:alertText];
             [alert show];
-            //[alert release];
             [alertText becomeFirstResponder];
-            //[alertText release];
+        
+        }else if ( buttonIndex == 2 ) {
+            
+            //Safariで開く
+            [[UIApplication sharedApplication] openURL:[NSURL URLWithString:accessURL]];
+            
+        }else if ( buttonIndex == 3 ) {
+            
+            if ( ![urlField.text isEqualToString:@""] ) {
+                
+                NSError *error = nil;
+                NSString *documentTitle = wv.pageTitle;
+                
+                NSRegularExpression *regexp = [NSRegularExpression regularExpressionWithPattern:@".*[0-9,]+×[0-9,]+ ?(pixels|ピクセル)$" 
+                                                                                        options:0 
+                                                                                          error:&error];
+                NSTextCheckingResult *match = [regexp firstMatchInString:documentTitle 
+                                                                 options:0 
+                                                                   range:NSMakeRange(0, documentTitle.length)];
+                
+                @autoreleasepool {
+                    
+                    [grayView performSelectorInBackground:@selector(on) withObject:nil];
+                }
+                
+                if ( match.numberOfRanges != 0 ) {
+                    
+                    NSLog(@"Image save");
+                
+                    @autoreleasepool {
+                        
+                        //画像保存開始
+                        [self performSelectorInBackground:@selector(saveImage) withObject:nil];
+                    }
+                    
+                }else {
+                    
+                    NSLog(@"File save");
+                    
+                    //ファイル保存開始
+                    [self requestStart];
+                }
+            }
         }
     }
+}
+
+- (void)saveImage {
+    
+    NSData *data = [NSData dataWithContentsOfURL:[NSURL URLWithString:accessURL]];
+    UIImage *image = [[UIImage alloc] initWithData:data];
+    UIImageWriteToSavedPhotosAlbum(image, self, @selector(savingImageIsFinished:didFinishSavingWithError:contextInfo:), nil);
+    image = nil;
+}
+
+- (void)savingImageIsFinished:(UIImage *)image
+     didFinishSavingWithError:(NSError *)error
+                  contextInfo:(void *)contextInfo {
+    
+    if( error ){
+        
+        [ShowAlert error:@"保存に失敗しました。"];
+        
+    }else {
+        
+        [ShowAlert title:@"保存完了" message:@"カメラロールに保存しました。"];
+    }
+    
+    [grayView off];
 }
 
 - (void)alertView:(UIAlertView *)alertView clickedButtonAtIndex:(NSInteger)buttonIndex {
@@ -426,9 +490,7 @@
     
     //NSLog(@"URL: %@", [[request URL] absoluteString]);
     
-    //[accessURL release];
     accessURL = [[request URL] absoluteString];
-    //[accessURL retain];
     
     urlField.text = [ProtocolCutter url:[[request URL] absoluteString]];
     [ActivityIndicator visible:YES];
@@ -437,6 +499,8 @@
 }
 
 - (void)webViewDidFinishLoad:(UIWebView *)webView {
+    
+    accessURL = [[webView.request URL] absoluteString];
     
     [ActivityIndicator visible:NO];
     [self updateWebBrowser];
@@ -481,6 +545,64 @@
 }
 
 /* WebViewここまで */
+
+/* 非同期通信ダウンロード */
+
+- (void)requestStart {
+    
+    NSLog(@"requestStart: %@", accessURL);
+    
+    //キャッシュの削除
+    NSURLCache *cache = [NSURLCache sharedURLCache];
+    [cache removeAllCachedResponses];
+    
+    asyncConnection = nil;
+    asyncData = nil;
+    
+    saveFileName = [accessURL lastPathComponent]; 
+    
+    NSURLRequest *request = [NSURLRequest requestWithURL:[NSURL URLWithString:accessURL]];
+    asyncConnection = [[NSURLConnection alloc] initWithRequest:request 
+                                                      delegate:self];
+}
+
+- (void)connection:(NSURLConnection *)connection didReceiveResponse:(NSURLResponse *)response{
+    
+    NSLog(@"didReceiveResponse: %lldbytes", [response expectedContentLength]);
+    
+	asyncData = [[NSMutableData alloc] initWithData:0];
+}
+
+- (void)connection:(NSURLConnection *)connection didReceiveData:(NSData *)data{
+
+    //NSLog(@"didReceiveData");
+    
+	[asyncData appendData:data];
+}
+
+- (void)connection:(NSURLConnection *)connection didFailWithError:(NSError *)error {
+
+    NSLog(@"didFailWithError");
+    
+    [ShowAlert error:@"ダウンロードに失敗しました。"];
+    [grayView off];
+}
+
+- (void)connectionDidFinishLoading:(NSURLConnection *)connection {
+    
+    NSLog(@"connectionDidFinishLoading");
+    
+    NSFileManager *manager = [NSFileManager defaultManager];
+    NSString *savePath = [[NSHomeDirectory() stringByAppendingPathComponent:@"Documents"] stringByAppendingPathComponent:saveFileName];
+    [manager createFileAtPath:savePath 
+                     contents:asyncData 
+                   attributes:nil];
+    
+    [ShowAlert title:@"保存完了" message:@"アプリ内ドキュメントフォルダに保存されました。ファイルへはPCのiTunesからアクセス出来ます。"];
+    [grayView off];
+}
+
+/* 非同期通信ダウンロードここまで */
 
 - (BOOL)reachability {
     

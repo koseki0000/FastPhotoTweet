@@ -89,7 +89,7 @@
 								<string key="NSFrame">{{202, 7}, {75, 31}}</string>
 								<reference key="NSSuperview" ref="198023744"/>
 								<reference key="NSWindow"/>
-								<reference key="NSNextKeyView" ref="777240170"/>
+								<reference key="NSNextKeyView" ref="637257483"/>
 								<string key="NSReuseIdentifierKey">_NS:9</string>
 								<bool key="IBUIOpaque">NO</bool>
 								<bool key="IBUIClipsSubviews">YES</bool>
@@ -135,9 +135,12 @@
 								<reference key="IBUIToolbar" ref="198023744"/>
 							</object>
 							<object class="IBUIBarButtonItem" id="429114352">
+								<object class="NSCustomResource" key="IBUIImage">
+									<string key="NSClassName">NSImage</string>
+									<string key="NSResourceName">search.png</string>
+								</object>
 								<string key="targetRuntimeIdentifier">IBCocoaTouchFramework</string>
 								<reference key="IBUIToolbar" ref="198023744"/>
-								<int key="IBUISystemItemIdentifier">12</int>
 							</object>
 						</array>
 						<object class="NSColor" key="IBUITintColor" id="181896152">
@@ -151,6 +154,7 @@
 						<string key="NSFrame">{{0, 416}, {320, 44}}</string>
 						<reference key="NSSuperview" ref="191373211"/>
 						<reference key="NSWindow"/>
+						<reference key="NSNextKeyView"/>
 						<string key="NSReuseIdentifierKey">_NS:9</string>
 						<bool key="IBUIOpaque">NO</bool>
 						<bool key="IBUIClearsContextBeforeDrawing">NO</bool>
@@ -162,15 +166,18 @@
 								<int key="IBUISystemItemIdentifier">14</int>
 							</object>
 							<object class="IBUIBarButtonItem" id="177164506">
+								<object class="NSCustomResource" key="IBUIImage">
+									<string key="NSClassName">NSImage</string>
+									<string key="NSResourceName">reload.png</string>
+								</object>
 								<string key="targetRuntimeIdentifier">IBCocoaTouchFramework</string>
 								<reference key="IBUIToolbar" ref="777240170"/>
-								<int key="IBUISystemItemIdentifier">13</int>
 							</object>
 							<object class="IBUIBarButtonItem" id="600014220">
 								<bool key="IBUIEnabled">NO</bool>
 								<object class="NSCustomResource" key="IBUIImage">
 									<string key="NSClassName">NSImage</string>
-									<string key="NSResourceName">toolbar_back_icon.png</string>
+									<string key="NSResourceName">back.png</string>
 								</object>
 								<string key="targetRuntimeIdentifier">IBCocoaTouchFramework</string>
 								<reference key="IBUIToolbar" ref="777240170"/>
@@ -179,20 +186,26 @@
 								<bool key="IBUIEnabled">NO</bool>
 								<object class="NSCustomResource" key="IBUIImage">
 									<string key="NSClassName">NSImage</string>
-									<string key="NSResourceName">toolbar_forward_icon.png</string>
+									<string key="NSResourceName">forward.png</string>
 								</object>
 								<string key="targetRuntimeIdentifier">IBCocoaTouchFramework</string>
 								<reference key="IBUIToolbar" ref="777240170"/>
 							</object>
 							<object class="IBUIBarButtonItem" id="740516220">
+								<object class="NSCustomResource" key="IBUIImage">
+									<string key="NSClassName">NSImage</string>
+									<string key="NSResourceName">minimize.png</string>
+								</object>
 								<string key="targetRuntimeIdentifier">IBCocoaTouchFramework</string>
 								<reference key="IBUIToolbar" ref="777240170"/>
-								<int key="IBUISystemItemIdentifier">7</int>
 							</object>
 							<object class="IBUIBarButtonItem" id="509404115">
+								<object class="NSCustomResource" key="IBUIImage">
+									<string key="NSClassName">NSImage</string>
+									<string key="NSResourceName">action.png</string>
+								</object>
 								<string key="targetRuntimeIdentifier">IBCocoaTouchFramework</string>
 								<reference key="IBUIToolbar" ref="777240170"/>
-								<int key="IBUISystemItemIdentifier">9</int>
 							</object>
 							<object class="IBUIBarButtonItem" id="1056631251">
 								<string key="targetRuntimeIdentifier">IBCocoaTouchFramework</string>
@@ -208,6 +221,7 @@
 						<string key="NSFrame">{{0, 44}, {320, 372}}</string>
 						<reference key="NSSuperview" ref="191373211"/>
 						<reference key="NSWindow"/>
+						<reference key="NSNextKeyView" ref="777240170"/>
 						<string key="NSReuseIdentifierKey">_NS:9</string>
 						<object class="NSColor" key="IBUIBackgroundColor">
 							<int key="NSColorSpace">1</int>
@@ -803,8 +817,12 @@
 		<bool key="IBDocument.PluginDeclaredDependenciesTrackSystemTargetVersion">YES</bool>
 		<int key="IBDocument.defaultPropertyAccessControl">3</int>
 		<dictionary class="NSMutableDictionary" key="IBDocument.LastKnownImageSizes">
-			<string key="toolbar_back_icon.png">{16, 16}</string>
-			<string key="toolbar_forward_icon.png">{16, 16}</string>
+			<string key="action.png">{30, 30}</string>
+			<string key="back.png">{30, 30}</string>
+			<string key="forward.png">{30, 30}</string>
+			<string key="minimize.png">{30, 30}</string>
+			<string key="reload.png">{30, 30}</string>
+			<string key="search.png">{30, 30}</string>
 		</dictionary>
 		<string key="IBCocoaTouchPluginVersion">1181</string>
 	</data>

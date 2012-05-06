@@ -64,6 +64,12 @@
                                name:@"PostDone" 
                              object:nil];
     
+    //イメージプレビュータップ時のジェスチャーを設定
+    imagePreview.gestureRecognizers = nil;
+    UITapGestureRecognizer *imagePreviewTapGesture = [[[UITapGestureRecognizer alloc] initWithTarget:self 
+                                                                                             action:@selector(imagePreviewTapGesture:)] autorelease];
+	[imagePreview addGestureRecognizer:imagePreviewTapGesture];
+    
     //各種初期値をセット
     d = [NSUserDefaults standardUserDefaults];
     pboard = [UIPasteboard generalPasteboard];
@@ -155,6 +161,7 @@
 }
 
 - (void)testMethod {
+
 
 }
 
@@ -448,18 +455,44 @@
     [self countText];
 }
 
-- (IBAction)pushActionButton:(id)sender {
+- (IBAction)pushBrowserButton:(id)sender {
     
-    actionSheetNo = 4;
-    
-    UIActionSheet *sheet = [[UIActionSheet alloc]
-                            initWithTitle:@"機能選択"
-                            delegate:self
-                            cancelButtonTitle:@"Cancel"
-                            destructiveButtonTitle:nil
-                            otherButtonTitles:@"ブラウザ", nil];
-	[sheet autorelease];
-	[sheet showInView:self.view];
+    @try {
+        
+        //ペーストボード内のURLを開く設定が有効かチェック
+        if ( [d boolForKey:@"OpenPasteBoardURL"] ) {
+            
+            //PasteBoardがテキストかチェック
+            if ( [PasteboardType isText] ) {
+                
+                //URLを抽出
+                NSString *urlString = [RegularExpression strRegExp:pboard.string 
+                                                     regExpPattern:@"https?:([^\\x00-\\x20()\"<>\\x7F-\\xFF])*"];
+                
+                //URLがあったかチェック
+                if ( [EmptyCheck check:urlString] ) {
+                    
+                    //直前にペーストボードから開いたURLでないかチェック
+                    if ( ![urlString isEqualToString:[d objectForKey:@"LastOpendPasteBoardURL"]] ) {
+                        
+                        //開いたURLを保存
+                        [d setObject:urlString forKey:@"LastOpendPasteBoardURL"];
+                        
+                        //URLを設定
+                        appDelegate.openURL = urlString;
+                    }
+                }
+            }
+        }
+        
+    }@catch ( NSException *e ) {
+        
+        //無視
+        
+    }@finally {
+        
+        [self startWebBrowsing];
+    }
 }
 
 - (IBAction)pushSettingButton:(id)sender {
@@ -616,7 +649,7 @@
     
     //NSLog(@"savingImageIsFinished");
     
-    if( error ){
+    if( error ) {
         
         errorImage = image;
         
@@ -659,7 +692,8 @@
         //アップロードが成功しているかチェック
         if ( ![EmptyCheck check:imageURL] ) {
             
-            [ShowAlert error:@"アップロードに失敗しました。"];
+            //失敗
+            [self requestFailed:nil];
             return;
         }
         
@@ -674,11 +708,12 @@
         //文字数カウントを行いラベルに反映
         [self countText];
         
+        //処理中表示をオフ
+        [grayView off];
+        
     }@catch ( NSException *e ) {
         
         [ShowAlert error:@"アップロード開始処理中に原因不明なエラーが発生しました。"];
-        
-    }@finally {
         
         //処理中表示をオフ
         [grayView off];
@@ -732,6 +767,29 @@
     [postText resignFirstResponder];
     [callbackTextField resignFirstResponder];
     [sv setContentOffset:CGPointMake(0, 0) animated:YES];
+}
+
+- (void)imagePreviewTapGesture:(UITapGestureRecognizer *)sender {
+    
+    NSLog(@"imagePreviewTapGesture");
+    
+    [postText resignFirstResponder];
+    [callbackTextField resignFirstResponder];
+    [sv setContentOffset:CGPointMake(0, 0) animated:YES];
+    
+    if ( imagePreview.image != nil ) {
+        
+        actionSheetNo = 7;
+        
+        UIActionSheet *sheet = [[UIActionSheet alloc]
+                                initWithTitle:@"機能選択"
+                                delegate:self
+                                cancelButtonTitle:@"Cancel"
+                                destructiveButtonTitle:nil
+                                otherButtonTitles:@"画像をアップロード", @"画像を破棄", @"画像を再選択", nil];
+        [sheet autorelease];
+        [sheet showInView:self.view];
+    }
 }
 
 - (IBAction)swipeToMoveCursorRight:(id)sender {
@@ -842,6 +900,8 @@
             
         }else if ( buttonIndex == 6 ) {
             
+            [ShowAlert title:@"注意" message:@"通知センターに表示される個数設定によっては表示しきれない場合があります。"];
+            
             [d setBool:YES forKey:@"AddNotificationCenterWebPageShare"];
             localPush.alertBody = @"WebPageShare";
             localPush.userInfo = [NSDictionary dictionaryWithObjectsAndKeys:@"page", @"scheme", nil];
@@ -942,13 +1002,6 @@
             errorImage = nil;
         }
         
-    }else if ( actionSheetNo == 4 ) {
-        
-        if ( buttonIndex == 0 ) {
-            
-            [self startWebBrowsing];
-        }
-    
     }else if ( actionSheetNo == 5 ) {
         
         if ( buttonIndex == 0 ) {
@@ -993,6 +1046,29 @@
         if ( buttonIndex == 0 ) {
             
             [self uploadImage:imagePreview.image];
+        }
+    
+    }else if ( actionSheetNo == 7 ) {
+    
+        if ( buttonIndex == 0 ) {
+            
+            if ( [[d objectForKey:@"PhotoService"] isEqualToString:@"Twitter"] ) {
+                
+                [ShowAlert error:@"Twitterへのアップロードは本文の投稿と同時に行われます。"];
+                
+            }else {
+                
+                [self uploadImage:imagePreview.image];
+            }
+
+        }else if ( buttonIndex == 1 ) {
+            
+            imagePreview.image = nil;
+            [self countText];
+            
+        }else if ( buttonIndex == 2 ) {
+            
+            [self pushImageSettingButton:nil];
         }
     }
 }
@@ -1142,6 +1218,7 @@
 - (void)startWebBrowsing {
     
     webBrowserMode = YES;
+    
     WebViewExController *dialog = [[[WebViewExController alloc] init] autorelease];
     dialog.modalTransitionStyle = UIModalTransitionStyleCoverVertical;
     [self presentModalViewController:dialog animated:YES];
@@ -1587,12 +1664,22 @@
         
         if ( [d boolForKey:@"NowPlayingArtWork"] ) {
             
-            imagePreview.image = [[player.nowPlayingItem valueForProperty:MPMediaItemPropertyArtwork] imageWithSize:CGSizeMake(500, 500)];
+            MPMediaItemArtwork *artwork = [player.nowPlayingItem valueForProperty:MPMediaItemPropertyArtwork];
+            int h = (int)artwork.bounds.size.height;
+            int w = (int)artwork.bounds.size.width;
             
-            if ( ![[d objectForKey:@"PhotoService"] isEqualToString:@"Twitter"] ) {
+            //NSLog(@"artwork.height: %d", h);
+            //NSLog(@"artwork.width: %d", w);
+        
+            if ( h != 0 && w != 0 ) {
+            
+                imagePreview.image = [artwork imageWithSize:CGSizeMake(500, 500)];
                 
-                artWorkUploading = YES;
-                [self uploadImage:imagePreview.image];
+                if ( ![[d objectForKey:@"PhotoService"] isEqualToString:@"Twitter"] ) {
+                    
+                    artWorkUploading = YES;
+                    [self uploadImage:imagePreview.image];
+                }
             }
         }
         

@@ -79,7 +79,7 @@
 - (IBAction)pushAddButton:(id)sender;
 - (IBAction)pushResendButton:(id)sender;
 - (IBAction)pushNowPlayingButton:(id)sender;
-- (IBAction)pushActionButton:(id)sender;
+- (IBAction)pushBrowserButton:(id)sender;
 - (IBAction)pushInputFunctionButton:(id)sender;
 
 - (IBAction)callbackTextFieldEnter:(id)sender;
@@ -88,6 +88,7 @@
 - (IBAction)callbackSwitchDidChage:(id)sender;
 
 - (IBAction)svTapGesture:(id)sender;
+- (void)imagePreviewTapGesture:(UITapGestureRecognizer *)sender;
 - (IBAction)swipeToMoveCursorRight:(id)sender;
 - (IBAction)swipeToMoveCursorLeft:(id)sender;
 

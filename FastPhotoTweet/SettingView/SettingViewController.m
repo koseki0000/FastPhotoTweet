@@ -14,7 +14,7 @@
 //セクション1の項目数 (投稿関連設定)
 #define SECTION_1 7
 //セクション2の項目数 (その他の設定)
-#define SECTION_2 2
+#define SECTION_2 3
 //セクション3の項目数 (ライセンス)
 #define SECTION_3 1
 
@@ -38,8 +38,9 @@
 //その他の設定
 #define NAME_14 @"アプリがアクティブになった際入力可能状態にする"
 #define NAME_15 @"ブラウザの検索ワードを毎回リセット"
+#define NAME_16 @"ブラウザを開く時ペーストボード内のURLを開く"
 //ライセンス
-#define NAME_16 @"ライセンス"
+#define NAME_17 @"ライセンス"
 
 #define BLANK @""
 
@@ -68,7 +69,7 @@
                                                         NAME_4,  NAME_5,  NAME_6,  NAME_7, 
                                                         NAME_8,  NAME_9,  NAME_10, NAME_11, 
                                                         NAME_12, NAME_13, NAME_14, NAME_15, 
-                                                        NAME_16, nil];
+                                                        NAME_16, NAME_17,nil];
         
         [settingArray retain];
     }
@@ -328,8 +329,19 @@
             
             result = @"OFF";
         }
-        
+    
     }else if ( settingState == 16 ) {
+        
+        if ( [d boolForKey:@"OpenPasteBoardURL"] ) {
+            
+            result = @"ON";
+            
+        }else {
+            
+            result = @"OFF";
+        }
+        
+    }else if ( settingState == 17 ) {
         //空のまま
     }
         
@@ -656,6 +668,18 @@
                      otherButtonTitles:@"ON", @"OFF", nil];
             [sheet autorelease];
             [sheet showInView:self.view];
+        
+        }else if ( indexPath.row == 2 ) {
+            
+            //ブラウザを開く時ペーストボード内のURLを開く
+            sheet = [[UIActionSheet alloc]
+                     initWithTitle:NAME_16
+                     delegate:self
+                     cancelButtonTitle:@"Cancel"
+                     destructiveButtonTitle:nil
+                     otherButtonTitles:@"ON", @"OFF", nil];
+            [sheet autorelease];
+            [sheet showInView:self.view];
         }
         
     }else if ( indexPath.section == 3 ) {
@@ -934,6 +958,21 @@
             [d setBool:YES forKey:@"ClearBrowserSearchField"];
         }else if ( buttonIndex == 1 ) {
             [d setBool:NO forKey:@"ClearBrowserSearchField"];
+        }
+        
+    }else if ( actionSheetNo == 16 ) {
+        if ( buttonIndex == 0 ) {
+            
+            [d setBool:YES forKey:@"OpenPasteBoardURL"];
+            
+            if ( ![EmptyCheck check:[d objectForKey:@"LastOpendPasteBoardURL"]] ) {
+                
+                [d setObject:BLANK forKey:@"LastOpendPasteBoardURL"];
+            }
+            
+        }else if ( buttonIndex == 1 ) {
+            
+            [d setBool:NO forKey:@"OpenPasteBoardURL"];
         }
         
     }else if ( actionSheetNo == 100 ) {
