@@ -40,7 +40,7 @@
     //正方形
     if ( originalWidth == originalHeight ) {
         
-        if ( originalHeight < [d integerForKey:@"ImageMaxSize"] ) {
+        if ( originalHeight > [d integerForKey:@"ImageMaxSize"] ) {
             
             CGFloat ratio = image.size.width / [d integerForKey:@"ImageMaxSize"];
             resizeWidth = image.size.width / ratio;
@@ -48,8 +48,7 @@
             
         }else {
             
-            resizeWidth = originalWidth;
-            resizeHeight = originalHeight;
+            return image;
         }
         
     //長方形
@@ -130,7 +129,7 @@
     //正方形
     if ( originalWidth == originalHeight ) {
         
-        if ( originalHeight < maxSize ) {
+        if ( originalHeight > maxSize ) {
             
             CGFloat ratio = image.size.width / maxSize;
             resizeWidth = image.size.width / ratio;
@@ -138,8 +137,7 @@
             
         }else {
             
-            resizeWidth = originalWidth;
-            resizeHeight = originalHeight;
+            return image;
         }
         
         //長方形
@@ -185,6 +183,24 @@
     
     //リサイズ後のログ
     //NSLog(@"Resized Image w: %.0f h: %.0f", image.size.width, image.size.height);
+    
+    return image;
+}
+
++ (UIImage *)resetImageSeze:(MPMediaItemArtwork *)artwork {
+    
+    int w = (int)artwork.bounds.size.width;
+    int h = (int)artwork.bounds.size.height;
+
+    //NSLog(@"w: %d h: %d", w, h);
+    
+    UIImage *image = [artwork imageWithSize:CGSizeMake(w, h)];
+    UIGraphicsBeginImageContext(CGSizeMake(w, h));
+	[image drawInRect:CGRectMake(0, 0, w, h)];  
+	image = UIGraphicsGetImageFromCurrentImageContext();
+	UIGraphicsEndImageContext();
+    
+    //NSLog(@"Image.w: %d Image.h: %d", (int)image.size.width, (int)image.size.height);
     
     return image;
 }

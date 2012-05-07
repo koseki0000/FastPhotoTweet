@@ -744,7 +744,7 @@
     if ( actionSheetNo == 0 ) {
         if ( buttonIndex == 0 ) {
             [d setBool:YES forKey:@"ResizeImage"];
-        }else {
+        }else if ( buttonIndex == 1 ) {
             [d setBool:NO forKey:@"ResizeImage"];
         }
         

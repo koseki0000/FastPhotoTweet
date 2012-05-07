@@ -1668,12 +1668,9 @@
             int h = (int)artwork.bounds.size.height;
             int w = (int)artwork.bounds.size.width;
             
-            //NSLog(@"artwork.height: %d", h);
-            //NSLog(@"artwork.width: %d", w);
-        
             if ( h != 0 && w != 0 ) {
             
-                imagePreview.image = [artwork imageWithSize:CGSizeMake(500, 500)];
+                imagePreview.image = [ResizeImage resetImageSeze:artwork];
                 
                 if ( ![[d objectForKey:@"PhotoService"] isEqualToString:@"Twitter"] ) {
                     
