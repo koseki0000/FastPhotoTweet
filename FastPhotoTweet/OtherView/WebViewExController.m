@@ -45,11 +45,10 @@
 
     [super viewDidLoad];
     
-    //メモリ管理が正常になるらしい呪文(本来は電話番号やら住所の文字の自動リンク)
-    wv.dataDetectorTypes = UIDataDetectorTypeNone;
-
     grayView = [[GrayView alloc] init];
     [wv addSubview:grayView];
+    
+    urlList = [NSMutableArray array];
     
     //アプリがアクティブになった場合の通知を受け取る設定
     NSNotificationCenter *notificationCenter = [NSNotificationCenter defaultCenter];
@@ -79,10 +78,130 @@
     //ツールバーにボタンをセット
     [bottomBar setItems:BOTTOM_BAR animated:NO];
     
+    //ペーストボードURL展開を確認
+    [self checkPasteBoardUrlOption];
+    
+    if ( urlList.count > 1 ) {
+        
+        return;
+    }
+    
     //ページをロード
     [wv loadRequestWithString:appDelegate.openURL];
     
     appDelegate.isBrowserOpen = [NSNumber numberWithInt:1];
+}
+
+- (void)checkPasteBoardUrlOption {
+    
+    //ペーストボード内のURLを開く設定が有効かチェック
+    if ( [d boolForKey:@"OpenPasteBoardURL"] ) {
+        
+        //PasteBoardがテキストかチェック
+        if ( [PasteboardType isText] ) {
+            
+            UIPasteboard *pboard = [UIPasteboard generalPasteboard];
+            
+            //URLを抽出
+            urlList = [RegularExpression urls:pboard.string];
+            
+            if ( [EmptyCheck check:urlList] ) {
+                
+                if (urlList.count == 1 ) {
+                    
+                    [self openPasteBoardUrl:[urlList objectAtIndex:0]];
+                
+                }else if (urlList.count == 2 ) {
+                    
+                    actionSheetNo = 2;
+                    
+                    UIActionSheet *sheet = [[UIActionSheet alloc]
+                                            initWithTitle:@"URL選択"
+                                            delegate:self
+                                            cancelButtonTitle:@"Cancel"
+                                            destructiveButtonTitle:nil
+                                            otherButtonTitles:[urlList objectAtIndex:0], 
+                                                              [urlList objectAtIndex:1], nil];
+                    [sheet showInView:self.view];
+                    
+                }else if (urlList.count == 3 ) {
+                    
+                    actionSheetNo = 3;
+                    
+                    UIActionSheet *sheet = [[UIActionSheet alloc]
+                                            initWithTitle:@"URL選択"
+                                            delegate:self
+                                            cancelButtonTitle:@"Cancel"
+                                            destructiveButtonTitle:nil
+                                            otherButtonTitles:[urlList objectAtIndex:0], 
+                                                              [urlList objectAtIndex:1], 
+                                                              [urlList objectAtIndex:2], nil];
+                    [sheet showInView:self.view];
+                    
+                }else if (urlList.count == 4 ) {
+                    
+                    actionSheetNo = 4;
+                    
+                    UIActionSheet *sheet = [[UIActionSheet alloc]
+                                            initWithTitle:@"URL選択"
+                                            delegate:self
+                                            cancelButtonTitle:@"Cancel"
+                                            destructiveButtonTitle:nil
+                                            otherButtonTitles:[urlList objectAtIndex:0], 
+                                                              [urlList objectAtIndex:1], 
+                                                              [urlList objectAtIndex:2], 
+                                                              [urlList objectAtIndex:3], nil];
+                    [sheet showInView:self.view];
+                    
+                }else if (urlList.count == 5 ) {
+                    
+                    actionSheetNo = 5;
+                    
+                    UIActionSheet *sheet = [[UIActionSheet alloc]
+                                            initWithTitle:@"URL選択"
+                                            delegate:self
+                                            cancelButtonTitle:@"Cancel"
+                                            destructiveButtonTitle:nil
+                                            otherButtonTitles:[urlList objectAtIndex:0], 
+                                                              [urlList objectAtIndex:1], 
+                                                              [urlList objectAtIndex:2], 
+                                                              [urlList objectAtIndex:3],
+                                                              [urlList objectAtIndex:4], nil];
+                    [sheet showInView:self.view];
+                    
+                }else if (urlList.count >= 6 ) {
+                    
+                    actionSheetNo = 6;
+                    
+                    UIActionSheet *sheet = [[UIActionSheet alloc]
+                                            initWithTitle:@"URL選択"
+                                            delegate:self
+                                            cancelButtonTitle:@"Cancel"
+                                            destructiveButtonTitle:nil
+                                            otherButtonTitles:[urlList objectAtIndex:0], 
+                                                              [urlList objectAtIndex:1], 
+                                                              [urlList objectAtIndex:2], 
+                                                              [urlList objectAtIndex:3],
+                                                              [urlList objectAtIndex:4],
+                                                              [urlList objectAtIndex:5], nil];
+                    [sheet showInView:self.view];
+                }
+            }
+        }
+    }
+}
+
+- (void)openPasteBoardUrl:(NSString *)urlString {
+    
+    //直前にペーストボードから開いたURLでないかチェック
+    if ( ![urlString isEqualToString:[d objectForKey:@"LastOpendPasteBoardURL"]] ) {
+        
+        //開いたURLを保存
+        [d setObject:urlString forKey:@"LastOpendPasteBoardURL"];
+        
+        //URLを設定
+        appDelegate.openURL = urlString;
+    }
 }
 
 - (void)becomeActive:(NSNotification *)notification {
@@ -189,7 +308,7 @@
                             delegate:self
                             cancelButtonTitle:@"Cancel"
                             destructiveButtonTitle:nil
-                            otherButtonTitles:@"開いているページを投稿", @"ホームページを変更", @"Safariで開く", @"保存", nil];
+                            otherButtonTitles:@"開いているページを投稿", @"選択文字を引用して投稿", @"選択文字で検索", @"ホームページを変更", @"Safariで開く", @"保存", nil];
     [sheet showInView:self.view];
 }
 
@@ -328,6 +447,8 @@
 
 - (void)actionSheet:(UIActionSheet *)actionSheet clickedButtonAtIndex:(NSInteger)buttonIndex {
     
+    //NSLog(@"No: %d Index: %d", actionSheetNo, buttonIndex);
+    
     if ( actionSheetNo == 0 ) {
         
         NSString *searchEngineName = nil;
@@ -356,8 +477,43 @@
             
             appDelegate.postText = [NSString stringWithFormat:@"\"%@\" %@", wv.pageTitle, [[wv.request URL] absoluteString]];
             [self pushComposeButton:nil];
-            
+        
         }else if ( buttonIndex == 1 ) {
+            
+            NSLog(@"selectString: %@", wv.selectString);
+            
+            if ( [EmptyCheck check:wv.selectString] ) {
+                
+                actionSheetNo = 7;
+                
+                UIActionSheet *sheet = [[UIActionSheet alloc]
+                                        initWithTitle:@"引用投稿"
+                                        delegate:self
+                                        cancelButtonTitle:@"Cancel"
+                                        destructiveButtonTitle:nil
+                                        otherButtonTitles:@"選択文字を投稿", @"選択文字に引用符を付けて投稿",
+                                        @"URL･タイトルと選択文字を投稿", @"URL･タイトルと選択文字に引用符を付けて投稿",nil];
+                [sheet showInView:self.view];
+                
+            }else {
+                
+                [ShowAlert error:@"文字が選択されていません。"];
+            }
+        
+        }else if ( buttonIndex == 2 ) {
+            
+            actionSheetNo = 8;
+            
+            UIActionSheet *sheet = [[UIActionSheet alloc]
+                                    initWithTitle:@"選択文字検索"
+                                    delegate:self
+                                    cancelButtonTitle:@"Cancel"
+                                    destructiveButtonTitle:nil
+                                    otherButtonTitles:@"Google", @"Amazon", @"Yahoo!オークション", 
+                                    @"Wikipedia", @"Twitter検索", nil];
+            [sheet showInView:self.view];
+            
+        }else if ( buttonIndex == 3 ) {
             
             alertTextNo = 1;
             
@@ -376,12 +532,12 @@
             [alert show];
             [alertText becomeFirstResponder];
         
-        }else if ( buttonIndex == 2 ) {
+        }else if ( buttonIndex == 4 ) {
             
             //Safariで開く
             [[UIApplication sharedApplication] openURL:[NSURL URLWithString:accessURL]];
             
-        }else if ( buttonIndex == 3 ) {
+        }else if ( buttonIndex == 5 ) {
             
             if ( ![urlField.text isEqualToString:@""] ) {
                 
@@ -419,6 +575,71 @@
                 }
             }
         }
+        
+    }else if ( actionSheetNo >= 2 && actionSheetNo <= 6 ) {
+
+        if ( buttonIndex >= 0 && buttonIndex <= 5 ) {
+            
+            [self openPasteBoardUrl:[urlList objectAtIndex:buttonIndex]];
+            
+            [urlList removeAllObjects];
+        }
+        
+        //ページをロード
+        [wv loadRequestWithString:appDelegate.openURL];
+        
+        appDelegate.isBrowserOpen = [NSNumber numberWithInt:1];
+    
+    }else if ( actionSheetNo == 7 ) {
+        
+        if ( buttonIndex == 0 ) {
+        
+            appDelegate.postText = wv.selectString;
+            [self pushComposeButton:nil];
+        
+        }else if ( buttonIndex == 1 ) {
+        
+            appDelegate.postText = [NSString stringWithFormat:@">>%@", wv.selectString];
+            [self pushComposeButton:nil];
+        
+        }else if ( buttonIndex == 2 ) {
+        
+            appDelegate.postText = [NSString stringWithFormat:@"\"%@\" %@ %@", wv.pageTitle, [[wv.request URL] absoluteString], wv.selectString];
+            [self pushComposeButton:nil];
+        
+        }else if ( buttonIndex == 3 ) {
+            
+            appDelegate.postText = [NSString stringWithFormat:@"\"%@\" %@ >>%@", wv.pageTitle, [[wv.request URL] absoluteString], wv.selectString];
+            [self pushComposeButton:nil];
+        }
+        
+    }else if ( actionSheetNo == 8 ) {
+        
+        if ( [EmptyCheck check:wv.selectString] ) {
+            
+            NSString *searchEngineName = nil;
+            
+            if ( buttonIndex == 0 ) {
+                searchEngineName = @"Google";
+            }else if ( buttonIndex == 1 ) {
+                searchEngineName = @"Amazon";
+            }else if ( buttonIndex == 2 ) {
+                searchEngineName = @"Yahoo!オークション";
+            }else if ( buttonIndex == 3 ) {
+                searchEngineName = @"Wikipedia";
+            }else if ( buttonIndex == 4 ) {
+                searchEngineName = @"Twitter";
+            }else {
+                return;
+            }
+            
+            searchField.text = wv.selectString;
+            searchField.placeholder = searchEngineName;
+            [d setObject:searchEngineName forKey:@"SearchEngine"];
+            
+            [self enterSearchField:nil];
+        }
+        
     }
 }
 
@@ -491,6 +712,18 @@
     //NSLog(@"URL: %@", [[request URL] absoluteString]);
     
     accessURL = [[request URL] absoluteString];
+    
+    if ( [d boolForKey:@"FullSizeImage"] ) {
+        
+        NSString *fullSizeImageUrl = [FullSizeImage urlString:accessURL];
+        
+        if ( ![fullSizeImageUrl isEqualToString:accessURL] ) {
+            
+            [wv loadRequestWithString:fullSizeImageUrl];
+            
+            return NO;
+        }
+    }
     
     urlField.text = [ProtocolCutter url:[[request URL] absoluteString]];
     [ActivityIndicator visible:YES];

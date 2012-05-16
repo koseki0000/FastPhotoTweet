@@ -24,6 +24,7 @@
     NSString *saveFileName;
     NSURLConnection *asyncConnection;
     NSMutableData *asyncData;
+    NSMutableArray *urlList;
     
     int actionSheetNo;
     int alertTextNo;
@@ -62,6 +63,8 @@
 - (IBAction)onSearchField: (id)sender;
 - (IBAction)leaveSearchField: (id)sender;
 
+- (void)checkPasteBoardUrlOption;
+- (void)openPasteBoardUrl:(NSString *)urlString;
 - (void)becomeActive:(NSNotification *)notification;
 - (void)setSearchEngine;
 - (void)updateWebBrowser;

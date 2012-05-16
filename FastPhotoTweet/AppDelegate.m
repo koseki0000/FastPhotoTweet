@@ -71,79 +71,8 @@
     //iOS5以降かチェック
     if ( [self ios5Check] ) {
         
-        //通知の判別
-        NSString *itemName = [notification.userInfo objectForKey:@"scheme"];
-        //NSLog(@"itemName: %@", itemName);
-        
-        if ( [itemName isEqualToString:@"tweet"] ) {
-            
-            if ( [D boolForKey:@"AddNotificationCenterTweet"] ) { 
-                
-                //NSLog(@"DeleteNotificationTweet");
-                [D removeObjectForKey:@"AddNotificationCenterTweet"];
-                return;   
-            }
-            
-        }else if ( [itemName isEqualToString:@"fast"] ) {
-            
-            if ( [D boolForKey:@"AddNotificationCenterFastTweet"] ) { 
-                
-                //NSLog(@"DeleteNotificationFastTweet");
-                [D removeObjectForKey:@"AddNotificationCenterFastTweet"];
-                return;
-            }
-            
-        }else if ( [itemName isEqualToString:@"photo"] ) {
-            
-            if ( [D boolForKey:@"AddNotificationCenterPhotoTweet"] ) { 
-                
-                //NSLog(@"DeleteNotificationPhotoTweet");
-                [D removeObjectForKey:@"AddNotificationCenterPhotoTweet"];
-                return;
-            }
-            
-        }else if ( [itemName isEqualToString:@"music"] ) {
-            
-            if ( [D boolForKey:@"AddNotificationCenterNowPlaying"] ) {
-                
-                //NSLog(@"DeleteNotificationNowPlaying");
-                [D removeObjectForKey:@"AddNotificationCenterNowPlaying"];
-                return;
-            }
-            
-        }else if ( [itemName isEqualToString:@"google"] ) {
-            
-            if ( [D boolForKey:@"AddNotificationCenterFastGoogle"] ) {
-                
-                //NSLog(@"DeleteNotificationFastGoogle");
-                [D removeObjectForKey:@"AddNotificationCenterFastGoogle"];
-                return;
-            }
-            
-        }else if ( [itemName isEqualToString:@"page"] ) {
-            
-            if ( [D boolForKey:@"AddNotificationCenterWebPageShare"] ) {
-                
-                //NSLog(@"DeleteNotificationWebPageShare");
-                [D removeObjectForKey:@"AddNotificationCenterWebPageShare"];
-                return;
-            }
-        }
-        
-        if ( [itemName isEqualToString:@"google"] ) {
-            
-            NSLog(@"Set webBrowsingMode");
-            fastGoogleMode = [NSNumber numberWithInt:1];
-            
-        }else if ( [itemName isEqualToString:@"page"] ) {
-            
-            NSLog(@"Set webPageShareMode");
-            webPageShareMode = [NSNumber numberWithInt:1];
-        }
-        
         //通知フラグと種類を登録
         [D setBool:YES forKey:@"Notification"];
-        [D setObject:itemName forKey:@"NotificationType"];
     }
 }
 
@@ -151,23 +80,7 @@
 
     NSLog(@"handleOpenURL: %@", schemeURL.absoluteString);
     
-    NSString *scheme = [schemeURL.absoluteString substringWithRange:NSMakeRange(6, schemeURL.absoluteString.length - 6)];
-    
-    if ( [scheme isEqualToString:@"google"] ) {
-        
-        NSLog(@"Set webBrowsingMode");
-        fastGoogleMode = [NSNumber numberWithInt:1];
-        webPageShareMode = [NSNumber numberWithInt:0];
-
-    }else if ( [scheme isEqualToString:@"page"] ) {
-        
-        NSLog(@"Set webPageShareMode");
-        fastGoogleMode = [NSNumber numberWithInt:0];
-        webPageShareMode = [NSNumber numberWithInt:1];
-    }
-    
     [D setBool:YES forKey:@"Notification"];
-    [D setObject:scheme forKey:@"NotificationType"];
     
     return YES;
 }

@@ -10,7 +10,7 @@
 #define APP_VERSION @"1.1"
 
 #define TOP_BAR [NSArray arrayWithObjects:trashButton, flexibleSpace, idButton, flexibleSpace, resendButton, flexibleSpace, imageSettingButton, flexibleSpace, postButton, nil]
-#define BOTTOM_BAR [NSArray arrayWithObjects:settingButton, flexibleSpace, actionButton, flexibleSpace, nowPlayingButton, flexibleSpace, addButton, nil]
+#define BOTTOM_BAR [NSArray arrayWithObjects:settingButton, flexibleSpace, actionButton, flexibleSpace, nowPlayingButton, nil]
 
 #define IMGUR_API_KEY   @"6de089e68b55d6e390d246c4bf932901"
 #define TWITPIC_API_KEY @"95cf146048caad3267f95219b379e61c"
@@ -33,7 +33,6 @@
 @synthesize trashButton;
 @synthesize postButton;
 @synthesize flexibleSpace;
-@synthesize addButton;
 @synthesize tapGesture;
 @synthesize rigthSwipe;
 @synthesize leftSwipe;
@@ -457,42 +456,11 @@
 
 - (IBAction)pushBrowserButton:(id)sender {
     
-    @try {
-        
-        //ペーストボード内のURLを開く設定が有効かチェック
-        if ( [d boolForKey:@"OpenPasteBoardURL"] ) {
-            
-            //PasteBoardがテキストかチェック
-            if ( [PasteboardType isText] ) {
-                
-                //URLを抽出
-                NSString *urlString = [RegularExpression strRegExp:pboard.string 
-                                                     regExpPattern:@"https?:([^\\x00-\\x20()\"<>\\x7F-\\xFF])*"];
-                
-                //URLがあったかチェック
-                if ( [EmptyCheck check:urlString] ) {
-                    
-                    //直前にペーストボードから開いたURLでないかチェック
-                    if ( ![urlString isEqualToString:[d objectForKey:@"LastOpendPasteBoardURL"]] ) {
-                        
-                        //開いたURLを保存
-                        [d setObject:urlString forKey:@"LastOpendPasteBoardURL"];
-                        
-                        //URLを設定
-                        appDelegate.openURL = urlString;
-                    }
-                }
-            }
-        }
-        
-    }@catch ( NSException *e ) {
-        
-        //無視
-        
-    }@finally {
-        
-        [self startWebBrowsing];
-    }
+    webBrowserMode = YES;
+    
+    WebViewExController *dialog = [[[WebViewExController alloc] init] autorelease];
+    dialog.modalTransitionStyle = UIModalTransitionStyleCoverVertical;
+    [self presentModalViewController:dialog animated:YES];
 }
 
 - (IBAction)pushSettingButton:(id)sender {
@@ -515,7 +483,7 @@
     [self presentModalViewController:dialog animated:YES];
 }
 
-- (IBAction)pushAddButton:(id)sender {
+- (void)showActionMenu {
     
     actionSheetNo = 0;
     
@@ -525,7 +493,7 @@
                             cancelButtonTitle:@"Cancel"
                             destructiveButtonTitle:nil
                             otherButtonTitles:@"Tweet", @"FastTweet", @"PhotoTweet", 
-                                              @"NowPlaying", @"FastGoogle", @"FastPagePost", @"全て", nil];
+                                              @"NowPlaying", @"FastGoogle", @"FastPagePost", nil];
 	[sheet autorelease];
 	[sheet showInView:self.view];
 }
@@ -848,103 +816,82 @@
     
     if ( actionSheetNo == 0 ) {
         
-        //通知センターにアプリを登録
-        //通知センター登録時は通知を受け取っても無視するように設定
-        
-        UILocalNotification *localPush = [[[UILocalNotification alloc] init] autorelease];
-        localPush.timeZone = [NSTimeZone defaultTimeZone];
+        //ペーストボードの内容をチェック
+        int pBoardType = [PasteboardType check];
         
         if ( buttonIndex == 0 ) {
 
-            [d setBool:YES forKey:@"AddNotificationCenterTweet"];
-            localPush.alertBody = @"Tweet";
-            localPush.userInfo = [NSDictionary dictionaryWithObjectsAndKeys:@"tweet", @"scheme", nil];
+            //NSLog(@"Post Start");
             
-            //NSLog(@"Add NotificationCenter Tweet");
+            [self postNotification:pBoardType];
         
         }else if ( buttonIndex == 1 ) {
             
-            [d setBool:YES forKey:@"AddNotificationCenterFastTweet"];
-            localPush.alertBody = @"FastTweet";
-            localPush.userInfo = [NSDictionary dictionaryWithObjectsAndKeys:@"fast", @"scheme", nil];
+            //NSLog(@"Fast Post Start");
             
-            //NSLog(@"Add NotificationCenter FastTweet");
+            [self fastPostNotification:pBoardType];
             
         }else if ( buttonIndex == 2 ) {
             
-            [d setBool:YES forKey:@"AddNotificationCenterPhotoTweet"];
-            localPush.alertBody = @"PhotoTweet";
-            localPush.userInfo = [NSDictionary dictionaryWithObjectsAndKeys:@"photo", @"scheme", nil];
+            //NSLog(@"Photo Start");
             
-            //NSLog(@"Add NotificationCenter PhotoTweet");
+            [self photoPostNotification:pBoardType];
             
         }else if ( buttonIndex == 3 ) {
             
-            [d setBool:YES forKey:@"AddNotificationCenterNowPlaying"];
-            localPush.alertBody = @"NowPlaying";
-            localPush.userInfo = [NSDictionary dictionaryWithObjectsAndKeys:@"music", @"scheme", nil];
+            //NSLog(@"NowPlaying Start");
             
-            //NSLog(@"Add NotificationCenter NowPlaying");
-        
+            [self nowPlayingNotification];
+            
         }else if ( buttonIndex == 4 ) {
             
-            [d setBool:YES forKey:@"AddNotificationCenterFastGoogle"];
-            localPush.alertBody = @"FastGoogle";
-            localPush.userInfo = [NSDictionary dictionaryWithObjectsAndKeys:@"google", @"scheme", nil];
+            NSLog(@"Google Start");
             
+            if ( pBoardType == 0 ) {
+                
+                NSLog(@"pBoardType == 0");
+                
+                NSString *searchURL = @"http://www.google.co.jp/search?q=";
+                NSString *encodedSearchWord = [(NSString *)CFURLCreateStringByAddingPercentEscapes(kCFAllocatorDefault,
+                                                                                                   (CFStringRef)pboard.string,
+                                                                                                   NULL,
+                                                                                                   (CFStringRef)@"!*'();:@&=+$,/?%#[]",
+                                                                                                   kCFStringEncodingShiftJIS) autorelease];
+                
+                appDelegate.openURL = [NSString stringWithFormat:@"%@%@", searchURL, encodedSearchWord];
+                
+            }else {
+                
+                NSLog(@"pBoardType != 0");
+            }
+            
+            if ( [appDelegate.isBrowserOpen intValue] == 0 ) {
+                
+                NSLog(@"Open Browser");
+                
+                [self startWebBrowsing];
+                
+            }else {
+                
+                NSLog(@"Opened Browser");
+            }
+        
         }else if ( buttonIndex == 5 ) {
             
-            [d setBool:YES forKey:@"AddNotificationCenterWebPageShare"];
-            localPush.alertBody = @"WebPageShare";
-            localPush.userInfo = [NSDictionary dictionaryWithObjectsAndKeys:@"page", @"scheme", nil];
+            NSLog(@"WebPageShare Start");
+            
+            @autoreleasepool {
+                
+                [ActivityIndicator performSelectorInBackground:@selector(on) withObject:nil];
+            }
+            
+            [self webPageShareNotification:pBoardType];
             
         }else if ( buttonIndex == 6 ) {
             
-            [ShowAlert title:@"注意" message:@"通知センターに表示される個数設定によっては表示しきれない場合があります。"];
-            
-            [d setBool:YES forKey:@"AddNotificationCenterWebPageShare"];
-            localPush.alertBody = @"WebPageShare";
-            localPush.userInfo = [NSDictionary dictionaryWithObjectsAndKeys:@"page", @"scheme", nil];
-            localPush.fireDate = [NSDate dateWithTimeIntervalSinceNow:0];
-            [[UIApplication sharedApplication] scheduleLocalNotification:localPush];
-            
-            [d setBool:YES forKey:@"AddNotificationCenterFastGoogle"];
-            localPush.alertBody = @"FastGoogle";
-            localPush.userInfo = [NSDictionary dictionaryWithObjectsAndKeys:@"google", @"scheme", nil];
-            localPush.fireDate = [NSDate dateWithTimeIntervalSinceNow:0];
-            [[UIApplication sharedApplication] scheduleLocalNotification:localPush];
-            
-            [d setBool:YES forKey:@"AddNotificationCenterNowPlaying"];
-            localPush.alertBody = @"NowPlaying";
-            localPush.userInfo = [NSDictionary dictionaryWithObjectsAndKeys:@"music", @"scheme", nil];
-            localPush.fireDate = [NSDate dateWithTimeIntervalSinceNow:0];
-            [[UIApplication sharedApplication] scheduleLocalNotification:localPush];
-            
-            [d setBool:YES forKey:@"AddNotificationCenterPhotoTweet"];
-            localPush.alertBody = @"PhotoTweet";
-            localPush.userInfo = [NSDictionary dictionaryWithObjectsAndKeys:@"photo", @"scheme", nil];
-            localPush.fireDate = [NSDate dateWithTimeIntervalSinceNow:0];
-            [[UIApplication sharedApplication] scheduleLocalNotification:localPush];
-            
-            [d setBool:YES forKey:@"AddNotificationCenterFastTweet"];
-            localPush.alertBody = @"FastTweet";
-            localPush.userInfo = [NSDictionary dictionaryWithObjectsAndKeys:@"fast", @"scheme", nil];
-            localPush.fireDate = [NSDate dateWithTimeIntervalSinceNow:0];
-            [[UIApplication sharedApplication] scheduleLocalNotification:localPush];
-            
-            [d setBool:YES forKey:@"AddNotificationCenterTweet"];
-            localPush.alertBody = @"Tweet";
-            localPush.userInfo = [NSDictionary dictionaryWithObjectsAndKeys:@"tweet", @"scheme", nil];
-            
-            //NSLog(@"Add NotificationCenter All");
-            
         }else {
             
-            return;
         }
-        
-        localPush.fireDate = [NSDate dateWithTimeIntervalSinceNow:0];
-        [[UIApplication sharedApplication] scheduleLocalNotification:localPush];
         
     }else if ( actionSheetNo == 1 ) {
         
@@ -1217,11 +1164,7 @@
 
 - (void)startWebBrowsing {
     
-    webBrowserMode = YES;
     
-    WebViewExController *dialog = [[[WebViewExController alloc] init] autorelease];
-    dialog.modalTransitionStyle = UIModalTransitionStyleCoverVertical;
-    [self presentModalViewController:dialog animated:YES];
 }
 
 - (void)becomeActive:(NSNotification *)notification {
@@ -1246,86 +1189,7 @@
         //iOS5以降かチェック
         if ( [self ios5Check] ) {
             
-            //Twitterアカウントのチェック
-            if ( twAccount == nil ) {
-                
-                [ShowAlert error:@"Twitterアカウントが見つかりませんでした。"];
-                return;
-            }
-            
-            if ( [[d objectForKey:@"NotificationType"] isEqualToString:@"music"] ) {
-                
-                //NSLog(@"NowPlaying Start");
-                
-                [self nowPlayingNotification];
-                return;
-            }
-            
-            //ペーストボードの内容をチェック
-            int pBoardType = [PasteboardType check];
-            
-            if ( [[d objectForKey:@"NotificationType"] isEqualToString:@"tweet"] ) {
-                
-                //NSLog(@"Post Start");
-                
-                [self postNotification:pBoardType];
-                
-            }else if ( [[d objectForKey:@"NotificationType"] isEqualToString:@"fast"] ) {
-                
-                //NSLog(@"Fast Post Start");
-                
-                [self fastPostNotification:pBoardType];
-                
-            }else if ( [[d objectForKey:@"NotificationType"] isEqualToString:@"photo"] ) {
-                
-                //NSLog(@"Photo Start");
-                
-                [self photoPostNotification:pBoardType];
-            
-            }else if ( [[d objectForKey:@"NotificationType"] isEqualToString:@"google"] ) {
-                
-                NSLog(@"Google Start");
-                
-                if ( pBoardType == 0 ) {
-                    
-                    NSLog(@"pBoardType == 0");
-                    
-                    NSString *searchURL = @"http://www.google.co.jp/search?q=";
-                    NSString *encodedSearchWord = [(NSString *)CFURLCreateStringByAddingPercentEscapes(kCFAllocatorDefault, 
-                                                                                                        (CFStringRef)pboard.string, 
-                                                                                                        NULL, 
-                                                                                                        (CFStringRef)@"!*'();:@&=+$,/?%#[]", 
-                                                                                                        kCFStringEncodingShiftJIS) autorelease];
-                    
-                    appDelegate.openURL = [NSString stringWithFormat:@"%@%@", searchURL, encodedSearchWord];
-                    
-                }else {
-                    
-                    NSLog(@"pBoardType != 0");
-                }
-                
-                if ( [appDelegate.isBrowserOpen intValue] == 0 ) {
-                
-                    NSLog(@"Open Browser");
-                    
-                    [self startWebBrowsing];
-                    
-                }else {
-                    
-                    NSLog(@"Opened Browser");
-                }
-                
-            }else if ( [[d objectForKey:@"NotificationType"] isEqualToString:@"page"] ) {
-                
-                NSLog(@"WebPageShare Start");
-                
-                @autoreleasepool {
-                 
-                    [ActivityIndicator performSelectorInBackground:@selector(on) withObject:nil];
-                }
-                
-                [self webPageShareNotification:pBoardType];
-            }
+            [self showActionMenu];
         }
         
     }else {
@@ -1665,12 +1529,16 @@
         if ( [d boolForKey:@"NowPlayingArtWork"] ) {
             
             MPMediaItemArtwork *artwork = [player.nowPlayingItem valueForProperty:MPMediaItemPropertyArtwork];
+            
             int h = (int)artwork.bounds.size.height;
             int w = (int)artwork.bounds.size.width;
             
+            NSLog(@"height: %d widht: %d", h, w);
+            
             if ( h != 0 && w != 0 ) {
             
-                imagePreview.image = [ResizeImage resetImageSeze:artwork];
+                imagePreview.image = [ResizeImage aspectResize:[artwork imageWithSize:CGSizeMake(500, 500)] 
+                                                       maxSize:500];
                 
                 if ( ![[d objectForKey:@"PhotoService"] isEqualToString:@"Twitter"] ) {
                     
@@ -1852,7 +1720,6 @@
     [self setSettingButton:nil];
     [self setBottomBar:nil];
     [self setIdButton:nil];
-    [self setAddButton:nil];
     [self setTapGesture:nil];
     [self setResendButton:nil];
     [self setRigthSwipe:nil];
@@ -1898,7 +1765,6 @@
     [settingButton release];
     [bottomBar release];
     [idButton release];
-    [addButton release];
     [tapGesture release];
     [resendButton release];
     [rigthSwipe release];

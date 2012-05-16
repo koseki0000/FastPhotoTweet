@@ -12,6 +12,5 @@
 
 + (UIImage *)aspectResize:(UIImage *)image;
 + (UIImage *)aspectResize:(UIImage *)image maxSize:(int)maxSize;
-+ (UIImage *)resetImageSeze:(MPMediaItemArtwork *)artwork;
 
 @end

@@ -187,22 +187,4 @@
     return image;
 }
 
-+ (UIImage *)resetImageSeze:(MPMediaItemArtwork *)artwork {
-    
-    int w = (int)artwork.bounds.size.width;
-    int h = (int)artwork.bounds.size.height;
-
-    //NSLog(@"w: %d h: %d", w, h);
-    
-    UIImage *image = [artwork imageWithSize:CGSizeMake(w, h)];
-    UIGraphicsBeginImageContext(CGSizeMake(w, h));
-	[image drawInRect:CGRectMake(0, 0, w, h)];  
-	image = UIGraphicsGetImageFromCurrentImageContext();
-	UIGraphicsEndImageContext();
-    
-    //NSLog(@"Image.w: %d Image.h: %d", (int)image.size.width, (int)image.size.height);
-    
-    return image;
-}
-
 @end

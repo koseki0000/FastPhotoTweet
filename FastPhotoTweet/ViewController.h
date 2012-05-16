@@ -63,7 +63,6 @@
 @property (retain, nonatomic) IBOutlet UIBarButtonItem *idButton;
 @property (retain, nonatomic) IBOutlet UIBarButtonItem *settingButton;
 @property (retain, nonatomic) IBOutlet UIBarButtonItem *flexibleSpace;
-@property (retain, nonatomic) IBOutlet UIBarButtonItem *addButton;
 @property (retain, nonatomic) IBOutlet UIBarButtonItem *nowPlayingButton;
 @property (retain, nonatomic) IBOutlet UIBarButtonItem *actionButton;
 @property (retain, nonatomic) IBOutlet UITapGestureRecognizer *tapGesture;
@@ -76,7 +75,6 @@
 - (IBAction)pushSettingButton:(id)sender;
 - (IBAction)pushImageSettingButton:(id)sender;
 - (IBAction)pushIDButton:(id)sender;
-- (IBAction)pushAddButton:(id)sender;
 - (IBAction)pushResendButton:(id)sender;
 - (IBAction)pushNowPlayingButton:(id)sender;
 - (IBAction)pushBrowserButton:(id)sender;
@@ -97,6 +95,7 @@
 - (void)loadSettings;
 - (void)showInfomation;
 - (void)showImagePicker;
+- (void)showActionMenu;
 - (void)callback;
 - (void)countText;
 - (void)startWebBrowsing;

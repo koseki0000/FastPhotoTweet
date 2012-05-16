@@ -15,6 +15,8 @@
 + (NSArray *)arrayRegExp:(NSString *)matchString regExpPattern:(NSString *)regExpPattern;
 + (NSMutableArray *)mArrayRegExp:(NSString *)matchString regExpPattern:(NSString *)regExpPattern;
 
++ (NSMutableArray *)urls:(id)string;
+
 + (void)regExpError;
 
 @end

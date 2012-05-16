@@ -15,3 +15,4 @@
 #import "ResizeImage.h"
 #import "EncodeImage.h"
 #import "HankakuKana.h"
+#import "FullSizeImage.h"
