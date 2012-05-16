@@ -71,6 +71,13 @@
     //iOS5以降かチェック
     if ( [self ios5Check] ) {
         
+        if ( [D boolForKey:@"AddNotificationCenter"] ) { 
+            
+            [D removeObjectForKey:@"AddNotificationCenter"];
+            
+            return;   
+        }
+        
         //通知フラグと種類を登録
         [D setBool:YES forKey:@"Notification"];
     }

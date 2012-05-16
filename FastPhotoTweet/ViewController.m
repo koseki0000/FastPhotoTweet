@@ -51,6 +51,15 @@
     
     NSNotificationCenter *notificationCenter = [NSNotificationCenter defaultCenter];
     
+    [[UIApplication sharedApplication] cancelAllLocalNotifications];
+    
+    UILocalNotification *localPush = [[[UILocalNotification alloc] init] autorelease];
+    localPush.timeZone = [NSTimeZone defaultTimeZone];
+    [d setBool:YES forKey:@"AddNotificationCenter"];
+    localPush.alertBody = @"Tweet";
+    localPush.fireDate = [NSDate dateWithTimeIntervalSinceNow:0];
+    [[UIApplication sharedApplication] scheduleLocalNotification:localPush];
+    
     //アプリがアクティブになった場合の通知を受け取る設定
     [notificationCenter addObserver:self
                            selector:@selector(becomeActive:)
