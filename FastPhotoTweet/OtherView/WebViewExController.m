@@ -576,20 +576,24 @@
             }
         }
         
-    }else if ( actionSheetNo >= 2 && actionSheetNo <= 6 ) {
-
-        if ( buttonIndex >= 0 && buttonIndex <= 5 ) {
+    }else if ( actionSheetNo == 2 || actionSheetNo == 3 || actionSheetNo == 4 || actionSheetNo == 5 || actionSheetNo == 6 ) {
+        
+        if ( buttonIndex == actionSheetNo ) {
+            
+            appDelegate.openURL = [d objectForKey:@"HomePageURL"];
+            
+        }else {
             
             [self openPasteBoardUrl:[urlList objectAtIndex:buttonIndex]];
-            
-            [urlList removeAllObjects];
         }
+        
+        [urlList removeAllObjects];
         
         //ページをロード
         [wv loadRequestWithString:appDelegate.openURL];
         
         appDelegate.isBrowserOpen = [NSNumber numberWithInt:1];
-    
+        
     }else if ( actionSheetNo == 7 ) {
         
         if ( buttonIndex == 0 ) {

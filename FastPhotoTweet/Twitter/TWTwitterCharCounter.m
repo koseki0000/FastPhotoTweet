@@ -7,8 +7,6 @@
 
 #import "TWTwitterCharCounter.h"
 
-#define URL_REGEXP @"(https?:([^\\x00-\\x20()\"<>\\x7F-\\xFF])*|([-\\w]+\\.)+(com|net|org|info|biz|name|pro|aero|coop|museum|jobs|travel|mail|cat|post|asia|mobi|tel|xxx|int|gov|edu|arpa))([^\\x00-\\x20()\"<>\\x7F-\\xFF])*"
-
 @implementation TWTwitterCharCounter
 
 //現在入力されている文字数をt.coを考慮してカウントし、残りの入力可能文字数を返す
@@ -27,35 +25,15 @@
     int num = 140;
     int originalCharNum = num - postString.length;
     int urlCount = 0;
-    NSMutableArray *urlList = [NSMutableArray array];
     
     @try {
         
-        //URLを抽出する正規表現を設定
-        NSRegularExpression *regexp = [NSRegularExpression regularExpressionWithPattern:URL_REGEXP 
-                                                                                options:0 
-                                                                                  error:nil];
-        
-        NSArray *match = [regexp matchesInString:postString 
-                                         options:0 
-                                           range:NSMakeRange( 0, postString.length )];
-        
-        //文字列中にいくつURLがあるかチェック
-        for ( NSTextCheckingResult *result in match ) {
-            
-            //見つかったURLを保存
-            NSString *matchString = [postString substringWithRange:result.range];
-            [urlList addObject:matchString];
-        }
-        
-        urlCount = urlList.count;
-        
-        //NSLog(@"urlList: %@", urlList);
+        NSError *error = nil;
         
         //行頭スペースをカウントしない
-        regexp = [NSRegularExpression regularExpressionWithPattern:@"^[\\s]+" 
-                                                           options:0 
-                                                             error:nil];
+        NSRegularExpression *regexp = [NSRegularExpression regularExpressionWithPattern:@"^[\\s]+" 
+                                                                                options:0 
+                                                                                  error:&error];
         
         postString = (NSMutableString *)[regexp stringByReplacingMatchesInString:postString
                                                                          options:0
@@ -65,63 +43,39 @@
         //文末スペースをカウントしない
         regexp = [NSRegularExpression regularExpressionWithPattern:@"[\\s]+$" 
                                                            options:0 
-                                                                error:nil];
+                                                             error:&error];
         
         postString = (NSMutableString *)[regexp stringByReplacingMatchesInString:postString
                                                                          options:0
                                                                            range:NSMakeRange(0, postString.length)
                                                                     withTemplate:@""];
         
-        if ( urlList.count != 0 ) {
+        //URLカウント
+        NSDataDetector *linkDetector = [NSDataDetector dataDetectorWithTypes:NSTextCheckingTypeLink 
+                                                                       error:&error];
+        
+        NSArray *matches = [linkDetector matchesInString:postString 
+                                                 options:0 
+                                                   range:NSMakeRange(0, [postString length])];
+        
+        for ( int i = matches.count - 1; i >= 0; i-- ) {
+        
+            NSTextCheckingResult *match = [matches objectAtIndex:i];
             
-            for ( int i = 0; i < urlList.count; i++) {
+            if ( [match resultType] == NSTextCheckingTypeLink ) {
                 
-                NSString *temp = [urlList objectAtIndex:i];
+                NSString *urlString = [postString substringWithRange:match.range];
                 
-                if ( [temp hasPrefix:@"http"] ) {
-                    
-                    //オリジナルの文字列からプロトコルありURLを取り除く
-                    regexp = [NSRegularExpression regularExpressionWithPattern:temp 
-                                                                       options:0 
-                                                                         error:nil];
-                    
-                    NSTextCheckingResult *matchResult = [regexp firstMatchInString:postString 
-                                                                           options:0 
-                                                                             range:NSMakeRange( 0, postString.length )];
-                    
-                    [postString replaceOccurrencesOfString:temp withString:@"" 
-                                                   options:0 
-                                                     range:NSMakeRange( matchResult.range.location, 
-                                                                       matchResult.range.length )];
-                    [urlList removeObjectAtIndex:i];
-                    
-                    i--;
-                }
+                //URLを削除
+                [postString replaceOccurrencesOfString:urlString 
+                                            withString:@"" 
+                                                 options:0 
+                                                   range:NSMakeRange( match.range.location, 
+                                                                      match.range.length )];
             }
         }
         
-        if ( urlList.count != 0 ) {
-            
-            for ( NSString *temp in urlList ) {
-                
-                //オリジナルの文字列からプロトコルなしURLを取り除く
-                regexp = [NSRegularExpression regularExpressionWithPattern:temp 
-                                                                   options:0 
-                                                                     error:nil];
-                
-                NSTextCheckingResult *matchResult = [regexp firstMatchInString:postString 
-                                                                       options:0 
-                                                                         range:NSMakeRange( 0, postString.length )];
-                
-                [postString replaceOccurrencesOfString:temp withString:@"" 
-                                               options:0 
-                                                 range:NSMakeRange( matchResult.range.location, 
-                                                                   matchResult.range.length )];
-            }
-        }
-        
-        //URLリストを破棄
-        [urlList removeAllObjects];
+        urlCount = matches.count;
         
         //残り入力可能文字数 = 140 - URL以外の文字数 - 行頭･末尾半角スペースの数 - URLの数 * 20
         num = num - postString.length - urlCount * 20;

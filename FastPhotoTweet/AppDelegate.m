@@ -33,6 +33,8 @@
     
     //NSLog(@"FinishLaunching");
     
+    [D setBool:YES forKey:@"FinishLaunching"];
+    
     //OAConsumer設定
     oaConsumer = [[OAConsumer alloc] initWithKey:OAUTH_KEY 
                                           secret:OAUTH_SECRET];
@@ -67,27 +69,11 @@
 - (void)application:(UIApplication *)application didReceiveLocalNotification:(UILocalNotification *)notification {
     
     //NSLog(@"Notification");
-    
-    //iOS5以降かチェック
-    if ( [self ios5Check] ) {
-        
-        if ( [D boolForKey:@"AddNotificationCenter"] ) { 
-            
-            [D removeObjectForKey:@"AddNotificationCenter"];
-            
-            return;   
-        }
-        
-        //通知フラグと種類を登録
-        [D setBool:YES forKey:@"Notification"];
-    }
 }
 
 - (BOOL)application:(UIApplication *)application handleOpenURL:(NSURL *)schemeURL {
 
-    NSLog(@"handleOpenURL: %@", schemeURL.absoluteString);
-    
-    [D setBool:YES forKey:@"Notification"];
+    //NSLog(@"handleOpenURL: %@", schemeURL.absoluteString);
     
     return YES;
 }
@@ -110,7 +96,9 @@
 }
 
 - (void)applicationWillResignActive:(UIApplication *)application {
-    //NSLog(@"applicationWillResignActive");
+    NSLog(@"applicationWillResignActive");
+    
+    [D setBool:YES forKey:@"applicationWillResignActive"];
 }
 
 - (void)applicationWillEnterForeground:(UIApplication *)application {
@@ -126,6 +114,8 @@
 }
 
 - (void)applicationDidEnterBackground:(UIApplication *)application {
+    
+    [D removeObjectForKey:@"applicationWillResignActive"];
     
 	backgroundTask = [application beginBackgroundTaskWithExpirationHandler: ^{
         [application endBackgroundTask:backgroundTask];

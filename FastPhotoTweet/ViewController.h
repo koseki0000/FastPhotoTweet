@@ -44,6 +44,7 @@
     BOOL resendMode;
     BOOL webBrowserMode;
     BOOL artWorkUploading;
+    BOOL showActionSheet;
     int actionSheetNo;
 }
 

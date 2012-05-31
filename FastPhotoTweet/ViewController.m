@@ -7,7 +7,7 @@
 
 #import "ViewController.h"
 
-#define APP_VERSION @"1.1"
+#define APP_VERSION @"1.2.1"
 
 #define TOP_BAR [NSArray arrayWithObjects:trashButton, flexibleSpace, idButton, flexibleSpace, resendButton, flexibleSpace, imageSettingButton, flexibleSpace, postButton, nil]
 #define BOTTOM_BAR [NSArray arrayWithObjects:settingButton, flexibleSpace, actionButton, flexibleSpace, nowPlayingButton, nil]
@@ -47,15 +47,14 @@
     
     [super viewDidLoad];
     
-    //NSLog(@"viewDidLoad");
+    NSLog(@"viewDidLoad");
     
     NSNotificationCenter *notificationCenter = [NSNotificationCenter defaultCenter];
     
     [[UIApplication sharedApplication] cancelAllLocalNotifications];
-    
+        
     UILocalNotification *localPush = [[[UILocalNotification alloc] init] autorelease];
     localPush.timeZone = [NSTimeZone defaultTimeZone];
-    [d setBool:YES forKey:@"AddNotificationCenter"];
     localPush.alertBody = @"Tweet";
     localPush.fireDate = [NSDate dateWithTimeIntervalSinceNow:0];
     [[UIApplication sharedApplication] scheduleLocalNotification:localPush];
@@ -89,12 +88,11 @@
     repeatedPost = NO;
     webBrowserMode = NO;
     artWorkUploading = NO;
+    showActionSheet = NO;
     actionSheetNo = 0;
     
     postText.layer.borderWidth = 2;
 	postText.layer.borderColor = [[UIColor blackColor] CGColor];
-    
-    [d removeObjectForKey:@"Notification"];
     
     //処理中を表すビューを生成
     grayView = [[GrayView alloc] init];
@@ -131,7 +129,7 @@
                          
                          twAccount = [[twitterAccounts objectAtIndex:[d integerForKey:@"UseAccount"]] retain];
                          
-                         [ShowAlert title:@"Success" message:[NSString stringWithFormat:@"Account Name: %@", twAccount.username]];
+                         //[ShowAlert title:@"Success" message:[NSString stringWithFormat:@"Account Name: %@", twAccount.username]];
                          
                          //NSLog(@"twAccount: %@", twAccount);
                          
@@ -169,7 +167,6 @@
 }
 
 - (void)testMethod {
-
 
 }
 
@@ -280,8 +277,8 @@
             
             //NSLog(@"newVersion");
             
-            [ShowAlert title:[NSString stringWithFormat:@"FastPhotoTweet %@", APP_VERSION] 
-                 message:@"\n・「FastGoogle」機能を追加\n通知センターからペーストボード内の文字列を素早くGoogle検索する事が出来ます。\n・「WebPageShare」機能を追加\nURLの含まれる文字列がペーストボード内にある状態で使うと、ページタイトルを取得し、書式を整えた状態に変換されワンタッチでTwitterでリンクを共有する事が出来ます。"];
+//            [ShowAlert title:[NSString stringWithFormat:@"FastPhotoTweet %@", APP_VERSION] 
+//                 message:@""];
             
             information = [[[NSMutableDictionary alloc] initWithDictionary:[d dictionaryForKey:@"Information"]] autorelease];
             [information setValue:[NSNumber numberWithInt:1] forKey:APP_VERSION];
@@ -497,7 +494,7 @@
     actionSheetNo = 0;
     
     UIActionSheet *sheet = [[UIActionSheet alloc]
-                            initWithTitle:@"通知センター登録"
+                            initWithTitle:@"動作選択"
                             delegate:self
                             cancelButtonTitle:@"Cancel"
                             destructiveButtonTitle:nil
@@ -685,6 +682,10 @@
         //文字数カウントを行いラベルに反映
         [self countText];
         
+        //カーソルを先頭にする
+        [postText becomeFirstResponder];
+        [postText setSelectedRange:NSMakeRange(0, 0)];
+        
         //処理中表示をオフ
         [grayView off];
         
@@ -825,6 +826,8 @@
     
     if ( actionSheetNo == 0 ) {
         
+        showActionSheet = NO;
+        
         //ペーストボードの内容をチェック
         int pBoardType = [PasteboardType check];
         
@@ -869,6 +872,8 @@
                 
                 appDelegate.openURL = [NSString stringWithFormat:@"%@%@", searchURL, encodedSearchWord];
                 
+                [self pushBrowserButton:nil];
+                
             }else {
                 
                 NSLog(@"pBoardType != 0");
@@ -878,7 +883,7 @@
                 
                 NSLog(@"Open Browser");
                 
-                [self startWebBrowsing];
+                [self pushBrowserButton:nil];
                 
             }else {
                 
@@ -1181,29 +1186,32 @@
     //アプリケーションがアクティブになった際に呼ばれる
     NSLog(@"becomeActive");
     
+    if ( [d boolForKey:@"applicationWillResignActive"] ) {
+        
+        [d removeObjectForKey:@"applicationWillResignActive"];
+        return;
+    }
+    
     //設定が有効な場合Post入力可能状態にする
     if ( [d boolForKey:@"ShowKeyboard"] ) {
         
         [postText becomeFirstResponder];
     }
     
-    //通知判定がある場合
-    if ( [d boolForKey:@"Notification"] ) {
+    //iOS5以降かチェック
+    if ( [self ios5Check] ) {
         
-        //NSLog(@"Notification: YES");
-        
-        //通知判定を削除
-        [d removeObjectForKey:@"Notification"];
-        
-        //iOS5以降かチェック
-        if ( [self ios5Check] ) {
+        if ( [d boolForKey:@"FinishLaunching"] ) {
             
-            [self showActionMenu];
+            [d removeObjectForKey:@"FinishLaunching"];
+            return;
         }
         
-    }else {
-        
-        //NSLog(@"Notification: NO");
+        if ( !showActionSheet ) {
+         
+            showActionSheet = YES;
+            [self showActionMenu];
+        }
     }
     
     [self countText];
