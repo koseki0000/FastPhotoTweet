@@ -7,7 +7,7 @@
 
 #import "ViewController.h"
 
-#define APP_VERSION @"1.2.1"
+#define APP_VERSION @"1.2.2"
 
 #define TOP_BAR [NSArray arrayWithObjects:trashButton, flexibleSpace, idButton, flexibleSpace, resendButton, flexibleSpace, imageSettingButton, flexibleSpace, postButton, nil]
 #define BOTTOM_BAR [NSArray arrayWithObjects:settingButton, flexibleSpace, actionButton, flexibleSpace, nowPlayingButton, nil]
@@ -1224,19 +1224,19 @@
         NSString *pboardString = nil;
         NSError *error = nil;
         
-        //URLを抽出する正規表現を設定
-        NSRegularExpression *regexp = [NSRegularExpression regularExpressionWithPattern:@"https?:([^\\x00-\\x20()\"<>\\x7F-\\xFF])*" 
-                                                                                options:0 
-                                                                                  error:&error];
-		
-		NSTextCheckingResult *matchResult = [regexp firstMatchInString:pboard.string 
-                                                               options:0 
-                                                                 range:NSMakeRange( 0, pboard.string.length )];
+        NSDataDetector *linkDetector = [NSDataDetector dataDetectorWithTypes:NSTextCheckingTypeLink 
+                                                                       error:&error];
+        
+        NSArray *matches = [linkDetector matchesInString:pboard.string 
+                                                 options:0 
+                                                   range:NSMakeRange(0, [pboard.string  length])];
+        
         if ( !error ) {
             
-            if (matchResult.numberOfRanges != 0) {
+            if ( [EmptyCheck check:matches] ) {
                 
-                pboardString = [pboard.string substringWithRange:matchResult.range];
+                NSTextCheckingResult *match = [matches objectAtIndex:0];
+                pboardString = [pboard.string substringWithRange:match.range];
             }
             
         }else {
@@ -1647,71 +1647,79 @@
     
     //NSLog(@"viewDidAppear");
     
-    if ( webBrowserMode && [EmptyCheck check:appDelegate.postText] ) {
+    @try {
         
-        webBrowserMode = NO;
-        appDelegate.fastGoogleMode = [NSNumber numberWithInt:0];
-        postText.text = [NSString stringWithFormat:@"%@ ", [self deleteWhiteSpace:[NSString stringWithFormat:@"%@ %@", postText.text, appDelegate.postText]]];
-        [postText becomeFirstResponder];
-        
-        appDelegate.postText = BLANK;
-        
-        return;
-        
-    }else if ( webBrowserMode ) {
-        
-        webBrowserMode = NO;
-        
-        return;
-    }
-    
-    if ( changeAccount || [d boolForKey:@"ChangeAccount"] ) {
-        
-        //NSLog(@"ChangeAccount");
-        
-        [d removeObjectForKey:@"ChangeAccount"];
-        changeAccount = NO;
-        [twAccount release];
-        
-        //アカウント設定を更新
-        ACAccountStore *accountStore = [[[ACAccountStore alloc] init] autorelease];
-        ACAccountType *accountType = [accountStore accountTypeWithAccountTypeIdentifier:ACAccountTypeIdentifierTwitter];
-        NSArray *twitterAccounts = [accountStore accountsWithAccountType:accountType];
-        twAccount = [[twitterAccounts objectAtIndex:[d integerForKey:@"UseAccount"]] retain];
-        
-    }else if ( [appDelegate.resendMode intValue] != 0 ) {
-        
-        appDelegate.resendMode = [NSNumber numberWithInt:0];
-        
-        int indexNum = [appDelegate.resendNumber intValue];
-        NSArray *resendArray = [appDelegate.postError objectAtIndex:indexNum];
-        
-        int account = [[resendArray objectAtIndex:1] intValue];
-        [d setInteger:account forKey:@"UseAccount"];
-        
-        postText.text = [resendArray objectAtIndex:2];
-        
-        if ( resendArray.count == 3 ) {
+        if ( webBrowserMode && [EmptyCheck check:appDelegate.postText] ) {
             
-            //NSLog(@"Resend data set TEXT");
+            webBrowserMode = NO;
+            appDelegate.fastGoogleMode = [NSNumber numberWithInt:0];
+            postText.text = [NSString stringWithFormat:@"%@ ", [self deleteWhiteSpace:[NSString stringWithFormat:@"%@ %@", postText.text, appDelegate.postText]]];
+            [postText becomeFirstResponder];
+            
+            appDelegate.postText = BLANK;
+            
+            return;
+            
+        }else if ( webBrowserMode ) {
+            
+            webBrowserMode = NO;
+            
+            return;
+        }
+        
+        if ( changeAccount || [d boolForKey:@"ChangeAccount"] ) {
+            
+            //NSLog(@"ChangeAccount");
+            
+            [d removeObjectForKey:@"ChangeAccount"];
+            changeAccount = NO;
+            [twAccount release];
+            
+            //アカウント設定を更新
+            ACAccountStore *accountStore = [[[ACAccountStore alloc] init] autorelease];
+            ACAccountType *accountType = [accountStore accountTypeWithAccountTypeIdentifier:ACAccountTypeIdentifierTwitter];
+            NSArray *twitterAccounts = [accountStore accountsWithAccountType:accountType];
+            twAccount = [[twitterAccounts objectAtIndex:[d integerForKey:@"UseAccount"]] retain];
+            
+        }else if ( [appDelegate.resendMode intValue] != 0 ) {
+            
+            appDelegate.resendMode = [NSNumber numberWithInt:0];
+            
+            int indexNum = [appDelegate.resendNumber intValue];
+            NSArray *resendArray = [appDelegate.postError objectAtIndex:indexNum];
+            
+            int account = [[resendArray objectAtIndex:1] intValue];
+            [d setInteger:account forKey:@"UseAccount"];
+            
+            postText.text = [resendArray objectAtIndex:2];
+            
+            if ( resendArray.count == 3 ) {
+                
+                //NSLog(@"Resend data set TEXT");
+                
+            }else {
+                
+                //NSLog(@"Resend data set PHOTO");
+                imagePreview.image = [resendArray objectAtIndex:3];
+            }
+            
+            [appDelegate.postError removeObjectAtIndex:indexNum];
+        }
+        
+        //再投稿ボタンの有効･無効切り替え
+        if ( appDelegate.postError.count == 0 ) {
+            
+            resendButton.enabled = NO;
             
         }else {
             
-            //NSLog(@"Resend data set PHOTO");
-            imagePreview.image = [resendArray objectAtIndex:3];
+            resendButton.enabled = YES;
         }
         
-        [appDelegate.postError removeObjectAtIndex:indexNum];
-    }
-    
-    //再投稿ボタンの有効･無効切り替え
-    if ( appDelegate.postError.count == 0 ) {
+    }@catch (NSException *e) {
+    }@finally {
         
-        resendButton.enabled = NO;
-        
-    }else {
-        
-        resendButton.enabled = YES;
+        [self countText];
     }
 }
 

@@ -7,8 +7,6 @@
 
 #import "RegularExpression.h"
 
-#define URL_REGEXP @"https?:([^\\x00-\\x20()\"<>\\x7F-\\xFF])*"
-
 @implementation RegularExpression
 
 + (BOOL)boolRegExp:(NSString *)matchString regExpPattern:(NSString *)regExpPattern {
@@ -165,22 +163,20 @@
 
 + (NSMutableArray *)urls:(id)string {
     
+    NSError *error = nil;
     NSString *searchString = [NSString stringWithString:string];
     NSMutableArray *urlList = [NSMutableArray array];
+
+    NSDataDetector *linkDetector = [NSDataDetector dataDetectorWithTypes:NSTextCheckingTypeLink 
+                                                                   error:&error];
     
-    NSRegularExpression *regexp = [NSRegularExpression regularExpressionWithPattern:URL_REGEXP 
-                                                                            options:0 
-                                                                              error:nil];
-    NSArray *match = [regexp matchesInString:searchString 
-                                     options:0 
-                                       range:NSMakeRange( 0, searchString.length )];
+    NSArray *matches = [linkDetector matchesInString:searchString 
+                                             options:0 
+                                               range:NSMakeRange(0, [searchString length])];
     
-    //文字列中にいくつURLがあるかチェック
-    for ( NSTextCheckingResult *result in match ) {
+    for ( NSTextCheckingResult *match in matches ) {
         
-        //見つかったURLを保存
-        NSString *matchString = [searchString substringWithRange:result.range];
-        [urlList addObject:matchString];
+        [urlList addObject:match.URL.absoluteString];
     }
     
     return urlList;
