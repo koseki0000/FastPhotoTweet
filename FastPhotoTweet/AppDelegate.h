@@ -24,6 +24,7 @@
     NSNumber *isBrowserOpen;
     NSNumber *fastGoogleMode;
     NSNumber *webPageShareMode;
+    NSNumber *launchMode;
 }
 
 @property (strong, nonatomic) UIWindow *window;
@@ -38,6 +39,7 @@
 @property (nonatomic, retain) NSNumber *isBrowserOpen;
 @property (nonatomic, retain) NSNumber *fastGoogleMode;
 @property (nonatomic, retain) NSNumber *webPageShareMode;
+@property (nonatomic, retain) NSNumber *launchMode;
 
 - (BOOL)ios5Check;
 

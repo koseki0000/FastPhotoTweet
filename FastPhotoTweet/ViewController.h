@@ -45,6 +45,7 @@
     BOOL webBrowserMode;
     BOOL artWorkUploading;
     BOOL showActionSheet;
+    BOOL nowPlayingMode;
     int actionSheetNo;
 }
 
@@ -100,6 +101,7 @@
 - (void)callback;
 - (void)countText;
 - (void)uploadImage:(UIImage *)image;
+- (void)uploadNowPlayingImage:(UIImage *)image uploadType:(int)uploadType;
 - (void)postDone:(NSNotification *)center;
 - (BOOL)ios5Check;
 - (BOOL)reachability;

@@ -10,7 +10,7 @@
 //セクション数
 #define SECTION_COUNT 4
 //セクション0の項目数 (画像関連設定)
-#define SECTION_0 8
+#define SECTION_0 9
 //セクション1の項目数 (投稿関連設定)
 #define SECTION_1 7
 //セクション2の項目数 (その他の設定)
@@ -28,20 +28,21 @@
 #define NAME_5  @"画像ソース"
 #define NAME_6  @"連続投稿確認表示"
 #define NAME_7  @"画像共有サービスフルサイズ取得"
+#define NAME_8  @"NowPlaying画像投稿先"
 //投稿関連設定
-#define NAME_8  @"NowPlaying時はFastTweetを行う"
-#define NAME_9  @"NowPlaying時はCallBackを行う"
-#define NAME_10 @"NowPlayingにカスタム書式を使用"
-#define NAME_11 @"カスタム書式を編集"
-#define NAME_12 @"曲名とアルバム名が同じな場合サブ書式を使用"
-#define NAME_13 @"サブ書式を編集"
-#define NAME_14 @"NowPlaying時にアートワークを投稿"
+#define NAME_9  @"NowPlaying時はFastTweetを行う"
+#define NAME_10 @"NowPlaying時はCallBackを行う"
+#define NAME_11 @"NowPlayingにカスタム書式を使用"
+#define NAME_12 @"カスタム書式を編集"
+#define NAME_13 @"曲名とアルバム名が同じな場合サブ書式を使用"
+#define NAME_14 @"サブ書式を編集"
+#define NAME_15 @"NowPlaying時にアートワークを投稿"
 //その他の設定
-#define NAME_15 @"アプリがアクティブになった際入力可能状態にする"
-#define NAME_16 @"ブラウザの検索ワードを毎回リセット"
-#define NAME_17 @"ブラウザを開く時ペーストボード内のURLを開く"
+#define NAME_16 @"アプリがアクティブになった際入力可能状態にする"
+#define NAME_17 @"ブラウザの検索ワードを毎回リセット"
+#define NAME_18 @"ブラウザを開く時ペーストボード内のURLを開く"
 //ライセンス
-#define NAME_18 @"ライセンス"
+#define NAME_19 @"ライセンス"
 
 #define BLANK @""
 
@@ -70,7 +71,7 @@
                                                         NAME_4,  NAME_5,  NAME_6,  NAME_7, 
                                                         NAME_8,  NAME_9,  NAME_10, NAME_11, 
                                                         NAME_12, NAME_13, NAME_14, NAME_15, 
-                                                        NAME_16, NAME_17, NAME_18, nil];
+                                                        NAME_16, NAME_17, NAME_18, NAME_19, nil];
         
         [settingArray retain];
     }
@@ -245,9 +246,29 @@
             
             result = @"OFF";
         }
+    
+    //NowPlaying画像投稿先
+    }else if ( settingState == 8 ) {    
+    
+        if ( [d integerForKey:@"NowPlayingPhotoService"] == 0 ) {
+            
+            result = @"通常と同じ";
+            
+        }else if ( [d integerForKey:@"NowPlayingPhotoService"] == 1 ) {
+        
+            result = @"Twitter";
+            
+        }else if ( [d integerForKey:@"NowPlayingPhotoService"] == 2 ) {
+        
+            result = @"img.ur";
+            
+        }else if ( [d integerForKey:@"NowPlayingPhotoService"] == 3 ) {
+        
+            result = @"Twitpic";
+        }
         
     //NowPlaying時はFastPostを行う
-    }else if ( settingState == 8 ) {
+    }else if ( settingState == 9 ) {
         
         if ( [d boolForKey:@"NowPlayingFastPost"] ) {
             
@@ -259,7 +280,7 @@
         }
         
     //NowPlaying時はCallBackを行う
-    }else if ( settingState == 9 ) {
+    }else if ( settingState == 10 ) {
         
         if ( [d boolForKey:@"NowPlayingCallBack"] ) {
             
@@ -271,7 +292,7 @@
         }
         
     //NowPlayingにカスタム書式を使用
-    }else if ( settingState == 10 ) {
+    }else if ( settingState == 11 ) {
         
         if ( [d boolForKey:@"NowPlayingEdit"] ) {
             
@@ -283,12 +304,12 @@
         }
         
     //カスタム書式を編集
-    }else if ( settingState == 11 ) {
+    }else if ( settingState == 12 ) {
         
         //空のまま
         
     //曲名とアルバム名が同じな場合サブ書式を使用
-    }else if ( settingState == 12 ) {
+    }else if ( settingState == 13 ) {
         
         if ( [d integerForKey:@"NowPlayingEditSub"] == 0 ) {
             
@@ -304,12 +325,12 @@
         }
         
     //サブ書式を編集
-    }else if ( settingState == 13 ) {
+    }else if ( settingState == 14 ) {
         
         //空のまま
     
     //NowPlaying時にアートワークを投稿
-    }else if ( settingState == 14 ) {    
+    }else if ( settingState == 15 ) {    
         
         if ( [d boolForKey:@"NowPlayingArtWork"] ) {
             
@@ -321,7 +342,7 @@
         }
         
     //アプリがアクティブになった際入力可能状態にする
-    }else if ( settingState == 15 ) {
+    }else if ( settingState == 16 ) {
         
         if ( [d boolForKey:@"ShowKeyboard"] ) {
             
@@ -332,7 +353,7 @@
             result = @"OFF";
         }
     
-    }else if ( settingState == 16 ) {
+    }else if ( settingState == 17 ) {
         
         if ( [d boolForKey:@"ClearBrowserSearchField"] ) {
             
@@ -343,7 +364,7 @@
             result = @"OFF";
         }
     
-    }else if ( settingState == 17 ) {
+    }else if ( settingState == 18 ) {
         
         if ( [d boolForKey:@"OpenPasteBoardURL"] ) {
             
@@ -354,7 +375,7 @@
             result = @"OFF";
         }
         
-    }else if ( settingState == 18 ) {
+    }else if ( settingState == 19 ) {
         //空のまま
     }
         
@@ -535,6 +556,18 @@
                      otherButtonTitles:@"ON", @"OFF", nil];
             [sheet autorelease];
             [sheet showInView:self.view];
+            
+        }else if ( indexPath.row == 8 ) {
+            
+            //NowPlaying画像投稿先
+            sheet = [[UIActionSheet alloc]
+                     initWithTitle:NAME_8
+                     delegate:self
+                     cancelButtonTitle:@"Cancel"
+                     destructiveButtonTitle:nil
+                     otherButtonTitles:@"通常と同じ", @"Twitter", @"img.ur", @"Twitpic", nil];
+            [sheet autorelease];
+            [sheet showInView:self.view];
         }
         
     }else if ( indexPath.section == 1 ) {
@@ -545,7 +578,7 @@
         
             //NowPlaying時はFastPostを行う
             sheet = [[UIActionSheet alloc]
-                     initWithTitle:NAME_8
+                     initWithTitle:NAME_9
                      delegate:self
                      cancelButtonTitle:@"Cancel"
                      destructiveButtonTitle:nil
@@ -557,7 +590,7 @@
             
             //NowPlaying時はCallBackを行う
             sheet = [[UIActionSheet alloc]
-                     initWithTitle:NAME_9
+                     initWithTitle:NAME_10
                      delegate:self
                      cancelButtonTitle:@"Cancel"
                      destructiveButtonTitle:nil
@@ -569,7 +602,7 @@
             
             //NowPlayingにカスタム書式を使用
             sheet = [[UIActionSheet alloc]
-                     initWithTitle:NAME_10
+                     initWithTitle:NAME_11
                      delegate:self
                      cancelButtonTitle:@"Cancel"
                      destructiveButtonTitle:nil
@@ -589,7 +622,7 @@
                 alertMessage = [d objectForKey:@"NowPlayingEditText"];
             }
             
-            alert = [[UIAlertView alloc] initWithTitle:NAME_11 
+            alert = [[UIAlertView alloc] initWithTitle:NAME_12 
                                                             message:message
                                                            delegate:self 
                                                   cancelButtonTitle:@"キャンセル" 
@@ -613,7 +646,7 @@
             
             //曲名とアルバム名が同じな場合サブ書式を使用
             sheet = [[UIActionSheet alloc]
-                     initWithTitle:NAME_12
+                     initWithTitle:NAME_13
                      delegate:self
                      cancelButtonTitle:@"Cancel"
                      destructiveButtonTitle:nil
@@ -633,7 +666,7 @@
                 alertMessage = [d objectForKey:@"NowPlayingEditTextSub"];
             }
             
-            alert = [[UIAlertView alloc] initWithTitle:NAME_13 
+            alert = [[UIAlertView alloc] initWithTitle:NAME_14
                                                message:message
                                               delegate:self 
                                      cancelButtonTitle:@"キャンセル" 
@@ -657,7 +690,7 @@
             
             //NowPlaying時にアートワークを投稿
             sheet = [[UIActionSheet alloc]
-                     initWithTitle:NAME_14
+                     initWithTitle:NAME_15
                      delegate:self
                      cancelButtonTitle:@"Cancel"
                      destructiveButtonTitle:nil
@@ -674,7 +707,7 @@
             
             //アプリがアクティブになった際入力可能状態にする
             sheet = [[UIActionSheet alloc]
-                     initWithTitle:NAME_15
+                     initWithTitle:NAME_16
                      delegate:self
                      cancelButtonTitle:@"Cancel"
                      destructiveButtonTitle:nil
@@ -686,7 +719,7 @@
             
             //ブラウザの検索ワードを毎回リセット
             sheet = [[UIActionSheet alloc]
-                     initWithTitle:NAME_16
+                     initWithTitle:NAME_17
                      delegate:self
                      cancelButtonTitle:@"Cancel"
                      destructiveButtonTitle:nil
@@ -829,14 +862,10 @@
             ACAccount *twAccount = [TWGetAccount getTwitterAccount];
             NSString *twitpicName = nil;
             
-            //NSLog(@"oauthAccountNames: %@", oauthAccountNames);
-            
             for ( NSString *accountName in oauthAccountNames ) {
                 if ( [accountName isEqualToString:twAccount.username] ) {
                     
                     twitpicName = accountName;
-                    
-                    //NSLog(@"twitpicName: %@", twitpicName);
                     
                     break;
                 }
@@ -879,6 +908,7 @@
                 //カメラが利用できる場合
                 
                 if ( buttonIndex == 1 ) {
+                    
                     [d setInteger:1 forKey:@"ImageSource"];
                     
                     if ( [d boolForKey:@"RepeatedPost"] ) {
@@ -889,6 +919,7 @@
                     }
                     
                 }else if ( buttonIndex == 2 ) {
+                    
                     [d setInteger:2 forKey:@"ImageSource"];
                 }
                 
@@ -937,31 +968,42 @@
         }else if ( buttonIndex == 1 ) {
             [d setBool:NO forKey:@"FullSizeImage"];
         }
-        
+    
     }else if ( actionSheetNo == 8 ) {
+        if ( buttonIndex == 0 ) {
+            [d setInteger:0 forKey:@"NowPlayingPhotoService"];
+        }else if ( buttonIndex == 1 ) {
+            [d setInteger:1 forKey:@"NowPlayingPhotoService"];
+        }else if ( buttonIndex == 2 ) {
+            [d setInteger:2 forKey:@"NowPlayingPhotoService"];
+        }else if ( buttonIndex == 3 ) {
+            [d setInteger:3 forKey:@"NowPlayingPhotoService"];
+        }
+        
+    }else if ( actionSheetNo == 9 ) {
         if ( buttonIndex == 0 ) {
             [d setBool:YES forKey:@"NowPlayingFastPost"];
         }else if ( buttonIndex == 1 ) {
             [d setBool:NO forKey:@"NowPlayingFastPost"];
         }
         
-    }else if ( actionSheetNo == 9 ) {
+    }else if ( actionSheetNo == 10 ) {
         if ( buttonIndex == 0 ) {
             [d setBool:YES forKey:@"NowPlayingCallBack"];
         }else if ( buttonIndex == 1 ) {
             [d setBool:NO forKey:@"NowPlayingCallBack"];
         }
     
-    }else if ( actionSheetNo == 10 ) {
+    }else if ( actionSheetNo == 11 ) {
         if ( buttonIndex == 0 ) {
             [d setBool:YES forKey:@"NowPlayingEdit"];
         }else if ( buttonIndex == 1 ) {
             [d setBool:NO forKey:@"NowPlayingEdit"];
         }
     
-//  }else if ( actionSheetNo == 11 ) {
+//  }else if ( actionSheetNo == 12 ) {
     
-    }else if ( actionSheetNo == 12 ) {
+    }else if ( actionSheetNo == 13 ) {
         if ( buttonIndex == 0 ) {
             [d setInteger:0 forKey:@"NowPlayingEditSub"];
         }else if ( buttonIndex == 1 ) {
@@ -969,8 +1011,10 @@
         }else if ( buttonIndex == 2 ) {
             [d setInteger:2 forKey:@"NowPlayingEditSub"];
         }
-    
-    }else if ( actionSheetNo == 14 ) {
+        
+//  }else if ( actionSheetNo == 14 ) {
+        
+    }else if ( actionSheetNo == 15 ) {
         
         if ( buttonIndex == 0 ) {
             [d setBool:YES forKey:@"NowPlayingArtWork"];
@@ -978,21 +1022,21 @@
             [d setBool:NO forKey:@"NowPlayingArtWork"];
         }
                 
-    }else if ( actionSheetNo == 15 ) {
+    }else if ( actionSheetNo == 16 ) {
         if ( buttonIndex == 0 ) {
             [d setBool:YES forKey:@"ShowKeyboard"];
         }else if ( buttonIndex == 1 ) {
             [d setBool:NO forKey:@"ShowKeyboard"];
         }
     
-    }else if ( actionSheetNo == 16 ) {
+    }else if ( actionSheetNo == 17 ) {
         if ( buttonIndex == 0 ) {
             [d setBool:YES forKey:@"ClearBrowserSearchField"];
         }else if ( buttonIndex == 1 ) {
             [d setBool:NO forKey:@"ClearBrowserSearchField"];
         }
         
-    }else if ( actionSheetNo == 17 ) {
+    }else if ( actionSheetNo == 18 ) {
         if ( buttonIndex == 0 ) {
             
             [d setBool:YES forKey:@"OpenPasteBoardURL"];

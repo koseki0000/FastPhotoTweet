@@ -11,6 +11,8 @@
 
 + (UIImage *)aspectResize:(UIImage *)image {
     
+    NSLog(@"aspectResize");
+    
 	NSUserDefaults *d = [NSUserDefaults standardUserDefaults];
     
     size_t resizeHeight = 0;

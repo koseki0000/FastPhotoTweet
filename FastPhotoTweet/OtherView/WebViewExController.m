@@ -367,7 +367,7 @@
         
     }else if ( [[d objectForKey:@"SearchEngine"] isEqualToString:@"Twitter"] ) {
         
-        searchURL = @"https://mobile.twitter.com/searches?q=";
+        searchURL = @"https://mobile.twitter.com/search?q=";
     }
     
     NSString *encodedSearchWord = (__bridge_transfer NSString *)CFURLCreateStringByAddingPercentEscapes(kCFAllocatorDefault, 

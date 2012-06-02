@@ -11,6 +11,8 @@
 
 + (NSData *)image:(UIImage *)encodeImage {
     
+    NSLog(@"encodeImage");
+    
     NSData *encodedImageData;
     NSUserDefaults *d = [NSUserDefaults standardUserDefaults];
     

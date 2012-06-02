@@ -7,7 +7,7 @@
 
 #import "ViewController.h"
 
-#define APP_VERSION @"1.2.2"
+#define APP_VERSION @"1.2.3"
 
 #define TOP_BAR [NSArray arrayWithObjects:trashButton, flexibleSpace, idButton, flexibleSpace, resendButton, flexibleSpace, imageSettingButton, flexibleSpace, postButton, nil]
 #define BOTTOM_BAR [NSArray arrayWithObjects:settingButton, flexibleSpace, actionButton, flexibleSpace, nowPlayingButton, nil]
@@ -89,10 +89,13 @@
     webBrowserMode = NO;
     artWorkUploading = NO;
     showActionSheet = NO;
+    nowPlayingMode = NO;
     actionSheetNo = 0;
     
     postText.layer.borderWidth = 2;
 	postText.layer.borderColor = [[UIColor blackColor] CGColor];
+    
+    [d removeObjectForKey:@"applicationWillResignActive"];
     
     //処理中を表すビューを生成
     grayView = [[GrayView alloc] init];
@@ -316,6 +319,8 @@
                 return;
             }
             
+            nowPlayingMode = NO;
+            
             //画像が設定されていない場合
             if ( imagePreview.image == nil ) {
                 
@@ -333,7 +338,8 @@
             }else {
                 
                 //画像投稿先がTwitterの場合
-                if ( [[d objectForKey:@"PhotoService"] isEqualToString:@"Twitter"] ) {
+                if ( [[d objectForKey:@"PhotoService"] isEqualToString:@"Twitter"] || 
+                     [d integerForKey:@"NowPlayingPhotoService"] == 1 ) {
                     
                     @autoreleasepool {
                         
@@ -453,6 +459,7 @@
     
     //NSLog(@"Trash");
     
+    nowPlayingMode = NO;
     postText.text = BLANK;
     imagePreview.image = nil;
     appDelegate.fastGoogleMode = [NSNumber numberWithInt:0];
@@ -644,6 +651,8 @@
     
     //アップロードに成功した場合
     
+    NSLog(@"requestFinished");
+    
     @try {
         
         //レスポンスのStringからDictionaryを生成
@@ -651,14 +660,25 @@
         
         //NSLog(@"resultDic: %@", result);
         
-        NSString *imageURL;
+        NSString *imageURL = nil;
         
         //Dictionaryから画像URLを抜き出す
-        if ( [[d objectForKey:@"PhotoService"] isEqualToString:@"img.ur"] ) {
+        int service = 0;
+        
+        if ( [[d objectForKey:@"PhotoService"] isEqualToString:@"img.ur"] || [d integerForKey:@"NowPlayingPhotoService"] == 2 ) {
+            
+            service = 2;
+            
+        }else if ( [[d objectForKey:@"PhotoService"] isEqualToString:@"Twitpic"] || [d integerForKey:@"NowPlayingPhotoService"] == 3 ) {
+            
+            service = 3;
+        }
+        
+        if ( service == 2 ) {
             
             imageURL = [[[result objectForKey:@"upload"] objectForKey:@"links"] objectForKey:@"original"];
             
-        }else if ( [[d objectForKey:@"PhotoService"] isEqualToString:@"Twitpic"] ) {
+        }else if ( service == 3 ) {
             
             imageURL = [result objectForKey:@"url"];
         }
@@ -1176,6 +1196,81 @@
     [request start];
 }
 
+- (void)uploadNowPlayingImage:(UIImage *)image uploadType:(int)uploadType {
+    
+    NSLog(@"uploadType: %d", uploadType);
+    
+    //処理中を表すビューを表示
+    [grayView onAndSetSize:postText.frame.origin.x   y:postText.frame.origin.y
+                         w:postText.frame.size.width h:postText.frame.size.height];
+    
+    //画像をリサイズするか判定
+    if ( [d boolForKey:@"ResizeImage"] ) {
+        
+        //リサイズを行う
+        image = [ResizeImage aspectResize:image];
+    }
+    
+    //UIImageをNSDataに変換
+    NSData *imageData = [EncodeImage image:image];
+    
+    //リクエストURLを指定
+    NSURL *URL;
+    
+    if ( uploadType == 2 ) {
+        
+        URL = [NSURL URLWithString:@"http://api.imgur.com/2/upload.json"];
+        
+    }else if ( uploadType == 3 ) {
+        
+        URL = [NSURL URLWithString:@"http://api.twitpic.com/1/upload.json"];
+    }
+    
+    ASIFormDataRequest *request = [[[ASIFormDataRequest alloc] initWithURL:URL] autorelease];
+    
+    if ( uploadType == 2 ) {
+        
+        NSLog(@"img.ur upload");
+        
+        [request addPostValue:IMGUR_API_KEY forKey:@"key"];
+        [request addData:imageData forKey:@"image"];
+        
+    }else if ( uploadType == 3 ) {
+        
+        NSLog(@"Twitpic upload");
+        
+        NSDictionary *dic = [d dictionaryForKey:@"OAuthAccount"];
+        
+        if ( [EmptyCheck check:[dic objectForKey:twAccount.username]] ) {
+            
+            NSString *key = [UUIDEncryptor decryption:[[dic objectForKey:twAccount.username] objectAtIndex:0]];
+            NSString *secret = [UUIDEncryptor decryption:[[dic objectForKey:twAccount.username] objectAtIndex:1]];
+            
+            [request addPostValue:TWITPIC_API_KEY forKey:@"key"];
+            [request addPostValue:OAUTH_KEY forKey:@"consumer_token"];
+            [request addPostValue:OAUTH_SECRET forKey:@"consumer_secret"];
+            [request addPostValue:key forKey:@"oauth_token"];
+            [request addPostValue:secret forKey:@"oauth_secret"];
+            [request addPostValue:postText.text forKey:@"message"];
+            [request addData:imageData forKey:@"media"];
+            
+        }else {
+            
+            //Twitpic投稿が不可な場合はimg.urに投稿
+            request.url = [NSURL URLWithString:@"http://api.imgur.com/2/upload.json"];
+            
+            [d setObject:@"img.ur" forKey:@"PhotoService"];
+            [request addPostValue:IMGUR_API_KEY forKey:@"key"];
+            [request addData:imageData forKey:@"image"];
+            
+            [ShowAlert error:[NSString stringWithFormat:@"%@のTwitpicアカウントが見つからなかったためimg.urに投稿しました。", twAccount.username]];
+        }
+    }
+    
+    [request setDelegate:self];
+    [request start];
+}
+
 - (void)becomeActive:(NSNotification *)notification {
     
     //アプリケーションがアクティブになった際に呼ばれる
@@ -1195,17 +1290,24 @@
     
     //iOS5以降かチェック
     if ( [self ios5Check] ) {
-        
-        if ( [d boolForKey:@"FinishLaunching"] ) {
-            
-            [d removeObjectForKey:@"FinishLaunching"];
-            return;
-        }
-        
+                
         if ( !showActionSheet ) {
          
             showActionSheet = YES;
-            [self showActionMenu];
+            
+            if ( [appDelegate.launchMode intValue] == 2 ) {
+                
+                [self showActionMenu];
+                
+            }else {
+                
+                if ( [appDelegate.launchMode intValue] == 1 ) {
+                    
+                    [self showActionMenu];
+                }
+                
+                appDelegate.launchMode = [NSNumber numberWithInt:2];
+            }
         }
     }
     
@@ -1317,6 +1419,8 @@
 
 - (void)nowPlayingNotification {
  
+    nowPlayingMode = YES;
+    
     NSString *nowPlayingText = [self nowPlaying];
     int length = nowPlayingText.length;
     
@@ -1548,14 +1652,32 @@
             NSLog(@"height: %d widht: %d", h, w);
             
             if ( h != 0 && w != 0 ) {
-            
+                
                 imagePreview.image = [ResizeImage aspectResize:[artwork imageWithSize:CGSizeMake(500, 500)] 
                                                        maxSize:500];
                 
-                if ( ![[d objectForKey:@"PhotoService"] isEqualToString:@"Twitter"] ) {
+                int uploadType = [d integerForKey:@"NowPlayingPhotoService"];
+                
+                NSLog(@"uploadType: %d", uploadType);
+                
+                if ( uploadType == 0 ) {
                     
+                    if ( [[d objectForKey:@"PhotoService"] isEqualToString:@"img.ur"] ) {
+                        
+                        uploadType = 2;
+                        
+                    }else if ( [[d objectForKey:@"PhotoService"] isEqualToString:@"Twitpic"] ) {    
+                        
+                        uploadType = 3;
+                    }
+                }
+                
+                if ( uploadType != 0 && uploadType != 1 ) {
+                 
                     artWorkUploading = YES;
-                    [self uploadImage:imagePreview.image];
+                    
+                    [self uploadNowPlayingImage:imagePreview.image 
+                                     uploadType:uploadType];
                 }
             }
         }
@@ -1612,7 +1734,7 @@
                     resultText = [NSMutableString stringWithString:[d stringForKey:@"NowPlayingEditTextSub"]];
                 }
             }
-                        
+            
             //曲情報を書式に埋め込み
             resultText = [ReplaceOrDelete replaceWordReturnMStr:resultText replaceWord:@"[st]" replacedWord:songTitle];
             resultText = [ReplaceOrDelete replaceWordReturnMStr:resultText replaceWord:@"[ar]" replacedWord:songArtist];

@@ -29,12 +29,11 @@
 @synthesize isBrowserOpen;
 @synthesize fastGoogleMode;
 @synthesize webPageShareMode;
+@synthesize launchMode;
 
 - (BOOL)application:(UIApplication *)application didFinishLaunchingWithOptions:(NSDictionary *)launchOptions {
     
-    //NSLog(@"FinishLaunching");
-    
-    [D setBool:YES forKey:@"FinishLaunching"];
+    //NSLog(@"FinishLaunching: %@", launchOptions);
     
     //OAConsumer設定
     oaConsumer = [[OAConsumer alloc] initWithKey:OAUTH_KEY 
@@ -59,6 +58,12 @@
     isBrowserOpen = [NSNumber numberWithInt:0];
     fastGoogleMode = [NSNumber numberWithInt:0];
     webPageShareMode = [NSNumber numberWithInt:0];
+    
+    if ( launchOptions == NULL ) {
+        launchMode = [NSNumber numberWithInt:0];
+    }else {
+        launchMode = [NSNumber numberWithInt:1];
+    }
     
     self.window = [[[UIWindow alloc] initWithFrame:[[UIScreen mainScreen] bounds]] autorelease];
     self.viewController = [[[ViewController alloc] initWithNibName:@"ViewController" bundle:nil] autorelease];
