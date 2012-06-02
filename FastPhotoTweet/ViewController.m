@@ -319,8 +319,6 @@
                 return;
             }
             
-            nowPlayingMode = NO;
-            
             //画像が設定されていない場合
             if ( imagePreview.image == nil ) {
                 
@@ -667,15 +665,29 @@
         //Dictionaryから画像URLを抜き出す
         int service = 0;
         
-        if ( [[d objectForKey:@"PhotoService"] isEqualToString:@"img.ur"] || 
-              [d integerForKey:@"NowPlayingPhotoService"] == 2 ) {
+        if ( nowPlayingMode ) {
             
-            service = 1;
+            if ( [d integerForKey:@"NowPlayingPhotoService"] == 2 ) {
+                
+                service = 1;
+                
+            }else if ( [d integerForKey:@"NowPlayingPhotoService"] == 3 ) {
+                
+                service = 2;
+            }
             
-        }else if ( [[d objectForKey:@"PhotoService"] isEqualToString:@"Twitpic"] || 
-                    [d integerForKey:@"NowPlayingPhotoService"] == 3 ) {
+            nowPlayingMode = NO;
             
-            service = 2;
+        }else {
+            
+            if ( [[d objectForKey:@"PhotoService"] isEqualToString:@"img.ur"] ) {
+                
+                service = 1;
+                
+            }else if ( [[d objectForKey:@"PhotoService"] isEqualToString:@"Twitpic"] ) {
+                
+                service = 2;
+            }
         }
         
         if ( service == 1 ) {
@@ -1144,7 +1156,7 @@
     NSData *imageData = [EncodeImage image:image];
     
     //リクエストURLを指定
-    NSURL *URL;
+    NSURL *URL = nil;
     
     if ( [[d objectForKey:@"PhotoService"] isEqualToString:@"img.ur"] ) {
         
@@ -1154,6 +1166,8 @@
         
         URL = [NSURL URLWithString:@"http://api.twitpic.com/1/upload.json"];
     }
+    
+    NSLog(@"URL: %@", URL);
     
     ASIFormDataRequest *request = [[[ASIFormDataRequest alloc] initWithURL:URL] autorelease];
     
