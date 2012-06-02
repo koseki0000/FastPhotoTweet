@@ -802,6 +802,18 @@
         }
     }
     
+    if ( [RegularExpression boolRegExp:accessURL regExpPattern:@"https?://.*amazon.*/[-_a-zA-Z0-9]+-22/.*"] ) {
+        
+        NSString *affiliateCuttedUrl = [AmazonAffiliateCutter string:accessURL];
+        
+        if ( ![affiliateCuttedUrl isEqualToString:accessURL] ) {
+            
+            [wv loadRequestWithString:affiliateCuttedUrl];
+            
+            return NO;
+        }
+    }
+    
     urlField.text = [ProtocolCutter url:[[request URL] absoluteString]];
     [ActivityIndicator visible:YES];
     

@@ -16,3 +16,5 @@
 #import "EncodeImage.h"
 #import "HankakuKana.h"
 #import "FullSizeImage.h"
+#import "DeleteWhiteSpace.h"
+#import "AmazonAffiliateCutter.h"

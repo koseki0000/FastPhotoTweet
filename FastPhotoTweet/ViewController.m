@@ -7,7 +7,7 @@
 
 #import "ViewController.h"
 
-#define APP_VERSION @"1.2.3"
+#define APP_VERSION @"1.2.4"
 
 #define TOP_BAR [NSArray arrayWithObjects:trashButton, flexibleSpace, idButton, flexibleSpace, resendButton, flexibleSpace, imageSettingButton, flexibleSpace, postButton, nil]
 #define BOTTOM_BAR [NSArray arrayWithObjects:settingButton, flexibleSpace, actionButton, flexibleSpace, nowPlayingButton, nil]

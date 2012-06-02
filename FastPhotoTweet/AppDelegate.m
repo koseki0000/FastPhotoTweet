@@ -42,7 +42,7 @@
     if ( [D objectForKey:@"HomePageURL"] == nil || [[D objectForKey:@"HomePageURL"] isEqualToString:@""] ) {
         
         NSLog(@"Set HomePageURL");
-        [D setObject:@"http://www.google.com/" forKey:@"HomePageURL"];
+        [D setObject:@"http://www.google.co.jp/" forKey:@"HomePageURL"];
     }
     
     //各種初期化
