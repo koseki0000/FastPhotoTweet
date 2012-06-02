@@ -104,8 +104,6 @@
 
 - (void)applicationWillResignActive:(UIApplication *)application {
     
-    NSLog(@"applicationWillResignActive");
-    
     [D setBool:YES forKey:@"applicationWillResignActive"];
 }
 

@@ -7,7 +7,7 @@
 
 #import "ViewController.h"
 
-#define APP_VERSION @"1.2.4"
+#define APP_VERSION @"1.2.5"
 
 #define TOP_BAR [NSArray arrayWithObjects:trashButton, flexibleSpace, idButton, flexibleSpace, resendButton, flexibleSpace, imageSettingButton, flexibleSpace, postButton, nil]
 #define BOTTOM_BAR [NSArray arrayWithObjects:settingButton, flexibleSpace, actionButton, flexibleSpace, nowPlayingButton, nil]
@@ -498,6 +498,8 @@
 
 - (void)showActionMenu {
     
+    showActionSheet = YES;
+    
     actionSheetNo = 0;
     
     UIActionSheet *sheet = [[UIActionSheet alloc]
@@ -665,20 +667,22 @@
         //Dictionaryから画像URLを抜き出す
         int service = 0;
         
-        if ( [[d objectForKey:@"PhotoService"] isEqualToString:@"img.ur"] || [d integerForKey:@"NowPlayingPhotoService"] == 2 ) {
+        if ( [[d objectForKey:@"PhotoService"] isEqualToString:@"img.ur"] || 
+              [d integerForKey:@"NowPlayingPhotoService"] == 2 ) {
+            
+            service = 1;
+            
+        }else if ( [[d objectForKey:@"PhotoService"] isEqualToString:@"Twitpic"] || 
+                    [d integerForKey:@"NowPlayingPhotoService"] == 3 ) {
             
             service = 2;
-            
-        }else if ( [[d objectForKey:@"PhotoService"] isEqualToString:@"Twitpic"] || [d integerForKey:@"NowPlayingPhotoService"] == 3 ) {
-            
-            service = 3;
         }
         
-        if ( service == 2 ) {
+        if ( service == 1 ) {
             
             imageURL = [[[result objectForKey:@"upload"] objectForKey:@"links"] objectForKey:@"original"];
             
-        }else if ( service == 3 ) {
+        }else if ( service == 2 ) {
             
             imageURL = [result objectForKey:@"url"];
         }
@@ -1292,8 +1296,6 @@
     if ( [self ios5Check] ) {
                 
         if ( !showActionSheet ) {
-         
-            showActionSheet = YES;
             
             if ( [appDelegate.launchMode intValue] == 2 ) {
                 

@@ -591,7 +591,7 @@
             BookmarkViewController *dialog = [[BookmarkViewController alloc] init];
             dialog.modalTransitionStyle = UIModalTransitionStyleCoverVertical;
             [self presentModalViewController:dialog animated:YES];
-        
+            
         }else if ( buttonIndex == 5 ) {
             
             if ( ![EmptyCheck check:[d dictionaryForKey:@"Bookmark"]] ) {
