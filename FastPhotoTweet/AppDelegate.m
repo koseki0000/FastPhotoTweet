@@ -22,6 +22,7 @@
 @synthesize oaConsumer;
 @synthesize openURL;
 @synthesize postText;
+@synthesize bookmarkUrl;
 @synthesize postError;
 @synthesize resendNumber;
 @synthesize resendMode;
@@ -48,6 +49,7 @@
     //各種初期化
     openURL = [D objectForKey:@"HomePageURL"];
     postText = BLANK;
+    bookmarkUrl = BLANK;
     
     postError = [NSMutableArray array];
     [postError retain];
@@ -96,6 +98,7 @@
 }
 
 - (void)applicationWillResignActive:(UIApplication *)application {
+    
     NSLog(@"applicationWillResignActive");
     
     [D setBool:YES forKey:@"applicationWillResignActive"];

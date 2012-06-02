@@ -10,6 +10,8 @@
 #import "Reachability.h"
 #import "WebViewEx.h"
 #import "UtilityClass.h"
+#import "DeleteWhiteSpace.h"
+#import "BookmarkViewController.h"
 
 @interface WebViewExController : UIViewController <UIWebViewDelegate, UIActionSheetDelegate, UITextFieldDelegate> {
     
@@ -28,6 +30,8 @@
     
     int actionSheetNo;
     int alertTextNo;
+    
+    BOOL openBookmark;
 }
 
 @property (retain, nonatomic) IBOutlet WebViewEx *wv;

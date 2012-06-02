@@ -50,6 +50,8 @@
     
     urlList = [NSMutableArray array];
     
+    openBookmark = NO;
+    
     //アプリがアクティブになった場合の通知を受け取る設定
     NSNotificationCenter *notificationCenter = [NSNotificationCenter defaultCenter];
     
@@ -90,6 +92,27 @@
     [wv loadRequestWithString:appDelegate.openURL];
     
     appDelegate.isBrowserOpen = [NSNumber numberWithInt:1];
+}
+
+- (void)viewWillAppear:(BOOL)animated {
+    
+    [super viewWillAppear:animated];
+    
+    NSLog(@"viewWillAppear");
+    
+    NSLog(@"Bookmark: %@", appDelegate.bookmarkUrl);
+    
+    if ( openBookmark ) {
+        
+        openBookmark = NO;
+        
+        if ( [EmptyCheck check:appDelegate.bookmarkUrl] ) {
+            
+            //ブックマークで選択したURLを読み込み
+            [wv loadRequestWithString:appDelegate.bookmarkUrl];
+            appDelegate.bookmarkUrl = BLANK;
+        }
+    }
 }
 
 - (void)checkPasteBoardUrlOption {
@@ -264,6 +287,7 @@
 }
 
 - (void)closeWebView {
+    
     appDelegate.isBrowserOpen = [NSNumber numberWithInt:0];
     
     if ( wv.loading ) [wv stopLoading];
@@ -308,7 +332,10 @@
                             delegate:self
                             cancelButtonTitle:@"Cancel"
                             destructiveButtonTitle:nil
-                            otherButtonTitles:@"開いているページを投稿", @"選択文字を引用して投稿", @"選択文字で検索", @"ホームページを変更", @"Safariで開く", @"保存", nil];
+                            otherButtonTitles:@"開いているページを投稿", @"選択文字を引用して投稿", 
+                                              @"選択文字で検索", @"保存", 
+                                              @"ブックマークを開く", @"ブックマークに登録",
+                                              @"Safariで開く", @"ホームページを変更", nil];
     [sheet showInView:self.view];
 }
 
@@ -362,11 +389,17 @@
         return;
     }
     
-    if ( [RegularExpression boolRegExp:urlField.text regExpPattern:@"^https?://.*"] ) {
+    NSString *encodedUrl = (__bridge_transfer NSString *)CFURLCreateStringByAddingPercentEscapes(kCFAllocatorDefault, 
+                                                                                                 (__bridge CFStringRef)[DeleteWhiteSpace string:urlField.text], 
+                                                                                                 NULL, 
+                                                                                                 NULL, 
+                                                                                                 kCFStringEncodingUTF8);
+    
+    if ( [RegularExpression boolRegExp:encodedUrl regExpPattern:@"https?://.*"] ) {
         
         NSLog(@"http(s) address");
-        
-        [wv loadRequestWithString:urlField.text];
+
+        [wv loadRequestWithString:encodedUrl];
         
     }else {
         
@@ -374,19 +407,19 @@
         
         BOOL canOpen = NO;
         
-        canOpen = [[UIApplication sharedApplication] canOpenURL:[NSURL URLWithString:urlField.text]];
+        canOpen = [[UIApplication sharedApplication] canOpenURL:[NSURL URLWithString:encodedUrl]];
         
         if ( canOpen ) {
             
             NSLog(@"scheme");
             
-            [[UIApplication sharedApplication] openURL:[NSURL URLWithString:urlField.text]];
+            [[UIApplication sharedApplication] openURL:[NSURL URLWithString:encodedUrl]];
             
         }else {
             
             NSLog(@"add protocol");
             
-            [wv loadRequestWithString:[NSString stringWithFormat:@"http://%@", urlField.text]];
+            [wv loadRequestWithString:[NSString stringWithFormat:@"http://%@", encodedUrl]];
         }
     }
 }
@@ -515,30 +548,6 @@
             
         }else if ( buttonIndex == 3 ) {
             
-            alertTextNo = 1;
-            
-            alert = [[UIAlertView alloc] initWithTitle:@"ホームページURL" 
-                                               message:@"\n"
-                                              delegate:self 
-                                     cancelButtonTitle:@"キャンセル" 
-                                     otherButtonTitles:@"確定", nil];
-            
-            alertText = [[UITextField alloc] initWithFrame:CGRectMake(12, 40, 260, 25)];
-            [alertText setBackgroundColor:[UIColor whiteColor]];
-            alertText.contentVerticalAlignment = UIControlContentVerticalAlignmentCenter;
-            alertText.delegate = self;
-            
-            [alert addSubview:alertText];
-            [alert show];
-            [alertText becomeFirstResponder];
-        
-        }else if ( buttonIndex == 4 ) {
-            
-            //Safariで開く
-            [[UIApplication sharedApplication] openURL:[NSURL URLWithString:accessURL]];
-            
-        }else if ( buttonIndex == 5 ) {
-            
             if ( ![urlField.text isEqualToString:@""] ) {
                 
                 NSError *error = nil;
@@ -559,7 +568,7 @@
                 if ( match.numberOfRanges != 0 ) {
                     
                     NSLog(@"Image save");
-                
+                    
                     @autoreleasepool {
                         
                         //画像保存開始
@@ -574,6 +583,70 @@
                     [self requestStart];
                 }
             }
+            
+        }else if ( buttonIndex == 4 ) {
+            
+            openBookmark = YES;
+            
+            BookmarkViewController *dialog = [[BookmarkViewController alloc] init];
+            dialog.modalTransitionStyle = UIModalTransitionStyleCoverVertical;
+            [self presentModalViewController:dialog animated:YES];
+        
+        }else if ( buttonIndex == 5 ) {
+            
+            if ( ![EmptyCheck check:[d dictionaryForKey:@"Bookmark"]] ) {
+                
+                [d setObject:[NSDictionary dictionary] forKey:@"Bookmark"];
+            }
+            
+            NSMutableDictionary *bookMarkDic = [[NSMutableDictionary alloc] initWithDictionary:[d dictionaryForKey:@"Bookmark"]];
+            
+            NSArray *value = [bookMarkDic allValues];
+            
+            //登録済みURLのチェック
+            BOOL check = YES;
+            for ( NSString *url in value ) {
+                
+                if ( [url isEqualToString:[[wv.request URL] absoluteString]] ) {
+                    
+                    check = NO;
+                }
+            }
+            
+            if ( check ) {
+             
+                [bookMarkDic setValue:[[wv.request URL] absoluteString] forKey:wv.pageTitle];
+                
+                [d setObject:bookMarkDic forKey:@"Bookmark"];
+                
+            }else {
+                
+                [ShowAlert error:@"登録済みのURLです。"];
+            }
+            
+        }else if ( buttonIndex == 6 ) {
+            
+            //Safariで開く
+            [[UIApplication sharedApplication] openURL:[NSURL URLWithString:accessURL]];
+        
+        }else if ( buttonIndex == 7 ) {
+            
+            alertTextNo = 1;
+            
+            alert = [[UIAlertView alloc] initWithTitle:@"ホームページURL" 
+                                               message:@"\n"
+                                              delegate:self 
+                                     cancelButtonTitle:@"キャンセル" 
+                                     otherButtonTitles:@"確定", nil];
+            
+            alertText = [[UITextField alloc] initWithFrame:CGRectMake(12, 40, 260, 25)];
+            [alertText setBackgroundColor:[UIColor whiteColor]];
+            alertText.contentVerticalAlignment = UIControlContentVerticalAlignmentCenter;
+            alertText.delegate = self;
+            
+            [alert addSubview:alertText];
+            [alert show];
+            [alertText becomeFirstResponder];
         }
         
     }else if ( actionSheetNo == 2 || actionSheetNo == 3 || actionSheetNo == 4 || actionSheetNo == 5 || actionSheetNo == 6 ) {

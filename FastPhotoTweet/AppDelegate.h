@@ -17,6 +17,7 @@
     
     NSString *openURL;
     NSString *postText;
+    NSString *bookmarkUrl;
     NSMutableArray *postError;
     NSNumber *resendNumber;
     NSNumber *resendMode;
@@ -30,6 +31,7 @@
 @property (nonatomic, retain) OAConsumer *oaConsumer;
 @property (nonatomic, retain) NSString *openURL;
 @property (nonatomic, retain) NSString *postText;
+@property (nonatomic, retain) NSString *bookmarkUrl;
 @property (nonatomic, retain) NSMutableArray *postError;
 @property (nonatomic, retain) NSNumber *resendNumber;
 @property (nonatomic, retain) NSNumber *resendMode;

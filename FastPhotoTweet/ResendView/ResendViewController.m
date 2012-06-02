@@ -23,7 +23,6 @@
     
     if ( self ) {
     
-        appDelegate = (AppDelegate *)[[UIApplication sharedApplication] delegate];
     }
     
     return self;
@@ -34,6 +33,8 @@
     [super viewDidLoad];
     
     //NSLog(@"viewDidLoad ResendViewController");
+    
+    appDelegate = (AppDelegate *)[[UIApplication sharedApplication] delegate];
 }
 
 - (IBAction)pushTrashButton:(id)sender {

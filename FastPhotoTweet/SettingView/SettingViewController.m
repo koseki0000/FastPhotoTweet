@@ -31,7 +31,7 @@
 //投稿関連設定
 #define NAME_8  @"NowPlaying時はFastTweetを行う"
 #define NAME_9  @"NowPlaying時はCallBackを行う"
-#define NAME_10  @"NowPlayingにカスタム書式を使用"
+#define NAME_10 @"NowPlayingにカスタム書式を使用"
 #define NAME_11 @"カスタム書式を編集"
 #define NAME_12 @"曲名とアルバム名が同じな場合サブ書式を使用"
 #define NAME_13 @"サブ書式を編集"
