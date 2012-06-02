@@ -99,7 +99,6 @@
 - (void)showActionMenu;
 - (void)callback;
 - (void)countText;
-- (void)startWebBrowsing;
 - (void)uploadImage:(UIImage *)image;
 - (void)postDone:(NSNotification *)center;
 - (BOOL)ios5Check;

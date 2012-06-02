@@ -55,7 +55,7 @@
         
     UILocalNotification *localPush = [[[UILocalNotification alloc] init] autorelease];
     localPush.timeZone = [NSTimeZone defaultTimeZone];
-    localPush.alertBody = @"Tweet";
+    localPush.alertBody = @"Action";
     localPush.fireDate = [NSDate dateWithTimeIntervalSinceNow:0];
     [[UIApplication sharedApplication] scheduleLocalNotification:localPush];
     
@@ -1176,11 +1176,6 @@
     [request start];
 }
 
-- (void)startWebBrowsing {
-    
-    
-}
-
 - (void)becomeActive:(NSNotification *)notification {
     
     //アプリケーションがアクティブになった際に呼ばれる
@@ -1334,7 +1329,7 @@
         if ( [d boolForKey:@"NowPlayingFastPost"] && !artWorkUploading ) {
             
             @autoreleasepool {
-             
+            
                 if ( [[d objectForKey:@"PhotoService"] isEqualToString:@"Twitter"] ) {
                 
                     if ( imagePreview.image != nil ) {
