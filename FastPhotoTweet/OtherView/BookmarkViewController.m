@@ -28,8 +28,6 @@
     
     [super viewDidLoad];
 
-    NSLog(@"viewDidLoad");
-    
     appDelegate = (AppDelegate *)[[UIApplication sharedApplication] delegate];
     d = [NSUserDefaults standardUserDefaults];
     
@@ -79,15 +77,11 @@
 
 - (NSInteger)tableView:(UITableView *)tableView numberOfRowsInSection:(NSInteger)section {
     
-    NSLog(@"numberOfRowsInSection");
-    
     //TableViewの要素数を返す
 	return [bookMarkArray count];
 }
 
 - (UITableViewCell *)tableView:(UITableView *)tableView cellForRowAtIndexPath:(NSIndexPath *)indexPath {
-    
-	NSLog(@"CreateCell");
     
     //TableViewCellを生成
 	static NSString *identifier = @"BookmarkCell";
@@ -114,12 +108,20 @@
     actionSheetNo = 0;
     selectRow = indexPath.row;
     
+    NSArray *keys = [bookMarkDic allKeys];
+    NSArray *values = [bookMarkDic allValues];
+    
+    NSString *title = [NSString stringWithFormat:@"%@\n%@", 
+                       [keys objectAtIndex:selectRow], 
+                       [values objectAtIndex:selectRow]];
+    
     UIActionSheet *sheet = [[UIActionSheet alloc]
-                            initWithTitle:@"機能選択"
+                            initWithTitle:title
                             delegate:self
                             cancelButtonTitle:@"Cancel"
                             destructiveButtonTitle:nil
                             otherButtonTitles:@"タイトルをコピー", @"URLをコピー", @"タイトルとURLをコピー", nil];
+    [sheet autorelease];
     [sheet showInView:self.view];
 }
 

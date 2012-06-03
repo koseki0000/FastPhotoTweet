@@ -32,6 +32,7 @@
     int alertTextNo;
     
     BOOL openBookmark;
+    BOOL fullScreen;
 }
 
 @property (retain, nonatomic) IBOutlet WebViewEx *wv;
@@ -50,6 +51,7 @@
 @property (retain, nonatomic) IBOutlet UIBarButtonItem *menuButton;
 @property (retain, nonatomic) IBOutlet UIBarButtonItem *flexibleSpace;
 
+
 - (IBAction)pushSearchButton:(id)sender;
 - (IBAction)pushCloseButton:(id)sender;
 - (IBAction)pushReloadButton:(id)sender;
@@ -66,6 +68,8 @@
 
 - (IBAction)onSearchField: (id)sender;
 - (IBAction)leaveSearchField: (id)sender;
+
+- (IBAction)fullScreenGesture:(id)sender;
 
 - (void)checkPasteBoardUrlOption;
 - (void)openPasteBoardUrl:(NSString *)urlString;

@@ -11,7 +11,7 @@
 
 #import "WebViewExController.h"
 
-#define TOP_BAR [NSArray arrayWithObjects:nil]
+#define TOP_BAR [NSArray arrayWithObjects:urlField, searchField, searchButton, nil]
 #define BOTTOM_BAR [NSArray arrayWithObjects:closeButton, flexibleSpace, reloadButton, flexibleSpace, backButton, flexibleSpace, forwardButton, flexibleSpace, composeButton, flexibleSpace, menuButton, nil]
 
 #define BLANK @""
@@ -51,6 +51,7 @@
     urlList = [NSMutableArray array];
     
     openBookmark = NO;
+    fullScreen = NO;
     
     //アプリがアクティブになった場合の通知を受け取る設定
     NSNotificationCenter *notificationCenter = [NSNotificationCenter defaultCenter];
@@ -98,9 +99,9 @@
     
     [super viewWillAppear:animated];
     
-    NSLog(@"viewWillAppear");
+    //NSLog(@"viewWillAppear");
     
-    NSLog(@"Bookmark: %@", appDelegate.bookmarkUrl);
+    //NSLog(@"Bookmark: %@", appDelegate.bookmarkUrl);
     
     if ( openBookmark ) {
         
@@ -229,8 +230,8 @@
 
 - (void)becomeActive:(NSNotification *)notification {
     
-    NSLog(@"WebViewEx becomeActive");
-    NSLog(@"fastGoogleMode: %d webPageShareMode: %d", [appDelegate.fastGoogleMode intValue], [appDelegate.webPageShareMode intValue]);
+    //NSLog(@"WebViewEx becomeActive");
+    //NSLog(@"fastGoogleMode: %d webPageShareMode: %d", [appDelegate.fastGoogleMode intValue], [appDelegate.webPageShareMode intValue]);
     
     if ( [appDelegate.fastGoogleMode intValue] == 1 ) {
         
@@ -250,7 +251,7 @@
     
     if ( ![EmptyCheck check:[d objectForKey:@"SearchEngine"]] ) {
         
-        NSLog(@"Set GoogleEngine");
+        //NSLog(@"Set GoogleEngine");
         
         [d setObject:@"Google" forKey:@"SearchEngine"];
     }
@@ -376,7 +377,7 @@
                                                                                                 (CFStringRef)@"!*'();:@&=+$,/?%#[]", 
                                                                                                 kCFStringEncodingUTF8);
     
-    NSLog(@"URL: %@", [NSString stringWithFormat:@"%@%@", searchURL, encodedSearchWord]);
+    //NSLog(@"URL: %@", [NSString stringWithFormat:@"%@%@", searchURL, encodedSearchWord]);
     
     [wv loadRequestWithString:[NSString stringWithFormat:@"%@%@", searchURL, encodedSearchWord]];
 }
@@ -397,13 +398,13 @@
     
     if ( [RegularExpression boolRegExp:encodedUrl regExpPattern:@"https?://.*"] ) {
         
-        NSLog(@"http(s) address");
+        //NSLog(@"http(s) address");
 
         [wv loadRequestWithString:encodedUrl];
         
     }else {
         
-        NSLog(@"not http(s) address");
+        //NSLog(@"not http(s) address");
         
         BOOL canOpen = NO;
         
@@ -411,13 +412,13 @@
         
         if ( canOpen ) {
             
-            NSLog(@"scheme");
+            //NSLog(@"scheme");
             
             [[UIApplication sharedApplication] openURL:[NSURL URLWithString:encodedUrl]];
             
         }else {
             
-            NSLog(@"add protocol");
+            //NSLog(@"add protocol");
             
             [wv loadRequestWithString:[NSString stringWithFormat:@"http://%@", encodedUrl]];
         }
@@ -513,7 +514,7 @@
         
         }else if ( buttonIndex == 1 ) {
             
-            NSLog(@"selectString: %@", wv.selectString);
+            //NSLog(@"selectString: %@", wv.selectString);
             
             if ( [EmptyCheck check:wv.selectString] ) {
                 
@@ -567,7 +568,7 @@
                 
                 if ( match.numberOfRanges != 0 ) {
                     
-                    NSLog(@"Image save");
+                    //NSLog(@"Image save");
                     
                     @autoreleasepool {
                         
@@ -577,7 +578,7 @@
                     
                 }else {
                     
-                    NSLog(@"File save");
+                    //NSLog(@"File save");
                     
                     //ファイル保存開始
                     [self requestStart];
@@ -750,7 +751,7 @@
     
         if ( buttonIndex == 1 ) {
      
-            NSLog(@"SetHomePage: %@", alertText.text);
+            //NSLog(@"SetHomePage: %@", alertText.text);
             [d setObject:alertText.text forKey:@"HomePageURL"];
             
             alertTextNo = 0;
@@ -761,11 +762,11 @@
 
 - (BOOL)textFieldShouldReturn:(UITextField *)sender {
 
-    NSLog(@"textFieldShouldReturn");
+    //NSLog(@"textFieldShouldReturn");
     
     if ( alertTextNo == 1 ) {
     
-        NSLog(@"SetHomePage: %@", alertText.text);
+        //NSLog(@"SetHomePage: %@", alertText.text);
         [d setObject:alertText.text forKey:@"HomePageURL"];
         
         alertTextNo = 0;
@@ -802,7 +803,7 @@
         }
     }
     
-    if ( [RegularExpression boolRegExp:accessURL regExpPattern:@"https?://.*amazon.*/[-_a-zA-Z0-9]+-22/.*"] ) {
+    if ( [RegularExpression boolRegExp:accessURL regExpPattern:@"https?://(www\\.)?amazon\\.co\\.jp/exec/obidos/ASIN/[A-Z0-9]+/[-_a-zA-Z0-9]+-22/?"] ) {
         
         NSString *affiliateCuttedUrl = [AmazonAffiliateCutter string:accessURL];
         
@@ -835,7 +836,7 @@
     
     if ( error.code != -999 ) {
      
-        NSLog(@"%@", error.description);
+        //NSLog(@"%@", error.description);
         
         [ShowAlert error:error.localizedDescription];
         
@@ -872,7 +873,7 @@
 
 - (void)requestStart {
     
-    NSLog(@"requestStart: %@", accessURL);
+    //NSLog(@"requestStart: %@", accessURL);
     
     //キャッシュの削除
     NSURLCache *cache = [NSURLCache sharedURLCache];
@@ -890,7 +891,7 @@
 
 - (void)connection:(NSURLConnection *)connection didReceiveResponse:(NSURLResponse *)response{
     
-    NSLog(@"didReceiveResponse: %lldbytes", [response expectedContentLength]);
+    //NSLog(@"didReceiveResponse: %lldbytes", [response expectedContentLength]);
     
 	asyncData = [[NSMutableData alloc] initWithData:0];
 }
@@ -904,7 +905,7 @@
 
 - (void)connection:(NSURLConnection *)connection didFailWithError:(NSError *)error {
 
-    NSLog(@"didFailWithError");
+    //NSLog(@"didFailWithError");
     
     [ShowAlert error:@"ダウンロードに失敗しました。"];
     [grayView off];
@@ -912,7 +913,7 @@
 
 - (void)connectionDidFinishLoading:(NSURLConnection *)connection {
     
-    NSLog(@"connectionDidFinishLoading");
+    //NSLog(@"connectionDidFinishLoading");
     
     NSFileManager *manager = [NSFileManager defaultManager];
     NSString *savePath = [[NSHomeDirectory() stringByAppendingPathComponent:@"Documents"] stringByAppendingPathComponent:saveFileName];
@@ -944,7 +945,7 @@
 
 - (void)viewDidUnload {
     
-    NSLog(@"WebViewExController viewDidUnload");
+    //NSLog(@"WebViewExController viewDidUnload");
     
     appDelegate.isBrowserOpen = [NSNumber numberWithInt:0];
     appDelegate.fastGoogleMode = [NSNumber numberWithInt:0];
@@ -967,32 +968,81 @@
     [super viewDidUnload];
 }
 
-//- (void)dealloc {
-//    
-//    NSLog(@"WebViewExController dealloc");
-//    
-//    appDelegate.isBrowserOpen = [NSNumber numberWithInt:0];
-//    
-//    [accessURL release];
-//    
-//    [topBar release];
-//    [bottomBar release];
-//    [searchButton release];
-//    [closeButton release];
-//    [reloadButton release];
-//    [backButton release];
-//    [forwardButton release];
-//    [menuButton release];
-//    [flexibleSpace release];
-//    [urlField release];
-//    [searchField release];
-//    [composeButton release];
-//    
-//    if ( wv.loading ) [wv stopLoading];
-//    wv.delegate = nil;
-//    [wv release];
-//
-//    [super dealloc];
-//}
+- (IBAction)fullScreenGesture:(id)sender {
+    
+    if ( fullScreen ) {
+     
+        fullScreen = NO;
+        
+    }else {
+        
+        fullScreen = YES;
+    }
+    
+    [self shouldAutorotateToInterfaceOrientation:[[UIDevice currentDevice] orientation]];
+}
+
+- (BOOL)shouldAutorotateToInterfaceOrientation:(UIInterfaceOrientation)interfaceOrientation {
+    
+    [UIView beginAnimations:nil context:nil];
+    [UIView setAnimationDuration:0.05];
+    [UIView setAnimationDelay:0.0];
+    [UIView setAnimationRepeatCount:1.0];
+    [UIView setAnimationCurve:UIViewAnimationCurveLinear];
+    
+    if ( interfaceOrientation == UIInterfaceOrientationPortrait ) {
+        
+        if ( fullScreen ) {
+            
+            topBar.frame = CGRectMake(0, -44, 320, 44);
+            urlField.frame = CGRectMake(12, -44, 180, 31);
+            searchField.frame = CGRectMake(202, -44, 75, 31);
+            wv.frame = CGRectMake(0, 0, 320, 460);
+            bottomBar.frame = CGRectMake(0, 460, 320, 44);
+            
+        }else {
+            
+            topBar.frame = CGRectMake(0, 0, 320, 44);
+            urlField.frame = CGRectMake(12, 7, 180, 31);
+            searchField.frame = CGRectMake(202, 7, 75, 31);
+            wv.frame = CGRectMake(0, 44, 320, 372);
+            bottomBar.frame = CGRectMake(0, 416, 320, 44);
+        }
+        
+        [UIView commitAnimations];
+        
+        return YES;
+        
+    }else if ( interfaceOrientation == UIInterfaceOrientationLandscapeLeft || 
+              interfaceOrientation == UIInterfaceOrientationLandscapeRight ) {
+        
+        if ( fullScreen ) {
+            
+            topBar.frame = CGRectMake(0, -44, 480, 44);
+            urlField.frame = CGRectMake(12, -44, 280, 31);
+            searchField.frame = CGRectMake(302, -44, 135, 31);
+            wv.frame = CGRectMake(0, 0, 480, 300);
+            bottomBar.frame = CGRectMake(0, 300, 480, 44);
+            
+        }else {
+            
+            topBar.frame = CGRectMake(0, 0, 480, 44);
+            urlField.frame = CGRectMake(12, 7, 280, 31);
+            searchField.frame = CGRectMake(302, 7, 135, 31);
+            wv.frame = CGRectMake(0, 44, 480, 212);
+            bottomBar.frame = CGRectMake(0, 256, 480, 44);
+        }
+        
+        [UIView commitAnimations];
+        
+        return YES;
+        
+    }else if ( interfaceOrientation == UIInterfaceOrientationPortraitUpsideDown ) {
+        
+        return NO;
+    }
+    
+    return YES;
+}
 
 @end

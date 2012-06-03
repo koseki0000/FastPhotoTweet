@@ -11,7 +11,7 @@
 
 + (NSString *)urlString:(NSString *)urlString {
     
-    NSLog(@"originalUrl: %@", urlString);
+    //NSLog(@"originalUrl: %@", urlString);
     
     if ( [urlString hasPrefix:@"http://twitvid.com/"] || [urlString hasPrefix:@"http://www.twitvid.com/"] ) {
         
@@ -35,7 +35,7 @@
         
         urlString = [NSString stringWithFormat:@"http://api.plixi.com/api/tpapi.svc/imagefromurl?size=big&url=%@", urlString];
     
-    }else if ([urlString hasPrefix:@"http://p.twipple.jp/"]){
+    }else if ([urlString hasPrefix:@"http://p.twipple.jp/"]) {
         
         NSMutableString *mString = [NSMutableString stringWithString:urlString];
         [mString replaceOccurrencesOfString:@"www." 
@@ -144,7 +144,7 @@
         
         for ( int i = 0; i < max; i++ ) {
             
-            dataStr = [[NSString alloc] initWithData:response encoding:encodingList[i]];
+            dataStr = [[[NSString alloc] initWithData:response encoding:encodingList[i]] autorelease];
             
             if ( dataStr != nil ) {
                 
@@ -159,9 +159,48 @@
         
         NSDictionary *results = [dataStr JSONValue];
 		urlString = [results objectForKey:@"url"];
+        
+    }else if ( [RegularExpression boolRegExp:urlString regExpPattern:@"https?://(mobile\\.)?twitter\\.com/[_a-zA-Z0-9]{1,15}/status/[0-9]+/photo/1"] ) {
+        
+        NSError *error = nil;
+		NSURL *url = [NSURL URLWithString:urlString];
+		NSURLRequest *request = [NSURLRequest requestWithURL:url];
+        NSData *response = [NSURLConnection sendSynchronousRequest:request 
+                                                 returningResponse:nil 
+                                                             error:&error];
+        
+        int encodingList[] = {
+            
+            NSUTF8StringEncoding,			// UTF-8
+            NSShiftJISStringEncoding,		// Shift_JIS
+            NSJapaneseEUCStringEncoding,	// EUC-JP
+            NSISO2022JPStringEncoding,		// JIS
+            NSUnicodeStringEncoding,		// Unicode
+            NSASCIIStringEncoding			// ASCII
+        };
+        
+        NSString *dataStr = nil;
+        int max = sizeof( encodingList ) / sizeof( encodingList[0] );
+        
+        for ( int i = 0; i < max; i++ ) {
+            
+            dataStr = [[[NSString alloc] initWithData:response encoding:encodingList[i]] autorelease];
+            
+            if ( dataStr != nil ) {
+                
+                break;
+            }
+        }
+        
+        if ( error ) {
+            
+            [ShowAlert error:error.localizedDescription];
+        }
+    
+        urlString = [NSString stringWithFormat:@"%@:large", [RegularExpression strRegExp:dataStr regExpPattern:@"https?://p\\.twimg\\.com/[-_\\.a-zA-Z0-9]+"]];
     }
     
-    NSLog(@"fullUrl: %@", urlString);
+    //NSLog(@"fullUrl: %@", urlString);
     
     return urlString;
 }

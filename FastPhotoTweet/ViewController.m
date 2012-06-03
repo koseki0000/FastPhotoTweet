@@ -7,7 +7,7 @@
 
 #import "ViewController.h"
 
-#define APP_VERSION @"1.2.5"
+#define APP_VERSION @"1.3.0"
 
 #define TOP_BAR [NSArray arrayWithObjects:trashButton, flexibleSpace, idButton, flexibleSpace, resendButton, flexibleSpace, imageSettingButton, flexibleSpace, postButton, nil]
 #define BOTTOM_BAR [NSArray arrayWithObjects:settingButton, flexibleSpace, actionButton, flexibleSpace, nowPlayingButton, nil]
@@ -26,7 +26,6 @@
 @synthesize postText;
 @synthesize callbackLabel;
 @synthesize postCharLabel;
-@synthesize callbackTextField;
 @synthesize callbackSwitch;
 @synthesize imagePreview;
 @synthesize topBar;
@@ -37,6 +36,7 @@
 @synthesize rigthSwipe;
 @synthesize leftSwipe;
 @synthesize inputFunctionButton;
+@synthesize callbackSelectButton;
 @synthesize actionButton;
 @synthesize nowPlayingButton;
 @synthesize idButton;
@@ -47,7 +47,7 @@
     
     [super viewDidLoad];
     
-    NSLog(@"viewDidLoad");
+    //NSLog(@"viewDidLoad");
     
     NSNotificationCenter *notificationCenter = [NSNotificationCenter defaultCenter];
     
@@ -107,6 +107,7 @@
     
     //保存されている情報をロード
     [self loadSettings];
+    [self setCallbackButtonTitle];
     
     //インターネット接続のチェック
     [self reachability];
@@ -166,12 +167,12 @@
     }
     
     //for debug
-    [self testMethod];
+    //[self testMethod];
 }
 
-- (void)testMethod {
-
-}
+//- (void)testMethod {
+//
+//}
 
 - (void)loadSettings {
     
@@ -209,11 +210,6 @@
         //スキームが保存されていない
         //空のキーを保存
         [d setObject:BLANK forKey:@"CallBackScheme"];
-        
-    }else {
-        
-        //スキームをセット
-        callbackTextField.text = [d objectForKey:@"CallBackScheme"];
     }
     
     //画像形式が設定されていない場合JPGを設定
@@ -243,6 +239,72 @@
     
     //設定を即反映
     [d synchronize];
+}
+
+- (void)setCallbackButtonTitle {
+    
+    NSString *scheme = [d objectForKey:@"CallBackScheme"];
+    
+    if ( [scheme isEqualToString:@"twitter://"] ) {
+        
+        [callbackSelectButton setTitle:@"Twitter for iPhone" forState:UIControlStateNormal];
+        
+    }else if ( [scheme isEqualToString:@"tweetbot://"] ) {
+        
+        [callbackSelectButton setTitle:@"Tweetbot" forState:UIControlStateNormal];
+        
+    }else if ( [scheme isEqualToString:@"echofon://?"] ) {
+        
+        [callbackSelectButton setTitle:@"Echofon" forState:UIControlStateNormal];
+        
+    }else if ( [scheme isEqualToString:@"echofonpro://?"] ) {
+        
+        [callbackSelectButton setTitle:@"Echofon Pro" forState:UIControlStateNormal];
+        
+    }else if ( [scheme isEqualToString:@"soicha://"] ) {
+        
+        [callbackSelectButton setTitle:@"SOICHA" forState:UIControlStateNormal];
+        
+    }else if ( [scheme isEqualToString:@"tweetings://"] ) {
+        
+        [callbackSelectButton setTitle:@"Tweetings" forState:UIControlStateNormal];
+        
+    }else if ( [scheme isEqualToString:@"osfoora://"] ) {
+        
+        [callbackSelectButton setTitle:@"Osfoora" forState:UIControlStateNormal];
+        
+    }else if ( [scheme isEqualToString:@"twittelator://"] ) {
+        
+        [callbackSelectButton setTitle:@"Twittelator" forState:UIControlStateNormal];
+        
+    }else if ( [scheme isEqualToString:@"tweetlist://"] ) {
+        
+        [callbackSelectButton setTitle:@"TweetList!" forState:UIControlStateNormal];
+        
+    }else if ( [scheme isEqualToString:@"tweetatok://"] ) {
+        
+        [callbackSelectButton setTitle:@"Tweet ATOK" forState:UIControlStateNormal];
+        
+    }else if ( [scheme isEqualToString:@"tweetlogix://"] ) {
+        
+        [callbackSelectButton setTitle:@"Tweetlogix" forState:UIControlStateNormal];
+        
+    }else if ( [scheme isEqualToString:@"hootsuite://"] ) {
+        
+        [callbackSelectButton setTitle:@"HootSuite" forState:UIControlStateNormal];
+        
+    }else if ( [scheme isEqualToString:@"simplytweet://"] ) {
+        
+        [callbackSelectButton setTitle:@"SimplyTweet" forState:UIControlStateNormal];
+        
+    }else if ( [scheme isEqualToString:@"reeder://"] ) {
+        
+        [callbackSelectButton setTitle:@"Reeder" forState:UIControlStateNormal];
+        
+    }else {
+        
+        [callbackSelectButton setTitle:@"未選択" forState:UIControlStateNormal];
+    }
 }
 
 - (void)showInfomation {
@@ -281,7 +343,7 @@
             //NSLog(@"newVersion");
             
 //            [ShowAlert title:[NSString stringWithFormat:@"FastPhotoTweet %@", APP_VERSION] 
-//                 message:@""];
+//                 message:@"・Twitterにアップした画像のフルサイズ取得のサポート\n・コールバック選択の方式を変更\n・Amazonアフィリエイトリンク削除の処理改善"];
             
             information = [[[NSMutableDictionary alloc] initWithDictionary:[d dictionaryForKey:@"Information"]] autorelease];
             [information setValue:[NSNumber numberWithInt:1] forKey:APP_VERSION];
@@ -309,9 +371,7 @@
         //Internet接続のチェック
         if ( [self reachability] ) {
             
-            NSString *text = [[[NSString alloc] initWithString:BLANK] autorelease];
-            
-            text = postText.text;
+            NSString *text = [[[NSString alloc] initWithString:postText.text] autorelease];
             
             if ( ![EmptyCheck check:text] ) {
                 
@@ -325,7 +385,7 @@
                 @autoreleasepool {
                     
                     //文字列をバックグラウンドプロセスで投稿
-                    NSArray *postData = [NSArray arrayWithObjects:[self deleteWhiteSpace:text], nil];
+                    NSArray *postData = [NSArray arrayWithObjects:[DeleteWhiteSpace string:text], nil];
                     [TWSendTweet performSelectorInBackground:@selector(post:) withObject:postData];
                 }
                 
@@ -342,7 +402,7 @@
                     @autoreleasepool {
                         
                         //文字列と画像をバックグラウンドプロセスで投稿
-                        NSArray *postData = [NSArray arrayWithObjects:[self deleteWhiteSpace:text], imagePreview.image, nil];
+                        NSArray *postData = [NSArray arrayWithObjects:[DeleteWhiteSpace string:text], imagePreview.image, nil];
                         [TWSendTweet performSelectorInBackground:@selector(post:) withObject:postData];
                     }
                     
@@ -352,7 +412,7 @@
                     @autoreleasepool {
                         
                         //文字列をバックグラウンドプロセスで投稿
-                        NSArray *postData = [NSArray arrayWithObjects:[self deleteWhiteSpace:text], nil];
+                        NSArray *postData = [NSArray arrayWithObjects:[DeleteWhiteSpace string:text], nil];
                         [TWSendTweet performSelectorInBackground:@selector(post:) withObject:postData];
                     }
                 }
@@ -413,29 +473,6 @@
     }
 }
 
-- (NSString *)deleteWhiteSpace:(NSString *)string {
-    
-    NSRegularExpression *regexp = [NSRegularExpression regularExpressionWithPattern:@"^[\\s]+" 
-                                                                            options:0 
-                                                                              error:nil];
-    
-    string = [regexp stringByReplacingMatchesInString:string
-                                              options:0
-                                                range:NSMakeRange(0, string.length)
-                                         withTemplate:@""];
-    
-    regexp = [NSRegularExpression regularExpressionWithPattern:@"[\\s]+$" 
-                                                       options:0 
-                                                         error:nil];
-    
-    string = [regexp stringByReplacingMatchesInString:string
-                                              options:0
-                                                range:NSMakeRange(0, string.length)
-                                         withTemplate:@""];
-    
-    return string;
-}
-
 - (IBAction)pushNowPlayingButton:(id)sender {
     
     //NSLog(@"pushNowPlayingButton");
@@ -494,6 +531,24 @@
     [self presentModalViewController:dialog animated:YES];
 }
 
+- (IBAction)pushCallbackSelectButton:(id)sender {
+    
+    actionSheetNo = 8;
+    
+    UIActionSheet *sheet = [[UIActionSheet alloc]
+                            initWithTitle:@"アプリ選択"
+                            delegate:self
+                            cancelButtonTitle:@"Cancel"
+                            destructiveButtonTitle:nil
+                            otherButtonTitles:@"Twitter for iPhone", @"Tweetbot", @"Echofon", 
+                                              @"Echofon Pro", @"SOICHA", @"Tweetings", 
+                                              @"Osfoora", @"Twittelator", @"TweetList!", 
+                                              @"Tweet ATOK", @"Tweetlogix",  @"HootSuite", 
+                                              @"SimplyTweet", @"Reeder", nil];
+	[sheet autorelease];
+	[sheet showInView:self.view];
+}
+
 - (void)showActionMenu {
     
     showActionSheet = YES;
@@ -506,7 +561,8 @@
                             cancelButtonTitle:@"Cancel"
                             destructiveButtonTitle:nil
                             otherButtonTitles:@"Tweet", @"FastTweet", @"PhotoTweet", 
-                                              @"NowPlaying", @"FastGoogle", @"FastPagePost", nil];
+                                              @"NowPlaying", @"FastGoogle", @"Browser",
+                                              @"FastPagePost", nil];
 	[sheet autorelease];
 	[sheet showInView:self.view];
 }
@@ -651,7 +707,7 @@
     
     //アップロードに成功した場合
     
-    NSLog(@"requestFinished");
+    //NSLog(@"requestFinished");
     
     @try {
         
@@ -756,39 +812,19 @@
     [sheet showInView:self.view];
 }
 
-- (IBAction)callbackTextFieldEnter:(id)sender {
-    
-    //Enterが押されたらキーボードを隠す
-    [callbackTextField resignFirstResponder];
-    
-    //ビューの位置を戻す
-    [sv setContentOffset:CGPointMake(0, 0) animated:YES];
-    
-    //コールバックスキームを保存
-    [d setObject:callbackTextField.text forKey:@"CallBackScheme"];
-}
-
-- (IBAction)textFieldStartEdit:(id)sender {
-    
-    //ビューの位置を上げる
-    [sv setContentOffset:CGPointMake(0, 70) animated:YES];
-}
-
 - (IBAction)svTapGesture:(id)sender {
     
     //NSLog(@"svTapGesture");
     
     [postText resignFirstResponder];
-    [callbackTextField resignFirstResponder];
     [sv setContentOffset:CGPointMake(0, 0) animated:YES];
 }
 
 - (void)imagePreviewTapGesture:(UITapGestureRecognizer *)sender {
     
-    NSLog(@"imagePreviewTapGesture");
+    //NSLog(@"imagePreviewTapGesture");
     
     [postText resignFirstResponder];
-    [callbackTextField resignFirstResponder];
     [sv setContentOffset:CGPointMake(0, 0) animated:YES];
     
     if ( imagePreview.image != nil ) {
@@ -829,8 +865,6 @@
 
 - (IBAction)pushInputFunctionButton:(id)sender {
     
-    NSLog(@"pushInputFunctionButton");
-    
     actionSheetNo = 5;
     
     UIActionSheet *sheet = [[UIActionSheet alloc]
@@ -867,37 +901,27 @@
         //ペーストボードの内容をチェック
         int pBoardType = [PasteboardType check];
         
+        //NSLog(@"pBoardType: %d", pBoardType);
+        
         if ( buttonIndex == 0 ) {
 
-            //NSLog(@"Post Start");
-            
             [self postNotification:pBoardType];
         
         }else if ( buttonIndex == 1 ) {
-            
-            //NSLog(@"Fast Post Start");
             
             [self fastPostNotification:pBoardType];
             
         }else if ( buttonIndex == 2 ) {
             
-            //NSLog(@"Photo Start");
-            
             [self photoPostNotification:pBoardType];
             
         }else if ( buttonIndex == 3 ) {
-            
-            //NSLog(@"NowPlaying Start");
             
             [self nowPlayingNotification];
             
         }else if ( buttonIndex == 4 ) {
             
-            NSLog(@"Google Start");
-            
             if ( pBoardType == 0 ) {
-                
-                NSLog(@"pBoardType == 0");
                 
                 NSString *searchURL = @"http://www.google.co.jp/search?q=";
                 NSString *encodedSearchWord = [(NSString *)CFURLCreateStringByAddingPercentEscapes(kCFAllocatorDefault,
@@ -908,27 +932,28 @@
                 
                 appDelegate.openURL = [NSString stringWithFormat:@"%@%@", searchURL, encodedSearchWord];
                 
+                appDelegate.fastGoogleMode = [NSNumber numberWithInt:1];
+                
                 [self pushBrowserButton:nil];
-                
-            }else {
-                
-                NSLog(@"pBoardType != 0");
             }
             
             if ( [appDelegate.isBrowserOpen intValue] == 0 ) {
                 
-                NSLog(@"Open Browser");
+                //NSLog(@"Open Browser");
                 
                 [self pushBrowserButton:nil];
-                
-            }else {
-                
-                NSLog(@"Opened Browser");
             }
         
         }else if ( buttonIndex == 5 ) {
+
+            if ( [appDelegate.isBrowserOpen intValue] == 0 ) {
+                
+                //NSLog(@"Open Browser");
+                
+                [self pushBrowserButton:nil];
+            }
             
-            NSLog(@"WebPageShare Start");
+        }else if ( buttonIndex == 6 ) {
             
             @autoreleasepool {
                 
@@ -936,11 +961,6 @@
             }
             
             [self webPageShareNotification:pBoardType];
-            
-        }else if ( buttonIndex == 6 ) {
-            
-        }else {
-            
         }
         
     }else if ( actionSheetNo == 1 ) {
@@ -990,12 +1010,10 @@
     
         if ( buttonIndex == 0 ) {
             
-//          NSLog(@"PhotoReSave");
             UIImageWriteToSavedPhotosAlbum(errorImage, self, @selector(savingImageIsFinished:didFinishSavingWithError:contextInfo:), nil);
 
         }else {
             
-//          NSLog(@"PhotoTrash");
             errorImage = nil;
         }
         
@@ -1067,6 +1085,40 @@
             
             [self pushImageSettingButton:nil];
         }
+        
+    }else if ( actionSheetNo == 8 ) {
+        
+        if ( buttonIndex == 0 ) {
+            [d setObject:@"twitter://" forKey:@"CallBackScheme"];
+        }else if ( buttonIndex == 1 ) {
+            [d setObject:@"tweetbot://" forKey:@"CallBackScheme"];
+        }else if ( buttonIndex == 2 ) {
+            [d setObject:@"echofon://?" forKey:@"CallBackScheme"];        
+        }else if ( buttonIndex == 3 ) {
+            [d setObject:@"echofonpro://?" forKey:@"CallBackScheme"];
+        }else if ( buttonIndex == 4 ) {
+            [d setObject:@"soicha://" forKey:@"CallBackScheme"];
+        }else if ( buttonIndex == 5 ) {
+            [d setObject:@"tweetings://" forKey:@"CallBackScheme"];
+        }else if ( buttonIndex == 6 ) {
+            [d setObject:@"osfoora://" forKey:@"CallBackScheme"];
+        }else if ( buttonIndex == 7 ) {
+            [d setObject:@"twittelator://" forKey:@"CallBackScheme"];
+        }else if ( buttonIndex == 8 ) {
+            [d setObject:@"tweetlist://" forKey:@"CallBackScheme"];
+        }else if ( buttonIndex == 9 ) {
+            [d setObject:@"tweetatok://" forKey:@"CallBackScheme"];
+        }else if ( buttonIndex == 10 ) {
+            [d setObject:@"tweetlogix://" forKey:@"CallBackScheme"];
+        }else if ( buttonIndex == 11 ) {
+            [d setObject:@"hootsuite://" forKey:@"CallBackScheme"];
+        }else if ( buttonIndex == 12 ) {
+            [d setObject:@"simplytweet://" forKey:@"CallBackScheme"];
+        }else if ( buttonIndex == 13 ) {
+            [d setObject:@"reeder://" forKey:@"CallBackScheme"];
+        }
+        
+        [self setCallbackButtonTitle];
     }
 }
 
@@ -1167,8 +1219,6 @@
         URL = [NSURL URLWithString:@"http://api.twitpic.com/1/upload.json"];
     }
     
-    NSLog(@"URL: %@", URL);
-    
     ASIFormDataRequest *request = [[[ASIFormDataRequest alloc] initWithURL:URL] autorelease];
     
     if ( [[d objectForKey:@"PhotoService"] isEqualToString:@"img.ur"] ) {
@@ -1216,7 +1266,7 @@
 
 - (void)uploadNowPlayingImage:(UIImage *)image uploadType:(int)uploadType {
     
-    NSLog(@"uploadType: %d", uploadType);
+    //NSLog(@"uploadType: %d", uploadType);
     
     //処理中を表すビューを表示
     [grayView onAndSetSize:postText.frame.origin.x   y:postText.frame.origin.y
@@ -1233,7 +1283,7 @@
     NSData *imageData = [EncodeImage image:image];
     
     //リクエストURLを指定
-    NSURL *URL;
+    NSURL *URL = nil;
     
     if ( uploadType == 2 ) {
         
@@ -1248,14 +1298,14 @@
     
     if ( uploadType == 2 ) {
         
-        NSLog(@"img.ur upload");
+        //NSLog(@"img.ur upload");
         
         [request addPostValue:IMGUR_API_KEY forKey:@"key"];
         [request addData:imageData forKey:@"image"];
         
     }else if ( uploadType == 3 ) {
         
-        NSLog(@"Twitpic upload");
+        //NSLog(@"Twitpic upload");
         
         NSDictionary *dic = [d dictionaryForKey:@"OAuthAccount"];
         
@@ -1292,7 +1342,7 @@
 - (void)becomeActive:(NSNotification *)notification {
     
     //アプリケーションがアクティブになった際に呼ばれる
-    NSLog(@"becomeActive");
+    //NSLog(@"becomeActive");
     
     if ( [d boolForKey:@"applicationWillResignActive"] ) {
         
@@ -1321,10 +1371,10 @@
                     
                     [self showActionMenu];
                 }
-                
-                appDelegate.launchMode = [NSNumber numberWithInt:2];
             }
         }
+        
+        appDelegate.launchMode = [NSNumber numberWithInt:2];
     }
     
     [self countText];
@@ -1385,7 +1435,7 @@
         
         for ( int i = 0; i < max; i++ ) {
             
-            NSLog(@"encoding: %d", encodingList[i]);
+            //NSLog(@"encoding: %d", encodingList[i]);
             
             dataStr = [[[NSString alloc] initWithData:response encoding:encodingList[i]] autorelease];
             
@@ -1395,7 +1445,7 @@
             }
         }
         
-        NSLog(@"dataStr.length: %d", dataStr.length);
+        //NSLog(@"dataStr.length: %d", dataStr.length);
         
         if ( error ) {
             
@@ -1420,7 +1470,7 @@
         
         NSString *shareString = [NSString stringWithFormat:@"\"%@\" %@", title, pboardString];
         
-        postText.text = [NSString stringWithFormat:@"%@ ", [self deleteWhiteSpace:[NSString stringWithFormat:@"%@ %@", postText.text, shareString]]];
+        postText.text = [NSString stringWithFormat:@"%@ ", [DeleteWhiteSpace string:[NSString stringWithFormat:@"%@ %@", postText.text, shareString]]];
         [postText becomeFirstResponder];
         
     }@catch ( NSException *e ) {
@@ -1454,18 +1504,18 @@
                 
                     if ( imagePreview.image != nil ) {
                         
-                        NSArray *postData = [NSArray arrayWithObjects:[self deleteWhiteSpace:nowPlayingText], imagePreview.image, nil];
+                        NSArray *postData = [NSArray arrayWithObjects:[DeleteWhiteSpace string:nowPlayingText], imagePreview.image, nil];
                         [TWSendTweet performSelectorInBackground:@selector(post:) withObject:postData];
                         
                     }else {
                         
-                        NSArray *postData = [NSArray arrayWithObjects:[self deleteWhiteSpace:nowPlayingText], nil];
+                        NSArray *postData = [NSArray arrayWithObjects:[DeleteWhiteSpace string:nowPlayingText], nil];
                         [TWSendTweet performSelectorInBackground:@selector(post:) withObject:postData];
                     }
                     
                 }else {
                     
-                    NSArray *postData = [NSArray arrayWithObjects:[self deleteWhiteSpace:nowPlayingText], nil];
+                    NSArray *postData = [NSArray arrayWithObjects:[DeleteWhiteSpace string:nowPlayingText], nil];
                     [TWSendTweet performSelectorInBackground:@selector(post:) withObject:postData];
                 }
             }
@@ -1552,7 +1602,7 @@
             
                 //投稿処理
                 NSString *text = [[[NSString alloc] initWithString:pboard.string] autorelease];
-                NSArray *postData = [NSArray arrayWithObjects:[self deleteWhiteSpace:text], nil];
+                NSArray *postData = [NSArray arrayWithObjects:[DeleteWhiteSpace string:text], nil];
                 [TWSendTweet performSelectorInBackground:@selector(post:) withObject:postData];
             }
             
@@ -1665,16 +1715,12 @@
             int h = (int)artwork.bounds.size.height;
             int w = (int)artwork.bounds.size.width;
             
-            NSLog(@"height: %d widht: %d", h, w);
-            
             if ( h != 0 && w != 0 ) {
                 
                 imagePreview.image = [ResizeImage aspectResize:[artwork imageWithSize:CGSizeMake(500, 500)] 
                                                        maxSize:500];
                 
                 int uploadType = [d integerForKey:@"NowPlayingPhotoService"];
-                
-                NSLog(@"uploadType: %d", uploadType);
                 
                 if ( uploadType == 0 ) {
                     
@@ -1786,7 +1832,7 @@
             
             webBrowserMode = NO;
             appDelegate.fastGoogleMode = [NSNumber numberWithInt:0];
-            postText.text = [NSString stringWithFormat:@"%@ ", [self deleteWhiteSpace:[NSString stringWithFormat:@"%@ %@", postText.text, appDelegate.postText]]];
+            postText.text = [NSString stringWithFormat:@"%@ ", [DeleteWhiteSpace string:[NSString stringWithFormat:@"%@ %@", postText.text, appDelegate.postText]]];
             [postText becomeFirstResponder];
             
             appDelegate.postText = BLANK;
@@ -1865,7 +1911,6 @@
     
     [self setPostText:nil];
     [self setCallbackLabel:nil];
-    [self setCallbackTextField:nil];
     [self setCallbackSwitch:nil];
     [self setPostCharLabel:nil];
     [self setImagePreview:nil];
@@ -1885,6 +1930,7 @@
     [self setNowPlayingButton:nil];
     [self setActionButton:nil];
     [self setInputFunctionButton:nil];
+    [self setCallbackSelectButton:nil];
     [super viewDidUnload];
 }
 
@@ -1909,7 +1955,6 @@
     
     [postText release];
     [callbackLabel release];
-    [callbackTextField release];
     [callbackSwitch release];
     [postCharLabel release];
     [imagePreview release];
@@ -1930,6 +1975,7 @@
     [nowPlayingButton release];
     [actionButton release];
     [inputFunctionButton release];
+    [callbackSelectButton release];
     [super dealloc];
 }
 

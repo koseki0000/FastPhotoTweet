@@ -11,9 +11,11 @@
 
 + (NSString *)string:(NSString *)string {
 
+    //NSLog(@"Original: %@", string);
+    
     NSError *error = nil;
     
-        NSRegularExpression *regexp = [NSRegularExpression regularExpressionWithPattern:@"/[-_a-zA-Z0-9]+-22/" 
+        NSRegularExpression *regexp = [NSRegularExpression regularExpressionWithPattern:@"/[-_a-zA-Z0-9]+-22/?" 
                                                                                 options:0 
                                                                                   error:&error];
         
@@ -22,6 +24,8 @@
                                                     range:NSMakeRange(0, string.length)
                                              withTemplate:@"/-22/"];
 
+    //NSLog(@"Affiliate Cutted: %@", string);
+    
     return string;
 }
 

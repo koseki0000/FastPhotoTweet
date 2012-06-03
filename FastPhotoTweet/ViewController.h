@@ -30,6 +30,7 @@
 
 @interface ViewController : UIViewController <UINavigationControllerDelegate, UIImagePickerControllerDelegate, UIActionSheetDelegate> {
     
+    UIButton *inputFunctionButton;
     AppDelegate * appDelegate;
     GrayView *grayView;
     
@@ -53,7 +54,6 @@
 @property (retain, nonatomic) IBOutlet UITextView *postText;
 @property (retain, nonatomic) IBOutlet UILabel *callbackLabel;
 @property (retain, nonatomic) IBOutlet UILabel *postCharLabel;
-@property (retain, nonatomic) IBOutlet UITextField *callbackTextField;
 @property (retain, nonatomic) IBOutlet UISwitch *callbackSwitch;
 @property (retain, nonatomic) IBOutlet UIImageView *imagePreview;
 @property (retain, nonatomic) IBOutlet UIToolbar *topBar;
@@ -71,6 +71,7 @@
 @property (retain, nonatomic) IBOutlet UISwipeGestureRecognizer *rigthSwipe;
 @property (retain, nonatomic) IBOutlet UISwipeGestureRecognizer *leftSwipe;
 @property (retain, nonatomic) IBOutlet UIButton *inputFunctionButton;
+@property (retain, nonatomic) IBOutlet UIButton *callbackSelectButton;
 
 - (IBAction)pushPostButton:(id)sender;
 - (IBAction)pushTrashButton:(id)sender;
@@ -81,9 +82,7 @@
 - (IBAction)pushNowPlayingButton:(id)sender;
 - (IBAction)pushBrowserButton:(id)sender;
 - (IBAction)pushInputFunctionButton:(id)sender;
-
-- (IBAction)callbackTextFieldEnter:(id)sender;
-- (IBAction)textFieldStartEdit:(id)sender;
+- (IBAction)pushCallbackSelectButton:(id)sender;
 
 - (IBAction)callbackSwitchDidChage:(id)sender;
 
@@ -92,9 +91,10 @@
 - (IBAction)swipeToMoveCursorRight:(id)sender;
 - (IBAction)swipeToMoveCursorLeft:(id)sender;
 
-- (void)testMethod;
+//- (void)testMethod;
 
 - (void)loadSettings;
+- (void)setCallbackButtonTitle;
 - (void)showInfomation;
 - (void)showImagePicker;
 - (void)showActionMenu;
@@ -106,7 +106,6 @@
 - (BOOL)ios5Check;
 - (BOOL)reachability;
 - (NSString *)nowPlaying;
-- (NSString *)deleteWhiteSpace:(NSString *)string;
 
 - (void)nowPlayingNotification;
 - (void)postNotification:(int)pBoardType;
