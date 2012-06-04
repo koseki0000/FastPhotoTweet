@@ -14,16 +14,35 @@
     //NSLog(@"Original: %@", string);
     
     NSError *error = nil;
+    NSString *template = nil;
     
-        NSRegularExpression *regexp = [NSRegularExpression regularExpressionWithPattern:@"/[-_a-zA-Z0-9]+-22/?" 
-                                                                                options:0 
-                                                                                  error:&error];
+    NSRegularExpression *regexp = [NSRegularExpression regularExpressionWithPattern:@"(/|\\?tag=)[-_a-zA-Z0-9]+-22/?" 
+                                                                            options:0 
+                                                                              error:&error];
+    
+    NSTextCheckingResult *match = [regexp firstMatchInString:string 
+                                                     options:0 
+                                                       range:NSMakeRange(0, string.length)];
+    
+    if ( match.numberOfRanges != 0 ) {
         
-        string = [regexp stringByReplacingMatchesInString:string
-                                                  options:0
-                                                    range:NSMakeRange(0, string.length)
-                                             withTemplate:@"/-22/"];
-
+        NSString *matchString = [string substringWithRange:match.range];
+        
+        if ( [matchString hasPrefix:@"/"] ) {
+            
+            template = @"/-22/";
+            
+        }else {
+            
+            template = @"?tag=-22";
+        }
+    }
+    
+    string = [regexp stringByReplacingMatchesInString:string
+                                              options:0
+                                                range:NSMakeRange(0, string.length)
+                                         withTemplate:template];
+    
     //NSLog(@"Affiliate Cutted: %@", string);
     
     return string;

@@ -7,7 +7,7 @@
 
 #import "ViewController.h"
 
-#define APP_VERSION @"1.3.0"
+#define APP_VERSION @"1.3.1"
 
 #define TOP_BAR [NSArray arrayWithObjects:trashButton, flexibleSpace, idButton, flexibleSpace, resendButton, flexibleSpace, imageSettingButton, flexibleSpace, postButton, nil]
 #define BOTTOM_BAR [NSArray arrayWithObjects:settingButton, flexibleSpace, actionButton, flexibleSpace, nowPlayingButton, nil]
@@ -343,7 +343,7 @@
             //NSLog(@"newVersion");
             
 //            [ShowAlert title:[NSString stringWithFormat:@"FastPhotoTweet %@", APP_VERSION] 
-//                 message:@"・Twitterにアップした画像のフルサイズ取得のサポート\n・コールバック選択の方式を変更\n・Amazonアフィリエイトリンク削除の処理改善"];
+//                 message:@"・ブラウザの画面回転時の問題を修正\n・Amazonアフィリエイトリンク削除の処理改善"];
             
             information = [[[NSMutableDictionary alloc] initWithDictionary:[d dictionaryForKey:@"Information"]] autorelease];
             [information setValue:[NSNumber numberWithInt:1] forKey:APP_VERSION];

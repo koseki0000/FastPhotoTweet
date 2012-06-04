@@ -52,6 +52,7 @@
     
     openBookmark = NO;
     fullScreen = NO;
+    editing = NO;
     
     //アプリがアクティブになった場合の通知を受け取る設定
     NSNotificationCenter *notificationCenter = [NSNotificationCenter defaultCenter];
@@ -430,14 +431,9 @@
     //URLフィールドが選択された場合はプロトコルありの物に差し替える
     urlField.text = [wv.request URL].absoluteString;
     
-    [UITextField beginAnimations:nil context:nil];
-    [UITextField setAnimationDuration:0.1];
-    [UITextField setAnimationDelay:0.0];
-    [UITextField setAnimationRepeatCount:1.0];
-    [UITextField setAnimationCurve:UIViewAnimationCurveLinear];
-    urlField.frame = CGRectMake(12, 7, 180, 31);
-    searchField.frame = CGRectMake(202, 7, 75, 31);
-    [UITextField commitAnimations];
+    editing = NO;
+
+    [self shouldAutorotateToInterfaceOrientation:[[UIDevice currentDevice] orientation]];
 }
 
 - (IBAction)leaveUrlField: (id)sender {
@@ -445,38 +441,23 @@
     //URLフィールドから選択が外れた場合はプロトコルなしの表示にする
     urlField.text = [ProtocolCutter url:urlField.text];
     
-    [UITextField beginAnimations:nil context:nil];
-    [UITextField setAnimationDuration:0.1];
-    [UITextField setAnimationDelay:0.0];
-    [UITextField setAnimationRepeatCount:1.0];
-    [UITextField setAnimationCurve:UIViewAnimationCurveLinear];
-    urlField.frame = CGRectMake(12, 7, 180, 31);
-    searchField.frame = CGRectMake(202, 7, 75, 31);
-    [UITextField commitAnimations];
+    editing = NO;
+    
+    [self shouldAutorotateToInterfaceOrientation:[[UIDevice currentDevice] orientation]];
 }
 
 - (IBAction)onSearchField: (id)sender {
     
-    [UITextField beginAnimations:nil context:nil];
-    [UITextField setAnimationDuration:0.05];
-    [UITextField setAnimationDelay:0.0];
-    [UITextField setAnimationRepeatCount:1.0];
-    [UITextField setAnimationCurve:UIViewAnimationCurveLinear];
-    urlField.frame = CGRectMake(12, 7, 75, 31);
-    searchField.frame = CGRectMake(97, 7, 180, 31);
-    [UITextField commitAnimations];
+    editing = YES;
+    
+    [self shouldAutorotateToInterfaceOrientation:[[UIDevice currentDevice] orientation]];
 }
 
 - (IBAction)leaveSearchField: (id)sender {
     
-    [UITextField beginAnimations:nil context:nil];
-    [UITextField setAnimationDuration:0.05];
-    [UITextField setAnimationDelay:0.0];
-    [UITextField setAnimationRepeatCount:1.0];
-    [UITextField setAnimationCurve:UIViewAnimationCurveLinear];
-    urlField.frame = CGRectMake(12, 7, 180, 31);
-    searchField.frame = CGRectMake(202, 7, 75, 31);
-    [UITextField commitAnimations];
+    editing = NO;
+    
+    [self shouldAutorotateToInterfaceOrientation:[[UIDevice currentDevice] orientation]];
 }
 
 - (void)actionSheet:(UIActionSheet *)actionSheet clickedButtonAtIndex:(NSInteger)buttonIndex {
@@ -803,7 +784,7 @@
         }
     }
     
-    if ( [RegularExpression boolRegExp:accessURL regExpPattern:@"https?://(www\\.)?amazon\\.co\\.jp/exec/obidos/ASIN/[A-Z0-9]+/[-_a-zA-Z0-9]+-22/?"] ) {
+    if ( [RegularExpression boolRegExp:accessURL regExpPattern:@"https?://(www\\.)?amazon\\.co\\.jp/((exec/obidos|o)/ASIN|dp)/[A-Z0-9]{10}(/|\\?tag=)[-_a-zA-Z0-9]+-22/?"] ) {
         
         NSString *affiliateCuttedUrl = [AmazonAffiliateCutter string:accessURL];
         
@@ -969,7 +950,7 @@
 }
 
 - (IBAction)fullScreenGesture:(id)sender {
-    
+        
     if ( fullScreen ) {
      
         fullScreen = NO;
@@ -995,18 +976,36 @@
         if ( fullScreen ) {
             
             topBar.frame = CGRectMake(0, -44, 320, 44);
-            urlField.frame = CGRectMake(12, -44, 180, 31);
-            searchField.frame = CGRectMake(202, -44, 75, 31);
             wv.frame = CGRectMake(0, 0, 320, 460);
             bottomBar.frame = CGRectMake(0, 460, 320, 44);
+            
+            if ( editing ) {
+                
+                urlField.frame = CGRectMake(12, -44, 75, 31);
+                searchField.frame = CGRectMake(97, -44, 180, 31);
+                
+            }else {
+                
+                urlField.frame = CGRectMake(12, -44, 180, 31);
+                searchField.frame = CGRectMake(202, -44, 75, 31);
+            }
             
         }else {
             
             topBar.frame = CGRectMake(0, 0, 320, 44);
-            urlField.frame = CGRectMake(12, 7, 180, 31);
-            searchField.frame = CGRectMake(202, 7, 75, 31);
             wv.frame = CGRectMake(0, 44, 320, 372);
             bottomBar.frame = CGRectMake(0, 416, 320, 44);
+            
+            if ( editing ) {
+                
+                urlField.frame = CGRectMake(12, 7, 75, 31);
+                searchField.frame = CGRectMake(97, 7, 180, 31);
+                
+            }else {
+                
+                urlField.frame = CGRectMake(12, 7, 180, 31);
+                searchField.frame = CGRectMake(202, 7, 75, 31);
+            }    
         }
         
         [UIView commitAnimations];
@@ -1014,23 +1013,41 @@
         return YES;
         
     }else if ( interfaceOrientation == UIInterfaceOrientationLandscapeLeft || 
-              interfaceOrientation == UIInterfaceOrientationLandscapeRight ) {
+               interfaceOrientation == UIInterfaceOrientationLandscapeRight ) {
         
         if ( fullScreen ) {
             
             topBar.frame = CGRectMake(0, -44, 480, 44);
-            urlField.frame = CGRectMake(12, -44, 280, 31);
-            searchField.frame = CGRectMake(302, -44, 135, 31);
             wv.frame = CGRectMake(0, 0, 480, 300);
             bottomBar.frame = CGRectMake(0, 300, 480, 44);
+            
+            if ( editing ) {
+                
+                urlField.frame = CGRectMake(12, -44, 135, 31);
+                searchField.frame = CGRectMake(157, -44, 280, 31);
+                
+            }else {
+                
+                urlField.frame = CGRectMake(12, -44, 280, 31);
+                searchField.frame = CGRectMake(302, -44, 135, 31);
+            }
             
         }else {
             
             topBar.frame = CGRectMake(0, 0, 480, 44);
-            urlField.frame = CGRectMake(12, 7, 280, 31);
-            searchField.frame = CGRectMake(302, 7, 135, 31);
             wv.frame = CGRectMake(0, 44, 480, 212);
             bottomBar.frame = CGRectMake(0, 256, 480, 44);
+            
+            if ( editing ) {
+                
+                urlField.frame = CGRectMake(12, 7, 135, 31);
+                searchField.frame = CGRectMake(157, 7, 280, 31);
+                
+            }else {
+                
+                urlField.frame = CGRectMake(12, 7, 280, 31);
+                searchField.frame = CGRectMake(302, 7, 135, 31);
+            }
         }
         
         [UIView commitAnimations];

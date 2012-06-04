@@ -33,6 +33,7 @@
     
     BOOL openBookmark;
     BOOL fullScreen;
+    BOOL editing;
 }
 
 @property (retain, nonatomic) IBOutlet WebViewEx *wv;
