@@ -1717,9 +1717,9 @@
             
             if ( h != 0 && w != 0 ) {
                 
-                imagePreview.image = [ResizeImage aspectResize:[artwork imageWithSize:CGSizeMake(500, 500)] 
-                                                       maxSize:500];
-                
+                imagePreview.image = [ResizeImage aspectResizeSetMaxSize:[artwork imageWithSize:CGSizeMake(500, 500)] 
+                                                                 maxSize:500];
+                                
                 int uploadType = [d integerForKey:@"NowPlayingPhotoService"];
                 
                 if ( uploadType == 0 ) {
