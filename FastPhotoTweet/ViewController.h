@@ -47,6 +47,7 @@
     BOOL artWorkUploading;
     BOOL showActionSheet;
     BOOL nowPlayingMode;
+    BOOL iconUploadMode;
     int actionSheetNo;
 }
 
@@ -66,6 +67,7 @@
 @property (retain, nonatomic) IBOutlet UIBarButtonItem *settingButton;
 @property (retain, nonatomic) IBOutlet UIBarButtonItem *flexibleSpace;
 @property (retain, nonatomic) IBOutlet UIBarButtonItem *nowPlayingButton;
+@property (retain, nonatomic) IBOutlet UIBarButtonItem *browserButton;
 @property (retain, nonatomic) IBOutlet UIBarButtonItem *actionButton;
 @property (retain, nonatomic) IBOutlet UITapGestureRecognizer *tapGesture;
 @property (retain, nonatomic) IBOutlet UISwipeGestureRecognizer *rigthSwipe;
@@ -83,6 +85,7 @@
 - (IBAction)pushBrowserButton:(id)sender;
 - (IBAction)pushInputFunctionButton:(id)sender;
 - (IBAction)pushCallbackSelectButton:(id)sender;
+- (IBAction)pushActionButton:(id)sender;
 
 - (IBAction)callbackSwitchDidChage:(id)sender;
 

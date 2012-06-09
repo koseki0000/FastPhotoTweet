@@ -7,10 +7,10 @@
 
 #import "ViewController.h"
 
-#define APP_VERSION @"1.3.1"
+#define APP_VERSION @"1.4.0a"
 
 #define TOP_BAR [NSArray arrayWithObjects:trashButton, flexibleSpace, idButton, flexibleSpace, resendButton, flexibleSpace, imageSettingButton, flexibleSpace, postButton, nil]
-#define BOTTOM_BAR [NSArray arrayWithObjects:settingButton, flexibleSpace, actionButton, flexibleSpace, nowPlayingButton, nil]
+#define BOTTOM_BAR [NSArray arrayWithObjects:settingButton, flexibleSpace, browserButton, flexibleSpace, nowPlayingButton, flexibleSpace, actionButton, nil]
 
 #define IMGUR_API_KEY   @"6de089e68b55d6e390d246c4bf932901"
 #define TWITPIC_API_KEY @"95cf146048caad3267f95219b379e61c"
@@ -37,6 +37,7 @@
 @synthesize leftSwipe;
 @synthesize inputFunctionButton;
 @synthesize callbackSelectButton;
+@synthesize browserButton;
 @synthesize actionButton;
 @synthesize nowPlayingButton;
 @synthesize idButton;
@@ -90,6 +91,7 @@
     artWorkUploading = NO;
     showActionSheet = NO;
     nowPlayingMode = NO;
+    iconUploadMode = NO;
     actionSheetNo = 0;
     
     postText.layer.borderWidth = 2;
@@ -603,6 +605,20 @@
     }
 }
 
+- (IBAction)pushActionButton:(id)sender {
+    
+    actionSheetNo = 9;
+    
+    UIActionSheet *sheet = [[UIActionSheet alloc]
+                            initWithTitle:@"機能選択"
+                            delegate:self
+                            cancelButtonTitle:@"Cancel"
+                            destructiveButtonTitle:nil
+                            otherButtonTitles:@"アイコン変更", nil];
+    [sheet autorelease];
+    [sheet showInView:self.view];
+}
+
 - (void)showImagePicker {
     
     UIImagePickerController *picPicker = [[[UIImagePickerController alloc] init] autorelease];
@@ -643,6 +659,18 @@
         didFinishPickingImage:(UIImage *)image 
                   editingInfo:(NSDictionary *)editingInfo {
 
+    if ( iconUploadMode ) {
+        
+        iconUploadMode = NO;
+        
+        image = [ResizeImage aspectResizeSetMaxSize:image maxSize:256];
+        [TWIconUpload image:image];
+        
+        [picPicker dismissModalViewControllerAnimated:YES];
+        
+        return;
+    }
+    
     //画像ソースがカメラの場合保存
     if ( [d integerForKey:@"ImageSource"] == 1 || cameraMode ) {
         
@@ -677,6 +705,7 @@
     //画像選択がキャンセルされた場合
     //モーダルビューを閉じる
     repeatedPost = NO;
+    iconUploadMode = NO;
     [picPicker dismissModalViewControllerAnimated:YES];
 }
 
@@ -1119,6 +1148,18 @@
         }
         
         [self setCallbackButtonTitle];
+    
+    }else if ( actionSheetNo == 9 ) {
+        
+        if ( buttonIndex == 0 ) {
+            
+            iconUploadMode = YES;
+            
+            UIImagePickerController *picPicker = [[[UIImagePickerController alloc] init] autorelease];
+            picPicker.sourceType = UIImagePickerControllerSourceTypePhotoLibrary;
+            picPicker.delegate = self;
+            [self presentModalViewController:picPicker animated:YES];
+        }
     }
 }
 
@@ -1928,9 +1969,10 @@
     [self setRigthSwipe:nil];
     [self setLeftSwipe:nil];
     [self setNowPlayingButton:nil];
-    [self setActionButton:nil];
+    [self setBrowserButton:nil];
     [self setInputFunctionButton:nil];
     [self setCallbackSelectButton:nil];
+    [self setActionButton:nil];
     [super viewDidUnload];
 }
 
@@ -1973,9 +2015,10 @@
     [rigthSwipe release];
     [leftSwipe release];
     [nowPlayingButton release];
-    [actionButton release];
+    [browserButton release];
     [inputFunctionButton release];
     [callbackSelectButton release];
+    [actionButton release];
     [super dealloc];
 }
 

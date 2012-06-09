@@ -31,4 +31,9 @@
     return encodedImageData;
 }
 
++ (NSData *)png:(UIImage *)encodeImage {
+    
+    return UIImagePNGRepresentation(encodeImage);
+}
+
 @end

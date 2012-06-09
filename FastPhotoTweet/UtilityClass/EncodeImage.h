@@ -10,5 +10,6 @@
 @interface EncodeImage : NSObject
 
 + (NSData *)image:(UIImage *)encodeImage;
++ (NSData *)png:(UIImage *)encodeImage;
 
 @end

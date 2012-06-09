@@ -10,3 +10,4 @@
 #import "TWGetAccount.h"
 #import "TWTwitterCharCounter.h"
 #import "TWEntities.h"
+#import "TWIconUpload.h"
