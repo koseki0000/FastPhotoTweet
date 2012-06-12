@@ -79,7 +79,7 @@
 - (void)updateWebBrowser;
 - (void)backForwordButtonVisible;
 - (void)closeWebView;
-
+- (void)rotateView:(int)mode;
 - (void)saveImage;
 - (void)requestStart;
 

@@ -949,29 +949,16 @@
     [super viewDidUnload];
 }
 
-- (IBAction)fullScreenGesture:(id)sender {
-        
-    if ( fullScreen ) {
-     
-        fullScreen = NO;
-        
-    }else {
-        
-        fullScreen = YES;
-    }
-    
-    [self shouldAutorotateToInterfaceOrientation:[[UIDevice currentDevice] orientation]];
-}
-
-- (BOOL)shouldAutorotateToInterfaceOrientation:(UIInterfaceOrientation)interfaceOrientation {
-    
+- (void)rotateView:(int)mode {
+ 
     [UIView beginAnimations:nil context:nil];
     [UIView setAnimationDuration:0.05];
     [UIView setAnimationDelay:0.0];
     [UIView setAnimationRepeatCount:1.0];
     [UIView setAnimationCurve:UIViewAnimationCurveLinear];
-    
-    if ( interfaceOrientation == UIInterfaceOrientationPortrait ) {
+
+    //縦
+    if ( mode == 0 ) {
         
         if ( fullScreen ) {
             
@@ -1007,13 +994,9 @@
                 searchField.frame = CGRectMake(202, 7, 75, 31);
             }    
         }
-        
-        [UIView commitAnimations];
-        
-        return YES;
-        
-    }else if ( interfaceOrientation == UIInterfaceOrientationLandscapeLeft || 
-               interfaceOrientation == UIInterfaceOrientationLandscapeRight ) {
+     
+    //横
+    }else {
         
         if ( fullScreen ) {
             
@@ -1049,9 +1032,38 @@
                 searchField.frame = CGRectMake(302, 7, 135, 31);
             }
         }
+    }
+    
+    [UIView commitAnimations];
+}
+
+- (IBAction)fullScreenGesture:(id)sender {
         
-        [UIView commitAnimations];
+    if ( fullScreen ) {
+     
+        fullScreen = NO;
         
+    }else {
+        
+        fullScreen = YES;
+    }
+    
+    [self shouldAutorotateToInterfaceOrientation:[[UIDevice currentDevice] orientation]];
+}
+
+- (BOOL)shouldAutorotateToInterfaceOrientation:(UIInterfaceOrientation)interfaceOrientation {
+    
+    if ( interfaceOrientation == UIInterfaceOrientationPortrait ) {
+        
+        [self rotateView:0];
+        
+        return YES;
+        
+    }else if ( interfaceOrientation == UIInterfaceOrientationLandscapeLeft || 
+               interfaceOrientation == UIInterfaceOrientationLandscapeRight ) {
+        
+        [self rotateView:1];
+                
         return YES;
         
     }else if ( interfaceOrientation == UIInterfaceOrientationPortraitUpsideDown ) {

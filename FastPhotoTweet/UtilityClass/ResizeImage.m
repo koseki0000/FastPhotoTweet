@@ -17,8 +17,9 @@
     
     size_t resizeHeight = 0;
     size_t resizeWidth = 0;
-    int originalHeight = (int)image.size.height;
-    int originalWidth = (int)image.size.width;
+    float originalHeight = image.size.height;
+    float originalWidth = image.size.width;
+    float maxSize = (float)[d integerForKey:@"ImageMaxSize"];
     
     //リサイズ前のログ
     //NSLog(@"OriginalSize w: %d h: %d", originalWidth, originalHeight);
@@ -42,9 +43,9 @@
     //正方形
     if ( originalWidth == originalHeight ) {
         
-        if ( originalHeight > [d integerForKey:@"ImageMaxSize"] ) {
+        if ( originalHeight > maxSize ) {
             
-            float ratio = (float)originalWidth / (float)[d integerForKey:@"ImageMaxSize"];
+            float ratio = originalWidth / maxSize;
             resizeWidth = originalWidth / ratio;
             resizeHeight = originalHeight / ratio;
             
@@ -56,24 +57,24 @@
     //長方形
     } else {
         
-        if ( originalHeight > [d integerForKey:@"ImageMaxSize"] ||
-             originalWidth > [d integerForKey:@"ImageMaxSize"] ) {
+        if ( originalHeight > maxSize ||
+             originalWidth > maxSize ) {
             
             //縦長
-            if ( originalHeight > originalWidth && originalHeight > [d integerForKey:@"ImageMaxSize"] ) {
+            if ( originalHeight > originalWidth && originalHeight > maxSize ) {
                 
                 //NSLog(@"H > W");
                 
-                float ratio = (float)originalHeight / (float)[d integerForKey:@"ImageMaxSize"];
+                float ratio = originalHeight / maxSize;
                 resizeWidth = originalWidth / ratio;
                 resizeHeight = originalHeight / ratio;
                 
             //横長
-            }else if ( originalWidth > originalHeight && originalWidth > [d integerForKey:@"ImageMaxSize"] ) {
+            }else if ( originalWidth > originalHeight && originalWidth > maxSize ) {
                 
                 //NSLog(@"W > H");
                 
-                float ratio = (float)originalWidth / (float)[d integerForKey:@"ImageMaxSize"];
+                float ratio = originalWidth / maxSize;
                 resizeWidth = originalWidth / ratio;
                 resizeHeight = originalHeight / ratio;
                 
@@ -95,8 +96,8 @@
     
     //NSLog(@"ResizeSize w: %lu h: %lu", resizeWidth, resizeHeight);
     
-    UIGraphicsBeginImageContext( CGSizeMake( resizeWidth, resizeHeight ) );  
-	[image drawInRect:CGRectMake( 0, 0, resizeWidth, resizeHeight )];  
+    UIGraphicsBeginImageContext( CGSizeMake( (int)resizeWidth, (int)resizeHeight ) );  
+	[image drawInRect:CGRectMake( 0, 0, (int)resizeWidth, (int)resizeHeight )];  
 	image = UIGraphicsGetImageFromCurrentImageContext();
 	UIGraphicsEndImageContext();
     
@@ -114,8 +115,9 @@
     
     size_t resizeHeight = 0;
     size_t resizeWidth = 0;
-    int originalHeight = (int)image.size.height;
-    int originalWidth = (int)image.size.width;
+    float originalHeight = image.size.height;
+    float originalWidth = image.size.width;
+    float maxSizeF = (float)maxSize;
     
     //リサイズ前のログ
     //NSLog(@"OriginalSize w: %d h: %d", originalWidth, originalHeight);
@@ -139,9 +141,9 @@
     //正方形
     if ( originalWidth == originalHeight ) {
         
-        if ( originalHeight > maxSize ) {
+        if ( originalHeight > maxSizeF ) {
             
-            float ratio = (float)originalWidth / (float)maxSize;
+            float ratio = originalWidth / maxSizeF;
             resizeWidth = originalWidth / ratio;
             resizeHeight = originalHeight / ratio;
             
@@ -153,24 +155,24 @@
         //長方形
     } else {
         
-        if ( originalHeight > maxSize ||
-             originalWidth > maxSize ) {
+        if ( originalHeight > maxSizeF ||
+             originalWidth > maxSizeF ) {
             
             //縦長
-            if ( originalHeight > originalWidth && originalHeight > maxSize ) {
+            if ( originalHeight > originalWidth && originalHeight > maxSizeF ) {
                 
                 //NSLog(@"H > W");
                 
-                float ratio = (float)originalHeight / (float)maxSize;
+                float ratio = originalHeight / maxSizeF;
                 resizeWidth = originalWidth / ratio;
                 resizeHeight = originalHeight / ratio;
                 
             //横長
-            }else if ( originalWidth > originalHeight && originalWidth > maxSize ) {
+            }else if ( originalWidth > originalHeight && originalWidth > maxSizeF ) {
                 
                 //NSLog(@"W > H");
                 
-                float ratio = (float)originalWidth / (float)maxSize;
+                float ratio = originalWidth / maxSizeF;
                 resizeWidth = originalWidth / ratio;
                 resizeHeight = originalHeight / ratio;
                 
@@ -192,8 +194,8 @@
     
     //NSLog(@"ResizeSize w: %lu h: %lu", resizeWidth, resizeHeight);
     
-    UIGraphicsBeginImageContext( CGSizeMake( resizeWidth, resizeHeight ) );  
-	[image drawInRect:CGRectMake( 0, 0, resizeWidth, resizeHeight )];  
+    UIGraphicsBeginImageContext( CGSizeMake( (int)resizeWidth, (int)resizeHeight ) );  
+	[image drawInRect:CGRectMake( 0, 0, (int)resizeWidth, (int)resizeHeight )];  
 	image = UIGraphicsGetImageFromCurrentImageContext();
 	UIGraphicsEndImageContext();
     
