@@ -365,7 +365,7 @@
         
     }else if ( [[d objectForKey:@"SearchEngine"] isEqualToString:@"Wikipedia"] ) {
         
-        searchURL = @"http://ja.wikipedia.org/wiki/";
+        searchURL = @"http://m.ja.wikipedia.org/wiki/";
         
     }else if ( [[d objectForKey:@"SearchEngine"] isEqualToString:@"Twitter"] ) {
         
@@ -772,10 +772,13 @@
     
     accessURL = [[request URL] absoluteString];
     
+    //フルサイズ取得が有効
     if ( [d boolForKey:@"FullSizeImage"] ) {
         
+        //画像サービスのURLかスキャン
         NSString *fullSizeImageUrl = [FullSizeImage urlString:accessURL];
         
+        //スキャン済みURLが変わっていたらアクセスし直し
         if ( ![fullSizeImageUrl isEqualToString:accessURL] ) {
             
             [wv loadRequestWithString:fullSizeImageUrl];
@@ -784,6 +787,7 @@
         }
     }
     
+    //Amazonのアフィリンクの場合無効化して再アクセス
     if ( [RegularExpression boolRegExp:accessURL regExpPattern:@"https?://(www\\.)?amazon\\.co\\.jp/((exec/obidos|o)/ASIN|dp)/[A-Z0-9]{10}(/|\\?tag=)[-_a-zA-Z0-9]+-22/?"] ) {
         
         NSString *affiliateCuttedUrl = [AmazonAffiliateCutter string:accessURL];

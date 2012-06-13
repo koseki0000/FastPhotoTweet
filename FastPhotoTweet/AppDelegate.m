@@ -41,7 +41,7 @@
     
     if ( [D objectForKey:@"HomePageURL"] == nil || [[D objectForKey:@"HomePageURL"] isEqualToString:@""] ) {
         
-        NSLog(@"Set HomePageURL");
+        //NSLog(@"Set HomePageURL");
         [D setObject:@"http://www.google.co.jp/" forKey:@"HomePageURL"];
     }
     
@@ -112,10 +112,14 @@
 }
 
 - (void)applicationDidBecomeActive:(UIApplication *)application {
+    
     //NSLog(@"applicationDidBecomeActive");
+    
+    [[UIApplication sharedApplication] cancelAllLocalNotifications];
 }
 
 - (void)applicationWillTerminate:(UIApplication *)application {
+    
     //NSLog(@"applicationWillTerminate");
 }
 
@@ -123,7 +127,14 @@
     
     [D removeObjectForKey:@"applicationWillResignActive"];
     
+    UILocalNotification *localPush = [[[UILocalNotification alloc] init] autorelease];
+    localPush.timeZone = [NSTimeZone defaultTimeZone];
+    localPush.alertBody = @"Action";
+    localPush.fireDate = [NSDate dateWithTimeIntervalSinceNow:0];
+    [[UIApplication sharedApplication] scheduleLocalNotification:localPush];
+    
 	backgroundTask = [application beginBackgroundTaskWithExpirationHandler: ^{
+        
         [application endBackgroundTask:backgroundTask];
     }];
 }

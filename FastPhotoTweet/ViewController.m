@@ -7,7 +7,7 @@
 
 #import "ViewController.h"
 
-#define APP_VERSION @"1.4.1a"
+#define APP_VERSION @"1.4.2"
 
 #define TOP_BAR [NSArray arrayWithObjects:trashButton, flexibleSpace, idButton, flexibleSpace, resendButton, flexibleSpace, imageSettingButton, flexibleSpace, postButton, nil]
 #define BOTTOM_BAR [NSArray arrayWithObjects:settingButton, flexibleSpace, browserButton, flexibleSpace, nowPlayingButton, flexibleSpace, actionButton, nil]
@@ -53,12 +53,6 @@
     NSNotificationCenter *notificationCenter = [NSNotificationCenter defaultCenter];
     
     [[UIApplication sharedApplication] cancelAllLocalNotifications];
-        
-    UILocalNotification *localPush = [[[UILocalNotification alloc] init] autorelease];
-    localPush.timeZone = [NSTimeZone defaultTimeZone];
-    localPush.alertBody = @"Action";
-    localPush.fireDate = [NSDate dateWithTimeIntervalSinceNow:0];
-    [[UIApplication sharedApplication] scheduleLocalNotification:localPush];
     
     //アプリがアクティブになった場合の通知を受け取る設定
     [notificationCenter addObserver:self
@@ -329,7 +323,7 @@
             //NSLog(@"FirstRun");
             
             [ShowAlert title:@"ようこそ" 
-                message:@"FastPhotoTweetへようこそ\n通知センターから様々なTweetを素早くTwitterに投稿する事が出来ます。始めに画面右下から通知センターへの登録を行なってください。"];
+                message:@"FastPhotoTweetへようこそ\n通知センターやタスクスイッチャーから様々なTweetを素早くTwitterに投稿する事が出来ます。\niPhoneの設定>通知>通知を表示するApp>FPT から表示:最新1件、通知のスタイル:なしに設定する事をオススメします。"];
             
             information = [[[NSMutableDictionary alloc] initWithDictionary:[d dictionaryForKey:@"Information"]] autorelease];
             [information setValue:[NSNumber numberWithInt:1] forKey:@"FirstRun"];

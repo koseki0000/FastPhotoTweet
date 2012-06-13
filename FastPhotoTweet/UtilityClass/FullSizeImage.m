@@ -122,87 +122,68 @@
         
     }else if ( [urlString hasPrefix:@"http://instagr.am/p/"] ) {
         
-        NSError *error = nil;
-		NSURL *url = [NSURL URLWithString:[NSString stringWithFormat:@"http://instagr.am/api/v1/oembed/?url=%@", urlString]];
-		NSURLRequest *request = [NSURLRequest requestWithURL:url];
-        NSData *response = [NSURLConnection sendSynchronousRequest:request 
-                                                 returningResponse:nil 
-                                                             error:&error];
+        NSString *sourceCode = [FullSizeImage getSourceCode:urlString];
         
-        int encodingList[] = {
-            
-            NSUTF8StringEncoding,			// UTF-8
-            NSShiftJISStringEncoding,		// Shift_JIS
-            NSJapaneseEUCStringEncoding,	// EUC-JP
-            NSISO2022JPStringEncoding,		// JIS
-            NSUnicodeStringEncoding,		// Unicode
-            NSASCIIStringEncoding			// ASCII
-        };
-        
-        NSString *dataStr = nil;
-        int max = sizeof( encodingList ) / sizeof( encodingList[0] );
-        
-        for ( int i = 0; i < max; i++ ) {
-            
-            dataStr = [[[NSString alloc] initWithData:response encoding:encodingList[i]] autorelease];
-            
-            if ( dataStr != nil ) {
-                
-                break;
-            }
-        }
-        
-        if ( error ) {
-            
-            [ShowAlert error:error.localizedDescription];
-        }
-        
-        NSDictionary *results = [dataStr JSONValue];
+        NSDictionary *results = [sourceCode JSONValue];
 		urlString = [results objectForKey:@"url"];
         
     }else if ( [RegularExpression boolRegExp:urlString regExpPattern:@"https?://(mobile\\.)?twitter\\.com/[_a-zA-Z0-9]{1,15}/status/[0-9]+/photo/1"] ) {
         
-        NSError *error = nil;
-		NSURL *url = [NSURL URLWithString:urlString];
-		NSURLRequest *request = [NSURLRequest requestWithURL:url];
-        NSData *response = [NSURLConnection sendSynchronousRequest:request 
-                                                 returningResponse:nil 
-                                                             error:&error];
-        
-        int encodingList[] = {
-            
-            NSUTF8StringEncoding,			// UTF-8
-            NSShiftJISStringEncoding,		// Shift_JIS
-            NSJapaneseEUCStringEncoding,	// EUC-JP
-            NSISO2022JPStringEncoding,		// JIS
-            NSUnicodeStringEncoding,		// Unicode
-            NSASCIIStringEncoding			// ASCII
-        };
-        
-        NSString *dataStr = nil;
-        int max = sizeof( encodingList ) / sizeof( encodingList[0] );
-        
-        for ( int i = 0; i < max; i++ ) {
-            
-            dataStr = [[[NSString alloc] initWithData:response encoding:encodingList[i]] autorelease];
-            
-            if ( dataStr != nil ) {
-                
-                break;
-            }
-        }
-        
-        if ( error ) {
-            
-            [ShowAlert error:error.localizedDescription];
-        }
+        NSString *sourceCode = [FullSizeImage getSourceCode:urlString];
     
-        urlString = [NSString stringWithFormat:@"%@:large", [RegularExpression strRegExp:dataStr regExpPattern:@"https?://p\\.twimg\\.com/[-_\\.a-zA-Z0-9]+"]];
+        urlString = [NSString stringWithFormat:@"%@:large", [RegularExpression strRegExp:sourceCode 
+                                                                           regExpPattern:@"https?://p\\.twimg\\.com/[-_\\.a-zA-Z0-9]+"]];
+    
+    }else if ( [RegularExpression boolRegExp:urlString regExpPattern:@"https?://via.me/-[a-zA-Z0-9]+"] ) {
+        
+        NSString *sourceCode = [FullSizeImage getSourceCode:urlString];
+        urlString = [RegularExpression strRegExp:sourceCode 
+                                   regExpPattern:@"https?://s[0-9]\\.amazonaws\\.com/com\\.clixtr\\.picbounce/photos/[-a-zA-Z0-9]+/[a-z]600x600\\.(jpe?g|png)"];
     }
     
     //NSLog(@"fullUrl: %@", urlString);
     
     return urlString;
+}
+
++ (NSString *)getSourceCode:(NSString *)urlString {
+    
+    NSError *error = nil;
+    NSURL *url = [NSURL URLWithString:urlString];
+    NSURLRequest *request = [NSURLRequest requestWithURL:url];
+    NSData *response = [NSURLConnection sendSynchronousRequest:request 
+                                             returningResponse:nil 
+                                                         error:&error];
+    
+    int encodingList[] = {
+        
+        NSUTF8StringEncoding,			// UTF-8
+        NSShiftJISStringEncoding,		// Shift_JIS
+        NSJapaneseEUCStringEncoding,	// EUC-JP
+        NSISO2022JPStringEncoding,		// JIS
+        NSUnicodeStringEncoding,		// Unicode
+        NSASCIIStringEncoding			// ASCII
+    };
+    
+    NSString *dataStr = nil;
+    int max = sizeof( encodingList ) / sizeof( encodingList[0] );
+    
+    for ( int i = 0; i < max; i++ ) {
+        
+        dataStr = [[[NSString alloc] initWithData:response encoding:encodingList[i]] autorelease];
+        
+        if ( dataStr != nil ) {
+            
+            break;
+        }
+    }
+    
+    if ( error ) {
+        
+        [ShowAlert error:error.localizedDescription];
+    }
+    
+    return dataStr;
 }
 
 @end

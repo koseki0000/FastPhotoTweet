@@ -13,5 +13,6 @@
 @interface FullSizeImage : NSObject
 
 + (NSString *)urlString:(NSString *)urlString;
++ (NSString *)getSourceCode:(NSString *)urlString;
 
 @end
