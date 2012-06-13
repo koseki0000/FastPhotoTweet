@@ -365,7 +365,7 @@
         
     }else if ( [[d objectForKey:@"SearchEngine"] isEqualToString:@"Wikipedia"] ) {
         
-        searchURL = @"http://m.ja.wikipedia.org/wiki/";
+        searchURL = @"http://ja.m.wikipedia.org/wiki/";
         
     }else if ( [[d objectForKey:@"SearchEngine"] isEqualToString:@"Twitter"] ) {
         
