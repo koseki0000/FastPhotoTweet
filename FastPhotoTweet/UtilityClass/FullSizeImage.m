@@ -122,7 +122,7 @@
         
     }else if ( [urlString hasPrefix:@"http://instagr.am/p/"] ) {
         
-        NSString *sourceCode = [FullSizeImage getSourceCode:urlString];
+        NSString *sourceCode = [FullSizeImage getSourceCode:[NSString stringWithFormat:@"http://instagr.am/api/v1/oembed/?url=%@", urlString]];
         
         NSDictionary *results = [sourceCode JSONValue];
 		urlString = [results objectForKey:@"url"];

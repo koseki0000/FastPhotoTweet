@@ -337,7 +337,7 @@
                             otherButtonTitles:@"開いているページを投稿", @"選択文字を引用して投稿", 
                                               @"選択文字で検索", @"保存", 
                                               @"ブックマークを開く", @"ブックマークに登録",
-                                              @"Safariで開く", @"ホームページを変更", nil];
+                                              @"Safariで開く", @"ホームページを変更", @"FastEverで開く", nil];
     [sheet showInView:self.view];
 }
 
@@ -629,6 +629,10 @@
             [alert addSubview:alertText];
             [alert show];
             [alertText becomeFirstResponder];
+            
+        }else if ( buttonIndex == 8 ) {
+            
+            [[UIApplication sharedApplication] openURL:[NSURL URLWithString:(__bridge_transfer NSString *)CFURLCreateStringByAddingPercentEscapes(kCFAllocatorDefault, (__bridge CFStringRef)[NSString stringWithFormat:@"fastever://?text=%@\n%@\n", wv.pageTitle, accessURL], NULL, NULL, kCFStringEncodingUTF8)]];
         }
         
     }else if ( actionSheetNo == 2 || actionSheetNo == 3 || actionSheetNo == 4 || actionSheetNo == 5 || actionSheetNo == 6 ) {
@@ -819,7 +823,7 @@
 
 - (void)webView:(UIWebView *)webView didFailLoadWithError:(NSError *)error {
     
-    if ( error.code != -999 ) {
+    if ( error.code != -999 && error.code != 102 ) {
      
         //NSLog(@"%@", error.description);
         
