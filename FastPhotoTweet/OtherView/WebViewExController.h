@@ -13,7 +13,7 @@
 #import "DeleteWhiteSpace.h"
 #import "BookmarkViewController.h"
 
-@interface WebViewExController : UIViewController <UIWebViewDelegate, UIActionSheetDelegate, UITextFieldDelegate> {
+@interface WebViewExController : UIViewController <UIWebViewDelegate, UIActionSheetDelegate, UITextFieldDelegate, NSXMLParserDelegate> {
     
     AppDelegate *appDelegate;
     GrayView *grayView;

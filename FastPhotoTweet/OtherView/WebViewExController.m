@@ -270,7 +270,7 @@
                             cancelButtonTitle:@"Cancel"
                             destructiveButtonTitle:nil
                             otherButtonTitles:@"Google", @"Amazon", @"Yahoo!オークション", 
-                                              @"Wikipedia", @"Twitter検索", nil];
+                                              @"Wikipedia", @"Twitter検索", @"Wikipedia (Suggestion)", nil];
     [sheet showInView:self.view];
 }
 
@@ -370,6 +370,10 @@
     }else if ( [[d objectForKey:@"SearchEngine"] isEqualToString:@"Twitter"] ) {
         
         searchURL = @"https://mobile.twitter.com/search?q=";
+    
+    }else if ( [[d objectForKey:@"SearchEngine"] isEqualToString:@"Wikipedia (Suggestion)"] ) {
+        
+        searchURL = @"http://google.com/complete/search?output=toolbar&hl=ja&q=";
     }
     
     NSString *encodedSearchWord = (__bridge_transfer NSString *)CFURLCreateStringByAddingPercentEscapes(kCFAllocatorDefault, 
@@ -380,7 +384,35 @@
     
     //NSLog(@"URL: %@", [NSString stringWithFormat:@"%@%@", searchURL, encodedSearchWord]);
     
-    [wv loadRequestWithString:[NSString stringWithFormat:@"%@%@", searchURL, encodedSearchWord]];
+    if ( ![[d objectForKey:@"SearchEngine"] isEqualToString:@"Wikipedia (Suggestion)"] ) {
+        
+        [wv loadRequestWithString:[NSString stringWithFormat:@"%@%@", searchURL, encodedSearchWord]];
+        
+    }else {
+        
+        NSError *error = nil;
+        NSString *xmlString = [[NSString alloc] initWithContentsOfURL:
+                               [NSURL URLWithString:[NSString stringWithFormat:@"%@%@", searchURL, encodedSearchWord]] 
+                                                             encoding:NSShiftJISStringEncoding
+                                                                error:&error];
+        
+        //NSLog(@"xmlString.length: %d", xmlString.length);
+        
+        NSString *suggestion = [RegularExpression strRegExp:xmlString 
+                                              regExpPattern:@"<suggestion data=\".{1,50}\"/><num_queries"];
+        
+        suggestion = [ReplaceOrDelete deleteWordReturnStr:suggestion deleteWord:@"<suggestion data=\""];
+        suggestion = [ReplaceOrDelete deleteWordReturnStr:suggestion deleteWord:@"\"/><num_queries"];
+        
+        //NSLog(@"suggestion.length: %d", suggestion.length);
+        
+        searchField.text = suggestion;
+        
+        searchField.placeholder = @"Wikipedia";
+        [d setObject:@"Wikipedia" forKey:@"SearchEngine"];
+        
+        [self enterSearchField:nil];
+    }
 }
 
 - (IBAction)enterURLField:(id)sender {
@@ -478,6 +510,8 @@
             searchEngineName = @"Wikipedia";
         }else if ( buttonIndex == 4 ) {
             searchEngineName = @"Twitter";
+        }else if ( buttonIndex == 5 ) {
+            searchEngineName = @"Wikipedia (Suggestion)";
         }else {
             return;
         }
@@ -525,7 +559,7 @@
                                     cancelButtonTitle:@"Cancel"
                                     destructiveButtonTitle:nil
                                     otherButtonTitles:@"Google", @"Amazon", @"Yahoo!オークション", 
-                                    @"Wikipedia", @"Twitter検索", nil];
+                                    @"Wikipedia", @"Twitter検索", @"Wikipedia (Suggestion)", nil];
             [sheet showInView:self.view];
             
         }else if ( buttonIndex == 3 ) {
@@ -632,7 +666,14 @@
             
         }else if ( buttonIndex == 8 ) {
             
-            [[UIApplication sharedApplication] openURL:[NSURL URLWithString:(__bridge_transfer NSString *)CFURLCreateStringByAddingPercentEscapes(kCFAllocatorDefault, (__bridge CFStringRef)[NSString stringWithFormat:@"fastever://?text=%@\n%@\n", wv.pageTitle, accessURL], NULL, NULL, kCFStringEncodingUTF8)]];
+            if ( [[UIApplication sharedApplication] canOpenURL:[NSURL URLWithString:@"fastever://"]] ) {
+                
+                [[UIApplication sharedApplication] openURL:[NSURL URLWithString:(__bridge_transfer NSString *)CFURLCreateStringByAddingPercentEscapes(kCFAllocatorDefault, (__bridge CFStringRef)[NSString stringWithFormat:@"fastever://?text=%@\n%@\n", wv.pageTitle, accessURL], NULL, NULL, kCFStringEncodingUTF8)]];
+                
+            }else {
+                
+                [ShowAlert error:@"FastEverをインストール後使用してください。"];
+            }
         }
         
     }else if ( actionSheetNo == 2 || actionSheetNo == 3 || actionSheetNo == 4 || actionSheetNo == 5 || actionSheetNo == 6 ) {
@@ -657,20 +698,36 @@
         
         if ( buttonIndex == 0 ) {
         
+            if ( ![EmptyCheck check:wv.selectString] ) {
+                return;
+            }
+            
             appDelegate.postText = wv.selectString;
             [self pushComposeButton:nil];
         
         }else if ( buttonIndex == 1 ) {
         
+            if ( ![EmptyCheck check:wv.selectString] ) {
+                return;
+            }
+            
             appDelegate.postText = [NSString stringWithFormat:@">>%@", wv.selectString];
             [self pushComposeButton:nil];
         
         }else if ( buttonIndex == 2 ) {
         
+            if ( ![EmptyCheck check:wv.selectString] ) {
+                return;
+            }
+            
             appDelegate.postText = [NSString stringWithFormat:@"\"%@\" %@ %@", wv.pageTitle, [[wv.request URL] absoluteString], wv.selectString];
             [self pushComposeButton:nil];
         
         }else if ( buttonIndex == 3 ) {
+            
+            if ( ![EmptyCheck check:wv.selectString] ) {
+                return;
+            }
             
             appDelegate.postText = [NSString stringWithFormat:@"\"%@\" %@ >>%@", wv.pageTitle, [[wv.request URL] absoluteString], wv.selectString];
             [self pushComposeButton:nil];
@@ -692,6 +749,8 @@
                 searchEngineName = @"Wikipedia";
             }else if ( buttonIndex == 4 ) {
                 searchEngineName = @"Twitter";
+            }else if ( buttonIndex == 5 ) {
+                searchEngineName = @"Wikipedia (Suggestion)";
             }else {
                 return;
             }
