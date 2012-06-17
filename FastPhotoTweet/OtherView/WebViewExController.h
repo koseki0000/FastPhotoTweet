@@ -81,6 +81,7 @@
 - (void)closeWebView;
 - (void)rotateView:(int)mode;
 - (void)saveImage;
-- (void)requestStart;
+- (void)requestStart:(NSString *)downloadUrl;
+- (void)selectDownloadUrl;
 
 @end

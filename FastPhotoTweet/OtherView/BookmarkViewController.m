@@ -31,13 +31,12 @@
     appDelegate = (AppDelegate *)[[UIApplication sharedApplication] delegate];
     d = [NSUserDefaults standardUserDefaults];
     
-    if ( ![EmptyCheck check:[d dictionaryForKey:@"Bookmark"]] ) {
+    if ( ![EmptyCheck check:[d arrayForKey:@"Bookmark"]] ) {
         
-        [d setObject:[NSDictionary dictionary] forKey:@"Bookmark"];
+        [d setObject:[NSArray array] forKey:@"Bookmark"];
     }
-    
-    bookMarkDic = [[NSMutableDictionary alloc] initWithDictionary:[d dictionaryForKey:@"Bookmark"]];
-    bookMarkArray = [[NSMutableArray alloc] initWithArray:[bookMarkDic allKeys]];
+
+    bookMarkArray = [[NSMutableArray alloc] initWithArray:[d arrayForKey:@"Bookmark"]];
 }
 
 - (IBAction)pushCloseButton:(id)sender {
@@ -53,22 +52,23 @@
         
         UIPasteboard *pboard = [UIPasteboard generalPasteboard];
         
-        NSArray *keys = [bookMarkDic allKeys];
-        NSArray *values = [bookMarkDic allValues];
+        NSDictionary *selectBookmark = [bookMarkArray objectAtIndex:selectRow];
+        
+        NSLog(@"%@", selectBookmark);
         
         if ( buttonIndex == 0 ) {
             
-            [pboard setString:[keys objectAtIndex:selectRow]];
+            [pboard setString:[selectBookmark objectForKey:@"Title"]];
             
         }else if ( buttonIndex == 1 ) {
         
-            [pboard setString:[values objectAtIndex:selectRow]];
+            [pboard setString:[selectBookmark objectForKey:@"URL"]];
             
         }else if ( buttonIndex == 2 ) {
             
             [pboard setString:[NSString stringWithFormat:@"\"%@\" %@ ", 
-                               [keys objectAtIndex:selectRow], 
-                               [values objectAtIndex:selectRow]]];
+                               [selectBookmark objectForKey:@"Title"], 
+                               [selectBookmark objectForKey:@"URL"]]];
         }
     }
 }
@@ -98,7 +98,9 @@
     cell.textLabel.font = [UIFont systemFontOfSize:14];
     cell.textLabel.numberOfLines = 0;
     
-    cell.textLabel.text = [bookMarkArray objectAtIndex:indexPath.row];
+    NSDictionary *bookmark = [bookMarkArray objectAtIndex:indexPath.row];
+    
+    cell.textLabel.text = [bookmark objectForKey:@"Title"];
     
     return cell;
 }
@@ -108,12 +110,11 @@
     actionSheetNo = 0;
     selectRow = indexPath.row;
     
-    NSArray *keys = [bookMarkDic allKeys];
-    NSArray *values = [bookMarkDic allValues];
+    NSDictionary *bookmark = [bookMarkArray objectAtIndex:selectRow];
     
     NSString *title = [NSString stringWithFormat:@"%@\n%@", 
-                       [keys objectAtIndex:selectRow], 
-                       [values objectAtIndex:selectRow]];
+                       [bookmark objectForKey:@"Title"], 
+                       [bookmark objectForKey:@"URL"]];
     
     UIActionSheet *sheet = [[UIActionSheet alloc]
                             initWithTitle:title
@@ -131,7 +132,8 @@
 	[tableView deselectRowAtIndexPath:indexPath animated:YES];
     
     //選択したURLを設定
-    appDelegate.bookmarkUrl = [bookMarkDic objectForKey:[bookMarkArray objectAtIndex:indexPath.row]];
+    NSDictionary *bookmark = [bookMarkArray objectAtIndex:indexPath.row];
+    appDelegate.bookmarkUrl = [bookmark objectForKey:@"URL"];
     
     //閉じる
     [self dismissModalViewControllerAnimated:YES];
@@ -139,10 +141,9 @@
 
 - (void)tableView:(UITableView *)tableView commitEditingStyle:(UITableViewCellEditingStyle)editingStyle forRowAtIndexPath:(NSIndexPath *)indexPath {
     
-    [bookMarkDic removeObjectForKey:[bookMarkArray objectAtIndex:indexPath.row]];
-    [d setObject:bookMarkDic forKey:@"Bookmark"];
-    
     [bookMarkArray removeObjectAtIndex:indexPath.row];
+    [d setObject:bookMarkArray forKey:@"Bookmark"];
+    
     [tv deleteRowsAtIndexPaths:[NSArray arrayWithObject:indexPath] withRowAnimation:UITableViewRowAnimationLeft];
 }
 
@@ -150,7 +151,6 @@
 
 - (void)dealloc {
     
-    [bookMarkDic release];
     [bookMarkArray release];
     
     [topBar release];

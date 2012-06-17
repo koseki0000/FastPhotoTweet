@@ -15,7 +15,6 @@
     AppDelegate * appDelegate;
     
     NSUserDefaults *d;
-    NSMutableDictionary *bookMarkDic;
     NSMutableArray *bookMarkArray;
     
     int actionSheetNo;

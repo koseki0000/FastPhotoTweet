@@ -596,7 +596,7 @@
                     //NSLog(@"File save");
                     
                     //ファイル保存開始
-                    [self requestStart];
+                    [self selectDownloadUrl];
                 }
             }
             
@@ -610,30 +610,31 @@
             
         }else if ( buttonIndex == 5 ) {
             
-            if ( ![EmptyCheck check:[d dictionaryForKey:@"Bookmark"]] ) {
+            if ( ![EmptyCheck check:[d arrayForKey:@"Bookmark"]] ) {
                 
-                [d setObject:[NSDictionary dictionary] forKey:@"Bookmark"];
+                [d setObject:[NSArray array] forKey:@"Bookmark"];
             }
             
-            NSMutableDictionary *bookMarkDic = [[NSMutableDictionary alloc] initWithDictionary:[d dictionaryForKey:@"Bookmark"]];
-            
-            NSArray *value = [bookMarkDic allValues];
+            NSMutableArray *bookMarkArray = [[NSMutableArray alloc] initWithArray:[d arrayForKey:@"Bookmark"]];
             
             //登録済みURLのチェック
             BOOL check = YES;
-            for ( NSString *url in value ) {
+            for ( NSDictionary *dic in bookMarkArray ) {
                 
-                if ( [url isEqualToString:[[wv.request URL] absoluteString]] ) {
+                if ( [[dic objectForKey:@"URL"] isEqualToString:[[wv.request URL] absoluteString]] ) {
                     
                     check = NO;
                 }
             }
             
             if ( check ) {
-             
-                [bookMarkDic setValue:[[wv.request URL] absoluteString] forKey:wv.pageTitle];
                 
-                [d setObject:bookMarkDic forKey:@"Bookmark"];
+                NSMutableDictionary *addBookmark = [NSMutableDictionary dictionaryWithObject:wv.pageTitle forKey:@"Title"];
+                [addBookmark setValue:[[wv.request URL] absoluteString] forKey:@"URL"];
+                
+                [bookMarkArray addObject:addBookmark];
+                
+                [d setObject:bookMarkArray forKey:@"Bookmark"];
                 
             }else {
                 
@@ -761,7 +762,32 @@
             
             [self enterSearchField:nil];
         }
+    
+    }else if ( actionSheetNo == 9 ) {
         
+        if ( buttonIndex == 0 ) {
+            
+            [self requestStart:accessURL];
+            
+        }else if ( buttonIndex == 1 ) {
+            
+            [self requestStart:urlField.text];
+        }
+        
+    }else if ( actionSheetNo == 10 ) {
+        
+        if ( buttonIndex == 0 ) {
+            
+            [self requestStart:accessURL];
+            
+        }else if ( buttonIndex == 1 ) {
+            
+            [self requestStart:[NSString stringWithFormat:@"http://%@", urlField.text]];
+            
+        }else if ( buttonIndex == 2 ) {
+            
+            [self requestStart:[NSString stringWithFormat:@"https://%@", urlField.text]];
+        }
     }
 }
 
@@ -917,11 +943,70 @@
 
 /* WebViewここまで */
 
+- (void)selectDownloadUrl {
+    
+    if ( [accessURL hasSuffix:@"/"] ) {
+        
+        if ( [[NSString stringWithFormat:@"http://%@/", urlField.text] isEqualToString:accessURL] ||
+            [[NSString stringWithFormat:@"https://%@/", urlField.text] isEqualToString:accessURL] ) {
+            
+            [self requestStart:accessURL];
+            
+            return;
+        }
+    }
+    
+    if ( [[NSString stringWithFormat:@"http://%@", urlField.text] isEqualToString:accessURL] ||
+         [[NSString stringWithFormat:@"https://%@", urlField.text] isEqualToString:accessURL] ) {
+        
+        [self requestStart:accessURL];
+        
+    }else {
+        
+        NSString *buttonTitle0 = accessURL;
+        
+        NSString *buttonTitle1 = nil;
+        NSString *buttonTitle2 = nil;
+        
+        if ( [urlField.text hasPrefix:@"http"] ) {
+            
+            buttonTitle1 = urlField.text;
+            
+            actionSheetNo = 9;
+            
+            UIActionSheet *sheet = [[UIActionSheet alloc]
+                                    initWithTitle:@"保存URL選択"
+                                    delegate:self
+                                    cancelButtonTitle:@"Cancel"
+                                    destructiveButtonTitle:nil
+                                    otherButtonTitles:buttonTitle0, buttonTitle1, nil];
+            
+            [sheet showInView:self.view];
+            
+        }else {
+            
+            buttonTitle1 = [NSString stringWithFormat:@"http://%@", urlField.text];
+            buttonTitle2 = [NSString stringWithFormat:@"https://%@", urlField.text];
+            
+            actionSheetNo = 10;
+            
+            UIActionSheet *sheet = [[UIActionSheet alloc]
+                                    initWithTitle:@"保存URL選択"
+                                    delegate:self
+                                    cancelButtonTitle:@"Cancel"
+                                    destructiveButtonTitle:nil
+                                    otherButtonTitles:buttonTitle0, buttonTitle1, buttonTitle2, nil];
+            
+            [sheet showInView:self.view];   
+        }
+    }
+}
+
 /* 非同期通信ダウンロード */
 
-- (void)requestStart {
+- (void)requestStart:(NSString *)downloadUrl {
     
-    //NSLog(@"requestStart: %@", accessURL);
+    //NSLog(@"requestStart: %@", downloadUrl);
     
     //キャッシュの削除
     NSURLCache *cache = [NSURLCache sharedURLCache];
@@ -930,9 +1015,9 @@
     asyncConnection = nil;
     asyncData = nil;
     
-    saveFileName = [accessURL lastPathComponent]; 
+    saveFileName = [downloadUrl lastPathComponent]; 
     
-    NSURLRequest *request = [NSURLRequest requestWithURL:[NSURL URLWithString:accessURL]];
+    NSURLRequest *request = [NSURLRequest requestWithURL:[NSURL URLWithString:downloadUrl]];
     asyncConnection = [[NSURLConnection alloc] initWithRequest:request 
                                                       delegate:self];
 }
