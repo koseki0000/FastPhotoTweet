@@ -391,9 +391,8 @@
             //画像が設定されている場合
             }else {
                 
-                //画像投稿先がTwitterの場合
-                if ( [[d objectForKey:@"PhotoService"] isEqualToString:@"Twitter"] || 
-                     [d integerForKey:@"NowPlayingPhotoService"] == 1 ) {
+                //画像投稿先がTwitterの場合かつNowPlayingではない
+                if (( [[d objectForKey:@"PhotoService"] isEqualToString:@"Twitter"] || [d integerForKey:@"NowPlayingPhotoService"] == 1 ) && !nowPlayingMode ) {
                     
                     @autoreleasepool {
                         
@@ -401,7 +400,7 @@
                         NSArray *postData = [NSArray arrayWithObjects:[DeleteWhiteSpace string:text], imagePreview.image, nil];
                         [TWSendTweet performSelectorInBackground:@selector(post:) withObject:postData];
                     }
-                    
+                
                 //画像投稿先がimg.urかTwitpicもしくは画像の再投稿
                 }else {
                     
@@ -416,11 +415,41 @@
                 //入力欄と画像プレビューを空にする
                 postText.text = BLANK;
                 imagePreview.image = nil;
+                nowPlayingMode = NO;
+            }
+            
+            //とは検索機能ONかつ条件にマッチ
+            if ( [d boolForKey:@"TohaSearch"] && [RegularExpression boolRegExp:text regExpPattern:@".+とは"] ) {
+            
+                [self tohaSearch:text];
+                
+                //とは検索機能時はコールバックしないためreturn
+                return;
             }
             
             [self callback];
         }
     }
+}
+
+- (void)tohaSearch:(NSString *)text {
+    
+    appDelegate.openURL = [self createGoogleSearchUrl:[text substringWithRange:NSMakeRange(0, text.length - 2)]];    
+    appDelegate.fastGoogleMode = [NSNumber numberWithInt:1];
+    
+    [self pushBrowserButton:nil];
+}
+
+- (NSString *)createGoogleSearchUrl:(NSString *)searchWord {
+    
+    NSString *searchURL = @"http://www.google.co.jp/search?q=";
+    NSString *encodedSearchWord = [(NSString *)CFURLCreateStringByAddingPercentEscapes(kCFAllocatorDefault,
+                                                                                       (CFStringRef)searchWord,
+                                                                                       NULL,
+                                                                                       (CFStringRef)@"!*'();:@&=+$,/?%#[]",
+                                                                                       kCFStringEncodingShiftJIS) autorelease];
+    
+    return [NSString stringWithFormat:@"%@%@", searchURL, encodedSearchWord];
 }
 
 - (void)postDone:(NSNotification *)center {
@@ -755,8 +784,6 @@
                 service = 2;
             }
             
-            nowPlayingMode = NO;
-            
         }else {
             
             if ( [[d objectForKey:@"PhotoService"] isEqualToString:@"img.ur"] ) {
@@ -946,14 +973,7 @@
             
             if ( pBoardType == 0 ) {
                 
-                NSString *searchURL = @"http://www.google.co.jp/search?q=";
-                NSString *encodedSearchWord = [(NSString *)CFURLCreateStringByAddingPercentEscapes(kCFAllocatorDefault,
-                                                                                                   (CFStringRef)pboard.string,
-                                                                                                   NULL,
-                                                                                                   (CFStringRef)@"!*'();:@&=+$,/?%#[]",
-                                                                                                   kCFStringEncodingShiftJIS) autorelease];
-                
-                appDelegate.openURL = [NSString stringWithFormat:@"%@%@", searchURL, encodedSearchWord];
+                appDelegate.openURL = [self createGoogleSearchUrl:pboard.string];
                 
                 appDelegate.fastGoogleMode = [NSNumber numberWithInt:1];
                 
@@ -1566,7 +1586,12 @@
             
         }else {
             
-            postText.text = nowPlayingText;
+            if ( [postText.text hasSuffix:@" "] ) {
+                
+                postText.text = [NSString stringWithFormat:@"%@ ",postText.text];
+            }
+            
+            postText.text = [NSString stringWithFormat:@"%@%@",postText.text , nowPlayingText];
             [postText becomeFirstResponder];
             [postText setSelectedRange:NSMakeRange(0, 0)];
         }

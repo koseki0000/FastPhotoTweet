@@ -390,28 +390,54 @@
         
     }else {
         
-        NSError *error = nil;
-        NSString *xmlString = [[NSString alloc] initWithContentsOfURL:
-                               [NSURL URLWithString:[NSString stringWithFormat:@"%@%@", searchURL, encodedSearchWord]] 
-                                                             encoding:NSShiftJISStringEncoding
-                                                                error:&error];
+        dispatch_queue_t globalQueue = dispatch_get_global_queue( DISPATCH_QUEUE_PRIORITY_DEFAULT, 0 );
         
-        //NSLog(@"xmlString.length: %d", xmlString.length);
-        
-        NSString *suggestion = [RegularExpression strRegExp:xmlString 
-                                              regExpPattern:@"<suggestion data=\".{1,50}\"/><num_queries"];
-        
-        suggestion = [ReplaceOrDelete deleteWordReturnStr:suggestion deleteWord:@"<suggestion data=\""];
-        suggestion = [ReplaceOrDelete deleteWordReturnStr:suggestion deleteWord:@"\"/><num_queries"];
-        
-        //NSLog(@"suggestion.length: %d", suggestion.length);
-        
-        searchField.text = suggestion;
-        
-        searchField.placeholder = @"Wikipedia";
-        [d setObject:@"Wikipedia" forKey:@"SearchEngine"];
-        
-        [self enterSearchField:nil];
+        dispatch_async( globalQueue, ^{
+            
+            dispatch_queue_t syncQueue = dispatch_queue_create( "info.ktysne.fastphototweet", NULL );
+            
+            dispatch_sync( syncQueue, ^{
+                
+                [ActivityIndicator on];
+                
+                NSError *error = nil;
+                NSString *xmlString = [[NSString alloc] initWithContentsOfURL:
+                                       [NSURL URLWithString:[NSString stringWithFormat:@"%@%@", searchURL, encodedSearchWord]] 
+                                                                     encoding:NSShiftJISStringEncoding
+                                                                        error:&error];
+                
+                //NSLog(@"xmlString.length: %d", xmlString.length);
+                
+                NSString *suggestion = [RegularExpression strRegExp:xmlString 
+                                                      regExpPattern:@"<suggestion data=\".{1,50}\"/><num_queries"];
+                
+                if ( ![EmptyCheck check:suggestion] ) {
+                    
+                    [ShowAlert error:@"サジェストがありません。"];
+                    
+                    return;
+                }
+                
+                suggestion = [ReplaceOrDelete deleteWordReturnStr:suggestion deleteWord:@"<suggestion data=\""];
+                suggestion = [ReplaceOrDelete deleteWordReturnStr:suggestion deleteWord:@"\"/><num_queries"];
+                
+                //NSLog(@"suggestion.length: %d", suggestion.length);
+                
+                dispatch_async(dispatch_get_main_queue(), ^ {
+                    
+                    //UIの更新
+                    searchField.text = suggestion;
+                    searchField.placeholder = @"Wikipedia";
+                });
+
+                [d setObject:@"Wikipedia" forKey:@"SearchEngine"];
+                
+                [self enterSearchField:nil];
+            });
+            
+            [ActivityIndicator off];
+            dispatch_release(syncQueue);
+        });
     }
 }
 
@@ -420,14 +446,11 @@
     if ( [urlField.text isEqualToString:BLANK] ) {
         
         [urlField resignFirstResponder];
+        
         return;
     }
     
-    NSString *encodedUrl = (__bridge_transfer NSString *)CFURLCreateStringByAddingPercentEscapes(kCFAllocatorDefault, 
-                                                                                                 (__bridge CFStringRef)[DeleteWhiteSpace string:urlField.text], 
-                                                                                                 NULL, 
-                                                                                                 NULL, 
-                                                                                                 kCFStringEncodingUTF8);
+    NSString *encodedUrl = [DeleteWhiteSpace string:urlField.text];
     
     if ( [RegularExpression boolRegExp:encodedUrl regExpPattern:@"https?://.*"] ) {
         
@@ -669,7 +692,18 @@
             
             if ( [[UIApplication sharedApplication] canOpenURL:[NSURL URLWithString:@"fastever://"]] ) {
                 
-                [[UIApplication sharedApplication] openURL:[NSURL URLWithString:(__bridge_transfer NSString *)CFURLCreateStringByAddingPercentEscapes(kCFAllocatorDefault, (__bridge CFStringRef)[NSString stringWithFormat:@"fastever://?text=%@\n%@\n", wv.pageTitle, accessURL], NULL, NULL, kCFStringEncodingUTF8)]];
+                NSString *reqUrl = @"";
+            
+                if ( [EmptyCheck check:wv.selectString] ) {
+                    
+                    reqUrl = [NSString stringWithFormat:@"fastever://?text=%@\n%@\n>>%@\n", wv.pageTitle, accessURL, wv.selectString];
+                    
+                }else {
+                    
+                    reqUrl = [NSString stringWithFormat:@"fastever://?text=%@\n%@\n", wv.pageTitle, accessURL];
+                }
+                
+                [[UIApplication sharedApplication] openURL:[NSURL URLWithString:(__bridge_transfer NSString *)CFURLCreateStringByAddingPercentEscapes(kCFAllocatorDefault, (__bridge CFStringRef)reqUrl, NULL, NULL, kCFStringEncodingUTF8)]];
                 
             }else {
                 
@@ -772,6 +806,10 @@
         }else if ( buttonIndex == 1 ) {
             
             [self requestStart:urlField.text];
+            
+        }else {
+            
+            [grayView off];
         }
         
     }else if ( actionSheetNo == 10 ) {
@@ -787,6 +825,10 @@
         }else if ( buttonIndex == 2 ) {
             
             [self requestStart:[NSString stringWithFormat:@"https://%@", urlField.text]];
+            
+        }else {
+            
+            [grayView off];
         }
     }
 }
@@ -795,7 +837,10 @@
     
     NSData *data = [NSData dataWithContentsOfURL:[NSURL URLWithString:accessURL]];
     UIImage *image = [[UIImage alloc] initWithData:data];
-    UIImageWriteToSavedPhotosAlbum(image, self, @selector(savingImageIsFinished:didFinishSavingWithError:contextInfo:), nil);
+    UIImageWriteToSavedPhotosAlbum(image, 
+                                   self, 
+                                   @selector(savingImageIsFinished:didFinishSavingWithError:contextInfo:), 
+                                   nil);
     image = nil;
 }
 

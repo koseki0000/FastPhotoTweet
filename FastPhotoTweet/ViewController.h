@@ -103,12 +103,14 @@
 - (void)showActionMenu;
 - (void)callback;
 - (void)countText;
+- (void)tohaSearch:(NSString *)text;
 - (void)uploadImage:(UIImage *)image;
 - (void)uploadNowPlayingImage:(UIImage *)image uploadType:(int)uploadType;
 - (void)postDone:(NSNotification *)center;
 - (BOOL)ios5Check;
 - (BOOL)reachability;
 - (NSString *)nowPlaying;
+- (NSString *)createGoogleSearchUrl:(NSString *)searchWord;
 
 - (void)nowPlayingNotification;
 - (void)postNotification:(int)pBoardType;

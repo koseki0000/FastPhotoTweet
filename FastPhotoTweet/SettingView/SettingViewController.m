@@ -12,7 +12,7 @@
 //セクション0の項目数 (画像関連設定)
 #define SECTION_0 9
 //セクション1の項目数 (投稿関連設定)
-#define SECTION_1 7
+#define SECTION_1 8
 //セクション2の項目数 (その他の設定)
 #define SECTION_2 3
 //セクション3の項目数 (ライセンス)
@@ -37,12 +37,13 @@
 #define NAME_13 @"曲名とアルバム名が同じな場合サブ書式を使用"
 #define NAME_14 @"サブ書式を編集"
 #define NAME_15 @"NowPlaying時にアートワークを投稿"
+#define NAME_16 @"とは検索機能を使用"
 //その他の設定
-#define NAME_16 @"アプリがアクティブになった際入力可能状態にする"
-#define NAME_17 @"ブラウザの検索ワードを毎回リセット"
-#define NAME_18 @"ブラウザを開く時ペーストボード内のURLを開く"
+#define NAME_17 @"アプリがアクティブになった際入力可能状態にする"
+#define NAME_18 @"ブラウザの検索ワードを毎回リセット"
+#define NAME_19 @"ブラウザを開く時ペーストボード内のURLを開く"
 //ライセンス
-#define NAME_19 @"ライセンス"
+#define NAME_20 @"ライセンス"
 
 #define BLANK @""
 
@@ -71,7 +72,8 @@
                                                         NAME_4,  NAME_5,  NAME_6,  NAME_7, 
                                                         NAME_8,  NAME_9,  NAME_10, NAME_11, 
                                                         NAME_12, NAME_13, NAME_14, NAME_15, 
-                                                        NAME_16, NAME_17, NAME_18, NAME_19, nil];
+                                                        NAME_16, NAME_17, NAME_18, NAME_19, 
+                                                        NAME_20, nil];
         
         [settingArray retain];
     }
@@ -340,9 +342,21 @@
             
             result = @"OFF";
         }
+    
+    //とは検索
+    }else if ( settingState == 16 ) {
+        
+        if ( [d boolForKey:@"TohaSearch"] ) {
+            
+            result = @"ON";
+            
+        }else {
+            
+            result = @"OFF";
+        }
         
     //アプリがアクティブになった際入力可能状態にする
-    }else if ( settingState == 16 ) {
+    }else if ( settingState == 17 ) {
         
         if ( [d boolForKey:@"ShowKeyboard"] ) {
             
@@ -353,7 +367,7 @@
             result = @"OFF";
         }
     
-    }else if ( settingState == 17 ) {
+    }else if ( settingState == 18 ) {
         
         if ( [d boolForKey:@"ClearBrowserSearchField"] ) {
             
@@ -364,7 +378,7 @@
             result = @"OFF";
         }
     
-    }else if ( settingState == 18 ) {
+    }else if ( settingState == 19 ) {
         
         if ( [d boolForKey:@"OpenPasteBoardURL"] ) {
             
@@ -375,7 +389,7 @@
             result = @"OFF";
         }
         
-    }else if ( settingState == 19 ) {
+    }else if ( settingState == 20 ) {
         //空のまま
     }
         
@@ -697,6 +711,18 @@
                      otherButtonTitles:@"ON", @"OFF", nil];
             [sheet autorelease];
             [sheet showInView:self.view];
+        
+        }else if ( indexPath.row == 7 ) {
+            
+            //とは検索
+            sheet = [[UIActionSheet alloc]
+                     initWithTitle:NAME_16
+                     delegate:self
+                     cancelButtonTitle:@"Cancel"
+                     destructiveButtonTitle:nil
+                     otherButtonTitles:@"ON", @"OFF", nil];
+            [sheet autorelease];
+            [sheet showInView:self.view];
         }
         
     }else if ( indexPath.section == 2 ) {
@@ -707,7 +733,7 @@
             
             //アプリがアクティブになった際入力可能状態にする
             sheet = [[UIActionSheet alloc]
-                     initWithTitle:NAME_16
+                     initWithTitle:NAME_17
                      delegate:self
                      cancelButtonTitle:@"Cancel"
                      destructiveButtonTitle:nil
@@ -719,7 +745,7 @@
             
             //ブラウザの検索ワードを毎回リセット
             sheet = [[UIActionSheet alloc]
-                     initWithTitle:NAME_17
+                     initWithTitle:NAME_18
                      delegate:self
                      cancelButtonTitle:@"Cancel"
                      destructiveButtonTitle:nil
@@ -731,7 +757,7 @@
             
             //ブラウザを開く時ペーストボード内のURLを開く
             sheet = [[UIActionSheet alloc]
-                     initWithTitle:NAME_17
+                     initWithTitle:NAME_19
                      delegate:self
                      cancelButtonTitle:@"Cancel"
                      destructiveButtonTitle:nil
@@ -1021,22 +1047,29 @@
         }else if ( buttonIndex == 1 ) {
             [d setBool:NO forKey:@"NowPlayingArtWork"];
         }
-                
+    
     }else if ( actionSheetNo == 16 ) {
+        if ( buttonIndex == 0 ) {
+            [d setBool:YES forKey:@"TohaSearch"];
+        }else if ( buttonIndex == 1 ) {
+            [d setBool:NO forKey:@"TohaSearch"];
+        }
+        
+    }else if ( actionSheetNo == 17 ) {
         if ( buttonIndex == 0 ) {
             [d setBool:YES forKey:@"ShowKeyboard"];
         }else if ( buttonIndex == 1 ) {
             [d setBool:NO forKey:@"ShowKeyboard"];
         }
     
-    }else if ( actionSheetNo == 17 ) {
+    }else if ( actionSheetNo == 18 ) {
         if ( buttonIndex == 0 ) {
             [d setBool:YES forKey:@"ClearBrowserSearchField"];
         }else if ( buttonIndex == 1 ) {
             [d setBool:NO forKey:@"ClearBrowserSearchField"];
         }
         
-    }else if ( actionSheetNo == 18 ) {
+    }else if ( actionSheetNo == 19 ) {
         if ( buttonIndex == 0 ) {
             
             [d setBool:YES forKey:@"OpenPasteBoardURL"];
