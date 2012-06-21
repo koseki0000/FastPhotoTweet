@@ -7,7 +7,7 @@
 
 #import "ViewController.h"
 
-#define APP_VERSION @"1.5.1a"
+#define APP_VERSION @"1.5.3a"
 
 #define TOP_BAR [NSArray arrayWithObjects:trashButton, flexibleSpace, idButton, flexibleSpace, resendButton, flexibleSpace, imageSettingButton, flexibleSpace, postButton, nil]
 #define BOTTOM_BAR [NSArray arrayWithObjects:settingButton, flexibleSpace, browserButton, flexibleSpace, nowPlayingButton, flexibleSpace, actionButton, nil]
@@ -51,8 +51,6 @@
     //NSLog(@"viewDidLoad");
     
     NSNotificationCenter *notificationCenter = [NSNotificationCenter defaultCenter];
-    
-    [[UIApplication sharedApplication] cancelAllLocalNotifications];
     
     //アプリがアクティブになった場合の通知を受け取る設定
     [notificationCenter addObserver:self

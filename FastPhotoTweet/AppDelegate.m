@@ -114,8 +114,6 @@
 - (void)applicationDidBecomeActive:(UIApplication *)application {
     
     //NSLog(@"applicationDidBecomeActive");
-    
-    [[UIApplication sharedApplication] cancelAllLocalNotifications];
 }
 
 - (void)applicationWillTerminate:(UIApplication *)application {
@@ -126,13 +124,7 @@
 - (void)applicationDidEnterBackground:(UIApplication *)application {
     
     [D removeObjectForKey:@"applicationWillResignActive"];
-    
-    UILocalNotification *localPush = [[[UILocalNotification alloc] init] autorelease];
-    localPush.timeZone = [NSTimeZone defaultTimeZone];
-    localPush.alertBody = @"Action";
-    localPush.fireDate = [NSDate dateWithTimeIntervalSinceNow:0];
-    [[UIApplication sharedApplication] scheduleLocalNotification:localPush];
-    
+
 	backgroundTask = [application beginBackgroundTaskWithExpirationHandler: ^{
         
         [application endBackgroundTask:backgroundTask];
