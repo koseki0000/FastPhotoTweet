@@ -45,9 +45,8 @@
         
         if ( originalHeight > maxSize ) {
             
-            float ratio = originalWidth / maxSize;
-            resizeWidth = originalWidth / ratio;
-            resizeHeight = originalHeight / ratio;
+            resizeWidth = maxSize;
+            resizeHeight = maxSize;
             
         }else {
             
@@ -67,7 +66,7 @@
                 
                 float ratio = originalHeight / maxSize;
                 resizeWidth = originalWidth / ratio;
-                resizeHeight = originalHeight / ratio;
+                resizeHeight = maxSize;
                 
             //横長
             }else if ( originalWidth > originalHeight && originalWidth > maxSize ) {
@@ -75,7 +74,7 @@
                 //NSLog(@"W > H");
                 
                 float ratio = originalWidth / maxSize;
-                resizeWidth = originalWidth / ratio;
+                resizeWidth = maxSize;
                 resizeHeight = originalHeight / ratio;
                 
             }else {
@@ -143,9 +142,8 @@
         
         if ( originalHeight > maxSizeF ) {
             
-            float ratio = originalWidth / maxSizeF;
-            resizeWidth = originalWidth / ratio;
-            resizeHeight = originalHeight / ratio;
+            resizeWidth = maxSizeF;
+            resizeHeight = maxSizeF;
             
         }else {
             
@@ -165,7 +163,7 @@
                 
                 float ratio = originalHeight / maxSizeF;
                 resizeWidth = originalWidth / ratio;
-                resizeHeight = originalHeight / ratio;
+                resizeHeight = maxSizeF;
                 
             //横長
             }else if ( originalWidth > originalHeight && originalWidth > maxSizeF ) {
@@ -173,7 +171,7 @@
                 //NSLog(@"W > H");
                 
                 float ratio = originalWidth / maxSizeF;
-                resizeWidth = originalWidth / ratio;
+                resizeWidth = maxSizeF;
                 resizeHeight = originalHeight / ratio;
                 
             }else {

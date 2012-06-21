@@ -12,7 +12,7 @@
 //セクション0の項目数 (画像関連設定)
 #define SECTION_0 9
 //セクション1の項目数 (投稿関連設定)
-#define SECTION_1 8
+#define SECTION_1 10
 //セクション2の項目数 (その他の設定)
 #define SECTION_2 3
 //セクション3の項目数 (ライセンス)
@@ -38,12 +38,14 @@
 #define NAME_14 @"サブ書式を編集"
 #define NAME_15 @"NowPlaying時にアートワークを投稿"
 #define NAME_16 @"とは検索機能を使用"
+#define NAME_17 @"Webページ投稿書式変更"
+#define NAME_18 @"Webページ投稿書式セット後カーソル位置"
 //その他の設定
-#define NAME_17 @"アプリがアクティブになった際入力可能状態にする"
-#define NAME_18 @"ブラウザの検索ワードを毎回リセット"
-#define NAME_19 @"ブラウザを開く時ペーストボード内のURLを開く"
+#define NAME_19 @"アプリがアクティブになった際入力可能状態にする"
+#define NAME_20 @"ブラウザの検索ワードを毎回リセット"
+#define NAME_21 @"ブラウザを開く時ペーストボード内のURLを開く"
 //ライセンス
-#define NAME_20 @"ライセンス"
+#define NAME_22 @"ライセンス"
 
 #define BLANK @""
 
@@ -73,7 +75,7 @@
                                                         NAME_8,  NAME_9,  NAME_10, NAME_11, 
                                                         NAME_12, NAME_13, NAME_14, NAME_15, 
                                                         NAME_16, NAME_17, NAME_18, NAME_19, 
-                                                        NAME_20, nil];
+                                                        NAME_20, NAME_21, NAME_22, nil];
         
         [settingArray retain];
     }
@@ -354,9 +356,24 @@
             
             result = @"OFF";
         }
+    
+    //Webページ投稿書式変更
+    }else if ( settingState == 17 ) {
+    
+    //Webページ投稿書式セット後カーソル位置
+    }else if ( settingState == 18 ) {
+        
+        if ( [d boolForKey:@"WebPagePostCursorPosition"] ) {
+            
+            result = @"先頭";
+            
+        }else {
+            
+            result = @"末尾";
+        }
         
     //アプリがアクティブになった際入力可能状態にする
-    }else if ( settingState == 17 ) {
+    }else if ( settingState == 19 ) {
         
         if ( [d boolForKey:@"ShowKeyboard"] ) {
             
@@ -367,7 +384,7 @@
             result = @"OFF";
         }
     
-    }else if ( settingState == 18 ) {
+    }else if ( settingState == 20 ) {
         
         if ( [d boolForKey:@"ClearBrowserSearchField"] ) {
             
@@ -378,7 +395,7 @@
             result = @"OFF";
         }
     
-    }else if ( settingState == 19 ) {
+    }else if ( settingState == 21 ) {
         
         if ( [d boolForKey:@"OpenPasteBoardURL"] ) {
             
@@ -389,7 +406,7 @@
             result = @"OFF";
         }
         
-    }else if ( settingState == 20 ) {
+    }else if ( settingState == 22 ) {
         //空のまま
     }
         
@@ -723,6 +740,56 @@
                      otherButtonTitles:@"ON", @"OFF", nil];
             [sheet autorelease];
             [sheet showInView:self.view];
+        
+        }else if ( indexPath.row == 8 ) {
+            
+            //Webページ投稿書式変更
+            alertTextNo = 2;
+            
+            NSString *message = @"\nタイトル[title] URL[url]";
+            NSString *alertMessage = BLANK;
+            
+            if ( [EmptyCheck check:[d objectForKey:@"WebPagePostFormat"]] ) {
+                
+                alertMessage = [d objectForKey:@"WebPagePostFormat"];
+                
+            }else {
+                
+                alertMessage = @" \"[title]\" [url] ";
+                [d setObject:alertMessage forKey:@"WebPagePostFormat"];
+            }
+            
+            alert = [[UIAlertView alloc] initWithTitle:NAME_17
+                                               message:message
+                                              delegate:self 
+                                     cancelButtonTitle:@"キャンセル" 
+                                     otherButtonTitles:@"確定", nil];
+            
+            alertText = [[UITextField alloc] initWithFrame:CGRectMake(12, 40, 260, 25)];
+            [alertText setBackgroundColor:[UIColor whiteColor]];
+            alertText.contentVerticalAlignment = UIControlContentVerticalAlignmentCenter;
+            alertText.delegate = self;
+            alertText.text = alertMessage;
+            
+            [alert addSubview:alertText];
+            [alert show];
+            [alert release];
+            [alertText becomeFirstResponder];
+            [alertText release];
+            
+            return;
+        
+        }else if ( indexPath.row == 9 ) {
+            
+            //Webページ投稿書式セット後カーソル位置
+            sheet = [[UIActionSheet alloc]
+                     initWithTitle:NAME_18
+                     delegate:self
+                     cancelButtonTitle:@"Cancel"
+                     destructiveButtonTitle:nil
+                     otherButtonTitles:@"先頭", @"末尾", nil];
+            [sheet autorelease];
+            [sheet showInView:self.view];
         }
         
     }else if ( indexPath.section == 2 ) {
@@ -733,7 +800,7 @@
             
             //アプリがアクティブになった際入力可能状態にする
             sheet = [[UIActionSheet alloc]
-                     initWithTitle:NAME_17
+                     initWithTitle:NAME_19
                      delegate:self
                      cancelButtonTitle:@"Cancel"
                      destructiveButtonTitle:nil
@@ -745,7 +812,7 @@
             
             //ブラウザの検索ワードを毎回リセット
             sheet = [[UIActionSheet alloc]
-                     initWithTitle:NAME_18
+                     initWithTitle:NAME_20
                      delegate:self
                      cancelButtonTitle:@"Cancel"
                      destructiveButtonTitle:nil
@@ -757,7 +824,7 @@
             
             //ブラウザを開く時ペーストボード内のURLを開く
             sheet = [[UIActionSheet alloc]
-                     initWithTitle:NAME_19
+                     initWithTitle:NAME_21
                      delegate:self
                      cancelButtonTitle:@"Cancel"
                      destructiveButtonTitle:nil
@@ -794,6 +861,11 @@
         
         //サブ書式を保存
         [d setObject:alertText.text forKey:@"NowPlayingEditTextSub"];
+    
+    }else if ( alertTextNo == 2 ) {
+        
+        //Webページ投稿書式を保存
+        [d setObject:alertText.text forKey:@"WebPagePostFormat"];
     }
 }
 
@@ -810,6 +882,11 @@
         
         //サブ書式を保存
         [d setObject:alertText.text forKey:@"NowPlayingEditTextSub"];
+        
+    }else if ( alertTextNo == 2 ) {
+        
+        //Webページ投稿書式を保存
+        [d setObject:alertText.text forKey:@"WebPagePostFormat"];
     }
     
     //キーボードを閉じる
@@ -1054,22 +1131,31 @@
         }else if ( buttonIndex == 1 ) {
             [d setBool:NO forKey:@"TohaSearch"];
         }
+    
+//    }else if ( actionSheetNo == 17 ) {
         
-    }else if ( actionSheetNo == 17 ) {
+    }else if ( actionSheetNo == 18 ) {
+        if ( buttonIndex == 0 ) {
+            [d setBool:YES forKey:@"WebPagePostCursorPosition"];
+        }else if ( buttonIndex == 1 ) {
+            [d setBool:NO forKey:@"WebPagePostCursorPosition"];
+        }
+        
+    }else if ( actionSheetNo == 19 ) {
         if ( buttonIndex == 0 ) {
             [d setBool:YES forKey:@"ShowKeyboard"];
         }else if ( buttonIndex == 1 ) {
             [d setBool:NO forKey:@"ShowKeyboard"];
         }
     
-    }else if ( actionSheetNo == 18 ) {
+    }else if ( actionSheetNo == 20 ) {
         if ( buttonIndex == 0 ) {
             [d setBool:YES forKey:@"ClearBrowserSearchField"];
         }else if ( buttonIndex == 1 ) {
             [d setBool:NO forKey:@"ClearBrowserSearchField"];
         }
         
-    }else if ( actionSheetNo == 19 ) {
+    }else if ( actionSheetNo == 21 ) {
         if ( buttonIndex == 0 ) {
             
             [d setBool:YES forKey:@"OpenPasteBoardURL"];

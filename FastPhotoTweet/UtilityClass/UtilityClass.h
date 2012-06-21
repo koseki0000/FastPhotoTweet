@@ -18,3 +18,4 @@
 #import "FullSizeImage.h"
 #import "DeleteWhiteSpace.h"
 #import "AmazonAffiliateCutter.h"
+#import "UUIDEncryptor.h"

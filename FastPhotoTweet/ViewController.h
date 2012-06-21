@@ -94,8 +94,6 @@
 - (IBAction)swipeToMoveCursorRight:(id)sender;
 - (IBAction)swipeToMoveCursorLeft:(id)sender;
 
-//- (void)testMethod;
-
 - (void)loadSettings;
 - (void)setCallbackButtonTitle;
 - (void)showInfomation;

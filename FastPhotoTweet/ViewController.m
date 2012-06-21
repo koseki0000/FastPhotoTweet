@@ -159,14 +159,7 @@
         
         [ShowAlert error:@"Twitterのアカウントへのアクセスが拒否されました。"];
     }
-    
-    //for debug
-    //[self testMethod];
 }
-
-//- (void)testMethod {
-//
-//}
 
 - (void)loadSettings {
     
@@ -201,8 +194,7 @@
         
     if ( ![EmptyCheck check:[d objectForKey:@"CallBackScheme"]] ) {
         
-        //スキームが保存されていない
-        //空のキーを保存
+        //スキームが保存されていない場合空のキーを保存
         [d setObject:BLANK forKey:@"CallBackScheme"];
     }
     
@@ -229,6 +221,11 @@
     //写真投稿先が設定されていない場合Twitterを設定
     if ( ![EmptyCheck check:[d objectForKey:@"PhotoService"]] ) {
         [d setObject:@"Twitter" forKey:@"PhotoService"];
+    }
+    
+    //Webページ投稿書式が設定されていない場合はデフォルトの書式を設定
+    if ( ![EmptyCheck check:[d objectForKey:@"WebPagePostFormat"]] ) {
+        [d setObject:@" \"[title]\" [url] " forKey:@"WebPagePostFormat"];
     }
     
     //設定を即反映
@@ -337,7 +334,7 @@
             //NSLog(@"newVersion");
             
 //            [ShowAlert title:[NSString stringWithFormat:@"FastPhotoTweet %@", APP_VERSION] 
-//                 message:@"・ブラウザの画面回転時の問題を修正\n・Amazonアフィリエイトリンク削除の処理改善"];
+//                 message:@""];
             
             information = [[[NSMutableDictionary alloc] initWithDictionary:[d dictionaryForKey:@"Information"]] autorelease];
             [information setValue:[NSNumber numberWithInt:1] forKey:APP_VERSION];
@@ -1890,10 +1887,19 @@
             
             webBrowserMode = NO;
             appDelegate.fastGoogleMode = [NSNumber numberWithInt:0];
-            postText.text = [NSString stringWithFormat:@"%@ ", [DeleteWhiteSpace string:[NSString stringWithFormat:@"%@ %@", postText.text, appDelegate.postText]]];
+            postText.text = [NSString stringWithFormat:@"%@%@", postText.text, appDelegate.postText];
             [postText becomeFirstResponder];
             
             appDelegate.postText = BLANK;
+            
+            if ( [d boolForKey:@"WebPagePostCursorPosition"] ) {
+                
+                [postText setSelectedRange:NSMakeRange(0, 0)];
+                
+            }else {
+                
+                [postText setSelectedRange:NSMakeRange(postText.text.length, 0)];
+            }
             
             return;
             

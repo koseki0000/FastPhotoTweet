@@ -547,7 +547,28 @@
         
         if ( buttonIndex == 0 ) {
             
-            appDelegate.postText = [NSString stringWithFormat:@"\"%@\" %@", wv.pageTitle, [[wv.request URL] absoluteString]];
+            NSString *postText = BLANK;
+            
+            if ( [EmptyCheck check:[d objectForKey:@"WebPagePostFormat"]] ) {
+                
+                postText = [d objectForKey:@"WebPagePostFormat"];
+                
+            }else {
+                
+                postText = @" \"[title]\" [url] ";
+                [d setObject:postText forKey:@"WebPagePostFormat"];
+            }
+            
+            postText = [ReplaceOrDelete replaceWordReturnStr:postText 
+                                                 replaceWord:@"[title]" 
+                                                replacedWord:wv.pageTitle];
+            
+            postText = [ReplaceOrDelete replaceWordReturnStr:postText 
+                                                 replaceWord:@"[url]" 
+                                                replacedWord:[[wv.request URL] absoluteString]];
+            
+            appDelegate.postText = postText;
+            
             [self pushComposeButton:nil];
         
         }else if ( buttonIndex == 1 ) {
@@ -587,7 +608,7 @@
             
         }else if ( buttonIndex == 3 ) {
             
-            if ( ![urlField.text isEqualToString:@""] ) {
+            if ( ![urlField.text isEqualToString:BLANK] ) {
                 
                 NSError *error = nil;
                 NSString *documentTitle = wv.pageTitle;
@@ -692,7 +713,7 @@
             
             if ( [[UIApplication sharedApplication] canOpenURL:[NSURL URLWithString:@"fastever://"]] ) {
                 
-                NSString *reqUrl = @"";
+                NSString *reqUrl = BLANK;
             
                 if ( [EmptyCheck check:wv.selectString] ) {
                     
