@@ -54,8 +54,6 @@
         
         NSDictionary *selectBookmark = [bookMarkArray objectAtIndex:selectRow];
         
-        NSLog(@"%@", selectBookmark);
-        
         if ( buttonIndex == 0 ) {
             
             [pboard setString:[selectBookmark objectForKey:@"Title"]];

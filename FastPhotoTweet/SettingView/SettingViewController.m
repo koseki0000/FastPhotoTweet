@@ -12,7 +12,7 @@
 //セクション0の項目数 (画像関連設定)
 #define SECTION_0 9
 //セクション1の項目数 (投稿関連設定)
-#define SECTION_1 10
+#define SECTION_1 12
 //セクション2の項目数 (その他の設定)
 #define SECTION_2 3
 //セクション3の項目数 (ライセンス)
@@ -40,12 +40,14 @@
 #define NAME_16 @"とは検索機能を使用"
 #define NAME_17 @"Webページ投稿書式変更"
 #define NAME_18 @"Webページ投稿書式セット後カーソル位置"
+#define NAME_19 @"引用投稿書式変更"
+#define NAME_20 @"引用投稿書式セット後カーソル位置"
 //その他の設定
-#define NAME_19 @"アプリがアクティブになった際入力可能状態にする"
-#define NAME_20 @"ブラウザの検索ワードを毎回リセット"
-#define NAME_21 @"ブラウザを開く時ペーストボード内のURLを開く"
+#define NAME_21 @"アプリがアクティブになった際入力可能状態にする"
+#define NAME_22 @"ブラウザの検索ワードを毎回リセット"
+#define NAME_23 @"ブラウザを開く時ペーストボード内のURLを開く"
 //ライセンス
-#define NAME_22 @"ライセンス"
+#define NAME_24 @"ライセンス"
 
 #define BLANK @""
 
@@ -75,7 +77,8 @@
                                                         NAME_8,  NAME_9,  NAME_10, NAME_11, 
                                                         NAME_12, NAME_13, NAME_14, NAME_15, 
                                                         NAME_16, NAME_17, NAME_18, NAME_19, 
-                                                        NAME_20, NAME_21, NAME_22, nil];
+                                                        NAME_20, NAME_21, NAME_22, NAME_23,
+                                                        NAME_24, nil];
         
         [settingArray retain];
     }
@@ -98,8 +101,8 @@
     //NSLog(@"viewDidAppear");
     
     if ( [[d objectForKey:@"OAuthRequestTokenKey"] isEqualToString:BLANK] || 
-        [[d objectForKey:@"OAuthRequestTokenSecret"] isEqualToString:BLANK] ||
-        [d integerForKey:@"AccountCount"] == 0 ) {
+         [[d objectForKey:@"OAuthRequestTokenSecret"] isEqualToString:BLANK] ||
+         [d integerForKey:@"AccountCount"] == 0 ) {
         
         [d setObject:@"Twitter" forKey:@"PhotoService"];
     }
@@ -371,9 +374,22 @@
             
             result = @"末尾";
         }
+    
+//  }else if ( settingState == 19 ) {
+        
+    }else if ( settingState == 20 ) {
+        
+        if ( [d boolForKey:@"QuoteCursorPosition"] ) {
+            
+            result = @"先頭";
+            
+        }else {
+            
+            result = @"末尾";
+        }
         
     //アプリがアクティブになった際入力可能状態にする
-    }else if ( settingState == 19 ) {
+    }else if ( settingState == 21 ) {
         
         if ( [d boolForKey:@"ShowKeyboard"] ) {
             
@@ -384,7 +400,7 @@
             result = @"OFF";
         }
     
-    }else if ( settingState == 20 ) {
+    }else if ( settingState == 22 ) {
         
         if ( [d boolForKey:@"ClearBrowserSearchField"] ) {
             
@@ -395,7 +411,7 @@
             result = @"OFF";
         }
     
-    }else if ( settingState == 21 ) {
+    }else if ( settingState == 23 ) {
         
         if ( [d boolForKey:@"OpenPasteBoardURL"] ) {
             
@@ -406,7 +422,7 @@
             result = @"OFF";
         }
         
-    }else if ( settingState == 22 ) {
+    }else if ( settingState == 24 ) {
         //空のまま
     }
         
@@ -790,6 +806,56 @@
                      otherButtonTitles:@"先頭", @"末尾", nil];
             [sheet autorelease];
             [sheet showInView:self.view];
+        
+        }else if ( indexPath.row == 10 ) {
+            
+            //引用投稿書式変更
+            alertTextNo = 3;
+            
+            NSString *message = @"\nタイトル[title] URL[url] 引用[quote]";
+            NSString *alertMessage = BLANK;
+            
+            if ( [EmptyCheck check:[d objectForKey:@"QuoteFormat"]] ) {
+                
+                alertMessage = [d objectForKey:@"QuoteFormat"];
+                
+            }else {
+                
+                alertMessage = @" \"[title]\" [url] >>[quote]";
+                [d setObject:alertMessage forKey:@"QuoteFormat"];
+            }
+            
+            alert = [[UIAlertView alloc] initWithTitle:NAME_19
+                                               message:message
+                                              delegate:self 
+                                     cancelButtonTitle:@"キャンセル" 
+                                     otherButtonTitles:@"確定", nil];
+            
+            alertText = [[UITextField alloc] initWithFrame:CGRectMake(12, 40, 260, 25)];
+            [alertText setBackgroundColor:[UIColor whiteColor]];
+            alertText.contentVerticalAlignment = UIControlContentVerticalAlignmentCenter;
+            alertText.delegate = self;
+            alertText.text = alertMessage;
+            
+            [alert addSubview:alertText];
+            [alert show];
+            [alert release];
+            [alertText becomeFirstResponder];
+            [alertText release];
+            
+            return;
+            
+        }else if ( indexPath.row == 11 ) {
+            
+            //引用投稿書式セット後カーソル位置
+            sheet = [[UIActionSheet alloc]
+                     initWithTitle:NAME_20
+                     delegate:self
+                     cancelButtonTitle:@"Cancel"
+                     destructiveButtonTitle:nil
+                     otherButtonTitles:@"先頭", @"末尾", nil];
+            [sheet autorelease];
+            [sheet showInView:self.view];
         }
         
     }else if ( indexPath.section == 2 ) {
@@ -800,7 +866,7 @@
             
             //アプリがアクティブになった際入力可能状態にする
             sheet = [[UIActionSheet alloc]
-                     initWithTitle:NAME_19
+                     initWithTitle:NAME_21
                      delegate:self
                      cancelButtonTitle:@"Cancel"
                      destructiveButtonTitle:nil
@@ -812,7 +878,7 @@
             
             //ブラウザの検索ワードを毎回リセット
             sheet = [[UIActionSheet alloc]
-                     initWithTitle:NAME_20
+                     initWithTitle:NAME_22
                      delegate:self
                      cancelButtonTitle:@"Cancel"
                      destructiveButtonTitle:nil
@@ -824,7 +890,7 @@
             
             //ブラウザを開く時ペーストボード内のURLを開く
             sheet = [[UIActionSheet alloc]
-                     initWithTitle:NAME_21
+                     initWithTitle:NAME_23
                      delegate:self
                      cancelButtonTitle:@"Cancel"
                      destructiveButtonTitle:nil
@@ -866,6 +932,11 @@
         
         //Webページ投稿書式を保存
         [d setObject:alertText.text forKey:@"WebPagePostFormat"];
+    
+    }else if ( alertTextNo == 3 ) {
+        
+        //引用投稿書式を保存
+        [d setObject:alertText.text forKey:@"QuoteFormat"];
     }
 }
 
@@ -887,6 +958,11 @@
         
         //Webページ投稿書式を保存
         [d setObject:alertText.text forKey:@"WebPagePostFormat"];
+        
+    }else if ( alertTextNo == 3 ) {
+        
+        //引用投稿書式を保存
+        [d setObject:alertText.text forKey:@"QuoteFormat"];
     }
     
     //キーボードを閉じる
@@ -1132,7 +1208,7 @@
             [d setBool:NO forKey:@"TohaSearch"];
         }
     
-//    }else if ( actionSheetNo == 17 ) {
+//  }else if ( actionSheetNo == 17 ) {
         
     }else if ( actionSheetNo == 18 ) {
         if ( buttonIndex == 0 ) {
@@ -1141,21 +1217,31 @@
             [d setBool:NO forKey:@"WebPagePostCursorPosition"];
         }
         
-    }else if ( actionSheetNo == 19 ) {
+//  }else if ( actionSheetNo == 19 ) {
+        
+    }else if ( actionSheetNo == 20 ) {
+        
+        if ( buttonIndex == 0 ) {
+            [d setBool:YES forKey:@"QuoteCursorPosition"];
+        }else if ( buttonIndex == 1 ) {
+            [d setBool:NO forKey:@"QuoteCursorPosition"];
+        }
+        
+    }else if ( actionSheetNo == 21 ) {
         if ( buttonIndex == 0 ) {
             [d setBool:YES forKey:@"ShowKeyboard"];
         }else if ( buttonIndex == 1 ) {
             [d setBool:NO forKey:@"ShowKeyboard"];
         }
     
-    }else if ( actionSheetNo == 20 ) {
+    }else if ( actionSheetNo == 22 ) {
         if ( buttonIndex == 0 ) {
             [d setBool:YES forKey:@"ClearBrowserSearchField"];
         }else if ( buttonIndex == 1 ) {
             [d setBool:NO forKey:@"ClearBrowserSearchField"];
         }
         
-    }else if ( actionSheetNo == 21 ) {
+    }else if ( actionSheetNo == 23 ) {
         if ( buttonIndex == 0 ) {
             
             [d setBool:YES forKey:@"OpenPasteBoardURL"];

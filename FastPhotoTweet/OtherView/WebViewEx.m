@@ -307,7 +307,7 @@
     
     //NSLog(@"selectString");
     
-    return [self stringByEvaluatingJavaScriptFromString:@"(window.getSelection()).toString()"];
+    return [DeleteWhiteSpace string:[self stringByEvaluatingJavaScriptFromString:@"(window.getSelection()).toString()"]];
 }
 
 //開いているページのタイトルが返される
@@ -364,29 +364,27 @@
 //WebViewExを破棄する
 - (void)close {
     
-    NSLog(@"close");
+    //NSLog(@"close");
     
     [self stopLoading];
     [UIApplication sharedApplication].networkActivityIndicatorVisible = NO;    
     self.delegate = nil;
     
-    if ( AUTORELEASE == NO ) {
+    //if ( AUTORELEASE == NO ) {
         
-        NSLog(@"release");
+        //NSLog(@"release");
         
         //[self release];
-    }
+    //}
 }
 
-//- (void)dealloc {
-//    
-//    NSLog(@"WebViewEx dealloc");
-//    
-//    //メモリキャッシュの削除
-//    NSURLCache *cache = [NSURLCache sharedURLCache];
-//    [cache removeAllCachedResponses];
-//    
-//    [super dealloc];
-//}
+- (void)dealloc {
+    
+    //NSLog(@"WebViewEx dealloc");
+    
+    //メモリキャッシュの削除
+    NSURLCache *cache = [NSURLCache sharedURLCache];
+    [cache removeAllCachedResponses];
+}
 
 @end

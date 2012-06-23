@@ -7,6 +7,7 @@
 
 #import <UIKit/UIKit.h>
 #import "ShowAlert.h"
+#import "DeleteWhiteSpace.h"
 
 @interface WebViewEx : UIWebView {
     

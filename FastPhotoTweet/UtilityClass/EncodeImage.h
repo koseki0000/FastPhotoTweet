@@ -10,6 +10,9 @@
 @interface EncodeImage : NSObject
 
 + (NSData *)image:(UIImage *)encodeImage;
++ (NSData *)jpgLow:(UIImage *)encodeImage;
++ (NSData *)jpg:(UIImage *)encodeImage;
++ (NSData *)jpgHigh:(UIImage *)encodeImage;
 + (NSData *)png:(UIImage *)encodeImage;
 
 @end

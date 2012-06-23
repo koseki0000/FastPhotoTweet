@@ -22,6 +22,7 @@
 @synthesize oaConsumer;
 @synthesize openURL;
 @synthesize postText;
+@synthesize postTextType;
 @synthesize bookmarkUrl;
 @synthesize postError;
 @synthesize resendNumber;
@@ -48,6 +49,7 @@
     //各種初期化
     openURL = [D objectForKey:@"HomePageURL"];
     postText = BLANK;
+    postTextType = BLANK;
     bookmarkUrl = BLANK;
     
     postError = [NSMutableArray array];

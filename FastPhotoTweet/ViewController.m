@@ -7,7 +7,7 @@
 
 #import "ViewController.h"
 
-#define APP_VERSION @"1.5.3a"
+#define APP_VERSION @"1.5.4a"
 
 #define TOP_BAR [NSArray arrayWithObjects:trashButton, flexibleSpace, idButton, flexibleSpace, resendButton, flexibleSpace, imageSettingButton, flexibleSpace, postButton, nil]
 #define BOTTOM_BAR [NSArray arrayWithObjects:settingButton, flexibleSpace, browserButton, flexibleSpace, nowPlayingButton, flexibleSpace, actionButton, nil]
@@ -318,7 +318,7 @@
             //NSLog(@"FirstRun");
             
             [ShowAlert title:@"ようこそ" 
-                message:@"FastPhotoTweetへようこそ\n通知センターやタスクスイッチャーから様々なTweetを素早くTwitterに投稿する事が出来ます。\niPhoneの設定>通知>通知を表示するApp>FPT から表示:最新1件、通知のスタイル:なしに設定する事をオススメします。"];
+                message:@"FastPhotoTweetへようこそ\nアプリ内やタスクスイッチャーから様々なTweetを素早くTwitterに投稿する事が出来ます。"];
             
             information = [[[NSMutableDictionary alloc] initWithDictionary:[d dictionaryForKey:@"Information"]] autorelease];
             [information setValue:[NSNumber numberWithInt:1] forKey:@"FirstRun"];
@@ -1883,27 +1883,41 @@
     
     @try {
         
-        if ( webBrowserMode && [EmptyCheck check:appDelegate.postText] ) {
+        if ( [EmptyCheck check:appDelegate.postText] ) {
             
-            webBrowserMode = NO;
             appDelegate.fastGoogleMode = [NSNumber numberWithInt:0];
             postText.text = [NSString stringWithFormat:@"%@%@", postText.text, appDelegate.postText];
             [postText becomeFirstResponder];
             
             appDelegate.postText = BLANK;
             
-            if ( [d boolForKey:@"WebPagePostCursorPosition"] ) {
+            if ( [appDelegate.postTextType isEqualToString:@"WebPage"] ) {
                 
-                [postText setSelectedRange:NSMakeRange(0, 0)];
+                if ( [d boolForKey:@"WebPagePostCursorPosition"] ) {
+                    
+                    [postText setSelectedRange:NSMakeRange(0, 0)];
+                    
+                }else {
+                    
+                    [postText setSelectedRange:NSMakeRange(postText.text.length, 0)];
+                }
+            
+            }else if ( [appDelegate.postTextType isEqualToString:@"Quote"] ) {
                 
-            }else {
-                
-                [postText setSelectedRange:NSMakeRange(postText.text.length, 0)];
+                if ( [d boolForKey:@"QuoteCursorPosition"] ) {
+                    
+                    [postText setSelectedRange:NSMakeRange(0, 0)];
+                    
+                }else {
+                    
+                    [postText setSelectedRange:NSMakeRange(postText.text.length, 0)];
+                }
             }
             
-            return;
-            
-        }else if ( webBrowserMode ) {
+            appDelegate.postTextType = BLANK;
+        }
+        
+        if ( webBrowserMode ) {
             
             webBrowserMode = NO;
             
@@ -1959,7 +1973,6 @@
             resendButton.enabled = YES;
         }
         
-    }@catch (NSException *e) {
     }@finally {
         
         [self countText];

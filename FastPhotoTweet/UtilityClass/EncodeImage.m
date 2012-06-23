@@ -31,6 +31,21 @@
     return encodedImageData;
 }
 
++ (NSData *)jpgLow:(UIImage *)encodeImage {
+    
+    return UIImageJPEGRepresentation(encodeImage, 0.6);
+}
+
++ (NSData *)jpg:(UIImage *)encodeImage {
+    
+    return UIImageJPEGRepresentation(encodeImage, 0.8);
+}
+
++ (NSData *)jpgHigh:(UIImage *)encodeImage {
+    
+    return UIImageJPEGRepresentation(encodeImage, 0.95);
+}
+
 + (NSData *)png:(UIImage *)encodeImage {
     
     return UIImagePNGRepresentation(encodeImage);

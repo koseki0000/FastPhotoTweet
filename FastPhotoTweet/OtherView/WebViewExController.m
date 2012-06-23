@@ -567,6 +567,7 @@
                                                  replaceWord:@"[url]" 
                                                 replacedWord:[[wv.request URL] absoluteString]];
             
+            appDelegate.postTextType = @"WebPage";
             appDelegate.postText = postText;
             
             [self pushComposeButton:nil];
@@ -585,7 +586,7 @@
                                         cancelButtonTitle:@"Cancel"
                                         destructiveButtonTitle:nil
                                         otherButtonTitles:@"選択文字を投稿", @"選択文字に引用符を付けて投稿",
-                                        @"URL･タイトルと選択文字を投稿", @"URL･タイトルと選択文字に引用符を付けて投稿",nil];
+                                        @"URL･タイトルと選択文字を投稿", nil];
                 [sheet showInView:self.view];
                 
             }else {
@@ -752,6 +753,8 @@
         
     }else if ( actionSheetNo == 7 ) {
         
+        appDelegate.postTextType = @"Quote";
+        
         if ( buttonIndex == 0 ) {
         
             if ( ![EmptyCheck check:wv.selectString] ) {
@@ -776,17 +779,37 @@
                 return;
             }
             
-            appDelegate.postText = [NSString stringWithFormat:@"\"%@\" %@ %@", wv.pageTitle, [[wv.request URL] absoluteString], wv.selectString];
-            [self pushComposeButton:nil];
-        
-        }else if ( buttonIndex == 3 ) {
+            NSString *postText = BLANK;
             
-            if ( ![EmptyCheck check:wv.selectString] ) {
-                return;
+            if ( [EmptyCheck check:[d objectForKey:@"QuoteFormat"]] ) {
+                
+                postText = [d objectForKey:@"QuoteFormat"];
+                
+            }else {
+                
+                postText = @" \"[title]\" [url] >>[quote]";
+                [d setObject:postText forKey:@"QuoteFormat"];
             }
             
-            appDelegate.postText = [NSString stringWithFormat:@"\"%@\" %@ >>%@", wv.pageTitle, [[wv.request URL] absoluteString], wv.selectString];
+            postText = [ReplaceOrDelete replaceWordReturnStr:postText 
+                                                 replaceWord:@"[title]" 
+                                                replacedWord:wv.pageTitle];
+            
+            postText = [ReplaceOrDelete replaceWordReturnStr:postText 
+                                                 replaceWord:@"[url]" 
+                                                replacedWord:[[wv.request URL] absoluteString]];
+            
+            postText = [ReplaceOrDelete replaceWordReturnStr:postText 
+                                                 replaceWord:@"[quote]" 
+                                                replacedWord:wv.selectString];
+            
+            appDelegate.postText = postText;
+            
             [self pushComposeButton:nil];
+        
+        }else {
+            
+            appDelegate.postTextType = BLANK;
         }
         
     }else if ( actionSheetNo == 8 ) {
