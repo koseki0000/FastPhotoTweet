@@ -7,8 +7,11 @@
 
 #import "FullSizeImage.h"
 
+#define BLANK @""
+
 @implementation FullSizeImage
 
+//画像共有サービスのURLを渡すと画像本体のURLを返す
 + (NSString *)urlString:(NSString *)urlString {
     
     //NSLog(@"originalUrl: %@", urlString);
@@ -17,12 +20,12 @@
         
         NSMutableString *mString = [NSMutableString stringWithString:urlString];
         [mString replaceOccurrencesOfString:@"www." 
-                                 withString:@"" 
+                                 withString:BLANK 
                                     options:0 
                                       range:NSMakeRange(0, [mString length] )];
         
         [mString replaceOccurrencesOfString:@"http://twitvid.com/" 
-                                 withString:@"" 
+                                 withString:BLANK 
                                     options:0 
                                       range:NSMakeRange(0, [mString length] )];
 
@@ -39,12 +42,12 @@
         
         NSMutableString *mString = [NSMutableString stringWithString:urlString];
         [mString replaceOccurrencesOfString:@"www." 
-                                 withString:@"" 
+                                 withString:BLANK 
                                     options:0 
                                       range:NSMakeRange(0, [mString length] )];
         
         [mString replaceOccurrencesOfString:@"http://p.twipple.jp/" 
-                                 withString:@"" 
+                                 withString:BLANK 
                                     options:0 
                                       range:NSMakeRange(0, [mString length] )];
         
@@ -59,7 +62,7 @@
         
         NSMutableString *mString = [NSMutableString stringWithString:urlString];
         [mString replaceOccurrencesOfString:@"http://yfrog.com/" 
-                                 withString:@"" 
+                                 withString:BLANK 
                                     options:0 
                                       range:NSMakeRange(0, [mString length] )];
         
@@ -84,12 +87,12 @@
             
             mString = [NSMutableString stringWithString:[xmlString substringWithRange:[match rangeAtIndex:0]]];
             [mString replaceOccurrencesOfString:@"<image_link>" 
-                                     withString:@"" 
+                                     withString:BLANK 
                                         options:0 
                                           range:NSMakeRange(0, [mString length] )];
             
             [mString replaceOccurrencesOfString:@"</image_link>" 
-                                     withString:@"" 
+                                     withString:BLANK 
                                         options:0 
                                           range:NSMakeRange(0, [mString length] )];
             
@@ -100,7 +103,7 @@
         
         NSMutableString *mString = [NSMutableString stringWithString:urlString];
         [mString replaceOccurrencesOfString:@"http://ow.ly/i/" 
-                                 withString:@"" 
+                                 withString:BLANK 
                                     options:0 
                                       range:NSMakeRange(0, [mString length] )];
         
@@ -114,7 +117,7 @@
         
         NSMutableString *mString = [NSMutableString stringWithString:urlString];
         [mString replaceOccurrencesOfString:@"http://twitpic.com/" 
-                                 withString:@"" 
+                                 withString:BLANK 
                                     options:0 
                                       range:NSMakeRange(0, [mString length] )];
         
@@ -172,16 +175,10 @@
         
         dataStr = [[[NSString alloc] initWithData:response encoding:encodingList[i]] autorelease];
         
-        if ( dataStr != nil ) {
-            
-            break;
-        }
+        if ( dataStr != nil ) break;
     }
     
-    if ( error ) {
-        
-        [ShowAlert error:error.localizedDescription];
-    }
+    if ( error ) [ShowAlert error:error.localizedDescription];
     
     return dataStr;
 }

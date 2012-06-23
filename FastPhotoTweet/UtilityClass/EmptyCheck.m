@@ -156,6 +156,7 @@
                 
                 //NSLog(@"NSURL is not empty");
                 result = YES;
+                
             }else {
                 
                 //NSLog(@"NSURL is empty");

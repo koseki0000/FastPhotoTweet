@@ -109,8 +109,6 @@
     //iOSバージョン判定
     if ( [self ios5Check] ) {
         
-        //iOS5
-        
         ACAccountStore *accountStore = [[[ACAccountStore alloc] init] autorelease];
         ACAccountType *accountType = [accountStore accountTypeWithAccountTypeIdentifier:ACAccountTypeIdentifierTwitter];
         
@@ -133,21 +131,19 @@
                          
                          //入力可能状態にする
                          [postText becomeFirstResponder];
-            
+                         
                          //更新情報の表示
                          [self showInfomation];
                          
                      } else {
                          
                          twAccount = nil;
-                         
                          [ShowAlert error:@"Twitterアカウントが見つかりませんでした。"];
                      }
                      
                  } else {
                      
                      twAccount = nil;
-                     
                      [ShowAlert error:@"Twitterのアカウントへのアクセスが拒否されました。"];
                  }
              });
@@ -156,7 +152,6 @@
     } else {
         
         twAccount = nil;
-        
         [ShowAlert error:@"Twitterのアカウントへのアクセスが拒否されました。"];
     }
 }
@@ -210,12 +205,12 @@
     
     //カスタム書式が設定されていない場合デフォルト書式を設定
     if ( ![EmptyCheck check:[d objectForKey:@"NowPlayingEditText"]] ) {
-        [d setObject:@" #nowplaying [st] - [ar] " forKey:@"NowPlayingEditText"];
+        [d setObject:@" #nowplaying : [st] - [ar] " forKey:@"NowPlayingEditText"];
     }
     
     //サブ書式が設定されていない場合デフォルト書式を設定
     if ( ![EmptyCheck check:[d objectForKey:@"NowPlayingEditTextSub"]] ) {
-        [d setObject:@" #nowplaying [st] - [ar] " forKey:@"NowPlayingEditTextSub"];
+        [d setObject:@" #nowplaying : [st] - [ar] " forKey:@"NowPlayingEditTextSub"];
     }
     
     //写真投稿先が設定されていない場合Twitterを設定
@@ -303,7 +298,7 @@
     //NSLog(@"showInfomation");
     
     BOOL check = YES;
-    NSMutableDictionary *information;
+    NSMutableDictionary *information = [NSMutableDictionary dictionary];
     
     if ( ![EmptyCheck check:[d dictionaryForKey:@"Information"]] ) {
         
@@ -438,11 +433,12 @@
 - (NSString *)createGoogleSearchUrl:(NSString *)searchWord {
     
     NSString *searchURL = @"http://www.google.co.jp/search?q=";
-    NSString *encodedSearchWord = [(NSString *)CFURLCreateStringByAddingPercentEscapes(kCFAllocatorDefault,
+    NSString *encodedSearchWord = (NSString *)CFURLCreateStringByAddingPercentEscapes(kCFAllocatorDefault,
                                                                                        (CFStringRef)searchWord,
                                                                                        NULL,
                                                                                        (CFStringRef)@"!*'();:@&=+$,/?%#[]",
-                                                                                       kCFStringEncodingShiftJIS) autorelease];
+                                                                                       kCFStringEncodingShiftJIS);
+    [encodedSearchWord autorelease];
     
     return [NSString stringWithFormat:@"%@%@", searchURL, encodedSearchWord];
 }
@@ -481,7 +477,7 @@
         
         [ShowAlert error:@"投稿に失敗しました。失敗したPostは上部中央のボタンから再投稿出来ます。"];
     }
-        
+    
     //再投稿ボタンの有効･無効切り替え
     if ( appDelegate.postError.count == 0 ) {
         
@@ -867,8 +863,6 @@
 
 - (void)imagePreviewTapGesture:(UITapGestureRecognizer *)sender {
     
-    //NSLog(@"imagePreviewTapGesture");
-    
     [postText resignFirstResponder];
     [sv setContentOffset:CGPointMake(0, 0) animated:YES];
     
@@ -893,8 +887,7 @@
     
     if ( location <= postText.text.length ) {
         
-        //NSLog(@"swipeToMoveCursorRight");
-        [postText setSelectedRange:NSMakeRange( location, 0 ) ];   
+        [postText setSelectedRange:NSMakeRange( location, 0 )];   
     }
 }
 
@@ -902,9 +895,8 @@
     
     if ( postText.selectedRange.location != 0 ) {
         
-        //NSLog(@"swipeToMoveCursorLeft");
         int location = postText.selectedRange.location - 1;
-        [postText setSelectedRange:NSMakeRange( location, 0 ) ];
+        [postText setSelectedRange:NSMakeRange( location, 0 )];
     }
 }
 
@@ -1048,7 +1040,10 @@
     
         if ( buttonIndex == 0 ) {
             
-            UIImageWriteToSavedPhotosAlbum(errorImage, self, @selector(savingImageIsFinished:didFinishSavingWithError:contextInfo:), nil);
+            UIImageWriteToSavedPhotosAlbum(errorImage, 
+                                           self, 
+                                           @selector(savingImageIsFinished:didFinishSavingWithError:contextInfo:),
+                                           nil);
 
         }else {
             
@@ -1079,7 +1074,7 @@
         
         }else if ( buttonIndex == 5 ) {
             
-            if ( ![postText.text isEqualToString:@""] ) {
+            if ( ![EmptyCheck check:postText.text] ) {
                 
                 postText.text = [NSString stringWithString:[postText.text substringWithRange:NSMakeRange( 0, postText.selectedRange.location )]];
                 [postText setSelectedRange:NSMakeRange( postText.text.length, 0 )];
@@ -1087,7 +1082,7 @@
             
         }else if ( buttonIndex == 6 ) {
         
-            if ( ![postText.text isEqualToString:@""] ) {
+            if ( ![EmptyCheck check:postText.text] ) {
                 
                 postText.text = [NSString stringWithString:[postText.text substringWithRange:NSMakeRange( postText.selectedRange.location, postText.text.length - ( postText.selectedRange.location ))]];
                 [postText setSelectedRange:NSMakeRange( 0, 0 )];
@@ -1864,12 +1859,14 @@
             //NSLog(@"default");
             
             //デフォルトの書式を適用
-            resultText = [NSMutableString stringWithFormat:@" #nowplaying %@ - %@ ", songTitle, songArtist];
+            resultText = [NSMutableString stringWithFormat:@" #nowplaying : %@ - %@ ", songTitle, songArtist];
         }
         
     }@catch (NSException *e) {
         
-        //NSLog(@"Exception: %@", e);
+        [ShowAlert unknownError];
+        
+        return BLANK;
     }
     
     return (NSString *)resultText;

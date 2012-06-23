@@ -72,7 +72,7 @@
         
     }@catch ( NSException *e ) {
         
-        [ShowAlert error:@"不明なエラーが発生しました。やり直してください。"];
+        [ShowAlert unknownError];
         
     }@finally {
         

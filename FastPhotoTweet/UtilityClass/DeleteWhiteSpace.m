@@ -7,8 +7,11 @@
 
 #import "DeleteWhiteSpace.h"
 
+#define BLANK @""
+
 @implementation DeleteWhiteSpace
 
+//行頭、末尾の空白文字を削除
 + (NSString *)string:(NSString *)string {
     
     NSRegularExpression *regexp = [NSRegularExpression regularExpressionWithPattern:@"^[\\s]+" 
@@ -18,7 +21,7 @@
     string = [regexp stringByReplacingMatchesInString:string
                                               options:0
                                                 range:NSMakeRange(0, string.length)
-                                         withTemplate:@""];
+                                         withTemplate:BLANK];
     
     regexp = [NSRegularExpression regularExpressionWithPattern:@"[\\s]+$" 
                                                        options:0 
@@ -27,7 +30,7 @@
     string = [regexp stringByReplacingMatchesInString:string
                                               options:0
                                                 range:NSMakeRange(0, string.length)
-                                         withTemplate:@""];
+                                         withTemplate:BLANK];
 
     return string;
 }

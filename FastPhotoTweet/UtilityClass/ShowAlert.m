@@ -38,6 +38,16 @@
     [alert show];
 }
 
++ (void)unknownError {
+    
+    UIAlertView *alert = [[[UIAlertView alloc] init] autorelease];
+    alert.delegate = self;
+    alert.title = @"Error";
+    alert.message = @"不明なエラーが発生しました。";
+    [alert addButtonWithTitle:@"OK"];
+    [alert show];
+}
+
 - (void)alertView:(UIAlertView *)alertView clickedButtonAtIndex:(NSInteger)buttonIndex {
 
     [self release];

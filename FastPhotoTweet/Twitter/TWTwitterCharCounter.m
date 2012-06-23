@@ -7,6 +7,8 @@
 
 #import "TWTwitterCharCounter.h"
 
+#define BLANK @""
+
 @implementation TWTwitterCharCounter
 
 //現在入力されている文字数をt.coを考慮してカウントし、残りの入力可能文字数を返す
@@ -38,7 +40,7 @@
         postString = (NSMutableString *)[regexp stringByReplacingMatchesInString:postString
                                                                          options:0
                                                                            range:NSMakeRange(0, postString.length)
-                                                                    withTemplate:@""];
+                                                                    withTemplate:BLANK];
         
         //文末スペースをカウントしない
         regexp = [NSRegularExpression regularExpressionWithPattern:@"[\\s]+$" 
@@ -48,7 +50,7 @@
         postString = (NSMutableString *)[regexp stringByReplacingMatchesInString:postString
                                                                          options:0
                                                                            range:NSMakeRange(0, postString.length)
-                                                                    withTemplate:@""];
+                                                                    withTemplate:BLANK];
         
         //URLカウント
         NSDataDetector *linkDetector = [NSDataDetector dataDetectorWithTypes:NSTextCheckingTypeLink 
@@ -68,7 +70,7 @@
                 
                 //URLを削除
                 [postString replaceOccurrencesOfString:urlString 
-                                            withString:@"" 
+                                            withString:BLANK 
                                                  options:0 
                                                    range:NSMakeRange( match.range.location, 
                                                                       match.range.length )];
@@ -81,8 +83,6 @@
         num = num - postString.length - urlCount * 20;
         
     }@catch ( NSException *e ) {
-        
-        NSLog(@"Exception: %@", e);
         
         //エラーの場合は取り敢えず140 - オリジナルの文字数を返しておく
         return originalCharNum;

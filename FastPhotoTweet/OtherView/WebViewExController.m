@@ -35,7 +35,7 @@
     
     self = [super initWithNibName:nibNameOrNil bundle:nibBundleOrNil];
     
-    if (self) {
+    if ( self ) {
     }
     
     return self;
@@ -65,14 +65,7 @@
     d = [NSUserDefaults standardUserDefaults];
     appDelegate = (AppDelegate *)[[UIApplication sharedApplication] delegate];
 
-    if ( [d boolForKey:@"ClearBrowserSearchField"] ) {
-     
-        searchField.clearsOnBeginEditing = YES;
-        
-    }else {
-        
-        searchField.clearsOnBeginEditing = NO;
-    }
+    [d boolForKey:@"ClearBrowserSearchField"] ? ( searchField.clearsOnBeginEditing = YES ) : ( searchField.clearsOnBeginEditing = NO );
     
     accessURL = BLANK;
     //[accessURL retain];
@@ -85,10 +78,7 @@
     //ペーストボードURL展開を確認
     [self checkPasteBoardUrlOption];
     
-    if ( urlList.count > 1 ) {
-        
-        return;
-    }
+    if ( urlList.count > 1 && [appDelegate.fastGoogleMode intValue] == 0 ) return;
     
     //ページをロード
     [wv loadRequestWithString:appDelegate.openURL];
@@ -121,6 +111,8 @@
     
     //ペーストボード内のURLを開く設定が有効かチェック
     if ( [d boolForKey:@"OpenPasteBoardURL"] ) {
+        
+        if ( [appDelegate.fastGoogleMode intValue] == 1 ) return;
         
         //PasteBoardがテキストかチェック
         if ( [PasteboardType isText] ) {
@@ -250,12 +242,7 @@
 
 - (void)setSearchEngine {
     
-    if ( ![EmptyCheck check:[d objectForKey:@"SearchEngine"]] ) {
-        
-        //NSLog(@"Set GoogleEngine");
-        
-        [d setObject:@"Google" forKey:@"SearchEngine"];
-    }
+    if ( ![EmptyCheck check:[d objectForKey:@"SearchEngine"]] ) [d setObject:@"Google" forKey:@"SearchEngine"];
     
     searchField.placeholder = [d objectForKey:@"SearchEngine"];
 }
@@ -303,26 +290,17 @@
 
 - (IBAction)pushReloadButton:(id)sender {
     
-    if ( [self reachability] ) {
-        
-        [wv loadRequestWithString:accessURL];
-    }
+    if ( [self reachability] ) [wv loadRequestWithString:accessURL];
 }
 
 - (IBAction)pushBackButton:(id)sender {
     
-    if ( [self reachability] ) {
-        
-        [wv goBack];
-    }
+    if ( [self reachability] ) [wv goBack];
 }
 
 - (IBAction)pushForwardButton:(id)sender {
     
-    if ( [self reachability] ) {
-        
-        [wv goForward];
-    }
+    if ( [self reachability] ) [wv goForward];
 }
 
 - (IBAction)pushMenuButton:(id)sender {
@@ -382,12 +360,10 @@
                                                                                                 (CFStringRef)@"!*'();:@&=+$,/?%#[]", 
                                                                                                 kCFStringEncodingUTF8);
     
-    //NSLog(@"URL: %@", [NSString stringWithFormat:@"%@%@", searchURL, encodedSearchWord]);
-    
     if ( ![[d objectForKey:@"SearchEngine"] isEqualToString:@"Wikipedia (Suggestion)"] ) {
         
         [wv loadRequestWithString:[NSString stringWithFormat:@"%@%@", searchURL, encodedSearchWord]];
-        
+    
     }else {
         
         dispatch_queue_t globalQueue = dispatch_get_global_queue( DISPATCH_QUEUE_PRIORITY_DEFAULT, 0 );
@@ -400,13 +376,10 @@
                 
                 [ActivityIndicator on];
                 
-                NSError *error = nil;
                 NSString *xmlString = [[NSString alloc] initWithContentsOfURL:
                                        [NSURL URLWithString:[NSString stringWithFormat:@"%@%@", searchURL, encodedSearchWord]] 
                                                                      encoding:NSShiftJISStringEncoding
-                                                                        error:&error];
-                
-                //NSLog(@"xmlString.length: %d", xmlString.length);
+                                                                        error:nil];
                 
                 NSString *suggestion = [RegularExpression strRegExp:xmlString 
                                                       regExpPattern:@"<suggestion data=\".{1,50}\"/><num_queries"];
@@ -414,14 +387,11 @@
                 if ( ![EmptyCheck check:suggestion] ) {
                     
                     [ShowAlert error:@"サジェストがありません。"];
-                    
                     return;
                 }
                 
                 suggestion = [ReplaceOrDelete deleteWordReturnStr:suggestion deleteWord:@"<suggestion data=\""];
                 suggestion = [ReplaceOrDelete deleteWordReturnStr:suggestion deleteWord:@"\"/><num_queries"];
-                
-                //NSLog(@"suggestion.length: %d", suggestion.length);
                 
                 dispatch_async(dispatch_get_main_queue(), ^ {
                     
@@ -431,7 +401,6 @@
                 });
 
                 [d setObject:@"Wikipedia" forKey:@"SearchEngine"];
-                
                 [self enterSearchField:nil];
             });
             
@@ -462,9 +431,7 @@
         
         //NSLog(@"not http(s) address");
         
-        BOOL canOpen = NO;
-        
-        canOpen = [[UIApplication sharedApplication] canOpenURL:[NSURL URLWithString:encodedUrl]];
+        BOOL canOpen = [[UIApplication sharedApplication] canOpenURL:[NSURL URLWithString:encodedUrl]];
         
         if ( canOpen ) {
             
@@ -609,7 +576,7 @@
             
         }else if ( buttonIndex == 3 ) {
             
-            if ( ![urlField.text isEqualToString:BLANK] ) {
+            if ( ![EmptyCheck check:urlField.text] ) {
                 
                 NSError *error = nil;
                 NSString *documentTitle = wv.pageTitle;
@@ -617,6 +584,7 @@
                 NSRegularExpression *regexp = [NSRegularExpression regularExpressionWithPattern:@".*[0-9,]+×[0-9,]+ ?(pixels|ピクセル)$" 
                                                                                         options:0 
                                                                                           error:&error];
+                
                 NSTextCheckingResult *match = [regexp firstMatchInString:documentTitle 
                                                                  options:0 
                                                                    range:NSMakeRange(0, documentTitle.length)];
@@ -757,27 +725,21 @@
         
         if ( buttonIndex == 0 ) {
         
-            if ( ![EmptyCheck check:wv.selectString] ) {
-                return;
-            }
+            if ( ![EmptyCheck check:wv.selectString] ) return;
             
             appDelegate.postText = wv.selectString;
             [self pushComposeButton:nil];
         
         }else if ( buttonIndex == 1 ) {
         
-            if ( ![EmptyCheck check:wv.selectString] ) {
-                return;
-            }
+            if ( ![EmptyCheck check:wv.selectString] ) return;
             
             appDelegate.postText = [NSString stringWithFormat:@">>%@", wv.selectString];
             [self pushComposeButton:nil];
         
         }else if ( buttonIndex == 2 ) {
         
-            if ( ![EmptyCheck check:wv.selectString] ) {
-                return;
-            }
+            if ( ![EmptyCheck check:wv.selectString] ) return;
             
             NSString *postText = BLANK;
             
@@ -811,7 +773,7 @@
             
             appDelegate.postTextType = BLANK;
         }
-        
+    
     }else if ( actionSheetNo == 8 ) {
         
         if ( [EmptyCheck check:wv.selectString] ) {
@@ -1017,17 +979,8 @@
 
 - (void)backForwordButtonVisible {
     
-    if ( wv.canGoBack ) {
-		backButton.enabled = YES;
-	}else {
-		backButton.enabled = NO;
-	}
-	
-	if ( wv.canGoForward ) {
-		forwardButton.enabled = YES;
-	}else {
-		forwardButton.enabled = NO;
-	}
+    wv.canGoBack ? ( backButton.enabled = YES ) : ( backButton.enabled = NO );
+    wv.canGoForward ? ( forwardButton.enabled = YES ) : ( forwardButton.enabled = NO );
 }
 
 /* WebViewここまで */
@@ -1143,7 +1096,9 @@
                      contents:asyncData 
                    attributes:nil];
     
-    [ShowAlert title:@"保存完了" message:@"アプリ内ドキュメントフォルダに保存されました。ファイルへはPCのiTunesからアクセス出来ます。"];
+    [ShowAlert title:@"保存完了" 
+             message:@"アプリ内ドキュメントフォルダに保存されました。ファイルへはPCのiTunesからアクセス出来ます。"];
+    
     [grayView off];
 }
 

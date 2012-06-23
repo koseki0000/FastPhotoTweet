@@ -278,7 +278,7 @@
          [d objectForKey:@"OAuthRequestTokenKey"] == nil ||
          [d objectForKey:@"OAuthRequestTokenSecret"] == nil ) {
         
-        [ShowAlert error:@"不明なエラーです。"];
+        [ShowAlert unknownError];
         
         [self enableButton];
         

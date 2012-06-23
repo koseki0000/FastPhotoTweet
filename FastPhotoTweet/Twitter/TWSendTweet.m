@@ -24,7 +24,7 @@
             ACAccount *twAccount = [TWGetAccount getTwitterAccount];
             
             //Twitterアカウントの確認
-            if (twAccount == nil) {
+            if ( twAccount == nil ) {
                 
                 //アカウントデータが空
                 [ShowAlert error:@"アカウントが取得できませんでした。"];
@@ -145,7 +145,7 @@
                      NSString *text = [TWEntities replace:result];
                      //NSLog(@"text: %@", text);
                      
-                     if (error != nil) {
+                     if ( error != nil ) {
                          
                          //NSLog(@"PostNSError: %@", error);
                          
@@ -216,12 +216,12 @@
         }else {
             
             //何らかの理由でTweet不可だった場合
-            [ShowAlert error:@"不明なエラーが発生しました。やり直してください。"];
+            [ShowAlert unknownError];
         }
         
     }@catch ( NSException *e ) {
         
-        [ShowAlert error:@"不明なエラーが発生しました。やり直してください。"];
+        [ShowAlert unknownError];
         
     }@finally {
         

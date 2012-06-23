@@ -12,5 +12,6 @@
 + (void)title:(NSString *)title message:(NSString *)message;
 + (void)noTitle:(NSString *)message;
 + (void)error:(NSString *)message;
++ (void)unknownError;
 
 @end

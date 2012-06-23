@@ -9,10 +9,11 @@
 
 @implementation AmazonAffiliateCutter
 
+//AmazonのアフィリエイトURL
+//https?://(www\\.)?amazon\\.co\\.jp/((exec/obidos|o)/ASIN|dp)/[A-Z0-9]{10}(/|\\?tag=)[-_a-zA-Z0-9]+-22/?
+//にマッチするURLを渡すとアフィリエイトを無効化したURLを返す
 + (NSString *)string:(NSString *)string {
 
-    //NSLog(@"Original: %@", string);
-    
     NSError *error = nil;
     NSString *template = nil;
     
@@ -42,8 +43,6 @@
                                               options:0
                                                 range:NSMakeRange(0, string.length)
                                          withTemplate:template];
-    
-    //NSLog(@"Affiliate Cutted: %@", string);
     
     return string;
 }

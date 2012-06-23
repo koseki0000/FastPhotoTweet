@@ -40,7 +40,7 @@
     oaConsumer = [[OAConsumer alloc] initWithKey:OAUTH_KEY 
                                           secret:OAUTH_SECRET];
     
-    if ( [D objectForKey:@"HomePageURL"] == nil || [[D objectForKey:@"HomePageURL"] isEqualToString:@""] ) {
+    if ( [D objectForKey:@"HomePageURL"] == nil || [[D objectForKey:@"HomePageURL"] isEqualToString:BLANK] ) {
         
         //NSLog(@"Set HomePageURL");
         [D setObject:@"http://www.google.co.jp/" forKey:@"HomePageURL"];
