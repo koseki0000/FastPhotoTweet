@@ -283,21 +283,38 @@
     
     //NSLog(@"loadRequestWithString");
     
-    if ( ![URLString isEqualToString:@""] && URLString != nil ) {
+    if ( ![EmptyCheck check:URLString] ) {
+        
+        [ShowAlert error:@"URLがありません。"];
+    }
+    
+    if ( [RegularExpression boolRegExp:URLString regExpPattern:@"(https?://.*|about:blank)"] ) {
+        
+        //NSLog(@"http(s) address");
         
         URL = [NSURL URLWithString:URLString];
+        URLReq = [NSURLRequest requestWithURL:URL];
+        [self loadRequest:URLReq];   
         
-        if ( ![URLString hasPrefix:@"http"] ) {
+    }else {
+        
+        //NSLog(@"not http(s) address");
+        
+        BOOL canOpen = [[UIApplication sharedApplication] canOpenURL:[NSURL URLWithString:URLString]];
+        
+        if ( canOpen ) {
             
-            //NSLog(@"URLScheme");
+            //NSLog(@"scheme");
+            
             [UIApplication sharedApplication].networkActivityIndicatorVisible = NO;
 			[[UIApplication sharedApplication] openURL:URL];
             
-		}else {
+        }else {
             
-            //NSLog(@"LoadRequest");
+            //NSLog(@"add protocol");
+            URL = [NSURL URLWithString:[NSString stringWithFormat:@"http://%@", URLString]];
             URLReq = [NSURLRequest requestWithURL:URL];
-            [self loadRequest:URLReq];   
+            [self loadRequest:URLReq];
         }
     }
 }

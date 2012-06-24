@@ -12,7 +12,7 @@
 #import "WebViewExController.h"
 
 #define TOP_BAR [NSArray arrayWithObjects:urlField, searchField, searchButton, nil]
-#define BOTTOM_BAR [NSArray arrayWithObjects:closeButton, flexibleSpace, reloadButton, flexibleSpace, backButton, flexibleSpace, forwardButton, flexibleSpace, composeButton, flexibleSpace, menuButton, nil]
+#define BOTTOM_BAR [NSArray arrayWithObjects:closeButton, flexibleSpace, reloadButton, flexibleSpace, backButton, flexibleSpace, forwardButton, flexibleSpace, composeButton, flexibleSpace, bookmarkButton, flexibleSpace, menuButton, nil]
 
 #define BLANK @""
 
@@ -29,6 +29,10 @@
 @synthesize composeButton;
 @synthesize menuButton;
 @synthesize flexibleSpace;
+@synthesize bookmarkButton;
+@synthesize bytesLabel;
+@synthesize progressBar;
+@synthesize downloadCancelButton;
 @synthesize searchButton;
 
 - (id)initWithNibName:(NSString *)nibNameOrNil bundle:(NSBundle *)nibBundleOrNil {
@@ -50,9 +54,14 @@
     
     urlList = [NSMutableArray array];
     
+    reloadButtonImage = [UIImage imageNamed:@"reload.png"];
+    stopButtonImage = [UIImage imageNamed:@"stop.png"];
+    
     openBookmark = NO;
     fullScreen = NO;
     editing = NO;
+    downloading = NO;
+    loading = NO;
     
     //アプリがアクティブになった場合の通知を受け取る設定
     NSNotificationCenter *notificationCenter = [NSNotificationCenter defaultCenter];
@@ -263,16 +272,46 @@
 
 - (IBAction)pushComposeButton:(id)sender {
  
-    appDelegate.openURL = [[wv.request URL] absoluteString];
+    if ( downloading ) {
+        
+        actionSheetNo = 12;
+        
+        UIActionSheet *sheet = [[UIActionSheet alloc]
+                                initWithTitle:@"ファイルダウンロード中です。\nダウンロードは継続されますが、閉じた場合はキャンセルが出来なくなります。"
+                                delegate:self
+                                cancelButtonTitle:@"Cancel"
+                                destructiveButtonTitle:nil
+                                otherButtonTitles:@"ブラウザを閉じる", nil];
+        [sheet showInView:self.view];    
+        
+    }else {
     
-    [self closeWebView];
+        appDelegate.openURL = [[wv.request URL] absoluteString];
+    
+        [self closeWebView];
+    }
 }
 
 - (IBAction)pushCloseButton:(id)sender {
     
-    appDelegate.openURL = [d objectForKey:@"HomePageURL"];
-    
-    [self closeWebView];
+    if ( downloading ) {
+        
+        actionSheetNo = 11;
+        
+        UIActionSheet *sheet = [[UIActionSheet alloc]
+                                initWithTitle:@"ファイルダウンロード中です。\nダウンロードは継続されますが、閉じた場合はキャンセルが出来なくなります。"
+                                delegate:self
+                                cancelButtonTitle:@"Cancel"
+                                destructiveButtonTitle:nil
+                                otherButtonTitles:@"ブラウザを閉じる", nil];
+        [sheet showInView:self.view];    
+        
+    }else {
+     
+        appDelegate.openURL = [d objectForKey:@"HomePageURL"];
+        
+        [self closeWebView];
+    }
 }
 
 - (void)closeWebView {
@@ -313,10 +352,18 @@
                             cancelButtonTitle:@"Cancel"
                             destructiveButtonTitle:nil
                             otherButtonTitles:@"開いているページを投稿", @"選択文字を引用して投稿", 
-                                              @"選択文字で検索", @"保存", 
-                                              @"ブックマークを開く", @"ブックマークに登録",
+                                              @"選択文字で検索", @"保存", @"ブックマークに登録",
                                               @"Safariで開く", @"ホームページを変更", @"FastEverで開く", nil];
     [sheet showInView:self.view];
+}
+
+- (IBAction)pushBookmarkButton:(id)sender {
+    
+    openBookmark = YES;
+    
+    BookmarkViewController *dialog = [[BookmarkViewController alloc] init];
+    dialog.modalTransitionStyle = UIModalTransitionStyleCoverVertical;
+    [self presentModalViewController:dialog animated:YES];
 }
 
 - (IBAction)enterSearchField:(id)sender {
@@ -377,11 +424,11 @@
                 [ActivityIndicator on];
                 
                 NSString *xmlString = [[NSString alloc] initWithContentsOfURL:
-                                       [NSURL URLWithString:[NSString stringWithFormat:@"%@%@", searchURL, encodedSearchWord]] 
+                                       [NSURL URLWithString:[NSString stringWithFormat:@"%@%@", searchURL, encodedSearchWord]]
                                                                      encoding:NSShiftJISStringEncoding
                                                                         error:nil];
                 
-                NSString *suggestion = [RegularExpression strRegExp:xmlString 
+                NSString *suggestion = [RegularExpression strRegExp:xmlString
                                                       regExpPattern:@"<suggestion data=\".{1,50}\"/><num_queries"];
                 
                 if ( ![EmptyCheck check:suggestion] ) {
@@ -420,32 +467,7 @@
     }
     
     NSString *encodedUrl = [DeleteWhiteSpace string:urlField.text];
-    
-    if ( [RegularExpression boolRegExp:encodedUrl regExpPattern:@"https?://.*"] ) {
-        
-        //NSLog(@"http(s) address");
-
-        [wv loadRequestWithString:encodedUrl];
-        
-    }else {
-        
-        //NSLog(@"not http(s) address");
-        
-        BOOL canOpen = [[UIApplication sharedApplication] canOpenURL:[NSURL URLWithString:encodedUrl]];
-        
-        if ( canOpen ) {
-            
-            //NSLog(@"scheme");
-            
-            [[UIApplication sharedApplication] openURL:[NSURL URLWithString:encodedUrl]];
-            
-        }else {
-            
-            //NSLog(@"add protocol");
-            
-            [wv loadRequestWithString:[NSString stringWithFormat:@"http://%@", encodedUrl]];
-        }
-    }
+    [wv loadRequestWithString:encodedUrl];
 }
 
 - (IBAction)onUrlField: (id)sender {
@@ -576,7 +598,7 @@
             
         }else if ( buttonIndex == 3 ) {
             
-            if ( ![EmptyCheck check:urlField.text] ) {
+            if ( [EmptyCheck check:urlField.text] ) {
                 
                 NSError *error = nil;
                 NSString *documentTitle = wv.pageTitle;
@@ -615,14 +637,6 @@
             
         }else if ( buttonIndex == 4 ) {
             
-            openBookmark = YES;
-            
-            BookmarkViewController *dialog = [[BookmarkViewController alloc] init];
-            dialog.modalTransitionStyle = UIModalTransitionStyleCoverVertical;
-            [self presentModalViewController:dialog animated:YES];
-            
-        }else if ( buttonIndex == 5 ) {
-            
             if ( ![EmptyCheck check:[d arrayForKey:@"Bookmark"]] ) {
                 
                 [d setObject:[NSArray array] forKey:@"Bookmark"];
@@ -654,12 +668,12 @@
                 [ShowAlert error:@"登録済みのURLです。"];
             }
             
-        }else if ( buttonIndex == 6 ) {
+        }else if ( buttonIndex == 5 ) {
             
             //Safariで開く
             [[UIApplication sharedApplication] openURL:[NSURL URLWithString:accessURL]];
         
-        }else if ( buttonIndex == 7 ) {
+        }else if ( buttonIndex == 6 ) {
             
             alertTextNo = 1;
             
@@ -678,7 +692,7 @@
             [alert show];
             [alertText becomeFirstResponder];
             
-        }else if ( buttonIndex == 8 ) {
+        }else if ( buttonIndex == 7 ) {
             
             if ( [[UIApplication sharedApplication] canOpenURL:[NSURL URLWithString:@"fastever://"]] ) {
                 
@@ -836,6 +850,24 @@
             
             [grayView off];
         }
+    
+    }else if ( actionSheetNo == 11 ) {
+        
+        if ( buttonIndex == 0 ) {
+            
+            appDelegate.openURL = [d objectForKey:@"HomePageURL"];
+            
+            [self closeWebView];
+        }
+        
+    }else if ( actionSheetNo == 12 ) {
+        
+        if ( buttonIndex == 0 ) {
+            
+            appDelegate.openURL = [[wv.request URL] absoluteString];
+            
+            [self closeWebView];
+        }
     }
 }
 
@@ -940,8 +972,10 @@
         }
     }
     
+    loading = YES;
     urlField.text = [ProtocolCutter url:[[request URL] absoluteString]];
     [ActivityIndicator visible:YES];
+    [self updateWebBrowser];
     
     return YES;
 }
@@ -950,6 +984,7 @@
     
     accessURL = [[webView.request URL] absoluteString];
     
+    loading = NO;
     [ActivityIndicator visible:NO];
     [self updateWebBrowser];
 }
@@ -959,12 +994,13 @@
 
 - (void)webView:(UIWebView *)webView didFailLoadWithError:(NSError *)error {
     
-    if ( error.code != -999 && error.code != 102 ) {
+    if ( error.code != -999 && error.code != 102 && error.code != 204) {
      
         //NSLog(@"%@", error.description);
         
         [ShowAlert error:error.localizedDescription];
         
+        loading = NO;
         [ActivityIndicator visible:NO];
         [self updateWebBrowser];
     }
@@ -975,6 +1011,21 @@
     urlField.text = [ProtocolCutter url:[[wv.request URL] absoluteString]];
 
     [self backForwordButtonVisible];
+    [self reloadStopButton];
+}
+
+- (void)reloadStopButton {
+    
+    if ( loading ) {
+        
+        NSLog(@"wv.loading: YES");
+        reloadButton.image = stopButtonImage;
+        
+    }else {
+        
+        NSLog(@"wv.loading: NO");
+        reloadButton.image = reloadButtonImage;
+    }
 }
 
 - (void)backForwordButtonVisible {
@@ -1049,16 +1100,28 @@
 - (void)requestStart:(NSString *)downloadUrl {
     
     //NSLog(@"requestStart: %@", downloadUrl);
-    
+
     //キャッシュの削除
     NSURLCache *cache = [NSURLCache sharedURLCache];
     [cache removeAllCachedResponses];
     
+    //ダウンロード進捗表示用のラベルとバーを表示
+    bytesLabel.hidden = NO;
+    progressBar.hidden = NO;
+    downloadCancelButton.hidden = NO;
+
+    //初期化
+    downloading = YES;
+    bytesLabel.text = @"0 / 0 bytes";
+    totalbytes = 0.0;
+    loadedbytes = 0.0;
     asyncConnection = nil;
     asyncData = nil;
     
+    //ファイル名を生成
     saveFileName = [downloadUrl lastPathComponent]; 
     
+    //ダウンロードリクエスト開始
     NSURLRequest *request = [NSURLRequest requestWithURL:[NSURL URLWithString:downloadUrl]];
     asyncConnection = [[NSURLConnection alloc] initWithRequest:request 
                                                       delegate:self];
@@ -1068,14 +1131,43 @@
     
     //NSLog(@"didReceiveResponse: %lldbytes", [response expectedContentLength]);
     
+    //データを初期化
 	asyncData = [[NSMutableData alloc] initWithData:0];
+    
+    //総ファイルサイズをセット
+    totalbytes = [response expectedContentLength];
 }
 
 - (void)connection:(NSURLConnection *)connection didReceiveData:(NSData *)data{
 
     //NSLog(@"didReceiveData");
     
+    //受信したデータを追加
 	[asyncData appendData:data];
+    
+    //受信したデータサイズを追加
+    loadedbytes += [data length];
+    
+    dispatch_async(dispatch_get_main_queue(), ^ {
+        
+        //UIの更新
+        [progressBar setProgress:(loadedbytes / totalbytes)];
+        bytesLabel.text = [NSString stringWithFormat:@"%.0f / %.0f bytes", loadedbytes, totalbytes];
+    });
+}
+
+- (IBAction)pushDownloadCancelButton:(id)sender {
+    
+    [asyncConnection cancel];
+
+    [grayView off];
+    
+    downloading = NO;
+    bytesLabel.hidden = YES;
+    progressBar.hidden = YES;
+    downloadCancelButton.hidden = YES;
+    
+    [ShowAlert title:@"ダウンロード" message:@"中断しました。"];
 }
 
 - (void)connection:(NSURLConnection *)connection didFailWithError:(NSError *)error {
@@ -1084,12 +1176,18 @@
     
     [ShowAlert error:@"ダウンロードに失敗しました。"];
     [grayView off];
+    
+    downloading = NO;
+    bytesLabel.hidden = YES;
+    progressBar.hidden = YES;
+    downloadCancelButton.hidden = YES;
 }
 
 - (void)connectionDidFinishLoading:(NSURLConnection *)connection {
     
     //NSLog(@"connectionDidFinishLoading");
     
+    //Documentフォルダにデータを保存
     NSFileManager *manager = [NSFileManager defaultManager];
     NSString *savePath = [[NSHomeDirectory() stringByAppendingPathComponent:@"Documents"] stringByAppendingPathComponent:saveFileName];
     [manager createFileAtPath:savePath 
@@ -1100,6 +1198,11 @@
              message:@"アプリ内ドキュメントフォルダに保存されました。ファイルへはPCのiTunesからアクセス出来ます。"];
     
     [grayView off];
+    
+    downloading = NO;
+    bytesLabel.hidden = YES;
+    progressBar.hidden = YES;
+    downloadCancelButton.hidden = YES;
 }
 
 /* 非同期通信ダウンロードここまで */
@@ -1142,6 +1245,10 @@
     [self setSearchField:nil];
     [self setComposeButton:nil];
     [self setWv:nil];
+    [self setBytesLabel:nil];
+    [self setProgressBar:nil];
+    [self setDownloadCancelButton:nil];
+    [self setBookmarkButton:nil];
     [super viewDidUnload];
 }
 

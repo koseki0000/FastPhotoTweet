@@ -20,6 +20,8 @@
 
     UIAlertView *alert;
     UITextField *alertText;
+    UIImage *reloadButtonImage;
+    UIImage *stopButtonImage;
     
     NSUserDefaults *d;
     NSString *accessURL;
@@ -28,12 +30,17 @@
     NSMutableData *asyncData;
     NSMutableArray *urlList;
     
+    float totalbytes;
+    float loadedbytes;
+    
     int actionSheetNo;
     int alertTextNo;
     
     BOOL openBookmark;
     BOOL fullScreen;
     BOOL editing;
+    BOOL downloading;
+    BOOL loading;
 }
 
 @property (retain, nonatomic) IBOutlet WebViewEx *wv;
@@ -50,8 +57,13 @@
 @property (retain, nonatomic) IBOutlet UIBarButtonItem *backButton;
 @property (retain, nonatomic) IBOutlet UIBarButtonItem *forwardButton;
 @property (retain, nonatomic) IBOutlet UIBarButtonItem *menuButton;
+@property (retain, nonatomic) IBOutlet UIBarButtonItem *bookmarkButton;
 @property (retain, nonatomic) IBOutlet UIBarButtonItem *flexibleSpace;
 
+
+@property (retain, nonatomic) IBOutlet UILabel *bytesLabel;
+@property (retain, nonatomic) IBOutlet UIProgressView *progressBar;
+@property (retain, nonatomic) IBOutlet UIButton *downloadCancelButton;
 
 - (IBAction)pushSearchButton:(id)sender;
 - (IBAction)pushCloseButton:(id)sender;
@@ -60,6 +72,8 @@
 - (IBAction)pushForwardButton:(id)sender;
 - (IBAction)pushComposeButton:(id)sender;
 - (IBAction)pushMenuButton:(id)sender;
+- (IBAction)pushDownloadCancelButton:(id)sender;
+- (IBAction)pushBookmarkButton:(id)sender;
 
 - (IBAction)enterSearchField:(id)sender;
 - (IBAction)enterURLField:(id)sender;
@@ -78,6 +92,7 @@
 - (void)setSearchEngine;
 - (void)updateWebBrowser;
 - (void)backForwordButtonVisible;
+- (void)reloadStopButton;
 - (void)closeWebView;
 - (void)rotateView:(int)mode;
 - (void)saveImage;
