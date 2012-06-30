@@ -427,11 +427,8 @@
     }else {
         
         dispatch_queue_t globalQueue = dispatch_get_global_queue( DISPATCH_QUEUE_PRIORITY_DEFAULT, 0 );
-        
         dispatch_async( globalQueue, ^{
-            
             dispatch_queue_t syncQueue = dispatch_queue_create( "info.ktysne.fastphototweet", NULL );
-            
             dispatch_sync( syncQueue, ^{
                 
                 [ActivityIndicator on];

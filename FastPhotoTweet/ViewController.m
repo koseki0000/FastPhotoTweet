@@ -20,7 +20,7 @@
 #define BLANK @""
 
 #define FIREFOX_USERAGENT @"Mozilla/5.0 (Macintosh; Intel Mac OS X 10.7; rv:13.0) Gecko/20100101 Firefox/13.0.1"
-#define IPAD_USERAFENT @"Mozilla/5.0 (iPad; CPU OS 5_1 like Mac OS X) AppleWebKit/534.46 (KHTML, like Gecko) Version/5.1 Mobile/9B176 Safari/7534.48.3"
+#define IPAD_USERAFENT @"Mozilla/5.0 (iPad; CPU OS 5_1_1 like Mac OS X) AppleWebKit/534.46 (KHTML, like Gecko) Version/5.1 Mobile/9B176 Safari/7534.48.3"
 #define IPHONE_USERAGENT @"Mozilla/5.0 (iPhone; CPU iPhone OS 5_1_1 like Mac OS X) AppleWebKit/534.46 (KHTML, like Gecko) Mobile/9B206"
 
 @implementation ViewController
@@ -128,10 +128,6 @@
                      if ( twitterAccounts.count > 0 ) {
                          
                          twAccount = [[twitterAccounts objectAtIndex:[d integerForKey:@"UseAccount"]] retain];
-                         
-                         //[ShowAlert title:@"Success" message:[NSString stringWithFormat:@"Account Name: %@", twAccount.username]];
-                         
-                         //NSLog(@"twAccount: %@", twAccount);
                          
                          //入力可能状態にする
                          [postText becomeFirstResponder];
@@ -414,7 +410,6 @@
                 //入力欄と画像プレビューを空にする
                 postText.text = BLANK;
                 imagePreview.image = nil;
-                nowPlayingMode = NO;
             }
             
             //とは検索機能ONかつ条件にマッチ
@@ -825,6 +820,7 @@
             
             //失敗
             [self requestFailed:nil];
+            
             return;
         }
         
@@ -845,6 +841,11 @@
         
         //処理中表示をオフ
         [grayView off];
+        
+        if ( nowPlayingMode && [d boolForKey:@"NowPlayingFastPost"] ) {
+            
+            [self pushPostButton:nil];
+        }
         
     }@catch ( NSException *e ) {
         
@@ -1453,94 +1454,113 @@
     
     @try {
         
-        NSString *pboardString = nil;
-        NSError *error = nil;
-        
-        NSDataDetector *linkDetector = [NSDataDetector dataDetectorWithTypes:NSTextCheckingTypeLink 
-                                                                       error:&error];
-        
-        NSArray *matches = [linkDetector matchesInString:pboard.string 
-                                                 options:0 
-                                                   range:NSMakeRange(0, [pboard.string  length])];
-        
-        if ( !error ) {
-            
-            if ( [EmptyCheck check:matches] ) {
+        dispatch_queue_t globalQueue = dispatch_get_global_queue( DISPATCH_QUEUE_PRIORITY_DEFAULT, 0 );
+        dispatch_async( globalQueue, ^{
+            dispatch_queue_t syncQueue = dispatch_queue_create( "info.ktysne.fastphototweet", NULL );
+            dispatch_sync( syncQueue, ^{
                 
-                NSTextCheckingResult *match = [matches objectAtIndex:0];
-                pboardString = [pboard.string substringWithRange:match.range];
-            }
-            
-        }else {
-            
-            [ShowAlert error:[NSString stringWithFormat:@"CODE: 01\n%@", error.localizedDescription]];
-            return;
-        }
-        
-        if ( pBoardType != 0 || pboardString == nil ) {
-            
-            [ShowAlert error:@"CODE: 02\nペーストボード内にURLがありません。"];
-            return;
-        }
-        
-        NSURLRequest *request = [NSURLRequest requestWithURL:[NSURL URLWithString:pboardString]];
-        
-        NSData *response = [NSURLConnection sendSynchronousRequest:request 
-                                                 returningResponse:nil 
-                                                             error:&error];
-        
-        int encodingList[] = {
-            
-            NSUTF8StringEncoding,			// UTF-8
-            NSShiftJISStringEncoding,		// Shift_JIS
-            NSJapaneseEUCStringEncoding,	// EUC-JP
-            NSISO2022JPStringEncoding,		// JIS
-            NSUnicodeStringEncoding,		// Unicode
-            NSASCIIStringEncoding			// ASCII
-        };
-        
-        NSString *dataStr = nil;
-        int max = sizeof( encodingList ) / sizeof( encodingList[0] );
-        
-        for ( int i = 0; i < max; i++ ) {
-            
-            //NSLog(@"encoding: %d", encodingList[i]);
-            
-            dataStr = [[[NSString alloc] initWithData:response encoding:encodingList[i]] autorelease];
-            
-            if ( dataStr != nil ) {
+                NSString *pboardString = nil;
+                NSError *error = nil;
                 
-                break;
-            }
-        }
-        
-        //NSLog(@"dataStr.length: %d", dataStr.length);
-        
-        if ( error ) {
-            
-            [ShowAlert error:[NSString stringWithFormat:@"CODE: 03\n%@", error.localizedDescription]];
-            return;
-        }
-        
-        NSMutableString *title = [RegularExpression mStrRegExp:dataStr regExpPattern:@"<title>.+</title>"];
-        title = [ReplaceOrDelete deleteWordReturnMStr:title deleteWord:@"<title>"];
-        title = [ReplaceOrDelete deleteWordReturnMStr:title deleteWord:@"</title>"];
-        
-        if ( ![EmptyCheck check:title] ) {
-            
-            title = (NSMutableString *)[pboardString lastPathComponent];
-            
-            if ( ![EmptyCheck check:title] ) {
-            
-                [ShowAlert error:@"CODE: 04\n正常にタイトルが取得できませんでした。"];
-                return;
-            }
-        }
-        
-        NSString *shareString = [NSString stringWithFormat:@"\"%@\" %@", title, pboardString];
-        
-        postText.text = [NSString stringWithFormat:@"%@ ", [DeleteWhiteSpace string:[NSString stringWithFormat:@"%@ %@", postText.text, shareString]]];
-        [postText becomeFirstResponder];
+                NSDataDetector *linkDetector = [NSDataDetector dataDetectorWithTypes:NSTextCheckingTypeLink 
+                                                                               error:&error];
+                
+                NSArray *matches = [linkDetector matchesInString:pboard.string 
+                                                         options:0 
+                                                           range:NSMakeRange(0, [pboard.string  length])];
+                
+                if ( !error ) {
+                    
+                    if ( [EmptyCheck check:matches] ) {
+                        
+                        NSTextCheckingResult *match = [matches objectAtIndex:0];
+                        pboardString = [pboard.string substringWithRange:match.range];
+                    }
+                    
+                }else {
+                    
+                    [ShowAlert error:[NSString stringWithFormat:@"CODE: 01\n%@", error.localizedDescription]];
+                    [ActivityIndicator visible:NO];
+                    
+                    return;
+                }
+                
+                if ( pBoardType != 0 || pboardString == nil ) {
+                    
+                    [ShowAlert error:@"CODE: 02\nペーストボード内にURLがありません。"];
+                    [ActivityIndicator visible:NO];
+                    
+                    return;
+                }
+                
+                NSURLRequest *request = [NSURLRequest requestWithURL:[NSURL URLWithString:pboardString]];
+                
+                NSData *response = [NSURLConnection sendSynchronousRequest:request 
+                                                         returningResponse:nil 
+                                                                     error:&error];
+                
+                int encodingList[] = {
+                    
+                    NSUTF8StringEncoding,			// UTF-8
+                    NSShiftJISStringEncoding,		// Shift_JIS
+                    NSJapaneseEUCStringEncoding,	// EUC-JP
+                    NSISO2022JPStringEncoding,		// JIS
+                    NSUnicodeStringEncoding,		// Unicode
+                    NSASCIIStringEncoding			// ASCII
+                };
+                
+                NSString *dataStr = nil;
+                int max = sizeof( encodingList ) / sizeof( encodingList[0] );
+                
+                for ( int i = 0; i < max; i++ ) {
+                    
+                    //NSLog(@"encoding: %d", encodingList[i]);
+                    
+                    dataStr = [[[NSString alloc] initWithData:response encoding:encodingList[i]] autorelease];
+                    
+                    if ( dataStr != nil ) {
+                        
+                        break;
+                    }
+                }
+                
+                //NSLog(@"dataStr.length: %d", dataStr.length);
+                
+                if ( error ) {
+                    
+                    [ShowAlert error:[NSString stringWithFormat:@"CODE: 03\n%@", error.localizedDescription]];
+                    [ActivityIndicator visible:NO];
+                    
+                    return;
+                }
+                
+                NSMutableString *title = [RegularExpression mStrRegExp:dataStr regExpPattern:@"<title>.+</title>"];
+                title = [ReplaceOrDelete deleteWordReturnMStr:title deleteWord:@"<title>"];
+                title = [ReplaceOrDelete deleteWordReturnMStr:title deleteWord:@"</title>"];
+                
+                if ( ![EmptyCheck check:title] ) {
+                    
+                    title = (NSMutableString *)[pboardString lastPathComponent];
+                    
+                    if ( ![EmptyCheck check:title] ) {
+                        
+                        [ShowAlert error:@"CODE: 04\n正常にタイトルが取得できませんでした。"];
+                        [ActivityIndicator visible:NO];
+                        
+                        return;
+                    }
+                }
+                
+                NSString *shareString = [NSString stringWithFormat:@"\"%@\" %@", title, pboardString];
+                
+                dispatch_async(dispatch_get_main_queue(), ^ {
+                    
+                    postText.text = [NSString stringWithFormat:@"%@ ", [DeleteWhiteSpace string:[NSString stringWithFormat:@"%@ %@", postText.text, shareString]]];
+                    [postText becomeFirstResponder];
+                    [ActivityIndicator visible:NO];
+                });
+			});            
+        });
         
     }@catch ( NSException *e ) {
         
@@ -1736,7 +1756,17 @@
     
     //NSLog(@"Callback Start");
     
-    if ( ![d boolForKey:@"CallBack"] ) {
+    if ( ![d boolForKey:@"CallBack"] && ![d boolForKey:@"NowPlayingCallBack"] ) {
+        
+        return;
+        
+    }else if ( nowPlayingMode ) {
+        
+        nowPlayingMode = NO;
+        
+        if ( ![d boolForKey:@"NowPlayingCallBack"] ) return;
+        
+    }else if ( ![d boolForKey:@"NowPlayingCallBack"] ) {
         
         return;
     }
