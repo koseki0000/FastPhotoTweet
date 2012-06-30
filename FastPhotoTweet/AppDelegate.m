@@ -31,6 +31,7 @@
 @synthesize fastGoogleMode;
 @synthesize webPageShareMode;
 @synthesize launchMode;
+@synthesize pcUaMode;
 
 - (BOOL)application:(UIApplication *)application didFinishLaunchingWithOptions:(NSDictionary *)launchOptions {
     
@@ -60,6 +61,7 @@
     isBrowserOpen = [NSNumber numberWithInt:0];
     fastGoogleMode = [NSNumber numberWithInt:0];
     webPageShareMode = [NSNumber numberWithInt:0];
+    pcUaMode = [NSNumber numberWithInt:0];
     
     if ( launchOptions == NULL ) {
         launchMode = [NSNumber numberWithInt:0];

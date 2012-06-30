@@ -364,7 +364,8 @@
                             destructiveButtonTitle:nil
                             otherButtonTitles:@"開いているページを投稿", @"選択文字を引用して投稿", 
                                               @"選択文字で検索", @"保存", @"ブックマークに登録",
-                                              @"Safariで開く", @"ホームページを変更", @"FastEverで開く", nil];
+                                              @"Safariで開く", @"ホームページを変更", @"FastEverで開く", 
+                                              @"PC版UAで開き直す", nil];
     [sheet showInView:self.view];
 }
 
@@ -724,6 +725,13 @@
                 
                 [ShowAlert error:@"FastEverをインストール後使用してください。"];
             }
+        
+        //PC版UAでで開き直す
+        }else if ( buttonIndex == 8 ) {
+            
+            appDelegate.pcUaMode = [NSNumber numberWithInt:1];
+            [d setObject:@"FireFox" forKey:@"UserAgent"];
+            [self pushComposeButton:nil];
         }
         
     }else if ( actionSheetNo == 2 || actionSheetNo == 3 || actionSheetNo == 4 || actionSheetNo == 5 || actionSheetNo == 6 ) {

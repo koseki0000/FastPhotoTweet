@@ -307,7 +307,7 @@
     //NSLog(@"showInfomation");
     
     BOOL check = YES;
-    NSMutableDictionary *information = [NSMutableDictionary dictionary];
+    NSMutableDictionary *information = nil;
     
     if ( ![EmptyCheck check:[d dictionaryForKey:@"Information"]] ) {
         
@@ -1903,6 +1903,14 @@
     //NSLog(@"viewDidAppear");
     
     @try {
+        
+        if ( [appDelegate.pcUaMode intValue] == 1 ) {
+            
+            appDelegate.pcUaMode = [NSNumber numberWithInt:0];
+            [self pushBrowserButton:nil];
+            
+            return;
+        }
         
         if ( [EmptyCheck check:appDelegate.postText] ) {
             

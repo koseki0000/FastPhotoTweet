@@ -26,6 +26,7 @@
     NSNumber *fastGoogleMode;
     NSNumber *webPageShareMode;
     NSNumber *launchMode;
+    NSNumber *pcUaMode;
 }
 
 @property (strong, nonatomic) UIWindow *window;
@@ -42,6 +43,7 @@
 @property (nonatomic, retain) NSNumber *fastGoogleMode;
 @property (nonatomic, retain) NSNumber *webPageShareMode;
 @property (nonatomic, retain) NSNumber *launchMode;
+@property (nonatomic, retain) NSNumber *pcUaMode;
 
 - (BOOL)ios5Check;
 
