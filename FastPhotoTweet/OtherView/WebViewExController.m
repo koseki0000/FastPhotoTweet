@@ -329,7 +329,18 @@
 
 - (IBAction)pushReloadButton:(id)sender {
     
-    if ( [self reachability] ) [wv loadRequestWithString:accessURL];
+    if ( [self reachability] ) {
+        
+        if ( loading ) {
+            
+            [wv stopLoading];
+            [ActivityIndicator off];
+            
+        }else {
+            
+            [wv loadRequestWithString:accessURL];
+        }
+    }
 }
 
 - (IBAction)pushBackButton:(id)sender {
@@ -1016,16 +1027,7 @@
 
 - (void)reloadStopButton {
     
-    if ( loading ) {
-        
-        NSLog(@"wv.loading: YES");
-        reloadButton.image = stopButtonImage;
-        
-    }else {
-        
-        NSLog(@"wv.loading: NO");
-        reloadButton.image = reloadButtonImage;
-    }
+    loading ? ( reloadButton.image = stopButtonImage ) : ( reloadButton.image = reloadButtonImage );
 }
 
 - (void)backForwordButtonVisible {
@@ -1160,14 +1162,9 @@
     
     [asyncConnection cancel];
 
-    [grayView off];
+    [ShowAlert title:saveFileName message:@"ダウンロードを中断しました。"];
     
-    downloading = NO;
-    bytesLabel.hidden = YES;
-    progressBar.hidden = YES;
-    downloadCancelButton.hidden = YES;
-    
-    [ShowAlert title:@"ダウンロード" message:@"中断しました。"];
+    [self endDownload];
 }
 
 - (void)connection:(NSURLConnection *)connection didFailWithError:(NSError *)error {
@@ -1175,12 +1172,8 @@
     //NSLog(@"didFailWithError");
     
     [ShowAlert error:@"ダウンロードに失敗しました。"];
-    [grayView off];
     
-    downloading = NO;
-    bytesLabel.hidden = YES;
-    progressBar.hidden = YES;
-    downloadCancelButton.hidden = YES;
+    [self endDownload];
 }
 
 - (void)connectionDidFinishLoading:(NSURLConnection *)connection {
@@ -1197,8 +1190,14 @@
     [ShowAlert title:@"保存完了" 
              message:@"アプリ内ドキュメントフォルダに保存されました。ファイルへはPCのiTunesからアクセス出来ます。"];
     
-    [grayView off];
+    [self endDownload];
+}
+
+- (void)endDownload {
     
+    [grayView off];
+    asyncData = nil;
+    asyncConnection = nil;
     downloading = NO;
     bytesLabel.hidden = YES;
     progressBar.hidden = YES;

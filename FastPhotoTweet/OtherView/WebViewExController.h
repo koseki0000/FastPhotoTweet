@@ -98,5 +98,6 @@
 - (void)saveImage;
 - (void)requestStart:(NSString *)downloadUrl;
 - (void)selectDownloadUrl;
+- (void)endDownload;
 
 @end

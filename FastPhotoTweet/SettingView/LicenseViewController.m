@@ -30,7 +30,7 @@
     NSString *buildNum = [[[NSBundle mainBundle] infoDictionary] objectForKey:@"CFBundleShortVersionString"];
     NSString *bundleVersion = [[[NSBundle mainBundle] infoDictionary] objectForKey:@"CFBundleVersion"];
     
-    textView.text = [NSString stringWithFormat:@"FastPhotoTweet v%@, build%@\n\n%@",buildNum , bundleVersion,textView.text];
+    textView.text = [NSString stringWithFormat:@"FastPhotoTweet v%@, build-%@\n\n%@",buildNum , bundleVersion,textView.text];
 }
 
 - (IBAction)pushCloseButton:(id)sender {

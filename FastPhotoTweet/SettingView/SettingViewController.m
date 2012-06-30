@@ -14,7 +14,7 @@
 //セクション1の項目数 (投稿関連設定)
 #define SECTION_1 12
 //セクション2の項目数 (その他の設定)
-#define SECTION_2 3
+#define SECTION_2 4
 //セクション3の項目数 (ライセンス)
 #define SECTION_3 1
 
@@ -46,8 +46,9 @@
 #define NAME_21 @"アプリがアクティブになった際入力可能状態にする"
 #define NAME_22 @"ブラウザの検索ワードを毎回リセット"
 #define NAME_23 @"ブラウザを開く時ペーストボード内のURLを開く"
+#define NAME_24 @"ブラウザユーザーエージェント"
 //ライセンス
-#define NAME_24 @"ライセンス"
+#define NAME_25 @"ライセンス"
 
 #define BLANK @""
 
@@ -78,7 +79,7 @@
                                                         NAME_12, NAME_13, NAME_14, NAME_15, 
                                                         NAME_16, NAME_17, NAME_18, NAME_19, 
                                                         NAME_20, NAME_21, NAME_22, NAME_23,
-                                                        NAME_24, nil];
+                                                        NAME_24, NAME_25, nil];
         
         [settingArray retain];
     }
@@ -421,9 +422,24 @@
             
             result = @"OFF";
         }
-        
+    
     }else if ( settingState == 24 ) {
-        //空のまま
+
+        if ( [[d objectForKey:@"UserAgent"] isEqualToString:@"FireFox"] ) {
+            
+            result = @"FireFox";
+            
+        }else if ( [[d objectForKey:@"UserAgent"] isEqualToString:@"iPad"] ) {
+        
+            result = @"iPad";
+            
+        }else {
+            
+            result = @"iPhone";
+        }
+        
+    }else if ( settingState == 25 ) {
+        
     }
         
     return result;
@@ -897,6 +913,18 @@
                      otherButtonTitles:@"ON", @"OFF", nil];
             [sheet autorelease];
             [sheet showInView:self.view];
+        
+        }else if ( indexPath.row == 3 ) {
+            
+            //ブラウザユーザーエージェント
+            sheet = [[UIActionSheet alloc]
+                     initWithTitle:NAME_24
+                     delegate:self
+                     cancelButtonTitle:@"Cancel"
+                     destructiveButtonTitle:nil
+                     otherButtonTitles:@"FireFox", @"iPad", @"iPhone", nil];
+            [sheet autorelease];
+            [sheet showInView:self.view];
         }
         
     }else if ( indexPath.section == 3 ) {
@@ -1254,6 +1282,15 @@
         }else if ( buttonIndex == 1 ) {
             
             [d setBool:NO forKey:@"OpenPasteBoardURL"];
+        }
+        
+    }else if ( actionSheetNo == 24 ) {
+        if ( buttonIndex == 0 ) {
+            [d setObject:@"FireFox" forKey:@"UserAgent"];
+        }else if ( buttonIndex == 1 ) {
+            [d setObject:@"iPad" forKey:@"UserAgent"];
+        }else if ( buttonIndex == 2 ) {
+            [d setObject:@"iPhone" forKey:@"UserAgent"];
         }
         
     }else if ( actionSheetNo == 100 ) {

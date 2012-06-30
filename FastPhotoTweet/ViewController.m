@@ -19,6 +19,10 @@
 
 #define BLANK @""
 
+#define FIREFOX_USERAGENT @"Mozilla/5.0 (Macintosh; Intel Mac OS X 10.7; rv:13.0) Gecko/20100101 Firefox/13.0.1"
+#define IPAD_USERAFENT @"Mozilla/5.0 (iPad; CPU OS 5_1 like Mac OS X) AppleWebKit/534.46 (KHTML, like Gecko) Version/5.1 Mobile/9B176 Safari/7534.48.3"
+#define IPHONE_USERAGENT @"Mozilla/5.0 (iPhone; CPU iPhone OS 5_1_1 like Mac OS X) AppleWebKit/534.46 (KHTML, like Gecko) Mobile/9B206"
+
 @implementation ViewController
 @synthesize resendButton;
 @synthesize sv;
@@ -221,6 +225,11 @@
     //Webページ投稿書式が設定されていない場合はデフォルトの書式を設定
     if ( ![EmptyCheck check:[d objectForKey:@"WebPagePostFormat"]] ) {
         [d setObject:@" \"[title]\" [url] " forKey:@"WebPagePostFormat"];
+    }
+    
+    //UserAgentが設定されていない場合はiPhoneを設定
+    if ( ![EmptyCheck check:[d objectForKey:@"UserAgent"]] ) {
+        [d setObject:@"iPhone" forKey:@"UserAgent"];
     }
     
     //設定を即反映
@@ -519,6 +528,21 @@
 }
 
 - (IBAction)pushBrowserButton:(id)sender {
+    
+    NSString *useragent = IPHONE_USERAGENT;
+    
+    if ( [[d objectForKey:@"UserAgent"] isEqualToString:@"FireFox"] ) {
+    
+        useragent = FIREFOX_USERAGENT;
+        
+    }else if ( [[d objectForKey:@"UserAgent"] isEqualToString:@"iPad"] ) {
+        
+        useragent = IPAD_USERAFENT;
+    }
+    
+    NSDictionary *dictionary = [[NSDictionary alloc] initWithObjectsAndKeys:useragent, @"UserAgent", nil];
+    [[NSUserDefaults standardUserDefaults] registerDefaults:dictionary];
+    [dictionary release];
     
     webBrowserMode = YES;
     
