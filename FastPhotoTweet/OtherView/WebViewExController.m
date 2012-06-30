@@ -13,6 +13,7 @@
 
 #define TOP_BAR [NSArray arrayWithObjects:urlField, searchField, searchButton, nil]
 #define BOTTOM_BAR [NSArray arrayWithObjects:closeButton, flexibleSpace, reloadButton, flexibleSpace, backButton, flexibleSpace, forwardButton, flexibleSpace, composeButton, flexibleSpace, bookmarkButton, flexibleSpace, menuButton, nil]
+#define EXTENSIONS [NSArray arrayWithObjects:@"zip", @"mp4", @"m4a", @"rar", @"dmg", @"deb", nil]
 
 #define BLANK @""
 
@@ -887,6 +888,15 @@
             
             [self closeWebView];
         }
+    
+    }else if ( actionSheetNo == 13 ) {
+        
+        [ActivityIndicator off];
+        
+        if ( buttonIndex == 0 ) {
+            
+            [self requestStart:downloadUrl];
+        }
     }
 }
 
@@ -959,8 +969,6 @@
 - (BOOL)webView:(UIWebView *)webView shouldStartLoadWithRequest:(NSURLRequest *)request 
  navigationType:(UIWebViewNavigationType)navigationType {
     
-    //NSLog(@"URL: %@", [[request URL] absoluteString]);
-    
     accessURL = [[request URL] absoluteString];
     
     //フルサイズ取得が有効
@@ -991,9 +999,18 @@
         }
     }
     
+    [self performSelectorInBackground:@selector(showDownloadMenu:) withObject:accessURL];
+    
     loading = YES;
-    urlField.text = [ProtocolCutter url:[[request URL] absoluteString]];
-    [ActivityIndicator visible:YES];
+    
+    if ( ![[[request URL] absoluteString] isEqualToString:@"about:blank"] ) {
+        
+        //NSLog(@"shouldStartLoadWithRequest: %@", [[request URL] absoluteString]);
+        
+        urlField.text = [ProtocolCutter url:[[request URL] absoluteString]];
+    }
+    
+    [ActivityIndicator on];
     [self updateWebBrowser];
     
     return YES;
@@ -1001,10 +1018,13 @@
 
 - (void)webViewDidFinishLoad:(UIWebView *)webView {
     
+    //NSLog(@"webViewDidFinishLoad: %@", [[webView.request URL] absoluteString]);
+    
     accessURL = [[webView.request URL] absoluteString];
+    urlField.text = [ProtocolCutter url:[[webView.request URL] absoluteString]];
     
     loading = NO;
-    [ActivityIndicator visible:NO];
+    [ActivityIndicator off];
     [self updateWebBrowser];
 }
 
@@ -1014,20 +1034,20 @@
 - (void)webView:(UIWebView *)webView didFailLoadWithError:(NSError *)error {
     
     if ( error.code != -999 && error.code != 102 && error.code != 204) {
-     
+        
         //NSLog(@"%@", error.description);
         
         [ShowAlert error:error.localizedDescription];
         
         loading = NO;
-        [ActivityIndicator visible:NO];
+        [ActivityIndicator off];
         [self updateWebBrowser];
     }
 }
 
 - (void)updateWebBrowser {
     
-    urlField.text = [ProtocolCutter url:[[wv.request URL] absoluteString]];
+    //NSLog(@"updateWebBrowser");
 
     [self backForwordButtonVisible];
     [self reloadStopButton];
@@ -1067,7 +1087,6 @@
     }else {
         
         NSString *buttonTitle0 = accessURL;
-        
         NSString *buttonTitle1 = nil;
         NSString *buttonTitle2 = nil;
         
@@ -1100,14 +1119,14 @@
                                     destructiveButtonTitle:nil
                                     otherButtonTitles:buttonTitle0, buttonTitle1, buttonTitle2, nil];
             
-            [sheet showInView:self.view];   
+            [sheet showInView:self.view];
         }
     }
 }
 
 /* 非同期通信ダウンロード */
 
-- (void)requestStart:(NSString *)downloadUrl {
+- (void)requestStart:(NSString *)url {
     
     //NSLog(@"requestStart: %@", downloadUrl);
 
@@ -1129,10 +1148,10 @@
     asyncData = nil;
     
     //ファイル名を生成
-    saveFileName = [downloadUrl lastPathComponent]; 
+    saveFileName = [url lastPathComponent]; 
     
     //ダウンロードリクエスト開始
-    NSURLRequest *request = [NSURLRequest requestWithURL:[NSURL URLWithString:downloadUrl]];
+    NSURLRequest *request = [NSURLRequest requestWithURL:[NSURL URLWithString:url]];
     asyncConnection = [[NSURLConnection alloc] initWithRequest:request 
                                                       delegate:self];
 }
@@ -1158,12 +1177,9 @@
     //受信したデータサイズを追加
     loadedbytes += [data length];
     
-    dispatch_async(dispatch_get_main_queue(), ^ {
-        
-        //UIの更新
-        [progressBar setProgress:(loadedbytes / totalbytes)];
-        bytesLabel.text = [NSString stringWithFormat:@"%.0f / %.0f bytes", loadedbytes, totalbytes];
-    });
+    //UIの更新
+    [progressBar setProgress:(loadedbytes / totalbytes)];
+    bytesLabel.text = [NSString stringWithFormat:@"%.0f / %.0f bytes", loadedbytes, totalbytes];
 }
 
 - (IBAction)pushDownloadCancelButton:(id)sender {
@@ -1210,6 +1226,34 @@
     bytesLabel.hidden = YES;
     progressBar.hidden = YES;
     downloadCancelButton.hidden = YES;
+}
+
+- (void)showDownloadMenu:(NSString *)url {
+    
+    BOOL result = NO;
+    NSString *extension = [url pathExtension];
+    
+    for ( NSString *temp in EXTENSIONS ) {
+        
+        if ( [temp isEqualToString:extension] ) {
+            
+            downloadUrl = url;
+            actionSheetNo = 13;
+            
+            UIActionSheet *sheet = [[UIActionSheet alloc]
+                                    initWithTitle:@"保存確認"
+                                    delegate:self
+                                    cancelButtonTitle:@"Cancel"
+                                    destructiveButtonTitle:nil
+                                    otherButtonTitles:@"保存する", nil];
+            
+            [sheet showInView:self.view];
+            
+            result = YES;
+        }
+        
+        if ( result ) break;
+    }
 }
 
 /* 非同期通信ダウンロードここまで */

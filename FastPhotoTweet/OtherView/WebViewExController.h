@@ -26,6 +26,7 @@
     NSUserDefaults *d;
     NSString *accessURL;
     NSString *saveFileName;
+    NSString *downloadUrl;
     NSURLConnection *asyncConnection;
     NSMutableData *asyncData;
     NSMutableArray *urlList;
@@ -59,7 +60,6 @@
 @property (retain, nonatomic) IBOutlet UIBarButtonItem *menuButton;
 @property (retain, nonatomic) IBOutlet UIBarButtonItem *bookmarkButton;
 @property (retain, nonatomic) IBOutlet UIBarButtonItem *flexibleSpace;
-
 
 @property (retain, nonatomic) IBOutlet UILabel *bytesLabel;
 @property (retain, nonatomic) IBOutlet UIProgressView *progressBar;
@@ -96,8 +96,9 @@
 - (void)closeWebView;
 - (void)rotateView:(int)mode;
 - (void)saveImage;
-- (void)requestStart:(NSString *)downloadUrl;
+- (void)requestStart:(NSString *)url;
 - (void)selectDownloadUrl;
 - (void)endDownload;
+- (void)showDownloadMenu:(NSString *)url;
 
 @end
