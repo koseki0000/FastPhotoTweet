@@ -1596,8 +1596,6 @@
                         NSArray *postData = [NSArray arrayWithObjects:[DeleteWhiteSpace string:nowPlayingText], imagePreview.image, nil];
                         [TWSendTweet performSelectorInBackground:@selector(post:) withObject:postData];
                         
-                        imagePreview.image = nil;
-                        
                     }else {
                         
                         NSArray *postData = [NSArray arrayWithObjects:[DeleteWhiteSpace string:nowPlayingText], nil];
@@ -1609,6 +1607,8 @@
                     NSArray *postData = [NSArray arrayWithObjects:[DeleteWhiteSpace string:nowPlayingText], nil];
                     [TWSendTweet performSelectorInBackground:@selector(post:) withObject:postData];
                 }
+                
+                imagePreview.image = nil;
             }
             
             //CallBack、またはNowPlaying限定CallBackが有効
@@ -1776,9 +1776,12 @@
         
         nowPlayingMode = NO;
         
-        if ( ![d boolForKey:@"NowPlayingCallBack"] ) return;
+        if ( ![d boolForKey:@"NowPlayingCallBack"] ) {
+            
+            return;
+        }
         
-    }else if ( ![d boolForKey:@"NowPlayingCallBack"] ) {
+    }else if ( ![d boolForKey:@"CallBack"] && !nowPlayingMode ) {
         
         return;
     }
