@@ -11,10 +11,6 @@
 
 #import "WebViewEx.h"
 
-//WebViewExをautoreleaseで生成するか
-//autoreleaseで生成しない場合はNO
-#define AUTORELEASE YES
-
 #define STATUS_BAR 20
 #define TOOL_BAR 44
 
@@ -386,13 +382,6 @@
     [self stopLoading];
     [UIApplication sharedApplication].networkActivityIndicatorVisible = NO;    
     self.delegate = nil;
-    
-    //if ( AUTORELEASE == NO ) {
-        
-        //NSLog(@"release");
-        
-        //[self release];
-    //}
 }
 
 - (void)dealloc {

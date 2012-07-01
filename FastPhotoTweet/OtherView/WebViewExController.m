@@ -13,7 +13,7 @@
 
 #define TOP_BAR [NSArray arrayWithObjects:urlField, searchField, searchButton, nil]
 #define BOTTOM_BAR [NSArray arrayWithObjects:closeButton, flexibleSpace, reloadButton, flexibleSpace, backButton, flexibleSpace, forwardButton, flexibleSpace, composeButton, flexibleSpace, bookmarkButton, flexibleSpace, menuButton, nil]
-#define EXTENSIONS [NSArray arrayWithObjects:@"zip", @"mp4", @"m4a", @"rar", @"dmg", @"deb", nil]
+#define EXTENSIONS [NSArray arrayWithObjects:@"zip", @"mp4", @"mov", @"m4a", @"rar", @"dmg", @"deb", nil]
 
 #define BLANK @""
 
@@ -50,6 +50,8 @@
 
     [super viewDidLoad];
     
+    pboard = [UIPasteboard generalPasteboard];
+    
     grayView = [[GrayView alloc] init];
     [wv addSubview:grayView];
     
@@ -63,6 +65,7 @@
     editing = NO;
     downloading = NO;
     loading = NO;
+    openUrlMode = NO;
     
     //アプリがアクティブになった場合の通知を受け取る設定
     NSNotificationCenter *notificationCenter = [NSNotificationCenter defaultCenter];
@@ -78,7 +81,6 @@
     [d boolForKey:@"ClearBrowserSearchField"] ? ( searchField.clearsOnBeginEditing = YES ) : ( searchField.clearsOnBeginEditing = NO );
     
     accessURL = BLANK;
-    //[accessURL retain];
     
     [self setSearchEngine];
     
@@ -88,7 +90,8 @@
     //ペーストボードURL展開を確認
     [self checkPasteBoardUrlOption];
     
-    if ( urlList.count > 1 && [appDelegate.fastGoogleMode intValue] == 0 ) return;
+    //URLが1つ以上、FastGoogleモードではないなら中止
+    if ( urlList.count > 1 ) return;
     
     //ページをロード
     [wv loadRequestWithString:appDelegate.openURL];
@@ -120,17 +123,20 @@
 - (void)checkPasteBoardUrlOption {
     
     //ペーストボード内のURLを開く設定が有効かチェック
-    if ( [d boolForKey:@"OpenPasteBoardURL"] ) {
-        
-        if ( [appDelegate.fastGoogleMode intValue] == 1 ) return;
+    if ( [d boolForKey:@"OpenPasteBoardURL"] || openUrlMode ) {
         
         //PasteBoardがテキストかチェック
         if ( [PasteboardType isText] ) {
             
-            UIPasteboard *pboard = [UIPasteboard generalPasteboard];
+            @try {
             
-            //URLを抽出
-            urlList = [RegularExpression urls:pboard.string];
+                //URLを抽出
+                urlList = [RegularExpression urls:pboard.string];
+                
+            }@catch ( NSException *e ) {
+                
+                urlList = [NSArray array];
+            }
             
             if ( [EmptyCheck check:urlList] ) {
                 
@@ -220,6 +226,16 @@
 
 - (void)openPasteBoardUrl:(NSString *)urlString {
     
+    if ( openUrlMode ) {
+        
+        openUrlMode = NO;
+        
+        //URLを設定
+        appDelegate.openURL = urlString;
+        
+        return;
+    }
+    
     //直前にペーストボードから開いたURLでないかチェック
     if ( ![urlString isEqualToString:[d objectForKey:@"LastOpendPasteBoardURL"]] ) {
         
@@ -234,20 +250,17 @@
 - (void)becomeActive:(NSNotification *)notification {
     
     //NSLog(@"WebViewEx becomeActive");
-    //NSLog(@"fastGoogleMode: %d webPageShareMode: %d", [appDelegate.fastGoogleMode intValue], [appDelegate.webPageShareMode intValue]);
     
-    if ( [appDelegate.fastGoogleMode intValue] == 1 ) {
-        
-        [wv loadRequestWithString:appDelegate.openURL];
-        
-        appDelegate.fastGoogleMode = [NSNumber numberWithInt:0];
-        
-    }else if ( [appDelegate.webPageShareMode intValue] == 1 ) {
-        
-        appDelegate.webPageShareMode = [NSNumber numberWithInt:0];
-        
-        [self pushComposeButton:nil];
-    }
+    actionSheetNo = 14;
+    
+    UIActionSheet *sheet = [[UIActionSheet alloc]
+                            initWithTitle:@"動作選択"
+                            delegate:self
+                            cancelButtonTitle:@"Cancel"
+                            destructiveButtonTitle:nil
+                            otherButtonTitles:@"Tweet", @"FastGoogle", @"ペーストボードのURLを開く", nil];
+
+	[sheet showInView:self.view];
 }
 
 - (void)setSearchEngine {
@@ -289,7 +302,7 @@
     
         appDelegate.openURL = [[wv.request URL] absoluteString];
     
-        [self closeWebView];
+        [self dismissModalViewControllerAnimated:YES];
     }
 }
 
@@ -311,21 +324,8 @@
      
         appDelegate.openURL = [d objectForKey:@"HomePageURL"];
         
-        [self closeWebView];
+        [self dismissModalViewControllerAnimated:YES];
     }
-}
-
-- (void)closeWebView {
-    
-    appDelegate.isBrowserOpen = [NSNumber numberWithInt:0];
-    
-    if ( wv.loading ) [wv stopLoading];
-    wv.delegate = nil;
-    [wv removeFromSuperview];
-    
-    [ActivityIndicator visible:NO];
-    
-    [self dismissModalViewControllerAnimated:YES];
 }
 
 - (IBAction)pushReloadButton:(id)sender {
@@ -336,6 +336,7 @@
             
             [wv stopLoading];
             [ActivityIndicator off];
+            reloadButton.image = reloadButtonImage;
             
         }else {
             
@@ -384,6 +385,7 @@
     if ( [searchField.text isEqualToString:BLANK] ) {
         
         [searchField resignFirstResponder];
+        
         return;
     }
     
@@ -605,7 +607,7 @@
                                     otherButtonTitles:@"Google", @"Amazon", @"Yahoo!オークション", 
                                     @"Wikipedia", @"Twitter検索", @"Wikipedia (Suggestion)", nil];
             [sheet showInView:self.view];
-            
+        
         }else if ( buttonIndex == 3 ) {
             
             if ( [EmptyCheck check:urlField.text] ) {
@@ -717,14 +719,19 @@
                     reqUrl = [NSString stringWithFormat:@"fastever://?text=%@\n%@\n", wv.pageTitle, accessURL];
                 }
                 
-                [[UIApplication sharedApplication] openURL:[NSURL URLWithString:(__bridge_transfer NSString *)CFURLCreateStringByAddingPercentEscapes(kCFAllocatorDefault, (__bridge CFStringRef)reqUrl, NULL, NULL, kCFStringEncodingUTF8)]];
-                
+                [[UIApplication sharedApplication] openURL:
+                 [NSURL URLWithString:(__bridge_transfer NSString *)CFURLCreateStringByAddingPercentEscapes(kCFAllocatorDefault,
+                                                                                                            (__bridge CFStringRef)reqUrl, 
+                                                                                                            NULL, 
+                                                                                                            NULL, 
+                                                                                                            kCFStringEncodingUTF8)]];
+            
             }else {
                 
                 [ShowAlert error:@"FastEverをインストール後使用してください。"];
             }
         
-        //PC版UAでで開き直す
+        //PC版UAで開き直す
         }else if ( buttonIndex == 8 ) {
             
             appDelegate.pcUaMode = [NSNumber numberWithInt:1];
@@ -874,7 +881,7 @@
             
             appDelegate.openURL = [d objectForKey:@"HomePageURL"];
             
-            [self closeWebView];
+            [self dismissModalViewControllerAnimated:YES];
         }
         
     }else if ( actionSheetNo == 12 ) {
@@ -883,7 +890,7 @@
             
             appDelegate.openURL = [[wv.request URL] absoluteString];
             
-            [self closeWebView];
+            [self dismissModalViewControllerAnimated:YES];
         }
     
     }else if ( actionSheetNo == 13 ) {
@@ -894,6 +901,28 @@
             
             [self requestStart:downloadUrl];
         }
+        
+    }else if ( actionSheetNo == 14 ) {
+        
+        @try {
+            
+            if ( buttonIndex == 0 ) {
+                
+                appDelegate.postText = pboard.string;
+                
+                [self pushComposeButton:nil];
+                
+            }else if ( buttonIndex == 1 ) {
+                
+                [wv loadRequestWithString:[GoogleSearch createUrl:pboard.string]];
+                
+            }else if ( buttonIndex == 2 ) {
+                
+                openUrlMode = YES;
+                [self checkPasteBoardUrlOption];
+            }
+            
+        }@catch ( NSException *e ) {}
     }
 }
 
@@ -1228,7 +1257,7 @@
 - (void)showDownloadMenu:(NSString *)url {
     
     BOOL result = NO;
-    NSString *extension = [url pathExtension];
+    NSString *extension = [[url pathExtension] lowercaseString];
     
     for ( NSString *temp in EXTENSIONS ) {
         
@@ -1276,8 +1305,6 @@
     //NSLog(@"WebViewExController viewDidUnload");
     
     appDelegate.isBrowserOpen = [NSNumber numberWithInt:0];
-    appDelegate.fastGoogleMode = [NSNumber numberWithInt:0];
-    appDelegate.webPageShareMode = [NSNumber numberWithInt:0];
     appDelegate.openURL = [d objectForKey:@"HomePageURL"];
     
     [self setTopBar:nil];
@@ -1423,6 +1450,17 @@
     }
     
     return YES;
+}
+
+- (void)dealloc {
+    
+    appDelegate.isBrowserOpen = [NSNumber numberWithInt:0];
+    
+    if ( wv.loading ) [wv stopLoading];
+    wv.delegate = nil;
+    [wv removeFromSuperview];
+    
+    [ActivityIndicator visible:NO];
 }
 
 @end

@@ -28,8 +28,6 @@
 @synthesize resendNumber;
 @synthesize resendMode;
 @synthesize isBrowserOpen;
-@synthesize fastGoogleMode;
-@synthesize webPageShareMode;
 @synthesize launchMode;
 @synthesize pcUaMode;
 
@@ -59,8 +57,6 @@
     resendNumber = [NSNumber numberWithInt:0];
     resendMode = [NSNumber numberWithInt:0];
     isBrowserOpen = [NSNumber numberWithInt:0];
-    fastGoogleMode = [NSNumber numberWithInt:0];
-    webPageShareMode = [NSNumber numberWithInt:0];
     pcUaMode = [NSNumber numberWithInt:0];
     
     if ( launchOptions == NULL ) {

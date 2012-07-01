@@ -1,6 +1,6 @@
 //
 //  FullSizeImage.h
-//  FastPhotoTweet
+//  UtilityClass
 //
 //  Created by @peace3884 on 12/05/13.
 //

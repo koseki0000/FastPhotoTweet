@@ -18,6 +18,7 @@
     AppDelegate *appDelegate;
     GrayView *grayView;
 
+    UIPasteboard *pboard;
     UIAlertView *alert;
     UITextField *alertText;
     UIImage *reloadButtonImage;
@@ -42,6 +43,7 @@
     BOOL editing;
     BOOL downloading;
     BOOL loading;
+    BOOL openUrlMode;
 }
 
 @property (retain, nonatomic) IBOutlet WebViewEx *wv;
@@ -93,7 +95,6 @@
 - (void)updateWebBrowser;
 - (void)backForwordButtonVisible;
 - (void)reloadStopButton;
-- (void)closeWebView;
 - (void)rotateView:(int)mode;
 - (void)saveImage;
 - (void)requestStart:(NSString *)url;

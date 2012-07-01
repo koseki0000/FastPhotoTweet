@@ -1,6 +1,6 @@
 //
 //  ActivityIndicator.h
-//  FastPhotoTweet
+//  UtilityClass
 //
 //  Created by @peace3884 on 11/11/10.
 //

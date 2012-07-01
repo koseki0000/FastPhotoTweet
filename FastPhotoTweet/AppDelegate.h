@@ -23,8 +23,6 @@
     NSNumber *resendNumber;
     NSNumber *resendMode;
     NSNumber *isBrowserOpen;
-    NSNumber *fastGoogleMode;
-    NSNumber *webPageShareMode;
     NSNumber *launchMode;
     NSNumber *pcUaMode;
 }
@@ -40,8 +38,6 @@
 @property (nonatomic, retain) NSNumber *resendNumber;
 @property (nonatomic, retain) NSNumber *resendMode;
 @property (nonatomic, retain) NSNumber *isBrowserOpen;
-@property (nonatomic, retain) NSNumber *fastGoogleMode;
-@property (nonatomic, retain) NSNumber *webPageShareMode;
 @property (nonatomic, retain) NSNumber *launchMode;
 @property (nonatomic, retain) NSNumber *pcUaMode;
 

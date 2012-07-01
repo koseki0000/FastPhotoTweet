@@ -172,7 +172,7 @@
 
 - (NSString *)getSettingState:(int)settingState {
     
-    ////NSLog(@"getSettingState: %d", index);
+    //NSLog(@"getSettingState: %d", index);
     
     NSString *result = BLANK;
     

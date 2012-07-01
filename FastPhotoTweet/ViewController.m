@@ -228,6 +228,10 @@
         [d setObject:@"iPhone" forKey:@"UserAgent"];
     }
     
+    if ( ![EmptyCheck check:[d dictionaryForKey:@"ArtworkUrl"]] ) {
+        [d setObject:[NSDictionary dictionary] forKey:@"ArtworkUrl"];
+    }
+    
     //設定を即反映
     [d synchronize];
 }
@@ -428,23 +432,9 @@
 
 - (void)tohaSearch:(NSString *)text {
     
-    appDelegate.openURL = [self createGoogleSearchUrl:[text substringWithRange:NSMakeRange(0, text.length - 2)]];    
-    appDelegate.fastGoogleMode = [NSNumber numberWithInt:1];
+    appDelegate.openURL = [GoogleSearch createUrl:[text substringWithRange:NSMakeRange(0, text.length - 2)]];
     
     [self pushBrowserButton:nil];
-}
-
-- (NSString *)createGoogleSearchUrl:(NSString *)searchWord {
-    
-    NSString *searchURL = @"http://www.google.co.jp/search?q=";
-    NSString *encodedSearchWord = (NSString *)CFURLCreateStringByAddingPercentEscapes(kCFAllocatorDefault,
-                                                                                       (CFStringRef)searchWord,
-                                                                                       NULL,
-                                                                                       (CFStringRef)@"!*'();:@&=+$,/?%#[]",
-                                                                                       kCFStringEncodingShiftJIS);
-    [encodedSearchWord autorelease];
-    
-    return [NSString stringWithFormat:@"%@%@", searchURL, encodedSearchWord];
 }
 
 - (void)postDone:(NSNotification *)center {
@@ -517,8 +507,6 @@
     nowPlayingMode = NO;
     postText.text = BLANK;
     imagePreview.image = nil;
-    appDelegate.fastGoogleMode = [NSNumber numberWithInt:0];
-    appDelegate.webPageShareMode = [NSNumber numberWithInt:0];
     [self countText];
 }
 
@@ -654,6 +642,8 @@
 
 - (void)showImagePicker {
     
+    showImagePicker = YES;
+    
     UIImagePickerController *picPicker = [[[UIImagePickerController alloc] init] autorelease];
     
     if ( [d integerForKey:@"ImageSource"] == 0 ) {
@@ -692,6 +682,8 @@
         didFinishPickingImage:(UIImage *)image 
                   editingInfo:(NSDictionary *)editingInfo {
 
+    showImagePicker = NO;
+    
     if ( iconUploadMode ) {
         
         iconUploadMode = NO;
@@ -737,6 +729,7 @@
  
     //画像選択がキャンセルされた場合
     //モーダルビューを閉じる
+    showImagePicker = NO;
     repeatedPost = NO;
     iconUploadMode = NO;
     [picPicker dismissModalViewControllerAnimated:YES];
@@ -841,6 +834,13 @@
         
         //処理中表示をオフ
         [grayView off];
+        
+        if ( artWorkUploading ) artWorkUploading = NO;
+        
+        if ( nowPlayingMode ) {
+            
+            [self saveArtworkUrl:imageURL];
+        }
         
         if ( nowPlayingMode && [d boolForKey:@"NowPlayingFastPost"] ) {
             
@@ -984,21 +984,14 @@
         }else if ( buttonIndex == 4 ) {
             
             if ( pBoardType == 0 ) {
-                
-                appDelegate.openURL = [self createGoogleSearchUrl:pboard.string];
-                
-                appDelegate.fastGoogleMode = [NSNumber numberWithInt:1];
-                
-                [self pushBrowserButton:nil];
+
+                if ( [appDelegate.isBrowserOpen intValue] == 0 ) {
+                 
+                    appDelegate.openURL = [GoogleSearch createUrl:pboard.string];
+                    [self pushBrowserButton:nil];
+                }
             }
             
-            if ( [appDelegate.isBrowserOpen intValue] == 0 ) {
-                
-                //NSLog(@"Open Browser");
-                
-                [self pushBrowserButton:nil];
-            }
-        
         }else if ( buttonIndex == 5 ) {
 
             if ( [appDelegate.isBrowserOpen intValue] == 0 ) {
@@ -1020,6 +1013,8 @@
         
     }else if ( actionSheetNo == 1 ) {
         
+        showImagePicker = YES;
+        
         //イメージピッカーを表示
         UIImagePickerController *picPicker = [[[UIImagePickerController alloc] init] autorelease];
         
@@ -1038,6 +1033,8 @@
         }else {
             
             //キャンセル
+            showImagePicker = NO;
+            
             return;
         }
         
@@ -1183,6 +1180,7 @@
         if ( buttonIndex == 0 ) {
             
             iconUploadMode = YES;
+            showImagePicker = YES;
             
             UIImagePickerController *picPicker = [[[UIImagePickerController alloc] init] autorelease];
             picPicker.sourceType = UIImagePickerControllerSourceTypePhotoLibrary;
@@ -1414,6 +1412,8 @@
     //アプリケーションがアクティブになった際に呼ばれる
     //NSLog(@"becomeActive");
     
+    if ( [appDelegate.isBrowserOpen intValue] == 1 ) return;
+    
     if ( [d boolForKey:@"applicationWillResignActive"] ) {
         
         [d removeObjectForKey:@"applicationWillResignActive"];
@@ -1429,7 +1429,7 @@
     //iOS5以降かチェック
     if ( [self ios5Check] ) {
                 
-        if ( !showActionSheet ) {
+        if ( !showActionSheet && !showImagePicker ) {
             
             if ( [appDelegate.launchMode intValue] == 2 ) {
                 
@@ -1584,7 +1584,7 @@
         
         //NSLog(@"SongTitleOK");
         
-        //FastPostが有効、またはNowPlaying限定CallBackが有効
+        //FastPostが有効、アートワークアップロード中ではない
         if ( [d boolForKey:@"NowPlayingFastPost"] && !artWorkUploading ) {
             
             @autoreleasepool {
@@ -1595,6 +1595,8 @@
                         
                         NSArray *postData = [NSArray arrayWithObjects:[DeleteWhiteSpace string:nowPlayingText], imagePreview.image, nil];
                         [TWSendTweet performSelectorInBackground:@selector(post:) withObject:postData];
+                        
+                        imagePreview.image = nil;
                         
                     }else {
                         
@@ -1649,6 +1651,8 @@
         [postText becomeFirstResponder];
         [postText setSelectedRange:NSMakeRange(0, 0)];
     }
+    
+    [self countText];
 }
 
 - (void)postNotification:(int)pBoardType {
@@ -1657,8 +1661,12 @@
         
         //NSLog(@"pBoardType Text");
         
-        //ペーストボード内容をPost入力欄にコピー
-        postText.text = pboard.string;
+        @try {
+         
+            //ペーストボード内容をPost入力欄にコピー
+            postText.text = pboard.string;
+            
+        }@catch ( NSException *e ) {}
         
     }else {
         
@@ -1671,56 +1679,60 @@
 
 - (void)fastPostNotification:(int)pBoardType {
     
-    BOOL canPost = NO;
-    
-    //ペーストボード内がテキスト
-    if ( pBoardType == 0 ) {
+    @try {
         
-        //t.coを考慮した文字数カウントを行う
-        int num = [TWTwitterCharCounter charCounter:pboard.string];
+        BOOL canPost = NO;
         
-        if ( num < 0 ) {
+        //ペーストボード内がテキスト
+        if ( pBoardType == 0 ) {
             
-            //140字を超えていた場合
-            [ShowAlert error:@"文章が140字を超えています。"];
+            //t.coを考慮した文字数カウントを行う
+            int num = [TWTwitterCharCounter charCounter:pboard.string];
+            
+            if ( num < 0 ) {
+                
+                //140字を超えていた場合
+                [ShowAlert error:@"文章が140字を超えています。"];
+                
+            }else {
+                
+                //投稿可能文字数である
+                canPost = YES;
+            }
+            
+            if ( canPost ) {
+                
+                @autoreleasepool {
+                    
+                    //投稿処理
+                    NSString *text = [[[NSString alloc] initWithString:pboard.string] autorelease];
+                    NSArray *postData = [NSArray arrayWithObjects:[DeleteWhiteSpace string:text], nil];
+                    [TWSendTweet performSelectorInBackground:@selector(post:) withObject:postData];
+                }
+                
+                //コールバックが有効な場合
+                if ( [d boolForKey:@"CallBack"] ) {
+                    
+                    //NSLog(@"Callback Enable");
+                    
+                    //CallBack
+                    [self callback];
+                }
+                
+            //投稿不可能な場合
+            }else {
+                
+                //ペーストボード内容をPost入力欄にコピー
+                postText.text = pboard.string;
+                [postText becomeFirstResponder];
+            }
             
         }else {
             
-            //投稿可能文字数である
-            canPost = YES;
-        }
-        
-        if ( canPost ) {
-            
-            @autoreleasepool {
-            
-                //投稿処理
-                NSString *text = [[[NSString alloc] initWithString:pboard.string] autorelease];
-                NSArray *postData = [NSArray arrayWithObjects:[DeleteWhiteSpace string:text], nil];
-                [TWSendTweet performSelectorInBackground:@selector(post:) withObject:postData];
-            }
-            
-            //コールバックが有効な場合
-            if ( [d boolForKey:@"CallBack"] ) {
-                
-                //NSLog(@"Callback Enable");
-                
-                //CallBack
-                [self callback];
-            }
-            
-        //投稿不可能な場合
-        }else {
-            
-            //ペーストボード内容をPost入力欄にコピー
-            postText.text = pboard.string;
             [postText becomeFirstResponder];
         }
         
-    }else {
-        
-        [postText becomeFirstResponder];
-    }
+    }@catch ( NSException *e ) {}
 }
 
 - (void)photoPostNotification:(int)pBoardType {
@@ -1812,38 +1824,58 @@
         NSNumber *playCount = [player.nowPlayingItem valueForProperty:MPMediaItemPropertyPlayCount];
         NSNumber *ratingNum = [player.nowPlayingItem valueForProperty:MPMediaItemPropertyRating];
         
+        NSString *url = nil;
+        
         if ( [d boolForKey:@"NowPlayingArtWork"] ) {
+            
+            NSString *searchKey = [NSString stringWithFormat:@"%@ - %@ - %@", songTitle, songArtist, albumTitle];
+            NSDictionary *dic = [d dictionaryForKey:@"ArtworkUrl"];
+            
+            for ( NSString *key in dic ) {
+                
+                if ( [key isEqualToString:searchKey] ) {
+                    
+                    url = [dic objectForKey:key];
+                    
+                    break;
+                }
+            }
             
             MPMediaItemArtwork *artwork = [player.nowPlayingItem valueForProperty:MPMediaItemPropertyArtwork];
             
             int h = (int)artwork.bounds.size.height;
             int w = (int)artwork.bounds.size.width;
             
-            if ( h != 0 && w != 0 ) {
+            imagePreview.image = [ResizeImage aspectResizeSetMaxSize:[artwork imageWithSize:CGSizeMake(500, 500)] 
+                                                             maxSize:500];
+            
+            if ( ![EmptyCheck check:url] ) {
                 
-                imagePreview.image = [ResizeImage aspectResizeSetMaxSize:[artwork imageWithSize:CGSizeMake(500, 500)] 
-                                                                 maxSize:500];
-                                
-                int uploadType = [d integerForKey:@"NowPlayingPhotoService"];
-                
-                if ( uploadType == 0 ) {
+                if ( h != 0 && w != 0 ) {
                     
-                    if ( [[d objectForKey:@"PhotoService"] isEqualToString:@"img.ur"] ) {
+                    int uploadType = [d integerForKey:@"NowPlayingPhotoService"];
+                    
+                    if ( uploadType == 0 ) {
                         
-                        uploadType = 2;
-                        
-                    }else if ( [[d objectForKey:@"PhotoService"] isEqualToString:@"Twitpic"] ) {    
-                        
-                        uploadType = 3;
+                        if ( [[d objectForKey:@"PhotoService"] isEqualToString:@"img.ur"] ) {
+                            
+                            uploadType = 2;
+                            
+                        }else if ( [[d objectForKey:@"PhotoService"] isEqualToString:@"Twitpic"] ) {    
+                            
+                            uploadType = 3;
+                        }
                     }
-                }
-                
-                if ( uploadType != 0 && uploadType != 1 ) {
-                 
-                    artWorkUploading = YES;
                     
-                    [self uploadNowPlayingImage:imagePreview.image 
-                                     uploadType:uploadType];
+                    //アップロード先がTwitter以外
+                    if ( uploadType != 0 && uploadType != 1 ) {
+                        
+                        artWorkUploading = YES;
+                        
+                        //アートワークをアップロード
+                        [self uploadNowPlayingImage:imagePreview.image 
+                                         uploadType:uploadType];
+                    }
                 }
             }
         }
@@ -1916,6 +1948,11 @@
             resultText = [NSMutableString stringWithFormat:@" #nowplaying : %@ - %@ ", songTitle, songArtist];
         }
         
+        if ( [d boolForKey:@"NowPlayingArtWork"] && [EmptyCheck check:url] ) {
+            
+            resultText = [NSMutableString stringWithFormat:@"%@%@", resultText, url];
+        }
+        
     }@catch (NSException *e) {
         
         [ShowAlert unknownError];
@@ -1924,6 +1961,21 @@
     }
     
     return (NSString *)resultText;
+}
+
+- (void)saveArtworkUrl:(NSString *)url {
+
+    MPMusicPlayerController *player = [MPMusicPlayerController iPodMusicPlayer];
+    NSString *songTitle = [player.nowPlayingItem valueForProperty:MPMediaItemPropertyTitle];
+    NSString *songArtist = [player.nowPlayingItem valueForProperty:MPMediaItemPropertyArtist];
+    NSString *albumTitle = [player.nowPlayingItem valueForProperty:MPMediaItemPropertyAlbumTitle];
+    
+    NSString *keyName = [NSString stringWithFormat:@"%@ - %@ - %@", songTitle, songArtist, albumTitle];
+    
+    NSMutableDictionary *dic = [NSMutableDictionary dictionaryWithDictionary:[d dictionaryForKey:@"ArtworkUrl"]];
+    [dic setValue:url forKey:keyName];
+    
+    [d setObject:dic forKey:@"ArtworkUrl"];
 }
 
 - (void)viewDidAppear:(BOOL)animated {
@@ -1944,7 +1996,6 @@
         
         if ( [EmptyCheck check:appDelegate.postText] ) {
             
-            appDelegate.fastGoogleMode = [NSNumber numberWithInt:0];
             postText.text = [NSString stringWithFormat:@"%@%@", postText.text, appDelegate.postText];
             [postText becomeFirstResponder];
             

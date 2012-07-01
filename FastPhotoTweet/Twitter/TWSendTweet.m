@@ -152,7 +152,11 @@
                          //エラー
                          NSString *errorText = [result objectForKey:@"error"];
                          
-                         [ShowAlert error:errorText];
+                         //エラー文が取得出来た場合は表示
+                         if ( [EmptyCheck check:errorText] ) {
+                             
+                             [ShowAlert error:errorText];
+                         }
                          
                          //通知にエラーをセット
                          if ( media ) {

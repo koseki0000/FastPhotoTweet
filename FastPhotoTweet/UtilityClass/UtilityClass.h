@@ -1,5 +1,6 @@
 //
 //  UtilityClass.h
+//  UtilityClass
 //
 //  Created by @peace3884 on 11/11/10.
 //
@@ -19,3 +20,4 @@
 #import "DeleteWhiteSpace.h"
 #import "AmazonAffiliateCutter.h"
 #import "UUIDEncryptor.h"
+#import "GoogleSearch.h"

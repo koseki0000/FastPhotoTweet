@@ -46,6 +46,7 @@
     BOOL webBrowserMode;
     BOOL artWorkUploading;
     BOOL showActionSheet;
+    BOOL showImagePicker;
     BOOL nowPlayingMode;
     BOOL iconUploadMode;
     int actionSheetNo;
@@ -108,12 +109,13 @@
 - (BOOL)ios5Check;
 - (BOOL)reachability;
 - (NSString *)nowPlaying;
-- (NSString *)createGoogleSearchUrl:(NSString *)searchWord;
 
 - (void)nowPlayingNotification;
 - (void)postNotification:(int)pBoardType;
 - (void)fastPostNotification:(int)pBoardType;
 - (void)photoPostNotification:(int)pBoardType;
 - (void)webPageShareNotification:(int)pBoardType;
+
+- (void)saveArtworkUrl:(NSString *)url;
 
 @end
