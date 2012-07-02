@@ -105,6 +105,7 @@
 - (void)applicationWillResignActive:(UIApplication *)application {
     
     [D setBool:YES forKey:@"applicationWillResignActive"];
+    [D setBool:YES forKey:@"applicationWillResignActiveBrowser"];
 }
 
 - (void)applicationWillEnterForeground:(UIApplication *)application {
@@ -124,6 +125,7 @@
 - (void)applicationDidEnterBackground:(UIApplication *)application {
     
     [D removeObjectForKey:@"applicationWillResignActive"];
+    [D removeObjectForKey:@"applicationWillResignActiveBrowser"];
 
 	backgroundTask = [application beginBackgroundTaskWithExpirationHandler: ^{
         

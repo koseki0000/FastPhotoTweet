@@ -251,6 +251,13 @@
     
     //NSLog(@"WebViewEx becomeActive");
     
+    if ( [d boolForKey:@"applicationWillResignActiveBrowser"] ) {
+        
+        [d removeObjectForKey:@"applicationWillResignActiveBrowser"];
+        
+        return;
+    }
+    
     actionSheetNo = 14;
     
     UIActionSheet *sheet = [[UIActionSheet alloc]

@@ -94,6 +94,7 @@
 	postText.layer.borderColor = [[UIColor blackColor] CGColor];
     
     [d removeObjectForKey:@"applicationWillResignActive"];
+    [d removeObjectForKey:@"applicationWillResignActiveBrowser"];
     
     //処理中を表すビューを生成
     grayView = [[GrayView alloc] init];
@@ -505,6 +506,7 @@
     //NSLog(@"Trash");
     
     nowPlayingMode = NO;
+    artWorkUploading = NO;
     postText.text = BLANK;
     imagePreview.image = nil;
     [self countText];
@@ -835,12 +837,12 @@
         //処理中表示をオフ
         [grayView off];
         
-        if ( artWorkUploading ) artWorkUploading = NO;
-        
-        if ( nowPlayingMode ) {
+        if ( nowPlayingMode && artWorkUploading ) {
             
             [self saveArtworkUrl:imageURL];
         }
+        
+        if ( artWorkUploading ) artWorkUploading = NO;
         
         if ( nowPlayingMode && [d boolForKey:@"NowPlayingFastPost"] ) {
             
@@ -1768,23 +1770,15 @@
     
     //NSLog(@"Callback Start");
     
-    if ( ![d boolForKey:@"CallBack"] && ![d boolForKey:@"NowPlayingCallBack"] ) {
-        
-        return;
-        
-    }else if ( nowPlayingMode ) {
+    if (( ![d boolForKey:@"CallBack"] && ![d boolForKey:@"NowPlayingCallBack"] ) ||
+        ( ![d boolForKey:@"CallBack"] && [d boolForKey:@"NowPlayingCallBack"] && !nowPlayingMode )) {
         
         nowPlayingMode = NO;
         
-        if ( ![d boolForKey:@"NowPlayingCallBack"] ) {
-            
-            return;
-        }
-        
-    }else if ( ![d boolForKey:@"CallBack"] && !nowPlayingMode ) {
-        
         return;
     }
+    
+    nowPlayingMode = NO;
     
     BOOL canOpen = NO;
     
