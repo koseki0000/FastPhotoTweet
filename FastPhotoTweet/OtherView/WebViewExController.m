@@ -87,6 +87,16 @@
     //ツールバーにボタンをセット
     [bottomBar setItems:BOTTOM_BAR animated:NO];
     
+    appDelegate.isBrowserOpen = [NSNumber numberWithInt:1];
+    
+    //URLSchemeダウンロード判定
+    if ( [EmptyCheck check:appDelegate.urlSchemeDownloadUrl] ) {
+        
+        [self requestStart:appDelegate.urlSchemeDownloadUrl];
+        
+        return;
+    }
+    
     //ペーストボードURL展開を確認
     [self checkPasteBoardUrlOption];
     
@@ -95,8 +105,6 @@
     
     //ページをロード
     [wv loadRequestWithString:appDelegate.openURL];
-    
-    appDelegate.isBrowserOpen = [NSNumber numberWithInt:1];
 }
 
 - (void)viewWillAppear:(BOOL)animated {
@@ -249,11 +257,19 @@
 
 - (void)becomeActive:(NSNotification *)notification {
     
-    //NSLog(@"WebViewEx becomeActive");
+    NSLog(@"WebViewEx becomeActive");
     
     if ( [d boolForKey:@"applicationWillResignActiveBrowser"] ) {
         
         [d removeObjectForKey:@"applicationWillResignActiveBrowser"];
+        
+        return;
+    }
+    
+    //URLSchemeダウンロード判定
+    if ( [EmptyCheck check:appDelegate.urlSchemeDownloadUrl] ) {
+        
+        [self requestStart:appDelegate.urlSchemeDownloadUrl];
         
         return;
     }
@@ -307,6 +323,8 @@
         
     }else {
     
+        [self resetUserAgent];
+        
         appDelegate.openURL = [[wv.request URL] absoluteString];
     
         [self dismissModalViewControllerAnimated:YES];
@@ -329,6 +347,8 @@
         
     }else {
      
+        [self resetUserAgent];
+        
         appDelegate.openURL = [d objectForKey:@"HomePageURL"];
         
         [self dismissModalViewControllerAnimated:YES];
@@ -886,6 +906,8 @@
         
         if ( buttonIndex == 0 ) {
             
+            [self resetUserAgent];
+            
             appDelegate.openURL = [d objectForKey:@"HomePageURL"];
             
             [self dismissModalViewControllerAnimated:YES];
@@ -894,6 +916,8 @@
     }else if ( actionSheetNo == 12 ) {
         
         if ( buttonIndex == 0 ) {
+            
+            [self resetUserAgent];
             
             appDelegate.openURL = [[wv.request URL] absoluteString];
             
@@ -993,7 +1017,7 @@
         //アラートを閉じる
         [alert dismissWithClickedButtonIndex:1 animated:YES];
     }
-            
+    
     return YES;
 }
 
@@ -1161,32 +1185,45 @@
 
 - (void)requestStart:(NSString *)url {
     
-    //NSLog(@"requestStart: %@", downloadUrl);
-
-    //キャッシュの削除
-    NSURLCache *cache = [NSURLCache sharedURLCache];
-    [cache removeAllCachedResponses];
+    //NSLog(@"requestStart: %@", url);
     
-    //ダウンロード進捗表示用のラベルとバーを表示
-    bytesLabel.hidden = NO;
-    progressBar.hidden = NO;
-    downloadCancelButton.hidden = NO;
-
-    //初期化
-    downloading = YES;
-    bytesLabel.text = @"0 / 0 bytes";
-    totalbytes = 0.0;
-    loadedbytes = 0.0;
-    asyncConnection = nil;
-    asyncData = nil;
-    
-    //ファイル名を生成
-    saveFileName = [url lastPathComponent]; 
-    
-    //ダウンロードリクエスト開始
-    NSURLRequest *request = [NSURLRequest requestWithURL:[NSURL URLWithString:url]];
-    asyncConnection = [[NSURLConnection alloc] initWithRequest:request 
-                                                      delegate:self];
+    @try {
+        
+        //URLのチェック
+        if ( ![EmptyCheck check:url] ) {
+            
+            [ShowAlert error:@"URLがありません。"];
+        }
+        
+        //キャッシュの削除
+        NSURLCache *cache = [NSURLCache sharedURLCache];
+        [cache removeAllCachedResponses];
+        
+        //ダウンロード進捗表示用のラベルとバーを表示
+        bytesLabel.hidden = NO;
+        progressBar.hidden = NO;
+        downloadCancelButton.hidden = NO;
+        
+        //初期化
+        downloading = YES;
+        bytesLabel.text = @"0 / 0 bytes";
+        totalbytes = 0.0;
+        loadedbytes = 0.0;
+        asyncConnection = nil;
+        asyncData = nil;
+        
+        //ファイル名を生成
+        saveFileName = [url lastPathComponent]; 
+        
+        //ダウンロードリクエスト開始
+        NSURLRequest *request = [NSURLRequest requestWithURL:[NSURL URLWithString:url]];
+        asyncConnection = [[NSURLConnection alloc] initWithRequest:request 
+                                                          delegate:self];
+        
+    }@catch ( NSException *e ) {
+        
+        [ShowAlert unknownError];
+    }
 }
 
 - (void)connection:(NSURLConnection *)connection didReceiveResponse:(NSURLResponse *)response{
@@ -1259,6 +1296,7 @@
     bytesLabel.hidden = YES;
     progressBar.hidden = YES;
     downloadCancelButton.hidden = YES;
+    appDelegate.urlSchemeDownloadUrl = BLANK;
 }
 
 - (void)showDownloadMenu:(NSString *)url {
@@ -1290,6 +1328,19 @@
 }
 
 /* 非同期通信ダウンロードここまで */
+
+- (void)resetUserAgent {
+    
+    //NSLog(@"resetUserAgent");
+    
+    //「PC版UAで開き直す」ではなく、リセット設定がOFFでなく、空でない
+    if ( [appDelegate.pcUaMode intValue] == 0 && ![[d objectForKey:@"UserAgentReset"] isEqualToString:@"OFF"] ) {
+        
+        //NSLog(@"Reset: %@", [d objectForKey:@"UserAgentReset"]);
+        
+        [d setObject:[d objectForKey:@"UserAgentReset"] forKey:@"UserAgent"];
+    }
+}
 
 - (BOOL)reachability {
     
@@ -1462,6 +1513,7 @@
 - (void)dealloc {
     
     appDelegate.isBrowserOpen = [NSNumber numberWithInt:0];
+    appDelegate.urlSchemeDownloadUrl = BLANK;
     
     if ( wv.loading ) [wv stopLoading];
     wv.delegate = nil;

@@ -101,5 +101,6 @@
 - (void)selectDownloadUrl;
 - (void)endDownload;
 - (void)showDownloadMenu:(NSString *)url;
+- (void)resetUserAgent;
 
 @end

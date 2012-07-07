@@ -14,7 +14,7 @@
 //セクション1の項目数 (投稿関連設定)
 #define SECTION_1 12
 //セクション2の項目数 (その他の設定)
-#define SECTION_2 4
+#define SECTION_2 5
 //セクション3の項目数 (ライセンス)
 #define SECTION_3 1
 
@@ -47,8 +47,9 @@
 #define NAME_22 @"ブラウザの検索ワードを毎回リセット"
 #define NAME_23 @"ブラウザを開く時ペーストボード内のURLを開く"
 #define NAME_24 @"ブラウザユーザーエージェント"
+#define NAME_25 @"ブラウザを閉じる時にユーザーエージェントを戻す"
 //ライセンス
-#define NAME_25 @"ライセンス"
+#define NAME_26 @"ライセンス"
 
 #define BLANK @""
 
@@ -79,7 +80,7 @@
                                                         NAME_12, NAME_13, NAME_14, NAME_15, 
                                                         NAME_16, NAME_17, NAME_18, NAME_19, 
                                                         NAME_20, NAME_21, NAME_22, NAME_23,
-                                                        NAME_24, NAME_25, nil];
+                                                        NAME_24, NAME_25, NAME_26, nil];
         
         [settingArray retain];
     }
@@ -437,8 +438,27 @@
             
             result = @"iPhone";
         }
-        
+    
     }else if ( settingState == 25 ) {
+        
+        if ( [[d objectForKey:@"UserAgentReset"] isEqualToString:@"FireFox"] ) {
+            
+            result = @"FireFox";
+            
+        }else if ( [[d objectForKey:@"UserAgentReset"] isEqualToString:@"iPad"] ) {
+            
+            result = @"iPad";
+            
+        }else if ( [[d objectForKey:@"UserAgentReset"] isEqualToString:@"iPhone"] ) {
+            
+            result = @"iPhone";
+            
+        }else {
+            
+            result = @"OFF";
+        }
+        
+    }else if ( settingState == 26 ) {
         
     }
         
@@ -925,6 +945,17 @@
                      otherButtonTitles:@"FireFox", @"iPad", @"iPhone", nil];
             [sheet autorelease];
             [sheet showInView:self.view];
+        
+        }else if ( indexPath.row == 4 ) {
+            
+            sheet = [[UIActionSheet alloc]
+                     initWithTitle:NAME_25
+                     delegate:self
+                     cancelButtonTitle:@"Cancel"
+                     destructiveButtonTitle:nil
+                     otherButtonTitles:@"OFF", @"FireFox", @"iPad", @"iPhone", nil];
+            [sheet autorelease];
+            [sheet showInView:self.view];
         }
         
     }else if ( indexPath.section == 3 ) {
@@ -1291,6 +1322,17 @@
             [d setObject:@"iPad" forKey:@"UserAgent"];
         }else if ( buttonIndex == 2 ) {
             [d setObject:@"iPhone" forKey:@"UserAgent"];
+        }
+    
+    }else if ( actionSheetNo == 25 ) {
+        if ( buttonIndex == 0 ) {
+            [d setObject:@"OFF" forKey:@"UserAgentReset"];
+        }else if ( buttonIndex == 1 ) {
+            [d setObject:@"FireFox" forKey:@"UserAgentReset"];
+        }else if ( buttonIndex == 2 ) {
+            [d setObject:@"iPad" forKey:@"UserAgentReset"];
+        }else if ( buttonIndex == 3 ) {
+            [d setObject:@"iPhone" forKey:@"UserAgentReset"];
         }
         
     }else if ( actionSheetNo == 100 ) {

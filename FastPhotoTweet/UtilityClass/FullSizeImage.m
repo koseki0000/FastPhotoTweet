@@ -141,7 +141,7 @@
         
         NSString *sourceCode = [FullSizeImage getSourceCode:urlString];
         urlString = [RegularExpression strRegExp:sourceCode 
-                                   regExpPattern:@"https?://s[0-9]\\.amazonaws\\.com/com\\.clixtr\\.picbounce/photos/[-a-zA-Z0-9]+/[a-z]600x600\\.(jpe?g|png)"];
+                                   regExpPattern:@"https?://(s[0-9]\\.amazonaws\\.com/com\\.clixtr\\.picbounce|img\\.viame-cdn\\.com)/photos/[-a-zA-Z0-9]+/[a-z]600x600\\.(jpe?g|png)"];
     }
     
     //NSLog(@"fullUrl: %@", urlString);

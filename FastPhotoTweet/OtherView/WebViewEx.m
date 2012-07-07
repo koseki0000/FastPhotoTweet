@@ -374,6 +374,12 @@
     return sourceCodeString;
 }
 
+//アクセスしているURLを返す
+- (NSString *)url {
+    
+    return self.request.URL.absoluteString;
+}
+
 //WebViewExを破棄する
 - (void)close {
     

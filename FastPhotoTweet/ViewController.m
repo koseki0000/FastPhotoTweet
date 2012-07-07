@@ -229,6 +229,11 @@
         [d setObject:@"iPhone" forKey:@"UserAgent"];
     }
     
+    //UserAgentを戻す設定がされていない場合はOFFを設定
+    if ( ![EmptyCheck check:[d objectForKey:@"UserAgentReset"]] ) {
+        [d setObject:@"OFF" forKey:@"UserAgentReset"];
+    }
+    
     if ( ![EmptyCheck check:[d dictionaryForKey:@"ArtworkUrl"]] ) {
         [d setObject:[NSDictionary dictionary] forKey:@"ArtworkUrl"];
     }
@@ -338,8 +343,8 @@
             
             //NSLog(@"newVersion");
             
-//            [ShowAlert title:[NSString stringWithFormat:@"FastPhotoTweet %@", APP_VERSION] 
-//                 message:@""];
+            [ShowAlert title:[NSString stringWithFormat:@"FastPhotoTweet %@", APP_VERSION] 
+                 message:@"・｢指定時間後につぶやく｣機能を追加(メイン画面右下のボタンメニューより)\n・NowPlaying時のアートワーク投稿設定がONの場合にアップロード済みURLキャシュを再設定する機能を追加(再設定したいアートワークが表示されている状態でタップ)\n・URLScheme: fhttpからのファイルダウンロードに対応\n・設定に｢ブラウザを閉じる時にユーザーエージェントを戻す｣を追加\n・｢画像共有サービスフルサイズ取得｣のフルサイズ取得時にのvia.meの仕様変更によりURLが正常に取得出来ない場合があるのを修正"];
             
             information = [[[NSMutableDictionary alloc] initWithDictionary:[d dictionaryForKey:@"Information"]] autorelease];
             [information setValue:[NSNumber numberWithInt:1] forKey:APP_VERSION];
@@ -637,7 +642,7 @@
                             delegate:self
                             cancelButtonTitle:@"Cancel"
                             destructiveButtonTitle:nil
-                            otherButtonTitles:@"アイコン変更", nil];
+                            otherButtonTitles:@"アイコン変更", @"指定時間後につぶやく", nil];
     [sheet autorelease];
     [sheet showInView:self.view];
 }
@@ -895,16 +900,32 @@
     
     if ( imagePreview.image != nil ) {
         
-        actionSheetNo = 7;
-        
-        UIActionSheet *sheet = [[UIActionSheet alloc]
-                                initWithTitle:@"機能選択"
-                                delegate:self
-                                cancelButtonTitle:@"Cancel"
-                                destructiveButtonTitle:nil
-                                otherButtonTitles:@"画像をアップロード", @"画像を破棄", @"画像を再選択", nil];
-        [sheet autorelease];
-        [sheet showInView:self.view];
+        if ( nowPlayingMode ) {
+         
+            actionSheetNo = 11;
+            
+            UIActionSheet *sheet = [[UIActionSheet alloc]
+                                    initWithTitle:@"機能選択"
+                                    delegate:self
+                                    cancelButtonTitle:@"Cancel"
+                                    destructiveButtonTitle:nil
+                                    otherButtonTitles:@"アートワークURLを再設定", @"画像をアップロード", @"画像を破棄", @"画像を再選択", nil];
+            [sheet autorelease];
+            [sheet showInView:self.view];
+            
+        }else {
+            
+            actionSheetNo = 7;
+            
+            UIActionSheet *sheet = [[UIActionSheet alloc]
+                                    initWithTitle:@"機能選択"
+                                    delegate:self
+                                    cancelButtonTitle:@"Cancel"
+                                    destructiveButtonTitle:nil
+                                    otherButtonTitles:@"画像をアップロード", @"画像を破棄", @"画像を再選択", nil];
+            [sheet autorelease];
+            [sheet showInView:self.view];
+        }
     }
 }
 
@@ -1188,6 +1209,99 @@
             picPicker.sourceType = UIImagePickerControllerSourceTypePhotoLibrary;
             picPicker.delegate = self;
             [self presentModalViewController:picPicker animated:YES];
+        
+        }else if ( buttonIndex == 1 ) {
+            
+            actionSheetNo = 10;
+            
+            UIActionSheet *sheet = [[UIActionSheet alloc]
+                                    initWithTitle:@"時間設定"
+                                    delegate:self
+                                    cancelButtonTitle:@"Cancel"
+                                    destructiveButtonTitle:nil
+                                    otherButtonTitles:@"1分後", @"15分後", @"30分後", @"60分後", @"90分後", @"120分後", nil];
+            [sheet autorelease];
+            [sheet showInView:self.view];
+        }
+    
+    }else if ( actionSheetNo == 10 ) {
+        
+        int sec = 0;
+        
+        if ( buttonIndex == 0 ) {
+            sec = 5;
+        }else if ( buttonIndex == 1 ) {
+            sec = 60 * 15;
+        }else if ( buttonIndex == 2 ) {
+            sec = 60 * 30;
+        }else if ( buttonIndex == 3 ) {
+            sec = 60 * 60;
+        }else if ( buttonIndex == 4 ) {
+            sec = 60 * 90;
+        }else if ( buttonIndex == 5 ) {
+            sec = 60 * 120;
+        }else {
+            return;
+        }
+        
+        [[UIApplication sharedApplication] cancelAllLocalNotifications];
+        
+        UILocalNotification *localPush = [[[UILocalNotification alloc] init] autorelease];
+        localPush.timeZone = [NSTimeZone defaultTimeZone];
+        localPush.fireDate = [NSDate dateWithTimeIntervalSinceNow:sec];
+        localPush.alertBody = @"Tweet";
+        [[UIApplication sharedApplication] scheduleLocalNotification:localPush];
+        
+    }else if ( actionSheetNo == 11 ) {
+
+        if ( buttonIndex == 0 ) {
+        
+            //キー情報作成のために再生情報を取得
+            MPMusicPlayerController *player = [MPMusicPlayerController iPodMusicPlayer];
+            NSString *songTitle = [player.nowPlayingItem valueForProperty:MPMediaItemPropertyTitle];
+            NSString *songArtist = [player.nowPlayingItem valueForProperty:MPMediaItemPropertyArtist];
+            NSString *albumTitle = [player.nowPlayingItem valueForProperty:MPMediaItemPropertyAlbumTitle];
+            
+            //再設定するキー名を生成
+            NSString *keyName = [NSString stringWithFormat:@"%@ - %@ - %@", songTitle, songArtist, albumTitle];
+            
+            //設定を読み込む
+            NSMutableDictionary *dic = [NSMutableDictionary dictionaryWithDictionary:[d dictionaryForKey:@"ArtworkUrl"]];
+            
+            //削除するURLを取得
+            NSString *deleteUrl = [dic objectForKey:keyName];
+            
+            //入力欄から対象URLを削除
+            postText.text = [ReplaceOrDelete deleteWordReturnStr:postText.text 
+                                                      deleteWord:deleteUrl];
+            
+            //対象キーを削除
+            [dic removeObjectForKey:keyName];
+            [d setObject:dic forKey:@"ArtworkUrl"];
+            
+            //アートワークの再アップロード開始
+            artWorkUploading = YES;
+            [self uploadImage:imagePreview.image];
+            
+        }else if ( buttonIndex == 1 ) {
+            
+            if ( [[d objectForKey:@"PhotoService"] isEqualToString:@"Twitter"] ) {
+                
+                [ShowAlert error:@"Twitterへのアップロードは本文の投稿と同時に行われます。"];
+                
+            }else {
+                
+                [self uploadImage:imagePreview.image];
+            }
+            
+        }else if ( buttonIndex == 2 ) {
+            
+            imagePreview.image = nil;
+            [self countText];
+            
+        }else if ( buttonIndex == 3 ) {
+            
+            [self pushImageSettingButton:nil];
         }
     }
 }
@@ -1419,6 +1533,14 @@
     if ( [d boolForKey:@"applicationWillResignActive"] ) {
         
         [d removeObjectForKey:@"applicationWillResignActive"];
+        return;
+    }
+    
+    if ( [EmptyCheck check:appDelegate.urlSchemeDownloadUrl] ) {
+        
+        appDelegate.openURL = @"about:blank";
+        [self pushBrowserButton:nil];
+        
         return;
     }
     

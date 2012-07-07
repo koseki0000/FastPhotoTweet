@@ -24,6 +24,7 @@
 @synthesize postText;
 @synthesize postTextType;
 @synthesize bookmarkUrl;
+@synthesize urlSchemeDownloadUrl;
 @synthesize postError;
 @synthesize resendNumber;
 @synthesize resendMode;
@@ -50,6 +51,7 @@
     postText = BLANK;
     postTextType = BLANK;
     bookmarkUrl = BLANK;
+    urlSchemeDownloadUrl = BLANK;
     
     postError = [NSMutableArray array];
     [postError retain];
@@ -80,7 +82,13 @@
 
 - (BOOL)application:(UIApplication *)application handleOpenURL:(NSURL *)schemeURL {
 
-    //NSLog(@"handleOpenURL: %@", schemeURL.absoluteString);
+    NSLog(@"handleOpenURL: %@", schemeURL.absoluteString);
+
+    if ( [schemeURL.absoluteString hasPrefix:@"fhttp"] || [schemeURL.absoluteString hasPrefix:@"fhttps"]) {
+        
+        urlSchemeDownloadUrl = [schemeURL.absoluteString substringFromIndex:1];
+        [urlSchemeDownloadUrl retain];
+    }
     
     return YES;
 }
@@ -137,6 +145,7 @@
     
     [oaConsumer release];
     [postError release];
+    [urlSchemeDownloadUrl release];
 
     [_window release];
     [_viewController release];

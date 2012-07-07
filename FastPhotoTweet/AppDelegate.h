@@ -19,6 +19,7 @@
     NSString *postText;
     NSString *postTextType;
     NSString *bookmarkUrl;
+    NSString *urlSchemeDownloadUrl;
     NSMutableArray *postError;
     NSNumber *resendNumber;
     NSNumber *resendMode;
@@ -34,6 +35,7 @@
 @property (nonatomic, retain) NSString *postText;
 @property (nonatomic, retain) NSString *postTextType;
 @property (nonatomic, retain) NSString *bookmarkUrl;
+@property (nonatomic, retain) NSString *urlSchemeDownloadUrl;
 @property (nonatomic, retain) NSMutableArray *postError;
 @property (nonatomic, retain) NSNumber *resendNumber;
 @property (nonatomic, retain) NSNumber *resendMode;

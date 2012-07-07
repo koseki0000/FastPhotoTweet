@@ -52,5 +52,6 @@
 - (NSString *)selectString;
 - (NSString *)pageTitle;
 - (NSString *)sourceCode;
+- (NSString *)url;
 
 @end
