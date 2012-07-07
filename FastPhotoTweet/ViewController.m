@@ -1229,7 +1229,7 @@
         int sec = 0;
         
         if ( buttonIndex == 0 ) {
-            sec = 5;
+            sec = 60;
         }else if ( buttonIndex == 1 ) {
             sec = 60 * 15;
         }else if ( buttonIndex == 2 ) {

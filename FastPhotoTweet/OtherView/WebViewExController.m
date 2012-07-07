@@ -1333,7 +1333,7 @@
     
     //NSLog(@"resetUserAgent");
     
-    //「PC版UAで開き直す」ではなく、リセット設定がOFFでなく、空でない
+    //「PC版UAで開き直す」ではなく、リセット設定がONでなく、空でない
     if ( [appDelegate.pcUaMode intValue] == 0 && ![[d objectForKey:@"UserAgentReset"] isEqualToString:@"OFF"] ) {
         
         //NSLog(@"Reset: %@", [d objectForKey:@"UserAgentReset"]);
