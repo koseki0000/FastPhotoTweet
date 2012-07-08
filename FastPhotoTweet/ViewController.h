@@ -30,13 +30,16 @@
 
 @interface ViewController : UIViewController <UINavigationControllerDelegate, UIImagePickerControllerDelegate, UIActionSheetDelegate> {
     
-    UIButton *inputFunctionButton;
     AppDelegate * appDelegate;
     GrayView *grayView;
     
     NSUserDefaults *d;
+    NSString *inReplyToId;
+    
+    UIButton *inputFunctionButton;
     UIPasteboard *pboard;
     UIImage *errorImage;
+    
     ACAccount *twAccount;
     
     BOOL changeAccount;
@@ -49,6 +52,7 @@
     BOOL showImagePicker;
     BOOL nowPlayingMode;
     BOOL iconUploadMode;
+    
     int actionSheetNo;
 }
 

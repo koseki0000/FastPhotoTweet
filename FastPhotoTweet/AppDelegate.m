@@ -7,6 +7,7 @@
 
 #import "AppDelegate.h"
 #import "ViewController.h"
+#import "TimelineViewController.h"
 
 #define OAUTH_KEY    @"dVbmOIma7UCc5ZkV3SckQ"
 #define OAUTH_SECRET @"wnDptUj4VpGLZebfLT3IInTZPkPS4XimYh6WXAmdI"
@@ -18,19 +19,23 @@
 @implementation AppDelegate
 
 @synthesize window = _window;
-@synthesize viewController = _viewController;
+@synthesize tabBarController = _tabBarController;
+
 @synthesize oaConsumer;
 @synthesize openURL;
 @synthesize postText;
 @synthesize postTextType;
 @synthesize bookmarkUrl;
 @synthesize urlSchemeDownloadUrl;
+@synthesize tabChangeFunction;
+@synthesize sinceId;
 @synthesize postError;
 @synthesize resendNumber;
 @synthesize resendMode;
 @synthesize isBrowserOpen;
 @synthesize launchMode;
 @synthesize pcUaMode;
+@synthesize postData;
 
 - (BOOL)application:(UIApplication *)application didFinishLaunchingWithOptions:(NSDictionary *)launchOptions {
     
@@ -52,6 +57,8 @@
     postTextType = BLANK;
     bookmarkUrl = BLANK;
     urlSchemeDownloadUrl = BLANK;
+    tabChangeFunction = BLANK;
+    sinceId = BLANK;
     
     postError = [NSMutableArray array];
     [postError retain];
@@ -60,6 +67,9 @@
     resendMode = [NSNumber numberWithInt:0];
     isBrowserOpen = [NSNumber numberWithInt:0];
     pcUaMode = [NSNumber numberWithInt:0];
+
+    postData = [NSMutableDictionary dictionary];
+    [postData retain];
     
     if ( launchOptions == NULL ) {
         launchMode = [NSNumber numberWithInt:0];
@@ -68,8 +78,14 @@
     }
     
     self.window = [[[UIWindow alloc] initWithFrame:[[UIScreen mainScreen] bounds]] autorelease];
-    self.viewController = [[[ViewController alloc] initWithNibName:@"ViewController" bundle:nil] autorelease];
-    self.window.rootViewController = self.viewController;
+    
+    UIViewController *mainView = [[[ViewController alloc] initWithNibName:@"ViewController" bundle:nil] autorelease];
+    UIViewController *timelineView = [[[TimelineViewController alloc] initWithNibName:@"TimelineViewController" bundle:nil] autorelease];
+    
+    self.tabBarController = [[[UITabBarController alloc] init] autorelease];
+    self.tabBarController.viewControllers = [NSArray arrayWithObjects:mainView, timelineView, nil];
+    self.window.rootViewController = self.tabBarController;
+    
     [self.window makeKeyAndVisible];
     
     return YES;
@@ -148,7 +164,8 @@
     [urlSchemeDownloadUrl release];
 
     [_window release];
-    [_viewController release];
+    [_tabBarController release];
+    
     [super dealloc];
 }
 

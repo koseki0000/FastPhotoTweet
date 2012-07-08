@@ -48,11 +48,24 @@
 @synthesize bottomBar;
 @synthesize settingButton;
 
+- (id)initWithNibName:(NSString *)nibNameOrNil bundle:(NSBundle *)nibBundleOrNil {
+    
+    self = [super initWithNibName:nibNameOrNil bundle:nibBundleOrNil];
+    
+    if ( self ) {
+        
+        self.title = NSLocalizedString(@"Tweet", @"Tweet");
+        self.tabBarItem.image = [UIImage imageNamed:@"Bubble"];
+    }
+    
+    return self;
+}
+
 - (void)viewDidLoad {
     
     [super viewDidLoad];
     
-    //NSLog(@"viewDidLoad");
+    //NSLog(@"Tweet viewDidLoad");
     
     NSNotificationCenter *notificationCenter = [NSNotificationCenter defaultCenter];
     
@@ -80,6 +93,7 @@
     errorImage = nil;
     appDelegate = (AppDelegate *)[[UIApplication sharedApplication] delegate];
     postText.text = BLANK;
+    inReplyToId = BLANK;
     changeAccount = NO;
     cameraMode = NO;
     repeatedPost = NO;
@@ -386,7 +400,7 @@
                 @autoreleasepool {
                     
                     //文字列をバックグラウンドプロセスで投稿
-                    NSArray *postData = [NSArray arrayWithObjects:[DeleteWhiteSpace string:text], nil];
+                    NSArray *postData = [NSArray arrayWithObjects:[DeleteWhiteSpace string:text], inReplyToId, nil];
                     [TWSendTweet performSelectorInBackground:@selector(post:) withObject:postData];
                 }
                 
@@ -402,7 +416,7 @@
                     @autoreleasepool {
                         
                         //文字列と画像をバックグラウンドプロセスで投稿
-                        NSArray *postData = [NSArray arrayWithObjects:[DeleteWhiteSpace string:text], imagePreview.image, nil];
+                        NSArray *postData = [NSArray arrayWithObjects:[DeleteWhiteSpace string:text], inReplyToId, imagePreview.image, nil];
                         [TWSendTweet performSelectorInBackground:@selector(post:) withObject:postData];
                     }
                 
@@ -412,7 +426,7 @@
                     @autoreleasepool {
                         
                         //文字列をバックグラウンドプロセスで投稿
-                        NSArray *postData = [NSArray arrayWithObjects:[DeleteWhiteSpace string:text], nil];
+                        NSArray *postData = [NSArray arrayWithObjects:[DeleteWhiteSpace string:text], inReplyToId, nil];
                         [TWSendTweet performSelectorInBackground:@selector(post:) withObject:postData];
                     }
                 }
@@ -420,6 +434,13 @@
                 //入力欄と画像プレビューを空にする
                 postText.text = BLANK;
                 imagePreview.image = nil;
+                
+                if ( [EmptyCheck check:inReplyToId] ) {
+                    
+                    [inReplyToId release];
+                    
+                    inReplyToId = BLANK;
+                }
             }
             
             //とは検索機能ONかつ条件にマッチ
@@ -514,6 +535,14 @@
     artWorkUploading = NO;
     postText.text = BLANK;
     imagePreview.image = nil;
+    
+    if ( [EmptyCheck check:inReplyToId] ) {
+        
+        [inReplyToId release];
+        
+        inReplyToId = BLANK;
+    }
+    
     [self countText];
 }
 
@@ -576,7 +605,7 @@
                                               @"Tweet ATOK", @"Tweetlogix",  @"HootSuite", 
                                               @"SimplyTweet", @"Reeder", nil];
 	[sheet autorelease];
-	[sheet showInView:self.view];
+	[sheet showInView:appDelegate.tabBarController.self.view];
 }
 
 - (void)showActionMenu {
@@ -594,7 +623,7 @@
                                               @"NowPlaying", @"FastGoogle", @"Browser",
                                               @"FastPagePost", nil];
 	[sheet autorelease];
-	[sheet showInView:self.view];
+	[sheet showInView:appDelegate.tabBarController.self.view];
 }
 
 - (IBAction)pushImageSettingButton:(id)sender {
@@ -616,7 +645,7 @@
                                     destructiveButtonTitle:nil
                                     otherButtonTitles:@"ON", @"OFF", nil];
             [sheet autorelease];
-            [sheet showInView:self.view];
+            [sheet showInView:appDelegate.tabBarController.self.view];
         
         //連続投稿確認がOFF
         }else {
@@ -644,7 +673,7 @@
                             destructiveButtonTitle:nil
                             otherButtonTitles:@"アイコン変更", @"指定時間後につぶやく", nil];
     [sheet autorelease];
-    [sheet showInView:self.view];
+    [sheet showInView:appDelegate.tabBarController.self.view];
 }
 
 - (void)showImagePicker {
@@ -672,7 +701,7 @@
                                 destructiveButtonTitle:nil
                                 otherButtonTitles:@"カメラロール", @"カメラ", nil];
         [sheet autorelease];
-        [sheet showInView:self.view];
+        [sheet showInView:appDelegate.tabBarController.self.view];
         
         return;
         
@@ -761,7 +790,7 @@
                                 destructiveButtonTitle:nil
                                 otherButtonTitles:@"再保存", @"破棄", nil];
         [sheet autorelease];
-        [sheet showInView:self.view];
+        [sheet showInView:appDelegate.tabBarController.self.view];
     }
 }
 
@@ -882,7 +911,7 @@
                             destructiveButtonTitle:nil
                             otherButtonTitles:@"再投稿", @"破棄", nil];
     [sheet autorelease];
-    [sheet showInView:self.view];
+    [sheet showInView:appDelegate.tabBarController.self.view];
 }
 
 - (IBAction)svTapGesture:(id)sender {
@@ -911,7 +940,7 @@
                                     destructiveButtonTitle:nil
                                     otherButtonTitles:@"アートワークURLを再設定", @"画像をアップロード", @"画像を破棄", @"画像を再選択", nil];
             [sheet autorelease];
-            [sheet showInView:self.view];
+            [sheet showInView:appDelegate.tabBarController.self.view];
             
         }else {
             
@@ -924,7 +953,7 @@
                                     destructiveButtonTitle:nil
                                     otherButtonTitles:@"画像をアップロード", @"画像を破棄", @"画像を再選択", nil];
             [sheet autorelease];
-            [sheet showInView:self.view];
+            [sheet showInView:appDelegate.tabBarController.self.view];
         }
     }
 }
@@ -961,7 +990,7 @@
                                               @"ペーストボードへコピー", @"ペーストボードからコピー", 
                                               @"現在位置から右を削除", @"現在位置から左を削除", nil];
     [sheet autorelease];
-    [sheet showInView:self.view];
+    [sheet showInView:appDelegate.tabBarController.self.view];
 }
 
 - (IBAction)callbackSwitchDidChage:(id)sender {
@@ -1221,7 +1250,7 @@
                                     destructiveButtonTitle:nil
                                     otherButtonTitles:@"1分後", @"15分後", @"30分後", @"60分後", @"90分後", @"120分後", nil];
             [sheet autorelease];
-            [sheet showInView:self.view];
+            [sheet showInView:appDelegate.tabBarController.self.view];
         }
     
     }else if ( actionSheetNo == 10 ) {
@@ -1717,18 +1746,18 @@
                 
                     if ( imagePreview.image != nil ) {
                         
-                        NSArray *postData = [NSArray arrayWithObjects:[DeleteWhiteSpace string:nowPlayingText], imagePreview.image, nil];
+                        NSArray *postData = [NSArray arrayWithObjects:[DeleteWhiteSpace string:nowPlayingText], inReplyToId, imagePreview.image, nil];
                         [TWSendTweet performSelectorInBackground:@selector(post:) withObject:postData];
                         
                     }else {
                         
-                        NSArray *postData = [NSArray arrayWithObjects:[DeleteWhiteSpace string:nowPlayingText], nil];
+                        NSArray *postData = [NSArray arrayWithObjects:[DeleteWhiteSpace string:nowPlayingText], inReplyToId, nil];
                         [TWSendTweet performSelectorInBackground:@selector(post:) withObject:postData];
                     }
                     
                 }else {
                     
-                    NSArray *postData = [NSArray arrayWithObjects:[DeleteWhiteSpace string:nowPlayingText], nil];
+                    NSArray *postData = [NSArray arrayWithObjects:[DeleteWhiteSpace string:nowPlayingText], inReplyToId, nil];
                     [TWSendTweet performSelectorInBackground:@selector(post:) withObject:postData];
                 }
                 
@@ -1830,7 +1859,7 @@
                     
                     //投稿処理
                     NSString *text = [[[NSString alloc] initWithString:pboard.string] autorelease];
-                    NSArray *postData = [NSArray arrayWithObjects:[DeleteWhiteSpace string:text], nil];
+                    NSArray *postData = [NSArray arrayWithObjects:[DeleteWhiteSpace string:text], inReplyToId, nil];
                     [TWSendTweet performSelectorInBackground:@selector(post:) withObject:postData];
                 }
                 
@@ -2104,6 +2133,32 @@
     //NSLog(@"viewDidAppear");
     
     @try {
+     
+        //タブ切り替え時の動作
+        if ( [EmptyCheck check:appDelegate.tabChangeFunction] ) {
+         
+            NSLog(@"Function: %@", appDelegate.tabChangeFunction);
+            
+            if ( [appDelegate.tabChangeFunction isEqualToString:@"Post"] ) {
+                
+                appDelegate.tabChangeFunction = BLANK;
+                [postText becomeFirstResponder];
+            
+            }else if ( [appDelegate.tabChangeFunction isEqualToString:@"Reply"] ) {
+                
+                NSDictionary *postData = appDelegate.postData;
+                
+                postText.text = [NSString stringWithFormat:@"@%@ %@", [postData objectForKey:@"ScreenName"], postText.text];
+                inReplyToId = [postData objectForKey:@"InReplyToId"];
+                [inReplyToId retain];
+                
+                appDelegate.tabChangeFunction = BLANK;
+                [postText becomeFirstResponder];
+                [appDelegate.postData removeAllObjects];
+            }
+            
+            return;
+        }
         
         if ( [appDelegate.pcUaMode intValue] == 1 ) {
             
@@ -2157,6 +2212,8 @@
             
             //NSLog(@"ChangeAccount");
             
+            appDelegate.sinceId = BLANK;
+            
             [d removeObjectForKey:@"ChangeAccount"];
             changeAccount = NO;
             [twAccount release];
@@ -2178,6 +2235,7 @@
             [d setInteger:account forKey:@"UseAccount"];
             
             postText.text = [resendArray objectAtIndex:2];
+            inReplyToId = [resendArray objectAtIndex:3];
             
             if ( resendArray.count == 3 ) {
                 
@@ -2244,6 +2302,8 @@
 - (void)viewWillAppear:(BOOL)animated {
     
     [super viewWillAppear:animated];
+    
+    NSLog(@"viewWillAppear");
 }
 
 - (void)viewWillDisappear:(BOOL)animated {

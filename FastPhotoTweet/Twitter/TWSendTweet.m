@@ -34,7 +34,8 @@
             
             //0:画像つき投稿 1:文字のみ
             int postMode = 0;
-            NSString *postText;
+            NSString *postText = nil;
+            NSString *inReplyToId = nil;
             UIImage *image = [[[UIImage alloc] init] autorelease];
             
             //投稿しようとしているPostを保存
@@ -45,7 +46,7 @@
             [appDelegate.postError addObject:(NSArray *)tempMArray];
             
             //画像のチェック
-            if ( postData.count == 1 ) {
+            if ( postData.count == 2 ) {
                 
                 //imageが空なら文字のみ投稿
                 //文字データのチェック
@@ -64,6 +65,7 @@
             }
             
             postText = [postData objectAtIndex:0];
+            inReplyToId = [postData objectAtIndex:1];
             
             //ステータスバーに処理中表示
             [ActivityIndicator on];
@@ -73,7 +75,7 @@
             if ( postMode == 0 ) {
                 
                 tReqURL = @"https://upload.twitter.com/1/statuses/update_with_media.json?include_entities=true";
-                image = [postData objectAtIndex:1];
+                image = [postData objectAtIndex:2];
                 
             }else if ( postMode == 1 ) {
                 
@@ -108,6 +110,14 @@
                                  withName:@"status" 
                                      type:@"multipart/form-data"];
             
+            if ( [EmptyCheck check:inReplyToId] ) {
+            
+                //InReplyToIdを追加
+                [postRequest addMultiPartData:[inReplyToId dataUsingEncoding:NSUTF8StringEncoding]
+                                     withName:@"in_reply_to_status_id"
+                                         type:@"multipart/form-data"];
+            }
+            
             //リクエストにアカウントを設定
             [postRequest setAccount:twAccount];
             
@@ -116,8 +126,7 @@
             NSNotification *postNotification =[NSNotification notificationWithName:@"PostDone" 
                                                                             object:self 
                                                                           userInfo:postResult];
-            //NSLog(@"SetNotification");
-            
+
             [postRequest performRequestWithHandler:
              ^( NSData *responseData, NSHTTPURLResponse *urlResponse, NSError *error ) {
                  
