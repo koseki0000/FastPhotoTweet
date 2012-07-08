@@ -131,7 +131,9 @@
 - (void)checkPasteBoardUrlOption {
     
     //ペーストボード内のURLを開く設定が有効かチェック
-    if ( [d boolForKey:@"OpenPasteBoardURL"] || openUrlMode ) {
+    if ( [d boolForKey:@"OpenPasteBoardURL"] || openUrlMode || [appDelegate.tlUrlOpenMode intValue] == 1 ) {
+        
+        appDelegate.tlUrlOpenMode = [NSNumber numberWithInt:0];
         
         //PasteBoardがテキストかチェック
         if ( [PasteboardType isText] ) {

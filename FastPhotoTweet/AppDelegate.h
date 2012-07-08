@@ -26,6 +26,7 @@
     NSNumber *isBrowserOpen;
     NSNumber *launchMode;
     NSNumber *pcUaMode;
+    NSNumber *tlUrlOpenMode;
     NSMutableDictionary *postData;
 }
 
@@ -46,6 +47,7 @@
 @property (nonatomic, retain) NSNumber *isBrowserOpen;
 @property (nonatomic, retain) NSNumber *launchMode;
 @property (nonatomic, retain) NSNumber *pcUaMode;
+@property (nonatomic, retain) NSNumber *tlUrlOpenMode;
 @property (nonatomic, retain) NSMutableDictionary *postData;
 
 - (BOOL)ios5Check;

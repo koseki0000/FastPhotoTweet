@@ -19,15 +19,17 @@
 #import <CFNetwork/CFNetwork.h>
 #import "JSON.h"
 
-@interface TimelineViewController : UIViewController {
+@interface TimelineViewController : UIViewController <UIActionSheetDelegate> {
     
     AppDelegate *appDelegate;
     
     NSUserDefaults *d;
     NSMutableArray *timelineArray;
     NSMutableArray *iconUrls;
+    NSMutableDictionary *allTimelines;
     NSMutableDictionary *icons;
     NSDictionary *currentTweet;
+    NSString *userStreamUser;
     
     UIPasteboard *pboard;
     UIImage *startImage;
@@ -36,16 +38,22 @@
     ACAccount *twAccount;
     
     BOOL userStream;
+    BOOL actionSheetVisible;
+    
+    int longPressControl;
+    int selectRow;
 }
 
 @property (retain, nonatomic) IBOutlet UIToolbar *topBar;
 @property (retain, nonatomic) IBOutlet UITableView *timeline;
 @property (retain, nonatomic) IBOutlet UIBarButtonItem *flexibleSpace;
 @property (retain, nonatomic) IBOutlet UIBarButtonItem *postButton;
+@property (retain, nonatomic) IBOutlet UIBarButtonItem *reloadButton;
 @property (retain, nonatomic) IBOutlet UIBarButtonItem *openStreamButton;
 @property (strong, nonatomic) NSURLConnection *connection;
 
 - (IBAction)pushPostButton:(id)sender;
+- (IBAction)pushReloadButton:(id)sender;
 - (IBAction)pushOpenStreamButton:(id)sender;
 
 - (void)createTimeline;

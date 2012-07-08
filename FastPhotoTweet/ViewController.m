@@ -2137,25 +2137,28 @@
         //タブ切り替え時の動作
         if ( [EmptyCheck check:appDelegate.tabChangeFunction] ) {
          
-            NSLog(@"Function: %@", appDelegate.tabChangeFunction);
+            //NSLog(@"Function: %@", appDelegate.tabChangeFunction);
             
             if ( [appDelegate.tabChangeFunction isEqualToString:@"Post"] ) {
                 
-                appDelegate.tabChangeFunction = BLANK;
                 [postText becomeFirstResponder];
             
             }else if ( [appDelegate.tabChangeFunction isEqualToString:@"Reply"] ) {
                 
                 NSDictionary *postData = appDelegate.postData;
-                
                 postText.text = [NSString stringWithFormat:@"@%@ %@", [postData objectForKey:@"ScreenName"], postText.text];
                 inReplyToId = [postData objectForKey:@"InReplyToId"];
                 [inReplyToId retain];
                 
-                appDelegate.tabChangeFunction = BLANK;
                 [postText becomeFirstResponder];
                 [appDelegate.postData removeAllObjects];
+            
+            }else if ( [appDelegate.tabChangeFunction isEqualToString:@"UrlOpen"] ) {
+                
+                [self pushBrowserButton:nil];
             }
+            
+            appDelegate.tabChangeFunction = BLANK;
             
             return;
         }
@@ -2302,8 +2305,6 @@
 - (void)viewWillAppear:(BOOL)animated {
     
     [super viewWillAppear:animated];
-    
-    NSLog(@"viewWillAppear");
 }
 
 - (void)viewWillDisappear:(BOOL)animated {

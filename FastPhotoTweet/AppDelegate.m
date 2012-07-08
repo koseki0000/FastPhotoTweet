@@ -36,6 +36,7 @@
 @synthesize launchMode;
 @synthesize pcUaMode;
 @synthesize postData;
+@synthesize tlUrlOpenMode;
 
 - (BOOL)application:(UIApplication *)application didFinishLaunchingWithOptions:(NSDictionary *)launchOptions {
     
@@ -67,6 +68,7 @@
     resendMode = [NSNumber numberWithInt:0];
     isBrowserOpen = [NSNumber numberWithInt:0];
     pcUaMode = [NSNumber numberWithInt:0];
+    tlUrlOpenMode = [NSNumber numberWithInt:0];
 
     postData = [NSMutableDictionary dictionary];
     [postData retain];
