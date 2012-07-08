@@ -50,11 +50,13 @@
 @property (retain, nonatomic) IBOutlet UIBarButtonItem *postButton;
 @property (retain, nonatomic) IBOutlet UIBarButtonItem *reloadButton;
 @property (retain, nonatomic) IBOutlet UIBarButtonItem *openStreamButton;
+@property (retain, nonatomic) IBOutlet UIBarButtonItem *actionButton;
 @property (strong, nonatomic) NSURLConnection *connection;
 
-- (IBAction)pushPostButton:(id)sender;
-- (IBAction)pushReloadButton:(id)sender;
-- (IBAction)pushOpenStreamButton:(id)sender;
+- (IBAction)pushPostButton:(UIBarButtonItem *)sender;
+- (IBAction)pushReloadButton:(UIBarButtonItem *)sender;
+- (IBAction)pushOpenStreamButton:(UIBarButtonItem *)sender;
+- (IBAction)pushActionButton:(UIBarButtonItem *)sender;
 
 - (void)createTimeline;
 - (void)loadTimeline:(NSNotification *)center;

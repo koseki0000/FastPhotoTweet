@@ -204,8 +204,8 @@
         
     if ( ![EmptyCheck check:[d objectForKey:@"CallBackScheme"]] ) {
         
-        //スキームが保存されていない場合空のキーを保存
-        [d setObject:BLANK forKey:@"CallBackScheme"];
+        //スキームが保存されていない場合FPTを設定
+        [d setObject:@"FPT" forKey:@"CallBackScheme"];
     }
     
     //画像形式が設定されていない場合JPGを設定
@@ -260,7 +260,11 @@
     
     NSString *scheme = [d objectForKey:@"CallBackScheme"];
     
-    if ( [scheme isEqualToString:@"twitter://"] ) {
+    if ( [scheme isEqualToString:@"FPT"] ) {
+    
+        [callbackSelectButton setTitle:@"FastPhotoTweet" forState:UIControlStateNormal];
+        
+    }else if ( [scheme isEqualToString:@"twitter://"] ) {
         
         [callbackSelectButton setTitle:@"Twitter for iPhone" forState:UIControlStateNormal];
         
@@ -599,11 +603,12 @@
                             delegate:self
                             cancelButtonTitle:@"Cancel"
                             destructiveButtonTitle:nil
-                            otherButtonTitles:@"Twitter for iPhone", @"Tweetbot", @"Echofon", 
-                                              @"Echofon Pro", @"SOICHA", @"Tweetings", 
-                                              @"Osfoora", @"Twittelator", @"TweetList!", 
-                                              @"Tweet ATOK", @"Tweetlogix",  @"HootSuite", 
-                                              @"SimplyTweet", @"Reeder", nil];
+                            otherButtonTitles:@"FastPhotoTweet", @"Twitter for iPhone", 
+                                              @"Tweetbot", @"Echofon", @"Echofon Pro", 
+                                              @"SOICHA", @"Tweetings", @"Osfoora", 
+                                              @"Twittelator", @"TweetList!", @"Tweet ATOK", 
+                                              @"Tweetlogix",  @"HootSuite", @"SimplyTweet", 
+                                              @"Reeder", nil];
 	[sheet autorelease];
 	[sheet showInView:appDelegate.tabBarController.self.view];
 }
@@ -1011,6 +1016,7 @@
     if ( actionSheetNo == 0 ) {
         
         showActionSheet = NO;
+        self.tabBarController.selectedIndex = 0;
         
         //ペーストボードの内容をチェック
         int pBoardType = [PasteboardType check];
@@ -1196,32 +1202,34 @@
     }else if ( actionSheetNo == 8 ) {
         
         if ( buttonIndex == 0 ) {
+            [d setObject:@"FPT" forKey:@"CallBackScheme"];
+        }else if ( buttonIndex == 1 ) {    
             [d setObject:@"twitter://" forKey:@"CallBackScheme"];
-        }else if ( buttonIndex == 1 ) {
-            [d setObject:@"tweetbot://" forKey:@"CallBackScheme"];
         }else if ( buttonIndex == 2 ) {
-            [d setObject:@"echofon://?" forKey:@"CallBackScheme"];        
+            [d setObject:@"tweetbot://" forKey:@"CallBackScheme"];
         }else if ( buttonIndex == 3 ) {
-            [d setObject:@"echofonpro://?" forKey:@"CallBackScheme"];
+            [d setObject:@"echofon://?" forKey:@"CallBackScheme"];        
         }else if ( buttonIndex == 4 ) {
-            [d setObject:@"soicha://" forKey:@"CallBackScheme"];
+            [d setObject:@"echofonpro://?" forKey:@"CallBackScheme"];
         }else if ( buttonIndex == 5 ) {
-            [d setObject:@"tweetings://" forKey:@"CallBackScheme"];
+            [d setObject:@"soicha://" forKey:@"CallBackScheme"];
         }else if ( buttonIndex == 6 ) {
-            [d setObject:@"osfoora://" forKey:@"CallBackScheme"];
+            [d setObject:@"tweetings://" forKey:@"CallBackScheme"];
         }else if ( buttonIndex == 7 ) {
-            [d setObject:@"twittelator://" forKey:@"CallBackScheme"];
+            [d setObject:@"osfoora://" forKey:@"CallBackScheme"];
         }else if ( buttonIndex == 8 ) {
-            [d setObject:@"tweetlist://" forKey:@"CallBackScheme"];
+            [d setObject:@"twittelator://" forKey:@"CallBackScheme"];
         }else if ( buttonIndex == 9 ) {
-            [d setObject:@"tweetatok://" forKey:@"CallBackScheme"];
+            [d setObject:@"tweetlist://" forKey:@"CallBackScheme"];
         }else if ( buttonIndex == 10 ) {
-            [d setObject:@"tweetlogix://" forKey:@"CallBackScheme"];
+            [d setObject:@"tweetatok://" forKey:@"CallBackScheme"];
         }else if ( buttonIndex == 11 ) {
-            [d setObject:@"hootsuite://" forKey:@"CallBackScheme"];
+            [d setObject:@"tweetlogix://" forKey:@"CallBackScheme"];
         }else if ( buttonIndex == 12 ) {
-            [d setObject:@"simplytweet://" forKey:@"CallBackScheme"];
+            [d setObject:@"hootsuite://" forKey:@"CallBackScheme"];
         }else if ( buttonIndex == 13 ) {
+            [d setObject:@"simplytweet://" forKey:@"CallBackScheme"];
+        }else if ( buttonIndex == 14 ) {
             [d setObject:@"reeder://" forKey:@"CallBackScheme"];
         }
         
@@ -1936,22 +1944,30 @@
     //CallbackSchemeが空でない
     if ( [EmptyCheck check:[d objectForKey:@"CallBackScheme"]] ) {
         
-        //CallbackSchemeがアクセス可能な物がテスト
-        canOpen = [[UIApplication sharedApplication] canOpenURL:[NSURL URLWithString:[d objectForKey:@"CallBackScheme"]]];
-        
-        //コールバックスキームが開けない
-        if ( !canOpen ) {
+        if ( [[d objectForKey:@"CallBackScheme"] isEqualToString:@"FPT"] ) {
             
-            //NSLog(@"Can't callBack");
+            [postText resignFirstResponder];
+            self.tabBarController.selectedIndex = 1;
             
-            [ShowAlert error:@"コールバックスキームが有効でありません。"];
-            
-        //コールバックスキームを開くことが出来る
         }else {
             
-            //NSLog(@"CallBack");
+            //CallbackSchemeがアクセス可能な物がテスト
+            canOpen = [[UIApplication sharedApplication] canOpenURL:[NSURL URLWithString:[d objectForKey:@"CallBackScheme"]]];
             
-            [[UIApplication sharedApplication] openURL:[NSURL URLWithString:[d objectForKey:@"CallBackScheme"]]];
+            //コールバックスキームが開けない
+            if ( !canOpen ) {
+                
+                //NSLog(@"Can't callBack");
+                
+                [ShowAlert error:@"コールバックスキームが有効でありません。"];
+                
+                //コールバックスキームを開くことが出来る
+            }else {
+                
+                //NSLog(@"CallBack");
+                
+                [[UIApplication sharedApplication] openURL:[NSURL URLWithString:[d objectForKey:@"CallBackScheme"]]];
+            }
         }
     }
 }

@@ -59,7 +59,15 @@
 								<reference key="IBUIToolbar" ref="60583641"/>
 								<int key="IBUISystemItemIdentifier">5</int>
 							</object>
-							<object class="IBUIBarButtonItem" id="256465759">
+							<object class="IBUIBarButtonItem" id="321908341">
+								<object class="NSCustomResource" key="IBUIImage">
+									<string key="NSClassName">NSImage</string>
+									<string key="NSResourceName">action.png</string>
+								</object>
+								<string key="targetRuntimeIdentifier">IBCocoaTouchFramework</string>
+								<reference key="IBUIToolbar" ref="60583641"/>
+							</object>
+							<object class="IBUIBarButtonItem" id="1021631984">
 								<object class="NSCustomResource" key="IBUIImage">
 									<string key="NSClassName">NSImage</string>
 									<string key="NSResourceName">reload.png</string>
@@ -175,9 +183,17 @@
 					<object class="IBCocoaTouchOutletConnection" key="connection">
 						<string key="label">reloadButton</string>
 						<reference key="source" ref="372490531"/>
-						<reference key="destination" ref="256465759"/>
+						<reference key="destination" ref="1021631984"/>
 					</object>
 					<int key="connectionID">22</int>
+				</object>
+				<object class="IBConnectionRecord">
+					<object class="IBCocoaTouchOutletConnection" key="connection">
+						<string key="label">actionButton</string>
+						<reference key="source" ref="372490531"/>
+						<reference key="destination" ref="321908341"/>
+					</object>
+					<int key="connectionID">25</int>
 				</object>
 				<object class="IBConnectionRecord">
 					<object class="IBCocoaTouchOutletConnection" key="connection">
@@ -214,10 +230,18 @@
 				<object class="IBConnectionRecord">
 					<object class="IBCocoaTouchEventConnection" key="connection">
 						<string key="label">pushReloadButton:</string>
-						<reference key="source" ref="256465759"/>
+						<reference key="source" ref="1021631984"/>
 						<reference key="destination" ref="372490531"/>
 					</object>
 					<int key="connectionID">23</int>
+				</object>
+				<object class="IBConnectionRecord">
+					<object class="IBCocoaTouchEventConnection" key="connection">
+						<string key="label">pushActionButton:</string>
+						<reference key="source" ref="321908341"/>
+						<reference key="destination" ref="372490531"/>
+					</object>
+					<int key="connectionID">26</int>
 				</object>
 			</array>
 			<object class="IBMutableOrderedSet" key="objectRecords">
@@ -255,7 +279,8 @@
 							<reference ref="382046065"/>
 							<reference ref="681045463"/>
 							<reference ref="328222527"/>
-							<reference ref="256465759"/>
+							<reference ref="1021631984"/>
+							<reference ref="321908341"/>
 						</array>
 						<reference key="parent" ref="191373211"/>
 					</object>
@@ -281,7 +306,12 @@
 					</object>
 					<object class="IBObjectRecord">
 						<int key="objectID">21</int>
-						<reference key="object" ref="256465759"/>
+						<reference key="object" ref="1021631984"/>
+						<reference key="parent" ref="60583641"/>
+					</object>
+					<object class="IBObjectRecord">
+						<int key="objectID">24</int>
+						<reference key="object" ref="321908341"/>
 						<reference key="parent" ref="60583641"/>
 					</object>
 				</array>
@@ -296,6 +326,7 @@
 				<string key="13.IBPluginDependency">com.apple.InterfaceBuilder.IBCocoaTouchPlugin</string>
 				<string key="17.IBPluginDependency">com.apple.InterfaceBuilder.IBCocoaTouchPlugin</string>
 				<string key="21.IBPluginDependency">com.apple.InterfaceBuilder.IBCocoaTouchPlugin</string>
+				<string key="24.IBPluginDependency">com.apple.InterfaceBuilder.IBCocoaTouchPlugin</string>
 				<string key="4.IBPluginDependency">com.apple.InterfaceBuilder.IBCocoaTouchPlugin</string>
 				<string key="7.IBPluginDependency">com.apple.InterfaceBuilder.IBCocoaTouchPlugin</string>
 			</dictionary>
@@ -303,7 +334,7 @@
 			<nil key="activeLocalization"/>
 			<dictionary class="NSMutableDictionary" key="localizations"/>
 			<nil key="sourceID"/>
-			<int key="maxID">23</int>
+			<int key="maxID">26</int>
 		</object>
 		<object class="IBClassDescriber" key="IBDocument.Classes">
 			<array class="NSMutableArray" key="referencedPartialClassDescriptions">
@@ -311,11 +342,16 @@
 					<string key="className">TimelineViewController</string>
 					<string key="superclassName">UIViewController</string>
 					<dictionary class="NSMutableDictionary" key="actions">
+						<string key="pushActionButton:">id</string>
 						<string key="pushOpenStreamButton:">id</string>
 						<string key="pushPostButton:">id</string>
 						<string key="pushReloadButton:">id</string>
 					</dictionary>
 					<dictionary class="NSMutableDictionary" key="actionInfosByName">
+						<object class="IBActionInfo" key="pushActionButton:">
+							<string key="name">pushActionButton:</string>
+							<string key="candidateClassName">id</string>
+						</object>
 						<object class="IBActionInfo" key="pushOpenStreamButton:">
 							<string key="name">pushOpenStreamButton:</string>
 							<string key="candidateClassName">id</string>
@@ -330,6 +366,7 @@
 						</object>
 					</dictionary>
 					<dictionary class="NSMutableDictionary" key="outlets">
+						<string key="actionButton">UIBarButtonItem</string>
 						<string key="flexibleSpace">UIBarButtonItem</string>
 						<string key="openStreamButton">UIBarButtonItem</string>
 						<string key="postButton">UIBarButtonItem</string>
@@ -338,6 +375,10 @@
 						<string key="topBar">UIToolbar</string>
 					</dictionary>
 					<dictionary class="NSMutableDictionary" key="toOneOutletInfosByName">
+						<object class="IBToOneOutletInfo" key="actionButton">
+							<string key="name">actionButton</string>
+							<string key="candidateClassName">UIBarButtonItem</string>
+						</object>
 						<object class="IBToOneOutletInfo" key="flexibleSpace">
 							<string key="name">flexibleSpace</string>
 							<string key="candidateClassName">UIBarButtonItem</string>
@@ -379,6 +420,7 @@
 		<bool key="IBDocument.PluginDeclaredDependenciesTrackSystemTargetVersion">YES</bool>
 		<int key="IBDocument.defaultPropertyAccessControl">3</int>
 		<dictionary class="NSMutableDictionary" key="IBDocument.LastKnownImageSizes">
+			<string key="action.png">{24, 24}</string>
 			<string key="compose.png">{24, 24}</string>
 			<string key="reload.png">{24, 24}</string>
 		</dictionary>

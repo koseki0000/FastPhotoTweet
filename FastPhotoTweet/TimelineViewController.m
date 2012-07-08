@@ -11,7 +11,7 @@
 
 #import "TimelineViewController.h"
 
-#define TOP_BAR [NSArray arrayWithObjects:openStreamButton, flexibleSpace, reloadButton, flexibleSpace, postButton, nil]
+#define TOP_BAR [NSArray arrayWithObjects:actionButton, flexibleSpace, openStreamButton, flexibleSpace, reloadButton, flexibleSpace, postButton, nil]
 
 #define BLANK @""
 
@@ -21,6 +21,7 @@
 @synthesize flexibleSpace;
 @synthesize postButton;
 @synthesize openStreamButton;
+@synthesize actionButton;
 @synthesize reloadButton;
 @synthesize connection = _connection;
 
@@ -335,14 +336,14 @@
     self.tabBarController.selectedIndex = 0;
 }
 
-- (IBAction)pushReloadButton:(id)sender {
+- (IBAction)pushReloadButton:(UIBarButtonItem *)sender {
     
     if ( userStream ) [self pushOpenStreamButton:nil];
     
     [self createTimeline];
 }
 
-- (IBAction)pushOpenStreamButton:(id)sender {
+- (IBAction)pushOpenStreamButton:(UIBarButtonItem *)sender {
     
     
     if ( !userStream ) {
@@ -359,6 +360,20 @@
         openStreamButton.image = startImage;
         [self.connection cancel];
     }
+}
+
+- (IBAction)pushActionButton:(UIBarButtonItem *)sender {
+
+    UIActionSheet *sheet = [[UIActionSheet alloc]
+                            initWithTitle:@"外部サービスを開く"
+                            delegate:self
+                            cancelButtonTitle:@"Cancel"
+                            destructiveButtonTitle:nil
+                            otherButtonTitles:@"Twilog", @"favstar", nil];
+    
+    sheet.tag = 1;
+    
+    [sheet showInView:appDelegate.tabBarController.self.view];
 }
 
 #pragma mark - UserStream
@@ -538,14 +553,39 @@
             
             NSDictionary *dic = [timelineArray objectAtIndex:selectRow];
             NSString *text = [TWEntities replace:dic];
-            
             [pboard setString:text];
-            
+            [d setObject:BLANK forKey:@"LastOpendPasteBoardURL"];
             appDelegate.tlUrlOpenMode = [NSNumber numberWithInt:1];
             
             appDelegate.tabChangeFunction = @"UrlOpen";
             self.tabBarController.selectedIndex = 0;
         }
+    
+    }else if ( actionSheet.tag == 1 ) {
+        
+        NSString *serviceUrl = nil;
+        
+        if ( buttonIndex == 0 ) {
+        
+            //Twilog
+            serviceUrl = [NSString stringWithFormat:@"http://twilog.org/%@", twAccount.username];
+            
+        }else if ( buttonIndex == 1 ) {
+        
+            //favstar
+            serviceUrl = [NSString stringWithFormat:@"http://ja.favstar.fm/users/%@/recent", twAccount.username];
+            
+        }else {
+            
+            return;
+        }
+        
+        [pboard setString:serviceUrl];
+        [d setObject:BLANK forKey:@"LastOpendPasteBoardURL"];
+        appDelegate.tlUrlOpenMode = [NSNumber numberWithInt:1];
+        
+        appDelegate.tabChangeFunction = @"UrlOpen";
+        self.tabBarController.selectedIndex = 0;
     }
 }
 
@@ -573,6 +613,7 @@
     [self setPostButton:nil];
     [self setOpenStreamButton:nil];
     [self setReloadButton:nil];
+    [self setActionButton:nil];
     [super viewDidUnload];
 }
 
