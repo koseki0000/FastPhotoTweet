@@ -1016,6 +1016,7 @@
     if ( actionSheetNo == 0 ) {
         
         showActionSheet = NO;
+        self.tabBarController.selectedIndex = 0;
         
         //ペーストボードの内容をチェック
         int pBoardType = [PasteboardType check];
@@ -1576,11 +1577,6 @@
         
         appDelegate.openURL = @"about:blank";
         [self pushBrowserButton:nil];
-        
-        return;
-    }
-    
-    if ( self.tabBarController.selectedIndex == 1 ) {
         
         return;
     }
