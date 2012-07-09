@@ -558,7 +558,6 @@
             appDelegate.tlUrlOpenMode = [NSNumber numberWithInt:1];
             
             appDelegate.tabChangeFunction = @"UrlOpen";
-            self.tabBarController.selectedIndex = 0;
         }
     
     }else if ( actionSheet.tag == 1 ) {
@@ -585,7 +584,6 @@
         appDelegate.tlUrlOpenMode = [NSNumber numberWithInt:1];
         
         appDelegate.tabChangeFunction = @"UrlOpen";
-        self.tabBarController.selectedIndex = 0;
     }
 }
 
