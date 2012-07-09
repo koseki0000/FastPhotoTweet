@@ -1581,6 +1581,8 @@
         return;
     }
     
+    if ( self.tabBarController.selectedIndex == 1 ) return;
+    
     //設定が有効な場合Post入力可能状態にする
     if ( [d boolForKey:@"ShowKeyboard"] ) {
         
