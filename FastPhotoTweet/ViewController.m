@@ -362,7 +362,7 @@
             //NSLog(@"newVersion");
             
             [ShowAlert title:[NSString stringWithFormat:@"FastPhotoTweet %@", APP_VERSION] 
-                 message:@"・｢指定時間後につぶやく｣機能を追加(メイン画面右下のボタンメニューより)\n・NowPlaying時のアートワーク投稿設定がONの場合にアップロード済みURLキャシュを再設定する機能を追加(再設定したいアートワークが表示されている状態でタップ)\n・URLScheme: fhttpからのファイルダウンロードに対応\n・設定に｢ブラウザを閉じる時にユーザーエージェントを戻す｣を追加\n・｢画像共有サービスフルサイズ取得｣のフルサイズ取得時にのvia.meの仕様変更によりURLが正常に取得出来ない場合があるのを修正"];
+                 message:@"・アイコン関連の処理改善\n・ふぁぼられ通知を追加\n・UserStreamの接続･切断、リロードタイミングの調整"];
             
             information = [[[NSMutableDictionary alloc] initWithDictionary:[d dictionaryForKey:@"Information"]] autorelease];
             [information setValue:[NSNumber numberWithInt:1] forKey:APP_VERSION];
@@ -2258,14 +2258,14 @@
             postText.text = [resendArray objectAtIndex:2];
             inReplyToId = [resendArray objectAtIndex:3];
             
-            if ( resendArray.count == 3 ) {
+            if ( resendArray.count == 4 ) {
                 
                 //NSLog(@"Resend data set TEXT");
                 
-            }else {
+            }else if ( resendArray.count == 5 ) {
                 
                 //NSLog(@"Resend data set PHOTO");
-                imagePreview.image = [resendArray objectAtIndex:3];
+                imagePreview.image = [resendArray objectAtIndex:4];
             }
             
             [appDelegate.postError removeObjectAtIndex:indexNum];

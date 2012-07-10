@@ -80,19 +80,19 @@
     
     //NSLog(@"Resend[%d]: %@", array.count, array);
 
-    if ( array.count == 3 ) {
+    if ( array.count == 4 ) {
         
         //NSLog(@"TextCell");
         cell.textLabel.text = [NSString stringWithFormat:@"%@: %@", [array objectAtIndex:1], 
                                                                     [array objectAtIndex:2]];
         
-    }else if ( array.count == 4 ) {
+    }else if ( array.count == 5 ) {
         
         //NSLog(@"PhotoCell");
         cell.textLabel.text = [NSString stringWithFormat:@"%@: %@", [array objectAtIndex:1], 
                                                                     [array objectAtIndex:2]];
         
-        cell.imageView.image = [array objectAtIndex:3];
+        cell.imageView.image = [array objectAtIndex:4];
         
     }else {
         

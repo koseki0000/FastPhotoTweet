@@ -12,5 +12,6 @@
 
 + (ACAccount *)getTwitterAccount;
 + (ACAccount *)getTwitterAccount:(int)num;
++ (int)getTwitterAccountCount;
 
 @end

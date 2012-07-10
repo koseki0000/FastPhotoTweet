@@ -27,9 +27,11 @@
     NSMutableArray *timelineArray;
     NSMutableArray *iconUrls;
     NSMutableDictionary *allTimelines;
+    NSMutableDictionary *sinceIds;
     NSMutableDictionary *icons;
     NSDictionary *currentTweet;
-    NSString *userStreamUser;
+    NSString *userStreamAccount;
+    NSString *lastUpdateAccount;
     
     UIPasteboard *pboard;
     UIImage *startImage;
@@ -39,6 +41,7 @@
     
     BOOL userStream;
     BOOL actionSheetVisible;
+    BOOL openStreamAfter;
     
     int longPressControl;
     int selectRow;
@@ -58,8 +61,16 @@
 - (IBAction)pushOpenStreamButton:(UIBarButtonItem *)sender;
 - (IBAction)pushActionButton:(UIBarButtonItem *)sender;
 
+- (IBAction)swipeTimelineRight:(id)sender;
+- (IBAction)swipeTimelineLeft:(id)sender;
+
 - (void)createTimeline;
 - (void)loadTimeline:(NSNotification *)center;
 - (void)saveIcon:(NSMutableArray *)tweetData;
+- (void)openStream;
+- (void)closeStream;
+
+- (void)enterBackground:(NSNotification *)notification;
+- (void)becomeActive:(NSNotification *)notification;
 
 @end

@@ -15,6 +15,7 @@
     
     //アカウントの取得
     ACAccount *twAccount = [TWGetAccount getTwitterAccount];
+    NSLog(@"homeTimeline: %@", twAccount.username);
     
     //Twitterアカウントの確認
     if ( twAccount == nil ) {
@@ -34,7 +35,7 @@
     //リクエストパラメータを作成
     NSMutableDictionary *params = [[NSMutableDictionary alloc] init];
     //取得数
-    [params setObject:@"20" forKey:@"count"];
+    [params setObject:@"100" forKey:@"count"];
     //エンティティの有効化
     [params setObject:@"1" forKey:@"include_entities"];
     //RT表示

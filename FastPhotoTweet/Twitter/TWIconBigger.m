@@ -11,6 +11,8 @@
 
 + (NSString *)normal:(NSString *)normalUrl {
     
+    if ( [normalUrl isEqualToString:@""] ) return @"";
+    
     NSString *biggerUrl = nil;
     
     @try {
