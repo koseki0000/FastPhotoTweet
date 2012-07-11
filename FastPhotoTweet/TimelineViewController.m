@@ -156,7 +156,7 @@
                         index++;
                     }
                     
-                    //NSLog(@"%@", timelineArray);
+                    NSLog(@"%@", timelineArray);
                     
                     //タイムラインを保存
                     [allTimelines setObject:timelineArray forKey:twAccount.username];
@@ -284,12 +284,12 @@
     currentTweet = [timelineArray objectAtIndex:indexPath.row];
     
     NSString *myAccountName = twAccount.username;
+    NSString *text = [TWEntities replace:currentTweet];
     NSString *screenName = [[currentTweet objectForKey:@"user"] objectForKey:@"screen_name"];
     NSString *jstDate = [TWParseTimeline JSTDate:[currentTweet objectForKey:@"created_at"]];
     NSString *clientName = [TWParseTimeline client:[currentTweet objectForKey:@"source"]];
     NSString *infoLabelText = [NSString stringWithFormat:@"%@ - %@ [%@]", screenName, jstDate, clientName];
     BOOL favorited = [[currentTweet objectForKey:@"favorited"] boolValue];
-    BOOL retweeted = [[currentTweet objectForKey:@"retweeted"] boolValue];
     
     //アイコン検索用
     NSString *fileName = [TWIconBigger normal:[[[currentTweet objectForKey:@"user"] objectForKey:@"profile_image_url"] lastPathComponent]];
@@ -323,14 +323,15 @@
     }
     
     //Replyの色を変える
-    if ( [RegularExpression boolRegExp:cell.textLabel.text regExpPattern:[NSString stringWithFormat:@"@%@", myAccountName]] ) {
+    if ( [RegularExpression boolRegExp:text 
+                         regExpPattern:[NSString stringWithFormat:@"@%@", myAccountName]] ) {
         
         cell.infoLabel.textColor = [UIColor redColor];
         cell.textLabel.textColor = [UIColor redColor];
     }
     
     //ReTweerの色を変える
-    if ( retweeted ) {
+    if ( [[currentTweet objectForKey:@"retweeted_status"] objectForKey:@"id"] ) {
         
         cell.infoLabel.textColor = [UIColor colorWithRed:0.0 green:0.4 blue:0.0 alpha:1.0];
         cell.textLabel.textColor = [UIColor colorWithRed:0.0 green:0.4 blue:0.0 alpha:1.0];
@@ -345,7 +346,7 @@
     }
     
     cell.infoLabel.text = infoLabelText;
-    cell.textLabel.text = [TWEntities replace:currentTweet];
+    cell.textLabel.text = text;
     cell.textLabel.frame = CGRectMake(54, 22, 264, [self heightForContents:cell.textLabel.text]);
     
     return cell;
