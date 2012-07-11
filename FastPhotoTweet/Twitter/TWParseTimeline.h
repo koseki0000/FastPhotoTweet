@@ -10,6 +10,7 @@
 
 @interface TWParseTimeline : NSObject
 
++ (NSString *)JSTDate:(NSString *)tweetData;
 + (NSString *)date:(NSString *)tweetData;
 + (NSString *)client:(NSString *)tweetData;
 

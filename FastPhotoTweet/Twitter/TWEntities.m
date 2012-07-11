@@ -12,22 +12,33 @@
 //TwitterのレスポンスからJSONframeworkで生成されたDictionaryを渡すとt.coを展開した本文を返す
 + (NSString *)replace:(NSDictionary *)dictionary {
     
-    NSMutableString *text = [dictionary objectForKey:@"text"];
+    NSMutableString *text = [NSMutableString stringWithString:[dictionary objectForKey:@"text"]];
     
-    NSArray *urls = [[dictionary objectForKey:@"entities"] objectForKey:@"urls"];
-    
-    for ( NSDictionary *url in urls ) {
-
-        NSString *tcoURL = [url objectForKey:@"url"];
-        NSString *expandedURL = [url objectForKey:@"expanded_url"];
+    @try {
         
-        [text replaceOccurrencesOfString:tcoURL 
-                              withString:expandedURL 
-                                 options:0 
-                                   range:NSMakeRange( 0, text.length )];
+        NSArray *urls = [[dictionary objectForKey:@"entities"] objectForKey:@"urls"];
+        
+        for ( NSDictionary *url in urls ) {
+            
+            NSString *tcoURL = [url objectForKey:@"url"];
+            NSString *expandedURL = [url objectForKey:@"expanded_url"];
+            
+            [text replaceOccurrencesOfString:tcoURL 
+                                  withString:expandedURL 
+                                     options:0 
+                                       range:NSMakeRange( 0, text.length )];
+        }
+        
+        [text replaceOccurrencesOfString:@"&gt;" withString:@">" options:0 range:NSMakeRange(0, [text length] )];
+        [text replaceOccurrencesOfString:@"&lt;" withString:@"<" options:0 range:NSMakeRange(0, [text length] )];
+        [text replaceOccurrencesOfString:@"&amp;" withString:@"&" options:0 range:NSMakeRange(0, [text length] )];
+        
+    }@catch ( NSException *e ) {
+        
+        return [dictionary objectForKey:@"text"];
     }
     
-    return (NSString *)text;
+    return text;
 }
 
 @end

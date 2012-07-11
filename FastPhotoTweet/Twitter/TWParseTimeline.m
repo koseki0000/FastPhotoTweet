@@ -14,7 +14,7 @@
 
 //in: create_at
 //out: JSTタイムゾーン適用済み時刻
-+ (NSString *)date:(NSString *)tweetData {
++ (NSString *)JSTDate:(NSString *)tweetData {
     
     NSString *date = [tweetData substringWithRange:NSMakeRange(11,8)];
     
@@ -26,6 +26,11 @@
 	NSString *jstDate = [[[inputDate initWithTimeInterval:64800 sinceDate:inputDate] description] substringWithRange:NSMakeRange(11,8)];
     
     return jstDate;
+}
+
++ (NSString *)date:(NSString *)tweetData {
+        
+    return [tweetData substringWithRange:NSMakeRange(11,8)];
 }
 
 //in: source

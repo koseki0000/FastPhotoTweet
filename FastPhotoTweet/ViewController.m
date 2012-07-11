@@ -362,7 +362,7 @@
             //NSLog(@"newVersion");
             
             [ShowAlert title:[NSString stringWithFormat:@"FastPhotoTweet %@", APP_VERSION] 
-                 message:@"・アイコン関連の処理改善\n・ふぁぼられ通知を追加\n・UserStreamの接続･切断、リロードタイミングの調整"];
+                 message:@"・Tweet取得時TLにアニメーションを追加\n・ReTweet機能を追加\n・Fav+RT機能を追加\n・アイコンの表示処理を改善\n・TLの描画処理を改善\n・Fav通知の問題を修正\n・その他細かな修正"];
             
             information = [[[NSMutableDictionary alloc] initWithDictionary:[d dictionaryForKey:@"Information"]] autorelease];
             [information setValue:[NSNumber numberWithInt:1] forKey:APP_VERSION];
