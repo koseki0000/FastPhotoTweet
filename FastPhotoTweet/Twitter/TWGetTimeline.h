@@ -12,9 +12,11 @@
 #import "ShowAlert.h"
 #import "ActivityIndicator.h"
 #import "AppDelegate.h"
+#import "Reachability.h"
 
 @interface TWGetTimeline : NSObject
 
 + (void)homeTimeline;
++ (BOOL)reachability;
 
 @end

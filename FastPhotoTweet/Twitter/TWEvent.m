@@ -11,6 +11,8 @@
 
 + (void)favorite:(NSString *)tweetId {
     
+    //NSLog(@"Favorite");
+    
     //Tweet可能な状態か判別
     if ( [TWTweetComposeViewController canSendTweet] ) {
         
@@ -46,12 +48,12 @@
              dispatch_async(dispatch_get_main_queue(), ^{
                  
                  //レスポンスのデータをNSStringに変換後JSONをDictionaryに格納
-                 NSString *responseDataString = [[[NSString alloc] initWithData:responseData encoding:NSUTF8StringEncoding] autorelease];
-                 NSDictionary *result = [responseDataString JSONValue];
+//                 NSString *responseDataString = [[[NSString alloc] initWithData:responseData encoding:NSUTF8StringEncoding] autorelease];
+//                 NSDictionary *result = [responseDataString JSONValue];
                  
                  //NSLog(@"responseDataString: %@", responseDataString);
                  //NSLog(@"ResultText: %@", [result objectForKey:@"text"]);
-                 NSLog(@"Result: %@", result);
+                 //NSLog(@"Result: %@", result);
                  
                  [ActivityIndicator visible:NO];
              });
@@ -60,6 +62,8 @@
 }
 
 + (void)reTweet:(NSString *)tweetId {
+    
+    //NSLog(@"ReTweet");
     
     //Tweet可能な状態か判別
     if ( [TWTweetComposeViewController canSendTweet] ) {
@@ -80,7 +84,7 @@
         [ActivityIndicator visible:YES];
         
         //リクエストURLを指定
-        NSString *tReqURL = [NSString stringWithFormat:@"https://api.twitter.com/1/statuses/retweet/%@json ", tweetId];
+        NSString *tReqURL = [NSString stringWithFormat:@"https://api.twitter.com/1/statuses/retweet/%@json", tweetId];
         
         //リクエストの作成
         TWRequest *postRequest = [[[TWRequest alloc] initWithURL:[NSURL URLWithString:tReqURL] 
@@ -96,12 +100,19 @@
              dispatch_async(dispatch_get_main_queue(), ^{
                  
                  //レスポンスのデータをNSStringに変換後JSONをDictionaryに格納
-                 NSString *responseDataString = [[[NSString alloc] initWithData:responseData encoding:NSUTF8StringEncoding] autorelease];
-                 NSDictionary *result = [responseDataString JSONValue];
+//                 NSString *responseDataString = [[[NSString alloc] initWithData:responseData encoding:NSUTF8StringEncoding] autorelease];
+//                 NSDictionary *result = [responseDataString JSONValue];
+//                 
+//                 if ( result == nil ) {
+//                     
+//                     NSLog(@"responseDataString: %@", responseDataString);
+//                     
+//                 }else {
+//                     
+//                     NSLog(@"Result: %@", result);
+//                 }
                  
-                 //NSLog(@"responseDataString: %@", responseDataString);
                  //NSLog(@"ResultText: %@", [result objectForKey:@"text"]);
-                 NSLog(@"Result: %@", result);
                  
                  [ActivityIndicator visible:NO];
              });
@@ -117,6 +128,8 @@
 
 + (void)unFavorite:(NSString *)tweetId {
     
+    //NSLog(@"UnFavorite");
+    
     //Tweet可能な状態か判別
     if ( [TWTweetComposeViewController canSendTweet] ) {
         
@@ -136,7 +149,7 @@
         [ActivityIndicator visible:YES];
         
         //リクエストURLを指定
-        NSString *tReqURL = [NSString stringWithFormat:@"https://api.twitter.com/1/favorites/destroy/%@.json ", tweetId];
+        NSString *tReqURL = [NSString stringWithFormat:@"https://api.twitter.com/1/favorites/destroy/%@.json", tweetId];
         
         //リクエストの作成
         TWRequest *postRequest = [[[TWRequest alloc] initWithURL:[NSURL URLWithString:tReqURL] 
@@ -152,12 +165,19 @@
              dispatch_async(dispatch_get_main_queue(), ^{
                  
                  //レスポンスのデータをNSStringに変換後JSONをDictionaryに格納
-                 NSString *responseDataString = [[[NSString alloc] initWithData:responseData encoding:NSUTF8StringEncoding] autorelease];
-                 NSDictionary *result = [responseDataString JSONValue];
+//                 NSString *responseDataString = [[[NSString alloc] initWithData:responseData encoding:NSUTF8StringEncoding] autorelease];
+//                 NSDictionary *result = [responseDataString JSONValue];
                  
-                 //NSLog(@"responseDataString: %@", responseDataString);
+//                 if ( result == nil ) {
+//                     
+//                     NSLog(@"responseDataString: %@", responseDataString);
+//                     
+//                 }else {
+//                     
+//                     NSLog(@"Result: %@", result);
+//                 }
+                 
                  //NSLog(@"ResultText: %@", [result objectForKey:@"text"]);
-                 NSLog(@"Result: %@", result);
                  
                  [ActivityIndicator visible:NO];
              });

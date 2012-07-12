@@ -29,6 +29,8 @@
         //NSLog(@"Account Error");
     }
     
+    NSLog(@"%@", twAccount.username);
+    
     return twAccount;
 }
 

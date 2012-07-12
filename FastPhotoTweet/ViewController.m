@@ -362,7 +362,7 @@
             //NSLog(@"newVersion");
             
             [ShowAlert title:[NSString stringWithFormat:@"FastPhotoTweet %@", APP_VERSION] 
-                 message:@"・Tweet取得時TLにアニメーションを追加\n・ReTweet機能を追加\n・Fav+RT機能を追加\n・アイコンの表示処理を改善\n・TLの描画処理を改善\n・Fav通知の問題を修正\n・その他細かな修正"];
+                 message:@"・Fav通知で落ちる問題を修正\n・RT表示時本文が省略されてしまう問題を修正\n・RTのt.coが展開されていない問題を修正\n・UnFavoriteが機能していない問題を修正\n・ReTweetが機能していない問題を修正\n・Fav, UnFav時TLでアニメーション効果を追加\n・REST更新時新着までスクロールする機能を追加\n・TL長押しでメニューを出して機能選択する際に選択されるTweetがズレる現象を緩和(行動選択時にTweetを決定→長押し判定(0.3秒)が出た地点で選択)"];
             
             information = [[[NSMutableDictionary alloc] initWithDictionary:[d dictionaryForKey:@"Information"]] autorelease];
             [information setValue:[NSNumber numberWithInt:1] forKey:APP_VERSION];

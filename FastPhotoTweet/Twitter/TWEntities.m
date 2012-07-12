@@ -12,9 +12,20 @@
 //TwitterのレスポンスからJSONframeworkで生成されたDictionaryを渡すとt.coを展開した本文を返す
 + (NSString *)replace:(NSDictionary *)dictionary {
     
-    NSMutableString *text = [NSMutableString stringWithString:[dictionary objectForKey:@"text"]];
+    NSMutableString *text = nil;
+    
+    if ( [dictionary objectForKey:@"event"] == nil ) {
+        
+        text = [NSMutableString stringWithString:[dictionary objectForKey:@"text"]];
+        
+    }else {
+    
+        text = [NSMutableString stringWithString:[[dictionary objectForKey:@"target_object"] objectForKey:@"text"]];
+    }
     
     @try {
+        
+        if ( [[dictionary objectForKey:@"entities"] objectForKey:@"urls"] == nil ) return text;
         
         NSArray *urls = [[dictionary objectForKey:@"entities"] objectForKey:@"urls"];
         

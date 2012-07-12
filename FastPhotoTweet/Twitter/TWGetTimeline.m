@@ -26,6 +26,9 @@
         return;
     }
     
+    //インターネット未接続
+    if ( ![TWGetTimeline reachability] ) return;
+    
     [ActivityIndicator on];
     AppDelegate *appDelegate = (AppDelegate *)[[UIApplication sharedApplication] delegate];
     
@@ -35,7 +38,7 @@
     //リクエストパラメータを作成
     NSMutableDictionary *params = [[NSMutableDictionary alloc] init];
     //取得数
-    [params setObject:@"100" forKey:@"count"];
+    [params setObject:@"60" forKey:@"count"];
     //エンティティの有効化
     [params setObject:@"1" forKey:@"include_entities"];
     //RT表示
@@ -86,6 +89,22 @@
      }];
     
     //NSLog(@"Timeline request sended");
+}
+
++ (BOOL)reachability {
+    
+    BOOL result = NO;
+    
+    if ( [[Reachability reachabilityForInternetConnection] currentReachabilityStatus] != NotReachable ) {
+        
+        result = YES;
+        
+    }else {
+        
+        [ShowAlert error:@"インターネットに接続されていません。"];
+    }
+    
+    return result;
 }
 
 @end

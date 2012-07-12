@@ -18,6 +18,7 @@
 #import "ASIFormDataRequest.h"
 #import <CFNetwork/CFNetwork.h>
 #import "JSON.h"
+#import "Reachability.h"
 
 @interface TimelineViewController : UIViewController <UIActionSheetDelegate> {
     
@@ -30,8 +31,10 @@
     NSMutableDictionary *sinceIds;
     NSMutableDictionary *icons;
     NSDictionary *currentTweet;
+    NSDictionary *selectTweet;
     NSString *userStreamAccount;
     NSString *lastUpdateAccount;
+    NSString *timelineTopTweetId;
     
     UIPasteboard *pboard;
     UIImage *startImage;
@@ -67,8 +70,11 @@
 - (void)createTimeline;
 - (void)loadTimeline:(NSNotification *)center;
 - (void)saveIcon:(NSMutableArray *)tweetData;
+- (void)scrollTimelineForNewTweet;
 - (void)openStream;
 - (void)closeStream;
+
+- (BOOL)reachability;
 
 - (void)enterBackground:(NSNotification *)notification;
 - (void)becomeActive:(NSNotification *)notification;
