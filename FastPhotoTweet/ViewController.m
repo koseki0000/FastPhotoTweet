@@ -17,12 +17,6 @@
 #define OAUTH_KEY       @"dVbmOIma7UCc5ZkV3SckQ"
 #define OAUTH_SECRET    @"wnDptUj4VpGLZebfLT3IInTZPkPS4XimYh6WXAmdI"
 
-#define BLANK @""
-
-#define FIREFOX_USERAGENT @"Mozilla/5.0 (Macintosh; Intel Mac OS X 10.7; rv:13.0) Gecko/20100101 Firefox/13.0.1"
-#define IPAD_USERAFENT @"Mozilla/5.0 (iPad; CPU OS 5_1_1 like Mac OS X) AppleWebKit/534.46 (KHTML, like Gecko) Version/5.1 Mobile/9B176 Safari/7534.48.3"
-#define IPHONE_USERAGENT @"Mozilla/5.0 (iPhone; CPU iPhone OS 5_1_1 like Mac OS X) AppleWebKit/534.46 (KHTML, like Gecko) Mobile/9B206"
-
 @implementation ViewController
 @synthesize resendButton;
 @synthesize sv;
@@ -82,10 +76,10 @@
                              object:nil];
     
     //イメージプレビュータップ時のジェスチャーを設定
-    imagePreview.gestureRecognizers = nil;
-    UITapGestureRecognizer *imagePreviewTapGesture = [[[UITapGestureRecognizer alloc] initWithTarget:self 
-                                                                                             action:@selector(imagePreviewTapGesture:)] autorelease];
-	[imagePreview addGestureRecognizer:imagePreviewTapGesture];
+//    imagePreview.gestureRecognizers = nil;
+//    UITapGestureRecognizer *imagePreviewTapGesture = [[[UITapGestureRecognizer alloc] initWithTarget:self 
+//                                                                                             action:@selector(imagePreviewTapGesture:)] autorelease];
+//	[imagePreview addGestureRecognizer:imagePreviewTapGesture];
     
     //各種初期値をセット
     d = [NSUserDefaults standardUserDefaults];
@@ -362,7 +356,7 @@
             //NSLog(@"newVersion");
             
             [ShowAlert title:[NSString stringWithFormat:@"FastPhotoTweet %@", APP_VERSION] 
-                 message:@"・Fav通知で落ちる問題を修正\n・RT表示時本文が省略されてしまう問題を修正\n・RTのt.coが展開されていない問題を修正\n・UnFavoriteが機能していない問題を修正\n・ReTweetが機能していない問題を修正\n・Fav, UnFav時TLでアニメーション効果を追加\n・REST更新時新着までスクロールする機能を追加\n・TL長押しでメニューを出して機能選択する際に選択されるTweetがズレる現象を緩和(行動選択時にTweetを決定→長押し判定(0.3秒)が出た地点で選択)"];
+                 message:@"・UserStreamの削除イベントに対応\n・UserStreamのFavoriteイベント通知表示を変更\n・UserStreamのFavoriteイベント通知をタップでfavstarの該当ページを開く機能を追加\n・TimelineタップでReplyを廃止\n・Timeline長押し時のメニューをタップで開くよう変更\n・Timelineタップ時のメニューに｢Reply｣を追加\n・Timelineタップ時のメニューに｢Tweetをコピー｣を追加\n・Timelineタップ時のメニューに｢TweetのURLをコピー｣を追加\n・Timelineタップ時のメニューに｢InReplyTo｣を追加\n・TimelineからURLを開いた場合にブラウザを閉じた後Timelineに自動で戻る機能を追加\n・Timelineをスワイプでアカウント切替を行った際に新着がないと表示が更新されない問題を修正\n・Timeline長押しでログ･アイコンキャッシュ削除メニューを表示する機能を追加\n・TimelineからURLを開く際に正常に開かれない場合があるのを修正\n・ReTweetを誰が行ったかわからない状態となっていたのを修正\n・ReTweetのt.coが展開されない問題を修正\n・Tweet画面を左スワイプでTimelineに移行する機能を追加\n・設定画面を閉じる際にクラッシュする場合がある問題を修正\n・ブラウザの｢画像共有サービスフルサイズ取得｣のTwitpicの不具合とついっぷるフォトの仕様変更に対応\n・一部機能の応答速度の向上\n・その他細かな修正\n"];
             
             information = [[[NSMutableDictionary alloc] initWithDictionary:[d dictionaryForKey:@"Information"]] autorelease];
             [information setValue:[NSNumber numberWithInt:1] forKey:APP_VERSION];
@@ -463,7 +457,7 @@
 
 - (void)tohaSearch:(NSString *)text {
     
-    appDelegate.openURL = [GoogleSearch createUrl:[text substringWithRange:NSMakeRange(0, text.length - 2)]];
+    appDelegate.openURL = [CreateSearchURL google:[text substringWithRange:NSMakeRange(0, text.length - 2)]];
     
     [self pushBrowserButton:nil];
 }
@@ -524,7 +518,7 @@
     
     //NSLog(@"pushResendButton");
     
-    appDelegate.resendMode = [NSNumber numberWithInt:1];
+    appDelegate.resendMode = YES;
     
     ResendViewController *dialog = [[[ResendViewController alloc] init] autorelease];
     dialog.modalTransitionStyle = UIModalTransitionStyleCoverVertical;
@@ -963,6 +957,16 @@
     }
 }
 
+- (IBAction)svSwipeGesture:(UISwipeGestureRecognizer *)sender {
+    
+    self.tabBarController.selectedIndex = 1;
+}
+
+- (IBAction)imagePreviewSwipeGesture:(UISwipeGestureRecognizer *)sender {
+    
+    self.tabBarController.selectedIndex = 1;
+}
+
 - (IBAction)swipeToMoveCursorRight:(id)sender {
     
     int location = postText.selectedRange.location + 1;
@@ -1043,16 +1047,16 @@
             
             if ( pBoardType == 0 ) {
 
-                if ( [appDelegate.isBrowserOpen intValue] == 0 ) {
+                if ( !appDelegate.browserOpenMode ) {
                  
-                    appDelegate.openURL = [GoogleSearch createUrl:pboard.string];
+                    appDelegate.openURL = [CreateSearchURL google:pboard.string];
                     [self pushBrowserButton:nil];
                 }
             }
             
         }else if ( buttonIndex == 5 ) {
 
-            if ( [appDelegate.isBrowserOpen intValue] == 0 ) {
+            if ( !appDelegate.browserOpenMode ) {
                 
                 //NSLog(@"Open Browser");
                 
@@ -1565,7 +1569,7 @@
     //アプリケーションがアクティブになった際に呼ばれる
     //NSLog(@"becomeActive");
     
-    if ( [appDelegate.isBrowserOpen intValue] == 1 ) return;
+    if ( appDelegate.browserOpenMode ) return;
     
     if ( [d boolForKey:@"applicationWillResignActive"] ) {
         
@@ -1594,20 +1598,20 @@
                 
         if ( !showActionSheet && !showImagePicker ) {
             
-            if ( [appDelegate.launchMode intValue] == 2 ) {
+            if ( appDelegate.launchMode == 2 ) {
                 
                 [self showActionMenu];
                 
             }else {
                 
-                if ( [appDelegate.launchMode intValue] == 1 ) {
+                if ( appDelegate.launchMode == 1 ) {
                     
                     [self showActionMenu];
                 }
             }
         }
         
-        appDelegate.launchMode = [NSNumber numberWithInt:2];
+        appDelegate.launchMode = 2;
     }
     
     [self countText];
@@ -2148,17 +2152,16 @@
     
     [super viewDidAppear:animated];
     
-    //NSLog(@"viewDidAppear");
-    
     @try {
      
         //タブ切り替え時の動作
         if ( [EmptyCheck check:appDelegate.tabChangeFunction] ) {
          
             //NSLog(@"Function: %@", appDelegate.tabChangeFunction);
-            
+                        
             if ( [appDelegate.tabChangeFunction isEqualToString:@"Post"] ) {
                 
+                //入力可能状態にする
                 [postText becomeFirstResponder];
             
             }else if ( [appDelegate.tabChangeFunction isEqualToString:@"Reply"] ) {
@@ -2170,10 +2173,6 @@
                 
                 [postText becomeFirstResponder];
                 [appDelegate.postData removeAllObjects];
-            
-            }else if ( [appDelegate.tabChangeFunction isEqualToString:@"UrlOpen"] ) {
-                
-                [self pushBrowserButton:nil];
             }
             
             appDelegate.tabChangeFunction = BLANK;
@@ -2181,9 +2180,9 @@
             return;
         }
         
-        if ( [appDelegate.pcUaMode intValue] == 1 ) {
+        if ( appDelegate.pcUaMode ) {
             
-            appDelegate.pcUaMode = [NSNumber numberWithInt:0];
+            appDelegate.pcUaMode = NO;
             [self pushBrowserButton:nil];
             
             return;
@@ -2245,12 +2244,11 @@
             NSArray *twitterAccounts = [accountStore accountsWithAccountType:accountType];
             twAccount = [[twitterAccounts objectAtIndex:[d integerForKey:@"UseAccount"]] retain];
             
-        }else if ( [appDelegate.resendMode intValue] != 0 ) {
+        }else if ( appDelegate.resendMode ) {
             
-            appDelegate.resendMode = [NSNumber numberWithInt:0];
+            appDelegate.resendMode = NO;
             
-            int indexNum = [appDelegate.resendNumber intValue];
-            NSArray *resendArray = [appDelegate.postError objectAtIndex:indexNum];
+            NSArray *resendArray = [appDelegate.postError objectAtIndex:appDelegate.resendNumber];
             
             int account = [[resendArray objectAtIndex:1] intValue];
             [d setInteger:account forKey:@"UseAccount"];
@@ -2268,7 +2266,7 @@
                 imagePreview.image = [resendArray objectAtIndex:4];
             }
             
-            [appDelegate.postError removeObjectAtIndex:indexNum];
+            [appDelegate.postError removeObjectAtIndex:appDelegate.resendNumber];
         }
         
         //再投稿ボタンの有効･無効切り替え

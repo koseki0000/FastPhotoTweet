@@ -46,7 +46,7 @@
 - (IBAction)pushCloseButon:(id)sender {
     
     //再投稿モードを無効化
-    appDelegate.resendMode = [NSNumber numberWithInt:0];
+    appDelegate.resendMode = NO;
     
     [self dismissModalViewControllerAnimated:YES];
 }
@@ -107,7 +107,7 @@
     //セルの選択状態を解除
 	[tableView deselectRowAtIndexPath:indexPath animated:YES];
     
-    appDelegate.resendNumber = [NSNumber numberWithInt:indexPath.row];
+    appDelegate.resendNumber = indexPath.row;
     
     //閉じる
     [self dismissModalViewControllerAnimated:YES];

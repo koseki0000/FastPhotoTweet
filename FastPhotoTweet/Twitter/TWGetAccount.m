@@ -29,7 +29,7 @@
         //NSLog(@"Account Error");
     }
     
-    NSLog(@"%@", twAccount.username);
+    //NSLog(@"%@", twAccount.username);
     
     return twAccount;
 }

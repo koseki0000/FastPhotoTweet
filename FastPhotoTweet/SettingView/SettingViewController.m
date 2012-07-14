@@ -167,7 +167,6 @@
     //NSLog(@"pushDoneButton");
     
     //閉じる
-    [settingArray release];
     [self dismissModalViewControllerAnimated:YES];
 }
 
@@ -1396,6 +1395,8 @@
 - (void)dealloc {
     
     //NSLog(@"SettingView dealloc");
+    
+    [settingArray release];
     
     [tv release];
     [bar release];

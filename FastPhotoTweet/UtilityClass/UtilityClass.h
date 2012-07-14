@@ -20,5 +20,5 @@
 #import "DeleteWhiteSpace.h"
 #import "AmazonAffiliateCutter.h"
 #import "UUIDEncryptor.h"
-#import "GoogleSearch.h"
+#import "CreateSearchURL.h"
 #import "ArrayDuplicate.h"

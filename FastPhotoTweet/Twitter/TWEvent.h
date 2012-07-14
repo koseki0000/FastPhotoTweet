@@ -13,12 +13,20 @@
 #import "ActivityIndicator.h"
 #import "JSON.h"
 
-@interface TWEvent : NSObject
+@interface TWEvent : NSObject {
+    
+@public
+    ACAccount *twAccount;
+}
 
 + (void)favorite:(NSString *)tweetId;
 + (void)reTweet:(NSString *)tweetId;
 + (void)favoriteReTweet:(NSString *)tweetId;
++ (void)getProfile:(NSString *)screenName;
++ (void)getTweet:(NSString *)tweetId;
 
 + (void)unFavorite:(NSString *)tweetId;
+
++ (ACAccount *)canAction;
 
 @end

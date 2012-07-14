@@ -94,10 +94,12 @@
 
 - (IBAction)callbackSwitchDidChage:(id)sender;
 
-- (IBAction)svTapGesture:(id)sender;
-- (void)imagePreviewTapGesture:(UITapGestureRecognizer *)sender;
-- (IBAction)swipeToMoveCursorRight:(id)sender;
-- (IBAction)swipeToMoveCursorLeft:(id)sender;
+- (IBAction)svTapGesture:(UITapGestureRecognizer *)sender;
+- (IBAction)svSwipeGesture:(UISwipeGestureRecognizer *)sender;
+- (IBAction)imagePreviewTapGesture:(UITapGestureRecognizer *)sender;
+- (IBAction)imagePreviewSwipeGesture:(UISwipeGestureRecognizer *)sender;
+- (IBAction)swipeToMoveCursorRight:(UISwipeGestureRecognizer *)sender;
+- (IBAction)swipeToMoveCursorLeft:(UISwipeGestureRecognizer *)sender;
 
 - (void)loadSettings;
 - (void)setCallbackButtonTitle;

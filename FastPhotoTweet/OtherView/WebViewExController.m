@@ -87,7 +87,7 @@
     //ツールバーにボタンをセット
     [bottomBar setItems:BOTTOM_BAR animated:NO];
     
-    appDelegate.isBrowserOpen = [NSNumber numberWithInt:1];
+    appDelegate.browserOpenMode = YES;
     
     //URLSchemeダウンロード判定
     if ( [EmptyCheck check:appDelegate.urlSchemeDownloadUrl] ) {
@@ -101,7 +101,7 @@
     [self checkPasteBoardUrlOption];
     
     //URLが1つ以上、FastGoogleモードではないなら中止
-    if ( urlList.count > 1 ) return;
+    if ( urlList.count > 1 && [d boolForKey:@"OpenPasteBoardURL"] ) return;
     
     //ページをロード
     [wv loadRequestWithString:appDelegate.openURL];
@@ -131,9 +131,7 @@
 - (void)checkPasteBoardUrlOption {
     
     //ペーストボード内のURLを開く設定が有効かチェック
-    if ( [d boolForKey:@"OpenPasteBoardURL"] || openUrlMode || [appDelegate.tlUrlOpenMode intValue] == 1 ) {
-        
-        appDelegate.tlUrlOpenMode = [NSNumber numberWithInt:0];
+    if (( [d boolForKey:@"OpenPasteBoardURL"] || openUrlMode ) || appDelegate.timelineBrowser ) {
         
         //PasteBoardがテキストかチェック
         if ( [PasteboardType isText] ) {
@@ -247,19 +245,29 @@
     }
     
     //直前にペーストボードから開いたURLでないかチェック
-    if ( ![urlString isEqualToString:[d objectForKey:@"LastOpendPasteBoardURL"]] ) {
+    if ( ![urlString isEqualToString:[d objectForKey:@"LastOpendPasteBoardURL"]] && !appDelegate.timelineBrowser ) {
         
         //開いたURLを保存
         [d setObject:urlString forKey:@"LastOpendPasteBoardURL"];
         
         //URLを設定
         appDelegate.openURL = urlString;
+    
+    }else if ( appDelegate.timelineBrowser ) {
+        
+        appDelegate.openURL = urlString;
+        
+    }else {
+        
+        if ( ![appDelegate.openURL isEqualToString:BLANK] ) {
+            
+            //URLを設定
+            appDelegate.openURL = urlString;
+        }
     }
 }
 
 - (void)becomeActive:(NSNotification *)notification {
-    
-    NSLog(@"WebViewEx becomeActive");
     
     if ( [d boolForKey:@"applicationWillResignActiveBrowser"] ) {
         
@@ -577,6 +585,8 @@
         
         if ( buttonIndex == 0 ) {
             
+            self.tabBarController.selectedIndex = 0;
+            
             NSString *postText = BLANK;
             
             if ( [EmptyCheck check:[d objectForKey:@"WebPagePostFormat"]] ) {
@@ -605,6 +615,8 @@
         }else if ( buttonIndex == 1 ) {
             
             //NSLog(@"selectString: %@", wv.selectString);
+            
+            self.tabBarController.selectedIndex = 0;
             
             if ( [EmptyCheck check:wv.selectString] ) {
                 
@@ -763,7 +775,7 @@
         //PC版UAで開き直す
         }else if ( buttonIndex == 8 ) {
             
-            appDelegate.pcUaMode = [NSNumber numberWithInt:1];
+            appDelegate.pcUaMode = YES;
             [d setObject:@"FireFox" forKey:@"UserAgent"];
             [self pushComposeButton:nil];
         }
@@ -784,7 +796,7 @@
         //ページをロード
         [wv loadRequestWithString:appDelegate.openURL];
         
-        appDelegate.isBrowserOpen = [NSNumber numberWithInt:1];
+        appDelegate.browserOpenMode = YES;
         
     }else if ( actionSheetNo == 7 ) {
         
@@ -947,7 +959,7 @@
                 
             }else if ( buttonIndex == 1 ) {
                 
-                [wv loadRequestWithString:[GoogleSearch createUrl:pboard.string]];
+                [wv loadRequestWithString:[CreateSearchURL google:pboard.string]];
                 
             }else if ( buttonIndex == 2 ) {
                 
@@ -1336,7 +1348,7 @@
     //NSLog(@"resetUserAgent");
     
     //「PC版UAで開き直す」ではなく、リセット設定がONでなく、空でない
-    if ( [appDelegate.pcUaMode intValue] == 0 && ![[d objectForKey:@"UserAgentReset"] isEqualToString:@"OFF"] ) {
+    if ( !appDelegate.pcUaMode && ![[d objectForKey:@"UserAgentReset"] isEqualToString:@"OFF"] ) {
         
         //NSLog(@"Reset: %@", [d objectForKey:@"UserAgentReset"]);
         
@@ -1364,7 +1376,7 @@
     
     //NSLog(@"WebViewExController viewDidUnload");
     
-    appDelegate.isBrowserOpen = [NSNumber numberWithInt:0];
+    appDelegate.browserOpenMode = NO;
     appDelegate.openURL = [d objectForKey:@"HomePageURL"];
     
     [self setTopBar:nil];
@@ -1514,7 +1526,8 @@
 
 - (void)dealloc {
     
-    appDelegate.isBrowserOpen = [NSNumber numberWithInt:0];
+    appDelegate.timelineBrowser = NO;
+    appDelegate.browserOpenMode = NO;
     appDelegate.urlSchemeDownloadUrl = BLANK;
     
     if ( wv.loading ) [wv stopLoading];

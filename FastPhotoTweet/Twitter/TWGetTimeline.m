@@ -15,7 +15,7 @@
     
     //アカウントの取得
     ACAccount *twAccount = [TWGetAccount getTwitterAccount];
-    NSLog(@"homeTimeline: %@", twAccount.username);
+    //NSLog(@"homeTimeline: %@", twAccount.username);
     
     //Twitterアカウントの確認
     if ( twAccount == nil ) {
@@ -36,7 +36,7 @@
     NSURL *reqUrl = [NSURL URLWithString:@"http://api.twitter.com/1/statuses/home_timeline.json"];
     
     //リクエストパラメータを作成
-    NSMutableDictionary *params = [[NSMutableDictionary alloc] init];
+    NSMutableDictionary *params = [[[NSMutableDictionary alloc] init] autorelease];
     //取得数
     [params setObject:@"60" forKey:@"count"];
     //エンティティの有効化
@@ -51,9 +51,9 @@
     }
     
     //リクエストを作成
-    TWRequest *request = [[TWRequest alloc] initWithURL:reqUrl
+    TWRequest *request = [[[TWRequest alloc] initWithURL:reqUrl
                                              parameters:params
-                                          requestMethod:TWRequestMethodGET];
+                                          requestMethod:TWRequestMethodGET] autorelease];
     
     //リクエストにアカウントを設定
     [request setAccount:twAccount];

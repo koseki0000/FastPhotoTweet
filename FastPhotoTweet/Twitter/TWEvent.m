@@ -13,23 +13,9 @@
     
     //NSLog(@"Favorite");
     
-    //Tweet可能な状態か判別
-    if ( [TWTweetComposeViewController canSendTweet] ) {
-        
-        //アカウントの取得
-        ACAccount *twAccount = [TWGetAccount getTwitterAccount];
-        
-        //Twitterアカウントの確認
-        if (twAccount == nil) {
-            
-            //アカウントデータが空
-            [ShowAlert error:@"アカウントが取得できませんでした。"];
-            
-            return;
-        }
-        
-        //ステータスバーに処理中表示
-        [ActivityIndicator visible:YES];
+    ACAccount *twAccount = [TWEvent canAction];
+    
+    if ( twAccount != nil ) {
         
         //リクエストURLを指定
         NSString *tReqURL = [NSString stringWithFormat:@"https://api.twitter.com/1/favorites/create/%@.json", tweetId];
@@ -47,14 +33,6 @@
              
              dispatch_async(dispatch_get_main_queue(), ^{
                  
-                 //レスポンスのデータをNSStringに変換後JSONをDictionaryに格納
-//                 NSString *responseDataString = [[[NSString alloc] initWithData:responseData encoding:NSUTF8StringEncoding] autorelease];
-//                 NSDictionary *result = [responseDataString JSONValue];
-                 
-                 //NSLog(@"responseDataString: %@", responseDataString);
-                 //NSLog(@"ResultText: %@", [result objectForKey:@"text"]);
-                 //NSLog(@"Result: %@", result);
-                 
                  [ActivityIndicator visible:NO];
              });
          }];
@@ -65,23 +43,9 @@
     
     //NSLog(@"ReTweet");
     
-    //Tweet可能な状態か判別
-    if ( [TWTweetComposeViewController canSendTweet] ) {
-        
-        //アカウントの取得
-        ACAccount *twAccount = [TWGetAccount getTwitterAccount];
-        
-        //Twitterアカウントの確認
-        if (twAccount == nil) {
-            
-            //アカウントデータが空
-            [ShowAlert error:@"アカウントが取得できませんでした。"];
-            
-            return;
-        }
-        
-        //ステータスバーに処理中表示
-        [ActivityIndicator visible:YES];
+    ACAccount *twAccount = [TWEvent canAction];
+    
+    if ( twAccount != nil ) {
         
         //リクエストURLを指定
         NSString *tReqURL = [NSString stringWithFormat:@"https://api.twitter.com/1/statuses/retweet/%@json", tweetId];
@@ -98,22 +62,7 @@
          ^( NSData *responseData, NSHTTPURLResponse *urlResponse, NSError *error ) {
              
              dispatch_async(dispatch_get_main_queue(), ^{
-                 
-                 //レスポンスのデータをNSStringに変換後JSONをDictionaryに格納
-//                 NSString *responseDataString = [[[NSString alloc] initWithData:responseData encoding:NSUTF8StringEncoding] autorelease];
-//                 NSDictionary *result = [responseDataString JSONValue];
-//                 
-//                 if ( result == nil ) {
-//                     
-//                     NSLog(@"responseDataString: %@", responseDataString);
-//                     
-//                 }else {
-//                     
-//                     NSLog(@"Result: %@", result);
-//                 }
-                 
-                 //NSLog(@"ResultText: %@", [result objectForKey:@"text"]);
-                 
+                                  
                  [ActivityIndicator visible:NO];
              });
          }];
@@ -130,23 +79,9 @@
     
     //NSLog(@"UnFavorite");
     
-    //Tweet可能な状態か判別
-    if ( [TWTweetComposeViewController canSendTweet] ) {
-        
-        //アカウントの取得
-        ACAccount *twAccount = [TWGetAccount getTwitterAccount];
-        
-        //Twitterアカウントの確認
-        if (twAccount == nil) {
-            
-            //アカウントデータが空
-            [ShowAlert error:@"アカウントが取得できませんでした。"];
-            
-            return;
-        }
-        
-        //ステータスバーに処理中表示
-        [ActivityIndicator visible:YES];
+    ACAccount *twAccount = [TWEvent canAction];
+    
+    if ( twAccount != nil ) {
         
         //リクエストURLを指定
         NSString *tReqURL = [NSString stringWithFormat:@"https://api.twitter.com/1/favorites/destroy/%@.json", tweetId];
@@ -164,25 +99,129 @@
              
              dispatch_async(dispatch_get_main_queue(), ^{
                  
-                 //レスポンスのデータをNSStringに変換後JSONをDictionaryに格納
-//                 NSString *responseDataString = [[[NSString alloc] initWithData:responseData encoding:NSUTF8StringEncoding] autorelease];
-//                 NSDictionary *result = [responseDataString JSONValue];
-                 
-//                 if ( result == nil ) {
-//                     
-//                     NSLog(@"responseDataString: %@", responseDataString);
-//                     
-//                 }else {
-//                     
-//                     NSLog(@"Result: %@", result);
-//                 }
-                 
-                 //NSLog(@"ResultText: %@", [result objectForKey:@"text"]);
-                 
                  [ActivityIndicator visible:NO];
              });
          }];
     }
+}
+
++ (void)getProfile:(NSString *)screenName {
+    
+    //NSLog(@"GetProfile");
+    
+    ACAccount *twAccount = [TWEvent canAction];
+    
+    //ステータスバーに処理中表示
+    [ActivityIndicator visible:YES];
+    
+    //リクエストURLを指定
+    NSString *tReqURL = [NSString stringWithFormat:@"https://api.twitter.com/1/users/show.json?screen_name=%@&include_entities=true", screenName];
+    
+    //リクエストの作成
+    TWRequest *postRequest = [[[TWRequest alloc] initWithURL:[NSURL URLWithString:tReqURL] 
+                                                  parameters:nil 
+                                               requestMethod:TWRequestMethodGET] autorelease];
+    
+    //リクエストにアカウントを設定
+    [postRequest setAccount:twAccount];
+    
+    //投稿結果通知を作成
+    NSMutableDictionary *resultProfile = [NSMutableDictionary dictionary];
+    NSNotification *notification =[NSNotification notificationWithName:@"GetProfile" 
+                                                                    object:self 
+                                                                  userInfo:resultProfile];
+    
+    [postRequest performRequestWithHandler:
+     ^( NSData *responseData, NSHTTPURLResponse *urlResponse, NSError *error ) {
+         
+         dispatch_async(dispatch_get_main_queue(), ^{
+             
+             //レスポンスのデータをNSStringに変換後JSONをDictionaryに格納
+             NSString *responseDataString = [[[NSString alloc] initWithData:responseData encoding:NSUTF8StringEncoding] autorelease];
+             NSDictionary *result = [responseDataString JSONValue];
+             
+             if ( result != nil ) {
+                 
+                 [resultProfile setObject:@"Success" forKey:@"Result"];
+                 [resultProfile setObject:result forKey:@"Profile"];
+                 
+             }else {
+                 
+                 [resultProfile setObject:@"Error" forKey:@"Result"];
+             }
+             
+             [[NSNotificationCenter defaultCenter] postNotification:notification];
+             
+             [ActivityIndicator visible:NO];
+         });
+     }];
+}
+
++ (void)getTweet:(NSString *)tweetId {
+    
+    //NSLog(@"GetProfile");
+    
+    ACAccount *twAccount = [TWEvent canAction];
+    
+    //ステータスバーに処理中表示
+    [ActivityIndicator visible:YES];
+    
+    //リクエストURLを指定
+    NSString *tReqURL = [NSString stringWithFormat:@"https://api.twitter.com/1/statuses/show.json?id=%@&include_entities=true", tweetId];
+    
+    //リクエストの作成
+    TWRequest *postRequest = [[[TWRequest alloc] initWithURL:[NSURL URLWithString:tReqURL] 
+                                                  parameters:nil 
+                                               requestMethod:TWRequestMethodGET] autorelease];
+    
+    //リクエストにアカウントを設定
+    [postRequest setAccount:twAccount];
+    
+    //投稿結果通知を作成
+    NSMutableDictionary *resultProfile = [NSMutableDictionary dictionary];
+    NSNotification *notification =[NSNotification notificationWithName:@"GetTweet" 
+                                                                object:self 
+                                                              userInfo:resultProfile];
+    
+    [postRequest performRequestWithHandler:
+     ^( NSData *responseData, NSHTTPURLResponse *urlResponse, NSError *error ) {
+         
+         dispatch_async(dispatch_get_main_queue(), ^{
+             
+             //レスポンスのデータをNSStringに変換後JSONをDictionaryに格納
+             NSString *responseDataString = [[[NSString alloc] initWithData:responseData encoding:NSUTF8StringEncoding] autorelease];
+             NSDictionary *result = [responseDataString JSONValue];
+             
+             if ( result != nil ) {
+                 
+                 [resultProfile setObject:@"Success" forKey:@"Result"];
+                 [resultProfile setObject:result forKey:@"Tweet"];
+                 
+             }else {
+                 
+                 [resultProfile setObject:@"Error" forKey:@"Result"];
+             }
+             
+             [[NSNotificationCenter defaultCenter] postNotification:notification];
+             
+             [ActivityIndicator visible:NO];
+         });
+     }];
+}
+
++ (ACAccount *)canAction {
+    
+    ACAccount *twAccount = [TWGetAccount getTwitterAccount];
+    
+    if ( [TWTweetComposeViewController canSendTweet] && [TWGetAccount getTwitterAccount] != nil ) {
+        
+        //ステータスバーに処理中表示
+        [ActivityIndicator visible:YES];
+        
+        return twAccount;
+    }
+    
+    return nil;
 }
 
 @end

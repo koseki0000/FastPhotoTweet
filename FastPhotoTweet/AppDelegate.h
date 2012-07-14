@@ -8,26 +8,16 @@
 #import <UIKit/UIKit.h>
 #import "OAConsumer.h"
 
+#define BLANK @""
+
+#define FIREFOX_USERAGENT @"Mozilla/5.0 (Macintosh; Intel Mac OS X 10.7; rv:13.0) Gecko/20100101 Firefox/13.0.1"
+#define IPAD_USERAFENT @"Mozilla/5.0 (iPad; CPU OS 5_1_1 like Mac OS X) AppleWebKit/534.46 (KHTML, like Gecko) Version/5.1 Mobile/9B176 Safari/7534.48.3"
+#define IPHONE_USERAGENT @"Mozilla/5.0 (iPhone; CPU iPhone OS 5_1_1 like Mac OS X) AppleWebKit/534.46 (KHTML, like Gecko) Mobile/9B206"
+
 @interface AppDelegate : UIResponder <UIApplicationDelegate, UITabBarControllerDelegate> {
     
     OAConsumer *oaConsumer;
     UIBackgroundTaskIdentifier backgroundTask;
-    
-    NSString *openURL;
-    NSString *postText;
-    NSString *postTextType;
-    NSString *bookmarkUrl;
-    NSString *urlSchemeDownloadUrl;
-    NSString *tabChangeFunction;
-    NSString *sinceId;
-    NSMutableArray *postError;
-    NSNumber *resendNumber;
-    NSNumber *resendMode;
-    NSNumber *isBrowserOpen;
-    NSNumber *launchMode;
-    NSNumber *pcUaMode;
-    NSNumber *tlUrlOpenMode;
-    NSMutableDictionary *postData;
 }
 
 @property (strong, nonatomic) UIWindow *window;
@@ -42,13 +32,13 @@
 @property (nonatomic, retain) NSString *tabChangeFunction;
 @property (nonatomic, retain) NSString *sinceId;
 @property (nonatomic, retain) NSMutableArray *postError;
-@property (nonatomic, retain) NSNumber *resendNumber;
-@property (nonatomic, retain) NSNumber *resendMode;
-@property (nonatomic, retain) NSNumber *isBrowserOpen;
-@property (nonatomic, retain) NSNumber *launchMode;
-@property (nonatomic, retain) NSNumber *pcUaMode;
-@property (nonatomic, retain) NSNumber *tlUrlOpenMode;
 @property (nonatomic, retain) NSMutableDictionary *postData;
+@property int resendNumber;
+@property int launchMode;
+@property BOOL resendMode;
+@property BOOL browserOpenMode;
+@property BOOL pcUaMode;
+@property BOOL timelineBrowser;
 
 - (BOOL)ios5Check;
 

@@ -8,6 +8,7 @@
 #import "AppDelegate.h"
 #import "ViewController.h"
 #import "TimelineViewController.h"
+#import "ResizeImage.h"
 
 #define OAUTH_KEY    @"dVbmOIma7UCc5ZkV3SckQ"
 #define OAUTH_SECRET @"wnDptUj4VpGLZebfLT3IInTZPkPS4XimYh6WXAmdI"
@@ -21,22 +22,22 @@
 @synthesize window = _window;
 @synthesize tabBarController = _tabBarController;
 
-@synthesize oaConsumer;
-@synthesize openURL;
-@synthesize postText;
-@synthesize postTextType;
-@synthesize bookmarkUrl;
-@synthesize urlSchemeDownloadUrl;
-@synthesize tabChangeFunction;
-@synthesize sinceId;
-@synthesize postError;
-@synthesize resendNumber;
-@synthesize resendMode;
-@synthesize isBrowserOpen;
-@synthesize launchMode;
-@synthesize pcUaMode;
-@synthesize postData;
-@synthesize tlUrlOpenMode;
+@synthesize oaConsumer = _oaConsumer;
+@synthesize openURL = _openURL;
+@synthesize postText = _postText;
+@synthesize postTextType = _postTextType;
+@synthesize bookmarkUrl = _bookmarkUrl;
+@synthesize urlSchemeDownloadUrl = _urlSchemeDownloadUrl;
+@synthesize tabChangeFunction = _tabChangeFunction;
+@synthesize sinceId = _sinceId;
+@synthesize postError = _postError;
+@synthesize postData = _postData;
+@synthesize resendNumber = _resendNumber;
+@synthesize launchMode = _launchMode;
+@synthesize resendMode = _resendMode;
+@synthesize browserOpenMode = _browserOpenMode;
+@synthesize pcUaMode = _pcUaMode;
+@synthesize timelineBrowser = _timelineBrowser;
 
 - (BOOL)application:(UIApplication *)application didFinishLaunchingWithOptions:(NSDictionary *)launchOptions {
     
@@ -48,35 +49,34 @@
     
     if ( [D objectForKey:@"HomePageURL"] == nil || [[D objectForKey:@"HomePageURL"] isEqualToString:BLANK] ) {
         
-        //NSLog(@"Set HomePageURL");
         [D setObject:@"http://www.google.co.jp/" forKey:@"HomePageURL"];
     }
     
     //各種初期化
-    openURL = [D objectForKey:@"HomePageURL"];
-    postText = BLANK;
-    postTextType = BLANK;
-    bookmarkUrl = BLANK;
-    urlSchemeDownloadUrl = BLANK;
-    tabChangeFunction = BLANK;
-    sinceId = BLANK;
+    _openURL = [D objectForKey:@"HomePageURL"];
+    _postText = BLANK;
+    _postTextType = BLANK;
+    _bookmarkUrl = BLANK;
+    _urlSchemeDownloadUrl = BLANK;
+    _tabChangeFunction = BLANK;
+    _sinceId = BLANK;
     
-    postError = [NSMutableArray array];
-    [postError retain];
+    _postError = [NSMutableArray array];
+    [_postError retain];
     
-    resendNumber = [NSNumber numberWithInt:0];
-    resendMode = [NSNumber numberWithInt:0];
-    isBrowserOpen = [NSNumber numberWithInt:0];
-    pcUaMode = [NSNumber numberWithInt:0];
-    tlUrlOpenMode = [NSNumber numberWithInt:0];
+    _resendNumber = 0;
+    _resendMode = NO;
+    _browserOpenMode = NO;
+    _pcUaMode = NO;
+    _timelineBrowser = NO;
 
-    postData = [NSMutableDictionary dictionary];
-    [postData retain];
+    _postData = [NSMutableDictionary dictionary];
+    [_postData retain];
     
     if ( launchOptions == NULL ) {
-        launchMode = [NSNumber numberWithInt:0];
+        _launchMode = 0;
     }else {
-        launchMode = [NSNumber numberWithInt:1];
+        _launchMode = 1;
     }
     
     self.window = [[[UIWindow alloc] initWithFrame:[[UIScreen mainScreen] bounds]] autorelease];
@@ -104,8 +104,8 @@
 
     if ( [schemeURL.absoluteString hasPrefix:@"fhttp"] || [schemeURL.absoluteString hasPrefix:@"fhttps"]) {
         
-        urlSchemeDownloadUrl = [schemeURL.absoluteString substringFromIndex:1];
-        [urlSchemeDownloadUrl retain];
+        _urlSchemeDownloadUrl = [schemeURL.absoluteString substringFromIndex:1];
+        [_urlSchemeDownloadUrl retain];
     }
     
     return YES;
@@ -162,8 +162,8 @@
 - (void)dealloc {
     
     [oaConsumer release];
-    [postError release];
-    [urlSchemeDownloadUrl release];
+    [_postError release];
+    [_urlSchemeDownloadUrl release];
 
     [_window release];
     [_tabBarController release];

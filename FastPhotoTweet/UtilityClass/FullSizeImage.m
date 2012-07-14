@@ -40,33 +40,11 @@
     
     }else if ([urlString hasPrefix:@"http://p.twipple.jp/"]) {
         
-        NSMutableString *mString = [NSMutableString stringWithString:urlString];
-        [mString replaceOccurrencesOfString:@"www." 
-                                 withString:BLANK 
-                                    options:0 
-                                      range:NSMakeRange(0, [mString length] )];
-        
-        [mString replaceOccurrencesOfString:@"http://p.twipple.jp/" 
-                                 withString:BLANK 
-                                    options:0 
-                                      range:NSMakeRange(0, [mString length] )];
-        
-        NSString *imageID1 = [mString substringWithRange:NSMakeRange(0,1)];
-        NSString *imageID2 = [mString substringWithRange:NSMakeRange(1,1)];
-        NSString *imageID3 = [mString substringWithRange:NSMakeRange(2,1)];
-        NSString *imageID4 = [mString substringWithRange:NSMakeRange(3,1)];
-        NSString *imageID5 = [mString substringWithRange:NSMakeRange(4,1)];
-        urlString = [NSString stringWithFormat:@"http://p.twipple.jp/data/%@/%@/%@/%@/%@.jpg", imageID1, imageID2, imageID3, imageID4, imageID5];
+        urlString = [NSString stringWithFormat:@"http://p.twpl.jp/show/orig/", [urlString lastPathComponent]];
     
     }else if ( [urlString hasPrefix:@"http://yfrog.com/"] ) {
         
-        NSMutableString *mString = [NSMutableString stringWithString:urlString];
-        [mString replaceOccurrencesOfString:@"http://yfrog.com/" 
-                                 withString:BLANK 
-                                    options:0 
-                                      range:NSMakeRange(0, [mString length] )];
-        
-        NSString *yfrogReqUrl = [NSString stringWithFormat:@"http://yfrog.com/api/xmlInfo?path=%@", mString];
+        NSString *yfrogReqUrl = [NSString stringWithFormat:@"http://yfrog.com/api/xmlInfo?path=%@", [urlString lastPathComponent]];
         NSURLRequest *request = [NSURLRequest requestWithURL:[NSURL URLWithString:yfrogReqUrl]];
         NSError *error = nil;
         NSData *response = [NSURLConnection sendSynchronousRequest:request 
@@ -82,64 +60,55 @@
         NSTextCheckingResult *match = [regexp firstMatchInString:xmlString 
                                                          options:0 
                                                            range:NSMakeRange(0, xmlString.length)];
-
+        
         if ( match.numberOfRanges != 0 ) {
             
-            mString = [NSMutableString stringWithString:[xmlString substringWithRange:[match rangeAtIndex:0]]];
-            [mString replaceOccurrencesOfString:@"<image_link>" 
-                                     withString:BLANK 
-                                        options:0 
-                                          range:NSMakeRange(0, [mString length] )];
+            NSString *tempString = [NSString stringWithString:[xmlString substringWithRange:[match rangeAtIndex:0]]];
             
-            [mString replaceOccurrencesOfString:@"</image_link>" 
-                                     withString:BLANK 
-                                        options:0 
-                                          range:NSMakeRange(0, [mString length] )];
-            
-            urlString = mString;
+            urlString = [regexp stringByReplacingMatchesInString:@"</?image_link>"
+                                                         options:0
+                                                           range:NSMakeRange(0, tempString.length)
+                                                    withTemplate:BLANK];
         }
         
     }else if ( [urlString hasPrefix:@"http://ow.ly/i/"] ) {
         
-        NSMutableString *mString = [NSMutableString stringWithString:urlString];
-        [mString replaceOccurrencesOfString:@"http://ow.ly/i/" 
-                                 withString:BLANK 
-                                    options:0 
-                                      range:NSMakeRange(0, [mString length] )];
-        
-        urlString = [NSString stringWithFormat:@"http://static.ow.ly/photos/normal/%@.jpg", mString];
+        urlString = [NSString stringWithFormat:@"http://static.ow.ly/photos/normal/%@.jpg", [urlString lastPathComponent]];
         
     }else if ( [urlString hasPrefix:@"http://twitpic.com/"] && ![urlString hasPrefix:@"http://twitpic.com/photos/"] && 
               ![urlString hasPrefix:@"http://twitpic.com/show"] && ![urlString hasPrefix:@"http://twitpic.com/account"] && 
               ![urlString hasPrefix:@"http://twitpic.com/session"] && ![urlString hasPrefix:@"http://twitpic.com/events"] &&
               ![urlString hasPrefix:@"http://twitpic.com/faces"] && ![urlString hasPrefix:@"http://twitpic.com/upload"] && 
-              ![urlString hasSuffix:@".do"] ) {
+              ![urlString hasPrefix:@"http://twitpic.com/ad_"] && ![urlString hasSuffix:@".do"] &&
+              ![urlString isEqualToString:@"http://twitpic.com/"] ) {
         
-        NSMutableString *mString = [NSMutableString stringWithString:urlString];
-        [mString replaceOccurrencesOfString:@"http://twitpic.com/" 
-                                 withString:BLANK 
-                                    options:0 
-                                      range:NSMakeRange(0, [mString length] )];
-        
-        urlString = [NSString stringWithFormat:@"http://twitpic.com/show/full/%@", mString];
+        urlString = [NSString stringWithFormat:@"http://twitpic.com/show/full/%@", [urlString lastPathComponent]];
         
     }else if ( [urlString hasPrefix:@"http://instagr.am/p/"] ) {
         
         NSString *sourceCode = [FullSizeImage getSourceCode:[NSString stringWithFormat:@"http://instagr.am/api/v1/oembed/?url=%@", urlString]];
         
         NSDictionary *results = [sourceCode JSONValue];
+        
+        if ( results.count == 0 ) return urlString;
+        
 		urlString = [results objectForKey:@"url"];
         
     }else if ( [RegularExpression boolRegExp:urlString regExpPattern:@"https?://(mobile\\.)?twitter\\.com/[_a-zA-Z0-9]{1,15}/status/[0-9]+/photo/1"] ) {
         
         NSString *sourceCode = [FullSizeImage getSourceCode:urlString];
     
+        if ( sourceCode == nil ) return urlString;
+        
         urlString = [NSString stringWithFormat:@"%@:large", [RegularExpression strRegExp:sourceCode 
                                                                            regExpPattern:@"https?://p\\.twimg\\.com/[-_\\.a-zA-Z0-9]+"]];
     
     }else if ( [RegularExpression boolRegExp:urlString regExpPattern:@"https?://via.me/-[a-zA-Z0-9]+"] ) {
         
         NSString *sourceCode = [FullSizeImage getSourceCode:urlString];
+        
+        if ( sourceCode == nil ) return urlString;
+    
         urlString = [RegularExpression strRegExp:sourceCode 
                                    regExpPattern:@"https?://(s[0-9]\\.amazonaws\\.com/com\\.clixtr\\.picbounce|img\\.viame-cdn\\.com)/photos/[-a-zA-Z0-9]+/[a-z]600x600\\.(jpe?g|png)"];
     }

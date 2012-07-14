@@ -19,14 +19,16 @@
 #import <CFNetwork/CFNetwork.h>
 #import "JSON.h"
 #import "Reachability.h"
+#import "WebViewExController.h"
 
-@interface TimelineViewController : UIViewController <UIActionSheetDelegate> {
+@interface TimelineViewController : UIViewController <UIActionSheetDelegate, UITextFieldDelegate> {
     
     AppDelegate *appDelegate;
     
     NSUserDefaults *d;
     NSMutableArray *timelineArray;
     NSMutableArray *iconUrls;
+    NSMutableArray *inReplyTo;
     NSMutableDictionary *allTimelines;
     NSMutableDictionary *sinceIds;
     NSMutableDictionary *icons;
@@ -39,44 +41,58 @@
     UIPasteboard *pboard;
     UIImage *startImage;
     UIImage *stopImage;
+    UIImage *defaultActionButtonImage;
+    UIAlertView *twilogSearch;
+    UITextField *twilogSearchText;
     
     ACAccount *twAccount;
     
     BOOL userStream;
-    BOOL actionSheetVisible;
     BOOL openStreamAfter;
+    BOOL webBrowserMode;
+    BOOL inReplyToMode;
+    BOOL inReplyToModeFirts;
     
-    int longPressControl;
     int selectRow;
+    int longPressControl;
 }
 
 @property (retain, nonatomic) IBOutlet UIToolbar *topBar;
 @property (retain, nonatomic) IBOutlet UITableView *timeline;
 @property (retain, nonatomic) IBOutlet UIBarButtonItem *flexibleSpace;
+@property (retain, nonatomic) IBOutlet UIBarButtonItem *fixedSpace;
 @property (retain, nonatomic) IBOutlet UIBarButtonItem *postButton;
 @property (retain, nonatomic) IBOutlet UIBarButtonItem *reloadButton;
 @property (retain, nonatomic) IBOutlet UIBarButtonItem *openStreamButton;
 @property (retain, nonatomic) IBOutlet UIBarButtonItem *actionButton;
+@property (retain, nonatomic) IBOutlet UIBarButtonItem *closeInReplyToButton;
+@property (retain, nonatomic) IBOutlet UIImageView *accountIconView;
 @property (strong, nonatomic) NSURLConnection *connection;
 
 - (IBAction)pushPostButton:(UIBarButtonItem *)sender;
 - (IBAction)pushReloadButton:(UIBarButtonItem *)sender;
 - (IBAction)pushOpenStreamButton:(UIBarButtonItem *)sender;
 - (IBAction)pushActionButton:(UIBarButtonItem *)sender;
+- (IBAction)pushCloseInReplyToButton:(UIBarButtonItem *)sender;
 
-- (IBAction)swipeTimelineRight:(id)sender;
-- (IBAction)swipeTimelineLeft:(id)sender;
+- (IBAction)swipeTimelineRight:(UISwipeGestureRecognizer *)sender;
+- (IBAction)swipeTimelineLeft:(UISwipeGestureRecognizer *)sender;
+- (IBAction)longPressTimeline:(UILongPressGestureRecognizer *)sender;
 
 - (void)createTimeline;
 - (void)loadTimeline:(NSNotification *)center;
 - (void)saveIcon:(NSMutableArray *)tweetData;
+- (void)getInReplyToChain:(NSDictionary *)tweetData;
 - (void)scrollTimelineForNewTweet;
 - (void)openStream;
 - (void)closeStream;
 
 - (BOOL)reachability;
 
+- (void)receiveProfile:(NSNotification *)notification;
 - (void)enterBackground:(NSNotification *)notification;
 - (void)becomeActive:(NSNotification *)notification;
+
+- (void)getMyAccountIcon;
 
 @end
