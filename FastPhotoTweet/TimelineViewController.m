@@ -26,6 +26,7 @@
 @synthesize actionButton;
 @synthesize closeInReplyToButton;
 @synthesize accountIconView;
+@synthesize timelineSegment;
 @synthesize reloadButton;
 @synthesize connection = _connection;
 
@@ -50,37 +51,8 @@
     
     //NSLog(@"viewDidLoad");
     
-    NSNotificationCenter *notificationCenter = [NSNotificationCenter defaultCenter];
-    
-    //投稿完了通知を受け取る設定
-    [notificationCenter addObserver:self 
-                           selector:@selector(loadTimeline:) 
-                               name:@"GetTimeline" 
-                             object:nil];
-    
-    //プロフィール取得完了を受け取る設定
-    [notificationCenter addObserver:self 
-                           selector:@selector(receiveProfile:) 
-                               name:@"GetProfile" 
-                             object:nil];
-    
-    //Tweet取得完了を受け取る設定
-    [notificationCenter addObserver:self 
-                           selector:@selector(receiveTweet:) 
-                               name:@"GetTweet" 
-                             object:nil];
-    
-    //アプリがアクティブになった場合の通知を受け取る設定
-    [notificationCenter addObserver:self
-                           selector:@selector(becomeActive:)
-                               name:UIApplicationDidBecomeActiveNotification
-                             object:nil];
-    
-    //バックグラウンドに移行した際にストリームを切断
-    [notificationCenter addObserver:self 
-                           selector:@selector(enterBackground:) 
-                               name:UIApplicationDidEnterBackgroundNotification 
-                             object:nil];
+    //各種通知設定
+    [self setNotifications];
     
     appDelegate = (AppDelegate *)[[UIApplication sharedApplication] delegate];
     d = [NSUserDefaults standardUserDefaults];
@@ -92,6 +64,7 @@
     inReplyTo = [NSMutableArray array];
     icons = [NSMutableDictionary dictionary];
     allTimelines = [NSMutableDictionary dictionary];
+    mentionsArray = [NSArray array];
     sinceIds = [NSMutableDictionary dictionary];
     selectTweet = [NSDictionary dictionary];
     userStreamAccount = BLANK;
@@ -135,6 +108,53 @@
     [self createTimeline];
 }
 
+- (void)setNotifications {
+    
+    NSNotificationCenter *notificationCenter = [NSNotificationCenter defaultCenter];
+    
+    //タイムライン取得完了通知を受け取る設定
+    [notificationCenter addObserver:self 
+                           selector:@selector(loadTimeline:) 
+                               name:@"GetTimeline" 
+                             object:nil];
+    
+    //Mentions取得完了通知を受け取る設定
+    [notificationCenter addObserver:self 
+                           selector:@selector(loadMentions:) 
+                               name:@"GetMentions" 
+                             object:nil];
+    
+    //Favorites取得完了通知を受け取る設定
+    [notificationCenter addObserver:self 
+                           selector:@selector(loadFavorites:) 
+                               name:@"GetFavorites" 
+                             object:nil];
+    
+    //プロフィール取得完了を受け取る設定
+    [notificationCenter addObserver:self 
+                           selector:@selector(receiveProfile:) 
+                               name:@"GetProfile" 
+                             object:nil];
+    
+    //Tweet取得完了を受け取る設定
+    [notificationCenter addObserver:self 
+                           selector:@selector(receiveTweet:) 
+                               name:@"GetTweet" 
+                             object:nil];
+    
+    //アプリがアクティブになった場合の通知を受け取る設定
+    [notificationCenter addObserver:self
+                           selector:@selector(becomeActive:)
+                               name:UIApplicationDidBecomeActiveNotification
+                             object:nil];
+    
+    //バックグラウンドに移行した際にストリームを切断
+    [notificationCenter addObserver:self 
+                           selector:@selector(enterBackground:) 
+                               name:UIApplicationDidEnterBackgroundNotification 
+                             object:nil];
+}
+
 #pragma mark - TimelineMethod
 
 - (void)createTimeline {
@@ -168,7 +188,20 @@
             
             if ( [result isEqualToString:@"TimelineSuccess"] ) {
                 
-                NSMutableArray *newTweet = [center.userInfo objectForKey:@"Timeline"];
+                NSArray *newTweet = [center.userInfo objectForKey:@"Timeline"];
+                
+                NSLog(@"NG START");
+                
+                //NGClient判定を行う
+                newTweet = [TWNgTweet ngClient:newTweet];
+                
+                //NGName判定を行う
+                newTweet = [TWNgTweet ngName:newTweet];
+                
+                //NGWord判定を行う
+                newTweet = [TWNgTweet ngWord:newTweet];
+                
+                NSLog(@"NG END");
                 
                 if ( [EmptyCheck check:newTweet] ) {
                     
@@ -189,45 +222,8 @@
                     //タイムラインを保存
                     [allTimelines setObject:timelineArray forKey:twAccount.username];
                     
-                    //アイコンのURLを取得
-                    for ( NSDictionary *dic in timelineArray ) {
-                        
-                        NSString *screenName = [[dic objectForKey:@"user"] objectForKey:@"screen_name"];
-                        NSString *fileName = [[TWIconBigger normal:[[dic objectForKey:@"user"] objectForKey:@"profile_image_url"]] lastPathComponent];
-                        NSString *searchName = [NSString stringWithFormat:@"%@_%@", screenName, fileName];
-                        
-                        if ( [icons objectForKey:searchName] == nil ) {
-                            
-                            NSMutableDictionary *tempDic = [NSMutableDictionary dictionary];
-                            [tempDic setObject:[[dic objectForKey:@"user"] objectForKey:@"screen_name"] forKey:@"screen_name"];
-                            [tempDic setObject:[TWIconBigger normal:[[dic objectForKey:@"user"] objectForKey:@"profile_image_url"]] forKey:@"profile_image_url"];
-                            [iconUrls addObject:tempDic];
-                        }
-                    }
-                    
-                    //NSLog(@"iconUrls: %@", iconUrls);
-                    
-                    //NSLog(@"Duplicate check");
-                    //URL重複チェック
-                    for ( int i = 0; i < iconUrls.count; i++ ) {
-                        
-                        NSString *currenString = [TWIconBigger normal:[[iconUrls objectAtIndex:i] objectForKey:@"profile_image_url"]];
-                        
-                        int index = 0;
-                        for ( NSDictionary *temp in iconUrls ) {
-                            
-                            NSString *tempString = [TWIconBigger normal:[temp objectForKey:@"profile_image_url"]];
-                            
-                            if ( [tempString isEqualToString:currenString] && index != i ) {
-                                
-                                [iconUrls removeObjectAtIndex:i];
-                                i--;
-                                break;
-                            }
-                            
-                            index++;
-                        }
-                    }
+                    //タイムラインからアイコンのURLを取得
+                    [self getIconUrlWithTimeline];
                     
                     //NSLog(@"iconUrls: %@", iconUrls);
                     
@@ -238,11 +234,15 @@
                         //更新アカウントを記憶
                         lastUpdateAccount = twAccount.username;
                         
-                        //アイコン保存
                         [ActivityIndicator off];
+                        
+                        //アイコン保存
                         [self saveIcon:iconUrls];
+                        
+                        //タイムラインを再読み込み
                         [timeline reloadData];
                         
+                        //新着取得前の最新までスクロール
                         [self scrollTimelineForNewTweet];
                         
                         //UserStream接続
@@ -267,6 +267,116 @@
         
         dispatch_release(syncQueue);
     });
+}
+
+- (void)loadMentions:(NSNotification *)center {
+    
+    if ( userStream ) [self closeStream];
+    
+    NSString *result = [center.userInfo objectForKey:@"Result"];
+    
+    if ( [result isEqualToString:@"MentionsSuccess"] ) {
+        
+        NSArray *newTweet = [center.userInfo objectForKey:@"Mentions"];
+        
+        //NGClient判定を行う
+        newTweet = [TWNgTweet ngClient:newTweet];
+        
+        //NGName判定を行う
+        newTweet = [TWNgTweet ngName:newTweet];
+        
+        //NGWord判定を行う
+        newTweet = [TWNgTweet ngWord:newTweet];
+        
+        //InReplyToからの復帰用に保存しておく
+        mentionsArray = newTweet;
+        
+        timelineArray = [NSMutableArray arrayWithArray:newTweet];
+        
+        //タイムラインからアイコンのURLを取得
+        [self getIconUrlWithTimeline];
+        
+        [ActivityIndicator off];
+        
+        //アイコン保存
+        [self saveIcon:iconUrls];
+        
+        //タイムラインを再読み込み
+        [timeline reloadData];
+    }
+}
+
+- (void)loadFavorites:(NSNotification *)center {
+    
+    if ( userStream ) [self closeStream];
+    
+    NSString *result = [center.userInfo objectForKey:@"Result"];
+    
+    if ( [result isEqualToString:@"FavoritesSuccess"] ) {
+        
+        NSArray *newTweet = [center.userInfo objectForKey:@"Favorites"];
+        
+        NSLog(@"newTweet: %@", newTweet);
+        
+        //InReplyToからの復帰用に保存しておく
+        mentionsArray = newTweet;
+        
+        timelineArray = [NSMutableArray arrayWithArray:newTweet];
+        
+        //タイムラインからアイコンのURLを取得
+        [self getIconUrlWithTimeline];
+        
+        [ActivityIndicator off];
+        
+        //アイコン保存
+        [self saveIcon:iconUrls];
+        
+        //タイムラインを再読み込み
+        [timeline reloadData];
+    }
+}
+
+- (void)getIconUrlWithTimeline {
+    
+    //アイコンのURLを取得
+    for ( NSDictionary *dic in timelineArray ) {
+        
+        NSString *screenName = [[dic objectForKey:@"user"] objectForKey:@"screen_name"];
+        NSString *fileName = [[TWIconBigger normal:[[dic objectForKey:@"user"] objectForKey:@"profile_image_url"]] lastPathComponent];
+        NSString *searchName = [NSString stringWithFormat:@"%@_%@", screenName, fileName];
+        
+        if ( [icons objectForKey:searchName] == nil ) {
+            
+            NSMutableDictionary *tempDic = [NSMutableDictionary dictionary];
+            [tempDic setObject:[[dic objectForKey:@"user"] objectForKey:@"screen_name"] forKey:@"screen_name"];
+            [tempDic setObject:[TWIconBigger normal:[[dic objectForKey:@"user"] objectForKey:@"profile_image_url"]] forKey:@"profile_image_url"];
+            [iconUrls addObject:tempDic];
+        }
+    }
+    
+    //NSLog(@"iconUrls: %@", iconUrls);
+    
+    //NSLog(@"Duplicate check");
+    //URL重複チェック
+    for ( int i = 0; i < iconUrls.count; i++ ) {
+        
+        NSString *currenString = [TWIconBigger normal:[[iconUrls objectAtIndex:i] objectForKey:@"profile_image_url"]];
+        
+        int index = 0;
+        for ( NSDictionary *temp in iconUrls ) {
+            
+            NSString *tempString = [TWIconBigger normal:[temp objectForKey:@"profile_image_url"]];
+            
+            if ( [tempString isEqualToString:currenString] && index != i ) {
+                
+                [iconUrls removeObjectAtIndex:i];
+                i--;
+                break;
+            }
+            
+            index++;
+        }
+    }
 }
 
 - (void)saveIcon:(NSMutableArray *)tweetData {
@@ -299,6 +409,7 @@
     
     if ( [EmptyCheck check:inReplyToId] ) {
         
+        [ActivityIndicator on];
         [TWEvent getTweet:inReplyToId];
         
     }else {
@@ -479,10 +590,6 @@
     }
     
     return height;
-}                                        
-                                        
-- (void)tableView:(UITableView *)tableView accessoryButtonTappedForRowWithIndexPath:(NSIndexPath *)indexPath {
- 
 }
 
 - (void)tableView:(UITableView *)tableView didSelectRowAtIndexPath:(NSIndexPath *)indexPath {
@@ -516,6 +623,10 @@
         [self openBrowser];
     }
 }
+
+//- (void)tableView:(UITableView *)tableView accessoryButtonTappedForRowWithIndexPath:(NSIndexPath *)indexPath {
+//
+//}
 
 //- (void)tableView:(UITableView *)tableView commitEditingStyle:(UITableViewCellEditingStyle)editingStyle forRowAtIndexPath:(NSIndexPath *)indexPath {
 //    
@@ -676,10 +787,21 @@
     
     inReplyToMode = NO;
     [topBar setItems:TOP_BAR animated:YES];
-    timelineArray = [allTimelines objectForKey:twAccount.username];
-    [timeline reloadData];
     
-    [self pushReloadButton:nil];
+    if ( timelineSegment.selectedSegmentIndex == 0 ) {
+    
+        timelineArray = [allTimelines objectForKey:twAccount.username];
+     
+        [timeline reloadData];
+        
+        [self pushReloadButton:nil];
+        
+    }else {
+        
+        timelineArray = [NSMutableArray arrayWithArray:mentionsArray];
+        
+        [timeline reloadData];
+    }
 }
 
 #pragma mark - UserStream
@@ -1060,11 +1182,7 @@
         twAccount = [TWGetAccount getTwitterAccount:num];
         [d setInteger:num forKey:@"UseAccount"];
         
-        timelineArray = [allTimelines objectForKey:twAccount.username];
-        
-        [timeline reloadData];
-        
-        [self pushReloadButton:nil];
+        [self changeSegment:nil];
     }
 }
 
@@ -1082,11 +1200,7 @@
         twAccount = [TWGetAccount getTwitterAccount:num];
         [d setInteger:num forKey:@"UseAccount"];
         
-        timelineArray = [allTimelines objectForKey:twAccount.username];
-        
-        [timeline reloadData];
-        
-        [self pushReloadButton:nil];
+        [self changeSegment:nil];
     }
 }
 
@@ -1106,6 +1220,33 @@
         sheet.tag = 2;
         
         [sheet showInView:appDelegate.tabBarController.self.view];
+    }
+}
+
+#pragma mark - SegmentControl
+
+- (IBAction)changeSegment:(UISegmentedControl *)sender {
+    
+    if ( timelineSegment.selectedSegmentIndex == 0 ) {
+        
+        mentionsArray = [NSArray array];
+        
+        //Timelineに切り替わった
+        timelineArray = [allTimelines objectForKey:twAccount.username];
+        
+        [timeline reloadData];
+        
+        [self pushReloadButton:nil];
+        
+    }else if ( timelineSegment.selectedSegmentIndex == 1 ) {
+    
+        //Mentionsに切り替わった
+        [TWGetTimeline mentions];
+    
+    }else if ( timelineSegment.selectedSegmentIndex == 2 ) {
+     
+        //Favoritesに切り替わった
+        [TWGetTimeline favotites];
     }
 }
 
@@ -1410,6 +1551,7 @@
     
     if ( [[notification.userInfo objectForKey:@"Result"] isEqualToString:@"Success"] ) {
         
+        [ActivityIndicator on];
         [inReplyTo insertObject:[notification.userInfo objectForKey:@"Tweet"] atIndex:0];
         [self getInReplyToChain:[notification.userInfo objectForKey:@"Tweet"]];
         
@@ -1506,6 +1648,7 @@
     [self setCloseInReplyToButton:nil];
     [self setAccountIconView:nil];
     [self setFixedSpace:nil];
+    [self setTimelineSegment:nil];
     [super viewDidUnload];
 }
 

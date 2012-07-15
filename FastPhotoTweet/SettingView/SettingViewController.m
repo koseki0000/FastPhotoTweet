@@ -8,15 +8,18 @@
 #import "SettingViewController.h"
 
 //セクション数
-#define SECTION_COUNT 4
+#define SECTION_COUNT 5
 //セクション0の項目数 (画像関連設定)
 #define SECTION_0 9
 //セクション1の項目数 (投稿関連設定)
 #define SECTION_1 12
 //セクション2の項目数 (その他の設定)
 #define SECTION_2 5
-//セクション3の項目数 (ライセンス)
+//セクション2の項目数 (タイムライン設定)
 #define SECTION_3 1
+
+//セクション3の項目数 (ライセンス)
+#define SECTION_4 1
 
 //設定項目名
 //画像関連設定
@@ -956,8 +959,14 @@
             [sheet autorelease];
             [sheet showInView:self.view];
         }
-        
+    
     }else if ( indexPath.section == 3 ) {
+        
+        actionSheetNo = actionSheetNo + SECTION_0 + SECTION_1 + SECTION_2;
+        
+        
+        
+    }else if ( indexPath.section == 4 ) {
         
         if ( indexPath.row == 0 ) {
             
@@ -1368,6 +1377,9 @@
             return @"その他の設定";
             
         case 3:
+            return @"タイムライン設定";
+            
+        case 4:
             return BLANK;
     }
     

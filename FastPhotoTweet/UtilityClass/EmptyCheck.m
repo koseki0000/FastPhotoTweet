@@ -124,4 +124,16 @@
     return result;
 }
 
++ (BOOL)string:(NSString *)string {
+    
+    BOOL result = NO;
+    
+    if ( string != nil && ![string isEqualToString:@""] ) {
+        
+        result = YES;
+    }
+
+    return  result;
+}
+
 @end

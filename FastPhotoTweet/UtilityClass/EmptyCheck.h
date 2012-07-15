@@ -10,5 +10,6 @@
 @interface EmptyCheck : NSObject 
 
 + (BOOL)check:(id)obj;
++ (BOOL)string:(NSString *)string;
 
 @end

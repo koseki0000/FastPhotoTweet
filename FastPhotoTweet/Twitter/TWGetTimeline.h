@@ -17,6 +17,9 @@
 @interface TWGetTimeline : NSObject
 
 + (void)homeTimeline;
++ (void)mentions;
++ (void)favotites;
+
 + (BOOL)reachability;
 
 @end

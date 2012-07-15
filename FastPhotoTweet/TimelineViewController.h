@@ -32,6 +32,7 @@
     NSMutableDictionary *allTimelines;
     NSMutableDictionary *sinceIds;
     NSMutableDictionary *icons;
+    NSArray *mentionsArray;
     NSDictionary *currentTweet;
     NSDictionary *selectTweet;
     NSString *userStreamAccount;
@@ -67,6 +68,7 @@
 @property (retain, nonatomic) IBOutlet UIBarButtonItem *actionButton;
 @property (retain, nonatomic) IBOutlet UIBarButtonItem *closeInReplyToButton;
 @property (retain, nonatomic) IBOutlet UIImageView *accountIconView;
+@property (retain, nonatomic) IBOutlet UISegmentedControl *timelineSegment;
 @property (strong, nonatomic) NSURLConnection *connection;
 
 - (IBAction)pushPostButton:(UIBarButtonItem *)sender;
@@ -79,8 +81,14 @@
 - (IBAction)swipeTimelineLeft:(UISwipeGestureRecognizer *)sender;
 - (IBAction)longPressTimeline:(UILongPressGestureRecognizer *)sender;
 
+- (IBAction)changeSegment:(UISegmentedControl *)sender;
+
+- (void)setNotifications;
 - (void)createTimeline;
 - (void)loadTimeline:(NSNotification *)center;
+- (void)loadMentions:(NSNotification *)center;
+- (void)loadFavorites:(NSNotification *)center;
+- (void)getIconUrlWithTimeline;
 - (void)saveIcon:(NSMutableArray *)tweetData;
 - (void)getInReplyToChain:(NSDictionary *)tweetData;
 - (void)scrollTimelineForNewTweet;
