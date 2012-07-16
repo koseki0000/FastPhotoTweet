@@ -16,7 +16,7 @@
 //セクション2の項目数 (その他の設定)
 #define SECTION_2 5
 //セクション2の項目数 (タイムライン設定)
-#define SECTION_3 1
+#define SECTION_3 5
 
 //セクション3の項目数 (ライセンス)
 #define SECTION_4 1
@@ -26,7 +26,7 @@
 #define NAME_0  @"画像投稿時リサイズを行う"
 #define NAME_1  @"リサイズ最大長辺"
 #define NAME_2  @"画像形式"
-#define NAME_3  @"Retina解像度画像のリサイズを行わない"
+#define NAME_3  @"Retina解像度画像もリサイズを行う"
 #define NAME_4  @"画像投稿先"
 #define NAME_5  @"画像ソース"
 #define NAME_6  @"連続投稿確認表示"
@@ -51,8 +51,15 @@
 #define NAME_23 @"ブラウザを開く時ペーストボード内のURLを開く"
 #define NAME_24 @"ブラウザユーザーエージェント"
 #define NAME_25 @"ブラウザを閉じる時にユーザーエージェントを戻す"
+//タイムライン設定
+#define NAME_26 @"バックグラウンドに移行時UserStreamを切断"
+#define NAME_27 @"バックグラウンドから復帰時UserStreamに接続"
+#define NAME_28 @"通常の更新後にUserStreamに接続"
+#define NAME_29 @"NG設定を開く"
+#define NAME_30 @"自分のTweetもNGを行う"
+
 //ライセンス
-#define NAME_26 @"ライセンス"
+#define NAME_LICENSE @"ライセンス"
 
 #define BLANK @""
 
@@ -83,7 +90,8 @@
                                                         NAME_12, NAME_13, NAME_14, NAME_15, 
                                                         NAME_16, NAME_17, NAME_18, NAME_19, 
                                                         NAME_20, NAME_21, NAME_22, NAME_23,
-                                                        NAME_24, NAME_25, NAME_26, nil];
+                                                        NAME_24, NAME_25, NAME_26, NAME_27, 
+                                                        NAME_28, NAME_29, NAME_30, NAME_LICENSE, nil];
         
         [settingArray retain];
     }
@@ -201,16 +209,16 @@
         
         result = [NSString stringWithFormat:@"%@", [d objectForKey:@"SaveImageType"]];;
     
-    //Retina解像度画像のリサイズを行わない
+    //Retina解像度画像もリサイズを行う
     }else if ( settingState == 3 ) {
         
         if ( [d boolForKey:@"NoResizeIphone4Ss"] ) {
             
-            result = @"ON";
+            result = @"OFF";
             
         }else {
             
-            result = @"OFF";
+            result = @"ON";
         }
         
     //画像投稿先
@@ -462,6 +470,49 @@
         
     }else if ( settingState == 26 ) {
         
+        if ( [d boolForKey:@"EnterBackgroundUSDisConnect"] ) {
+            
+            result = @"ON";
+            
+        }else {
+            
+            result = @"OFF";
+        }
+        
+    }else if ( settingState == 27 ) {
+        
+        if ( [d boolForKey:@"BecomeActiveUSConnect"] ) {
+            
+            result = @"ON";
+            
+        }else {
+            
+            result = @"OFF";
+        }
+        
+    }else if ( settingState == 28 ) {
+        
+        if ( [d boolForKey:@"ReloadAfterUSConnect"] ) {
+            
+            result = @"ON";
+            
+        }else {
+            
+            result = @"OFF";
+        }
+        
+//    }else if ( settingState == 29 ) {
+        
+    }else if ( settingState == 30 ) {
+
+        if ( [d boolForKey:@"MyTweetNG"] ) {
+            
+            result = @"ON";
+            
+        }else {
+            
+            result = @"OFF";
+        }
     }
         
     return result;
@@ -471,7 +522,7 @@
 
 - (NSInteger)tableView:(UITableView *)tableView numberOfRowsInSection:(NSInteger)section {
     
-    ////NSLog(@"numberOfRowsInSection: %d", section);
+    //NSLog(@"numberOfRowsInSection: %d", section);
     
     //各セクションの要素数を返す
     switch ( section ) {
@@ -486,6 +537,9 @@
 
         case 3:
 			return SECTION_3;
+            
+        case 4:
+			return SECTION_4;
 	}
     
 	return 0;
@@ -524,6 +578,8 @@
         settingState = indexPath.row + SECTION_0 + SECTION_1;
     }else if ( indexPath.section == 3 ) {
         settingState = indexPath.row + SECTION_0 + SECTION_1 + SECTION_2;
+    }else if ( indexPath.section == 4 ) {
+        settingState = indexPath.row + SECTION_0 + SECTION_1 + SECTION_2 + SECTION_3;
     }
     
     settingName = [settingArray objectAtIndex:settingState];
@@ -583,7 +639,7 @@
             
         }else if ( indexPath.row == 3 ) {
             
-            //Retina解像度画像のリサイズを行わない
+            //Retina解像度画像もリサイズを行う
             sheet = [[UIActionSheet alloc]
                      initWithTitle:NAME_3
                      delegate:self
@@ -964,7 +1020,61 @@
         
         actionSheetNo = actionSheetNo + SECTION_0 + SECTION_1 + SECTION_2;
         
+        if ( indexPath.row == 0 ) {
+            
+            //バックグラウンドに移行時UserStreamを切断
+            sheet = [[UIActionSheet alloc]
+                     initWithTitle:NAME_26
+                     delegate:self
+                     cancelButtonTitle:@"Cancel"
+                     destructiveButtonTitle:nil
+                     otherButtonTitles:@"ON", @"OFF", nil];
+            [sheet autorelease];
+            [sheet showInView:self.view];
         
+        }else if ( indexPath.row == 1 ) {
+            
+            //バックグラウンドから復帰時UserStreamに接続
+            sheet = [[UIActionSheet alloc]
+                     initWithTitle:NAME_27
+                     delegate:self
+                     cancelButtonTitle:@"Cancel"
+                     destructiveButtonTitle:nil
+                     otherButtonTitles:@"ON", @"OFF", nil];
+            [sheet autorelease];
+            [sheet showInView:self.view];
+            
+        }else if ( indexPath.row == 2 ) {
+        
+            //通常の更新後にUserStreamに接続
+            sheet = [[UIActionSheet alloc]
+                     initWithTitle:NAME_28
+                     delegate:self
+                     cancelButtonTitle:@"Cancel"
+                     destructiveButtonTitle:nil
+                     otherButtonTitles:@"ON", @"OFF", nil];
+            [sheet autorelease];
+            [sheet showInView:self.view];
+            
+        }else if ( indexPath.row == 3 ) {
+        
+            //NG設定を開く
+            NGSettingViewController *dialog = [[[NGSettingViewController alloc] init] autorelease];
+            dialog.modalTransitionStyle = UIModalTransitionStyleCoverVertical;
+            [self presentModalViewController:dialog animated:YES];
+        
+        }else if ( indexPath.row == 4 ) {
+            
+            //自分のTweetもNGを行う
+            sheet = [[UIActionSheet alloc]
+                     initWithTitle:NAME_30
+                     delegate:self
+                     cancelButtonTitle:@"Cancel"
+                     destructiveButtonTitle:nil
+                     otherButtonTitles:@"ON", @"OFF", nil];
+            [sheet autorelease];
+            [sheet showInView:self.view];
+        }
         
     }else if ( indexPath.section == 4 ) {
         
@@ -973,8 +1083,6 @@
             LicenseViewController *dialog = [[[LicenseViewController alloc] init] autorelease];
             dialog.modalTransitionStyle = UIModalTransitionStyleCoverVertical;
             [self presentModalViewController:dialog animated:YES];
-            
-            return;
         }
     }
 }
@@ -1043,7 +1151,7 @@
 
 - (void)actionSheet:(UIActionSheet *)actionSheet clickedButtonAtIndex:(NSInteger)buttonIndex {
     
-    ////NSLog(@"actionSheet: %d, buttonIndex: %d", actionSheetNo, buttonIndex);
+    //NSLog(@"actionSheet: %d, buttonIndex: %d", actionSheetNo, buttonIndex);
     
     if ( actionSheetNo == 0 ) {
         if ( buttonIndex == 0 ) {
@@ -1078,9 +1186,9 @@
     
     }else if ( actionSheetNo == 3 ) {
         if ( buttonIndex == 0 ) {
-            [d setBool:YES forKey:@"NoResizeIphone4Ss"];
-        }else if ( buttonIndex == 1 ) {
             [d setBool:NO forKey:@"NoResizeIphone4Ss"];
+        }else if ( buttonIndex == 1 ) {
+            [d setBool:YES forKey:@"NoResizeIphone4Ss"];
         }
         
     }else if ( actionSheetNo == 4 ) {
@@ -1342,6 +1450,36 @@
         }else if ( buttonIndex == 3 ) {
             [d setObject:@"iPhone" forKey:@"UserAgentReset"];
         }
+    
+    }else if ( actionSheetNo == 26 ) {
+        if ( buttonIndex == 0 ) {
+            [d setBool:YES forKey:@"EnterBackgroundUSDisConnect"];
+        }else if ( buttonIndex == 1 ) {
+            [d setBool:NO forKey:@"EnterBackgroundUSDisConnect"];
+        }
+        
+    }else if ( actionSheetNo == 27 ) {
+        if ( buttonIndex == 0 ) {
+            [d setBool:YES forKey:@"BecomeActiveUSConnect"];
+        }else if ( buttonIndex == 1 ) {
+            [d setBool:NO forKey:@"BecomeActiveUSConnect"];
+        }
+        
+    }else if ( actionSheetNo == 28 ) {
+        if ( buttonIndex == 0 ) {
+            [d setBool:YES forKey:@"ReloadAfterUSConnect"];
+        }else if ( buttonIndex == 1 ) {
+            [d setBool:NO forKey:@"ReloadAfterUSConnect"];
+        }
+        
+//    }else if ( actionSheetNo == 29 ) {
+    
+    }else if ( actionSheetNo == 30 ) {
+        if ( buttonIndex == 0 ) {
+            [d setBool:YES forKey:@"MyTweetNG"];
+        }else if ( buttonIndex == 1 ) {
+            [d setBool:NO forKey:@"MyTweetNG"];
+        }
         
     }else if ( actionSheetNo == 100 ) {
         if ( buttonIndex == 0 ) {
@@ -1362,7 +1500,7 @@
 
 - (NSString *)tableView:(UITableView *)tableView titleForHeaderInSection:(NSInteger)section {
     
-    ////NSLog(@"titleForHeaderInSection");
+    //NSLog(@"titleForHeaderInSection");
     
     //セクションのタイトルを決定
     switch ( section ) {
@@ -1388,7 +1526,7 @@
 
 - (NSInteger)numberOfSectionsInTableView:(UITableView *)tableView {
     
-    ////NSLog(@"numberOfSectionsInTableView");
+    //NSLog(@"numberOfSectionsInTableView");
     
     //セクションの数を設定
 	return SECTION_COUNT;

@@ -12,6 +12,7 @@
 #import "OAuthSetupViewController.h"
 #import "IDChangeViewController.h"
 #import "LicenseViewController.h"
+#import "NGSettingViewController.h"
 #import "TWGetAccount.h"
 
 @interface SettingViewController : UIViewController <UIActionSheetDelegate, UITextFieldDelegate> {

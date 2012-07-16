@@ -356,7 +356,7 @@
             //NSLog(@"newVersion");
             
             [ShowAlert title:[NSString stringWithFormat:@"FastPhotoTweet %@", APP_VERSION] 
-                 message:@"・UserStreamの削除イベントに対応\n・UserStreamのFavoriteイベント通知表示を変更\n・UserStreamのFavoriteイベント通知をタップでfavstarの該当ページを開く機能を追加\n・TimelineタップでReplyを廃止\n・Timeline長押し時のメニューをタップで開くよう変更\n・Timelineタップ時のメニューに｢Reply｣を追加\n・Timelineタップ時のメニューに｢Tweetをコピー｣を追加\n・Timelineタップ時のメニューに｢TweetのURLをコピー｣を追加\n・Timelineタップ時のメニューに｢InReplyTo｣を追加\n・TimelineからURLを開いた場合にブラウザを閉じた後Timelineに自動で戻る機能を追加\n・Timelineをスワイプでアカウント切替を行った際に新着がないと表示が更新されない問題を修正\n・Timeline長押しでログ･アイコンキャッシュ削除メニューを表示する機能を追加\n・TimelineからURLを開く際に正常に開かれない場合があるのを修正\n・ReTweetを誰が行ったかわからない状態となっていたのを修正\n・ReTweetのt.coが展開されない問題を修正\n・Tweet画面を左スワイプでTimelineに移行する機能を追加\n・設定画面を閉じる際にクラッシュする場合がある問題を修正\n・ブラウザの｢画像共有サービスフルサイズ取得｣のTwitpicの不具合とついっぷるフォトの仕様変更に対応\n・一部機能の応答速度の向上\n・その他細かな修正\n"];
+                 message:@"・Timelineのメニューに｢ハッシュタグをNG｣を追加\n・ReTweetが出来ない問題を修正\n・NG機能の問題を修正\n・その他細かな修正"];
             
             information = [[[NSMutableDictionary alloc] initWithDictionary:[d dictionaryForKey:@"Information"]] autorelease];
             [information setValue:[NSNumber numberWithInt:1] forKey:APP_VERSION];

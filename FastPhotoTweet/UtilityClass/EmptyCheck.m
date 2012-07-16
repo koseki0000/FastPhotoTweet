@@ -128,7 +128,7 @@
     
     BOOL result = NO;
     
-    if ( string != nil && ![string isEqualToString:@""] ) {
+    if ( string != nil && ![string isEqualToString:@""] && string.length != 0 ) {
         
         result = YES;
     }

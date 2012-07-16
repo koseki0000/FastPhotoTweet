@@ -21,7 +21,7 @@
     float originalWidth = image.size.width;
     float maxSize = (float)[d integerForKey:@"ImageMaxSize"];
         
-    //iPhone4解像度はリサイズしない
+    //iPhone4解像度もリサイズする
     if ( [d boolForKey:@"NoResizeIphone4Ss"] ){
         
 		if ( originalHeight == 640 && originalWidth == 960 ) {
@@ -101,7 +101,7 @@
     float originalWidth = image.size.width;
     float maxSizeF = (float)maxSize;
     
-    //iPhone4解像度はリサイズしない
+    //iPhone4解像度もリサイズする
     if ( [d boolForKey:@"NoResizeIphone4Ss"] ){
         
 		if ( originalHeight == 640 && originalWidth == 960 ) {

@@ -48,7 +48,7 @@
     if ( twAccount != nil ) {
         
         //リクエストURLを指定
-        NSString *tReqURL = [NSString stringWithFormat:@"https://api.twitter.com/1/statuses/retweet/%@json", tweetId];
+        NSString *tReqURL = [NSString stringWithFormat:@"https://api.twitter.com/1/statuses/retweet/%@.json", tweetId];
         
         //リクエストの作成
         TWRequest *postRequest = [[[TWRequest alloc] initWithURL:[NSURL URLWithString:tReqURL] 

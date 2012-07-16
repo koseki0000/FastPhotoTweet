@@ -18,15 +18,16 @@
     
     NSMutableArray *targets = [NSMutableArray arrayWithArray:tweets];
     
-    //NSLog(@"targets.count: %d", targets.count);
+    //NSLog(@"ngWord targets.count: %d", targets.count);
+
+    NSUserDefaults *d = [NSUserDefaults standardUserDefaults];
     
     //NG情報を読み込み
-    NSMutableArray *ngWords = [NSMutableArray array];
+    NSArray *ngWords = [d arrayForKey:@"NGWord"];
+    //NSLog(@"ngWords: %@", ngWords);
     
     //タイムラインもしくはNG設定がない場合は終了
     if ( targets.count == 0 || ngWords.count == 0 ) return [NSArray arrayWithArray:tweets];
-    
-    NSUserDefaults *d = [NSUserDefaults standardUserDefaults];
     
     //現在の自分のアカウント名
     NSString *myAccont = [[TWGetAccount getTwitterAccount] username];
@@ -49,8 +50,8 @@
     //正規表現
     BOOL regexp = NO;
     
-    //自分をNGしない設定
-    BOOL myTweetNotNG = [d boolForKey:@"MyTweetNotNG"];
+    //自分のTweetもNGを行う
+    BOOL myTweetNG = [d boolForKey:@"MyTweetNG"];
     
     //条件にマッチしたか
     BOOL match = NO;
@@ -77,11 +78,12 @@
             regexp = [[ngData objectForKey:@"RegExp"] boolValue];
             match = NO;
             
+            //NSLog(@"[%d:%@]%@", index, word, text);
+            
             if ( ![EmptyCheck string:word] ) {
                 
                 //NGワードがない場合は次へ
-                index++;
-                break;
+                continue;
             }
             
             if ( [EmptyCheck string:user] || [EmptyCheck string:exclusionUser] ) {
@@ -92,8 +94,7 @@
                 if ( ![screenName isEqualToString:user] || [screenName isEqualToString:exclusionUser] ) {
                     
                     //指定ユーザーのTweetではない場合、もしくは除外ユーザーの場合は次へ
-                    index++;
-                    break;
+                    continue;
                 }
             }
             
@@ -103,7 +104,7 @@
                 if ( [RegularExpression boolRegExp:text regExpPattern:word] ) match = YES;
                 
             }else {
-                
+
                 //正規表現を使わない場合
                 if ( [text rangeOfString:word].location != NSNotFound ) match = YES;
             }
@@ -112,7 +113,7 @@
             if ( match ) {
                 
                 //対象ワードが見つかった場合
-                if ( myTweetNotNG ) {
+                if ( !myTweetNG ) {
                     
                     //自分のTweetはNGしない場合
                     screenName = [[tweet objectForKey:@"user"] objectForKey:@"screen_name"];
@@ -120,12 +121,14 @@
                     if ( ![screenName isEqualToString:myAccont] ) {
                         
                         //自分のTweetではない場合NG
+                        //NSLog(@"[%d:%@]%@", index, word, [tweet objectForKey:@"text"]);
                         [ngList addObject:[NSNumber numberWithInt:index]];
                     }
                     
                 }else {
                     
                     //自分のTweetでもNG
+                    //NSLog(@"[%d:%@]%@", index, word, [tweet objectForKey:@"text"]);
                     [ngList addObject:[NSNumber numberWithInt:index]];
                 }
             }
@@ -145,9 +148,9 @@
         }
     }
     
-    //NSLog(@"targets.count: %d", targets.count);
+    //NSLog(@"ngWord targets.count: %d", targets.count);
     
-    return [NSArray arrayWithArray:tweets];
+    return [NSArray arrayWithArray:targets];
 }
 
 //・NG条件
@@ -156,10 +159,13 @@
     
     NSMutableArray *targets = [NSMutableArray arrayWithArray:tweets];
     
-    //NSLog(@"targets.count: %d", targets.count);
+    ////NSLog(@"targets.count: %d", targets.count);
+    
+    NSUserDefaults *d = [NSUserDefaults standardUserDefaults];
     
     //NG情報を読み込み
-    NSMutableArray *ngNames = [NSMutableArray array];
+    NSArray *ngNames = [d arrayForKey:@"NGName"];
+    //NSLog(@"ngNames: %@", ngNames);
     
     //タイムラインもしくはNG設定がない場合は終了
     if ( targets.count == 0 || ngNames.count == 0 ) return [NSArray arrayWithArray:tweets];
@@ -193,8 +199,7 @@
             if ( user == nil ) {
                 
                 //NGネームがない場合は次へ
-                index++;
-                break;
+                continue;
             }
             
             if ( [screenName isEqualToString:user] ) {
@@ -218,7 +223,7 @@
         }
     }
     
-    //NSLog(@"targets.count: %d", targets.count);
+    //NSLog(@"ngName targets.count: %d", targets.count);
     
     return [NSArray arrayWithArray:targets];
 }
@@ -231,10 +236,13 @@
     
     NSMutableArray *targets = [NSMutableArray arrayWithArray:tweets];
     
-    //NSLog(@"targets.count: %d", targets.count);
+    //NSLog(@"ngClient targets.count: %d", targets.count);
+    
+    NSUserDefaults *d = [NSUserDefaults standardUserDefaults];
     
     //NG情報を読み込み
-    NSMutableArray *ngClients = [NSMutableArray array];
+    NSArray *ngClients = [d arrayForKey:@"NGClient"];
+    //NSLog(@"ngClients: %@", ngClients);
     
     //タイムラインもしくはNG設定がない場合は終了
     if ( targets.count == 0 || ngClients.count == 0 ) return [NSArray arrayWithArray:tweets];
@@ -268,8 +276,7 @@
             if ( ngClient == nil ) {
                 
                 //NGクライアントがない場合は次へ
-                index++;
-                break;
+                continue;
             }
             
             if ( [client isEqualToString:ngClient] ) {
@@ -293,7 +300,7 @@
         }
     }
     
-    //NSLog(@"targets.count: %d", targets.count);
+    //NSLog(@"ngClient targets.count: %d", targets.count);
     
     return [NSArray arrayWithArray:targets];
 }

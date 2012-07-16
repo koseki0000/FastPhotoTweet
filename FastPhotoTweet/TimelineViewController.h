@@ -50,6 +50,7 @@
     
     BOOL userStream;
     BOOL openStreamAfter;
+    BOOL userStreamFirstResponse;
     BOOL webBrowserMode;
     BOOL inReplyToMode;
     BOOL inReplyToModeFirts;

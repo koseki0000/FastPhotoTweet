@@ -39,7 +39,7 @@
 
 + (NSString *)strRegExp:(NSString *)matchString regExpPattern:(NSString *)regExpPattern {
     
-    NSLog(@"matchString: %@ regExpPattern: %@", matchString, regExpPattern);
+    //NSLog(@"matchString: %@ regExpPattern: %@", matchString, regExpPattern);
     
     NSString *result = [NSString string];
     

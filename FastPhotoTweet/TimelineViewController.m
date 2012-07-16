@@ -78,6 +78,7 @@
     
     userStream = NO;
     openStreamAfter = NO;
+    userStreamFirstResponse = NO;
     
     //アイコン表示の角を丸める
     CALayer *layer = [accountIconView layer];
@@ -101,7 +102,6 @@
     //自分のアイコンを取得する
     [self getMyAccountIcon];
     
-    //背景描画のためにリロードする
     [timeline reloadData];
     
     //タイムライン生成
@@ -190,7 +190,15 @@
                 
                 NSArray *newTweet = [center.userInfo objectForKey:@"Timeline"];
                 
-                NSLog(@"NG START");
+                if ( newTweet.count == 0 ) {
+                    
+                    dispatch_async(dispatch_get_main_queue(), ^ {
+                        
+                        reloadButton.enabled = YES;
+                    });
+                    
+                    return;
+                }
                 
                 //NGClient判定を行う
                 newTweet = [TWNgTweet ngClient:newTweet];
@@ -200,8 +208,6 @@
                 
                 //NGWord判定を行う
                 newTweet = [TWNgTweet ngWord:newTweet];
-                
-                NSLog(@"NG END");
                 
                 if ( [EmptyCheck check:newTweet] ) {
                     
@@ -245,9 +251,11 @@
                         //新着取得前の最新までスクロール
                         [self scrollTimelineForNewTweet];
                         
-                        //UserStream接続
-                        //TODO: 設定でON, OFF
-                        if ( !userStream ) [self pushOpenStreamButton:nil];
+                        if ( [d boolForKey:@"ReloadAfterUSConnect"] ) {
+                        
+                            //UserStream接続
+                            if ( !userStream ) [self pushOpenStreamButton:nil];
+                        }
                     });
                     
                 }else {
@@ -256,9 +264,12 @@
                         
                         reloadButton.enabled = YES;
                         
-                        //UserStream接続
-                        //TODO: 設定でON, OFF
-                        if ( !userStream ) [self pushOpenStreamButton:nil];
+                        if ( [d boolForKey:@"ReloadAfterUSConnect"] ) {
+                            
+                            //UserStream接続
+                            if ( !userStream ) [self pushOpenStreamButton:nil];
+                        }
+                        
                         [timeline reloadData];
                     });
                 }
@@ -316,7 +327,7 @@
         
         NSArray *newTweet = [center.userInfo objectForKey:@"Favorites"];
         
-        NSLog(@"newTweet: %@", newTweet);
+        //NSLog(@"newTweet: %@", newTweet);
         
         //InReplyToからの復帰用に保存しておく
         mentionsArray = newTweet;
@@ -607,7 +618,7 @@
                                 delegate:self
                                 cancelButtonTitle:@"Cancel"
                                 destructiveButtonTitle:nil
-                                otherButtonTitles:@"URLを開く", @"Reply", @"Favorite／UnFavorite", @"ReTweet", @"Fav+RT", @"Tweetをコピー", @"TweetのURLをコピー", @"InReplyTo", nil];
+                                otherButtonTitles:@"URLを開く", @"Reply", @"Favorite／UnFavorite", @"ReTweet", @"Fav+RT", @"ハッシュタグをNG", @"InReplyTo", @"Tweetをコピー", @"TweetのURLをコピー", nil];
         
         sheet.tag = 0;
         
@@ -748,7 +759,11 @@
     
     reloadButton.enabled = NO;
     
-    if ( userStream ) [self pushOpenStreamButton:nil];
+    //リロード後にUserStreamに接続
+    if ( [d boolForKey:@"ReloadAfterUSConnect"] ) {
+     
+        if ( userStream ) [self pushOpenStreamButton:nil];
+    }
     
     [self createTimeline];
 }
@@ -760,6 +775,9 @@
         //UserStream未接続
         userStream = YES;
         openStreamButton.enabled = NO;
+        userStreamFirstResponse = NO;
+        twAccount = [TWGetAccount getTwitterAccount];
+        userStreamAccount = twAccount.username;
         [self openStream];
         
     }else {
@@ -815,11 +833,6 @@
         dispatch_queue_t syncQueue = dispatch_queue_create( "info.ktysne.fastphototweet", NULL );
         dispatch_sync( syncQueue, ^{
             
-            twAccount = [TWGetAccount getTwitterAccount];
-            
-            //ユーザーを記憶
-            userStreamAccount = twAccount.username;
-            
             TWRequest *request = [[TWRequest alloc] initWithURL:[NSURL URLWithString:@"https://userstream.twitter.com/2/user.json"] 
                                                      parameters:nil 
                                                   requestMethod:TWRequestMethodPOST];
@@ -846,6 +859,7 @@
     //NSLog(@"closeStream");
     
     userStream = NO;
+    userStreamFirstResponse = NO;
     openStreamButton.enabled = YES;
     openStreamButton.image = startImage;
     [self.connection cancel];
@@ -867,8 +881,38 @@
                                                                                                           options:NSJSONReadingMutableLeaves 
                                                                                                             error:&error];
                 
-//                NSLog(@"receiveData(%d): %@", receiveData.count, receiveData);
-//                NSLog(@"event: %@", [receiveData objectForKey:@"event"]);
+                NSLog(@"receiveData(%d): %@", receiveData.count, receiveData);
+                NSLog(@"event: %@", [receiveData objectForKey:@"event"]);
+                
+                if ( !userStreamFirstResponse ) {
+
+                    //接続初回のレスポンスは無視
+                    userStreamFirstResponse = YES;
+                    
+                    return;
+                }
+                
+                //定期的に送られてくる空データは無視
+                if ( receiveData.count == 0 ) return;
+                
+                //接続初回のようなデータは無視
+                if ( receiveData.count == 1 && [receiveData objectForKey:@"friends"] != nil ) return;
+                
+                NSArray *newTweet = [NSArray arrayWithObject:receiveData];
+                
+                //NGClient判定を行う
+                newTweet = [TWNgTweet ngClient:newTweet];
+                
+                //NGName判定を行う
+                newTweet = [TWNgTweet ngName:newTweet];
+                
+                //NGWord判定を行う
+                newTweet = [TWNgTweet ngWord:newTweet];
+                
+                //新着が無いので終了
+                if ( newTweet.count == 0 ) return;
+                
+                receiveData = [newTweet objectAtIndex:0];
                 
                 //エラーは無視
                 if ( error ) return;
@@ -1159,7 +1203,6 @@
     
     //NSLog(@"didFailWithError:%@", error);
     
-    openStreamButton.enabled = YES;
     [self closeStream];
 }
 
@@ -1310,19 +1353,40 @@
                 
                 }else if ( buttonIndex == 5 ) {
                     
-                    NSString *screenName = [[selectTweet objectForKey:@"user"] objectForKey:@"screen_name"];
-                    NSString *text = [selectTweet objectForKey:@"text"];
+                    NSString *hashTag = [RegularExpression strRegExp:[selectTweet objectForKey:@"text"] regExpPattern:@"((?:\\A|\\z|[\x0009-\x000D\x0020\xC2\x85\u00A0\u1680\u180E\u2000-\u200A\u2028\u2029\u202F\u205F\u3000]|[\\[\\]［］()（）{}｛｝‘’“”\"\'｟｠⸨⸩「」｢｣『』〚〛⟦⟧〔〕❲❳〘〙⟬⟭〈〉〈〉⟨⟩《》⟪⟫<>＜＞«»‹›【】〖〗]|。|、|\\.|!))(#|＃)([a-z0-9_\u00C0-\u00D6\u00D8-\u00F6\u00F8-\u00FF\u0400-\u04FF\u0500-\u0527\u1100-\u11FF\u3130-\u3185\uA960-\uA97F\uAC00-\uD7AF\uD7B0-\uD7FF\u30A1-\u30FA\uFF66-\uFF9D\uFF10-\uFF19\uFF21-\uFF3A\uFF41-\uFF5A\u3041-\u3096\u3400-\u4DBF\u4E00-\u9FFF\u020000-\u02A6DF\u02A700-\u02B73F\u02B740-\u02B81F\u02F800-\u02FA1F\u30FC\u3005]*[a-z_\u00C0-\u00D6\u00D8-\u00F6\u00F8-\u00FF\u0400-\u04FF\u0500-\u0527\u1100-\u11FF\u3130-\u3185\uA960-\uA97F\uAC00-\uD7AF\uD7B0-\uD7FF\u30A1-\u30FA\uFF66-\uFF9D\uFF10-\uFF19\uFF21-\uFF3A\uFF41-\uFF5A\u3041-\u3096\u3400-\u4DBF\u4E00-\u9FFF\u020000-\u02A6DF\u02A700-\u02B73F\u02B740-\u02B81F\u02F800-\u02FA1F\u30FC\u3005][a-z0-9_\u00C0-\u00D6\u00D8-\u00F6\u00F8-\u00FF\u0400-\u04FF\u0500-\u0527\u1100-\u11FF\u3130-\u3185\uA960-\uA97F\uAC00-\uD7AF\uD7B0-\uD7FF\u30A1-\u30FA\uFF66-\uFF9D\uFF10-\uFF19\uFF21-\uFF3A\uFF41-\uFF5A\u3041-\u3096\u3400-\u4DBF\u4E00-\u9FFF\u020000-\u02A6DF\u02A700-\u02B73F\u02B740-\u02B81F\u02F800-\u02FA1F\u30FC\u3005]*)(?=(?:\\A|\\z|[\x0009-\x000D\x0020\xC2\x85\u00A0\u1680\u180E\u2000-\u200A\u2028\u2029\u202F\u205F\u3000]|[\\[\\]［］()（）{}｛｝‘’“”\"\'｟｠⸨⸩「」｢｣『』〚〛⟦⟧〔〕❲❳〘〙⟬⟭〈〉〈〉⟨⟩《》⟪⟫<>＜＞«»‹›【】〖〗]|。|、|\\.|!))"];
                     
-                    NSString *copyText = [NSString stringWithFormat:@"%@: %@ [https://twitter.com/%@/status/%@]", screenName, text, screenName, tweetId];
-                    [pboard setString:copyText];
+                    if ( [EmptyCheck string:hashTag] ) {
+                        
+                        NSMutableDictionary *addDic = [NSMutableDictionary dictionary];
+                        
+                        //NGワード設定を読み込む
+                        NSMutableArray *ngWordArray = [NSMutableArray arrayWithArray:[d objectForKey:@"NGWord"]];
+                        
+                        //NGワード
+                        [addDic setObject:[DeleteWhiteSpace string:hashTag] forKey:@"Word"];
+                        
+                        [ngWordArray addObject:addDic];
+                        
+                        [d setObject:ngWordArray forKey:@"NGWord"];
+                        
+                        //NGワードを適用
+                        timelineArray = [NSMutableArray arrayWithArray:[TWNgTweet ngWord:[NSArray arrayWithArray:timelineArray]]];
+                        
+                        //タイムラインを保存
+                        [allTimelines setObject:timelineArray forKey:twAccount.username];
+                        
+                        dispatch_async(dispatch_get_main_queue(), ^ {
+                            
+                            //リロード
+                            [timeline reloadData];
+                        });
+                        
+                    }else {
+                        
+                        [ShowAlert error:@"ハッシュタグが見つかりませんでした。"];
+                    }
                     
                 }else if ( buttonIndex == 6 ) {
-                    
-                    NSString *screenName = [[selectTweet objectForKey:@"user"] objectForKey:@"screen_name"];
-                    NSString *copyText = [NSString stringWithFormat:@"https://twitter.com/%@/status/%@", screenName, tweetId];
-                    [pboard setString:copyText];
-                    
-                }else if ( buttonIndex == 7 ) {
                     
                     [inReplyTo removeAllObjects];
                     
@@ -1334,12 +1398,26 @@
                         [TWEvent getTweet:inReplyToId];
                         
                     }else {
-                    
+                        
                         dispatch_async(dispatch_get_main_queue(), ^ {
                             
                             [ShowAlert error:@"InReplyToIDがありません。"];
                         });
                     }
+                
+                }else if ( buttonIndex == 7 ) {
+                    
+                    NSString *screenName = [[selectTweet objectForKey:@"user"] objectForKey:@"screen_name"];
+                    NSString *text = [selectTweet objectForKey:@"text"];
+                    
+                    NSString *copyText = [NSString stringWithFormat:@"%@: %@ [https://twitter.com/%@/status/%@]", screenName, text, screenName, tweetId];
+                    [pboard setString:copyText];
+                    
+                }else if ( buttonIndex == 8 ) {
+                    
+                    NSString *screenName = [[selectTweet objectForKey:@"user"] objectForKey:@"screen_name"];
+                    NSString *copyText = [NSString stringWithFormat:@"https://twitter.com/%@/status/%@", screenName, tweetId];
+                    [pboard setString:copyText];
                 }
                 
             }else if ( actionSheet.tag == 1 ) {
@@ -1420,11 +1498,15 @@
                     NSArray *twitterAccounts = [accountStore accountsWithAccountType:accountType];
                     ACAccount *account = [[ACAccount alloc] init];
                     
+                    //各アカウントのログを削除
                     for ( account in twitterAccounts ) {
                         
                         [allTimelines setObject:[NSMutableArray array] forKey:account.username];
                         [sinceIds setObject:BLANK forKey:account.username];
                     }
+                    
+                    //タイムラインログを削除
+                    timelineArray = [NSMutableArray array];
                     
                     if ( buttonIndex == 2 ) {
                         
@@ -1563,13 +1645,18 @@
 
 - (void)enterBackground:(NSNotification *)notification {
     
-    //NSLog(@"enterBackground");
-    if ( userStream ) [self closeStream];
+    if ( [d boolForKey:@"EnterBackgroundUSDisConnect"] ) {
+     
+        if ( userStream ) [self closeStream];
+    }
 }
 
 - (void)becomeActive:(NSNotification *)notification {
     
-    if ( !userStream ) [self pushReloadButton:nil];
+    if ( [d boolForKey:@"BecomeActiveUSConnect"] ) {
+     
+        if ( !userStream ) [self pushReloadButton:nil];
+    }
 }
 
 #pragma mark - View
@@ -1577,13 +1664,19 @@
 - (void)getMyAccountIcon {
     
     accountIconView.image = nil;
+    
+    if ( icons.count == 0 ) {
+        
+        [TWEvent getProfile:twAccount.username];
+        return;
+    }
+    
     NSArray *array = [icons allKeys];
     NSString *string = BLANK;
     BOOL find = NO;
     
     for ( string in array ) {
-        
-        //if ( [string hasPrefix:twAccount.username] ) {
+
         if ( [RegularExpression boolRegExp:string regExpPattern:[NSString stringWithFormat:@"%@_", twAccount.username]] ) {
             
             accountIconView.image = [icons objectForKey:string];
@@ -1612,6 +1705,7 @@
         if ( appDelegate.pcUaMode ) {
             
             appDelegate.pcUaMode = NO;
+            
             [self openBrowser];
             
             return;
@@ -1631,6 +1725,7 @@
         
         //NSLog(@"UserStream close");
         
+        [self getMyAccountIcon];
         [self closeStream];
         [self createTimeline];
     }
