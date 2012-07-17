@@ -86,16 +86,19 @@
                 continue;
             }
             
-            if ( [EmptyCheck string:user] || [EmptyCheck string:exclusionUser] ) {
+            //NG対象ユーザーかNG除外ユーザーが指定されている場合
+            screenName = [[tweet objectForKey:@"user"] objectForKey:@"screen_name"];
+            
+            if ( [EmptyCheck string:user] && ![screenName isEqualToString:user] ) {
                 
-                //NG対象ユーザーかNG除外ユーザーが指定されている場合
-                screenName = [[tweet objectForKey:@"user"] objectForKey:@"screen_name"];
+                //指定ユーザーのTweetではない場合は次へ
+                continue;
+            }
+            
+            if ( [EmptyCheck string:exclusionUser] && [screenName isEqualToString:exclusionUser] ) {
                 
-                if ( ![screenName isEqualToString:user] || [screenName isEqualToString:exclusionUser] ) {
-                    
-                    //指定ユーザーのTweetではない場合、もしくは除外ユーザーの場合は次へ
-                    continue;
-                }
+                //指定ユーザーのTweetではない場合、もしくは除外ユーザーの場合は次へ
+                continue;
             }
             
             if ( regexp ) {
@@ -159,7 +162,7 @@
     
     NSMutableArray *targets = [NSMutableArray arrayWithArray:tweets];
     
-    ////NSLog(@"targets.count: %d", targets.count);
+    //NSLog(@"targets.count: %d", targets.count);
     
     NSUserDefaults *d = [NSUserDefaults standardUserDefaults];
     
@@ -170,7 +173,7 @@
     //タイムラインもしくはNG設定がない場合は終了
     if ( targets.count == 0 || ngNames.count == 0 ) return [NSArray arrayWithArray:tweets];
     
-    //NSLog(@"ngWords: %@", ngWords);
+    //NSLog(@"targets: %@", targets);
     
     //対象Tweetのscreen_name
     NSString *screenName = nil;
@@ -247,7 +250,7 @@
     //タイムラインもしくはNG設定がない場合は終了
     if ( targets.count == 0 || ngClients.count == 0 ) return [NSArray arrayWithArray:tweets];
     
-    //NSLog(@"ngWords: %@", ngWords);
+    //NSLog(@"targets: %@", targets);
     
     //対象TweetのClient
     NSString *client = nil;

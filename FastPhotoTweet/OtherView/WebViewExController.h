@@ -30,7 +30,8 @@
     NSString *downloadUrl;
     NSURLConnection *asyncConnection;
     NSMutableData *asyncData;
-    NSMutableArray *urlList;
+    NSArray *startupUrlList;
+    NSArray *urlList;
     
     float totalbytes;
     float loadedbytes;
@@ -43,7 +44,6 @@
     BOOL editing;
     BOOL downloading;
     BOOL loading;
-    BOOL openUrlMode;
 }
 
 @property (retain, nonatomic) IBOutlet WebViewEx *wv;
@@ -88,8 +88,8 @@
 
 - (IBAction)fullScreenGesture:(id)sender;
 
-- (void)checkPasteBoardUrlOption;
-- (void)openPasteBoardUrl:(NSString *)urlString;
+- (void)selectOpenUrl;
+- (void)selectUrl;
 - (void)becomeActive:(NSNotification *)notification;
 - (void)setSearchEngine;
 - (void)updateWebBrowser;

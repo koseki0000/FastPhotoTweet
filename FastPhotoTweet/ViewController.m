@@ -356,7 +356,7 @@
             //NSLog(@"newVersion");
             
             [ShowAlert title:[NSString stringWithFormat:@"FastPhotoTweet %@", APP_VERSION] 
-                 message:@"・Timelineのメニューに｢ハッシュタグをNG｣を追加\n・ReTweetが出来ない問題を修正\n・NG機能の問題を修正\n・その他細かな修正"];
+                 message:@"リロード後のUserStream接続が機能していない問題を修正\n・NG設定にて登録済みの物をタップすると編集出来る機能を追加"];
             
             information = [[[NSMutableDictionary alloc] initWithDictionary:[d dictionaryForKey:@"Information"]] autorelease];
             [information setValue:[NSNumber numberWithInt:1] forKey:APP_VERSION];
@@ -457,7 +457,7 @@
 
 - (void)tohaSearch:(NSString *)text {
     
-    appDelegate.openURL = [CreateSearchURL google:[text substringWithRange:NSMakeRange(0, text.length - 2)]];
+    appDelegate.startupUrlList = [NSArray arrayWithObject:[CreateSearchURL google:[text substringWithRange:NSMakeRange(0, text.length - 2)]]];
     
     [self pushBrowserButton:nil];
 }
@@ -1049,7 +1049,8 @@
 
                 if ( !appDelegate.browserOpenMode ) {
                  
-                    appDelegate.openURL = [CreateSearchURL google:pboard.string];
+                    appDelegate.startupUrlList = [NSArray arrayWithObject:[CreateSearchURL google:pboard.string]];
+                    
                     [self pushBrowserButton:nil];
                 }
             }
@@ -1059,6 +1060,8 @@
             if ( !appDelegate.browserOpenMode ) {
                 
                 //NSLog(@"Open Browser");
+                
+                appDelegate.startupUrlList = [NSArray arrayWithObject:[d objectForKey:@"HomePageURL"]];
                 
                 [self pushBrowserButton:nil];
             }
@@ -1579,7 +1582,8 @@
     
     if ( [EmptyCheck check:appDelegate.urlSchemeDownloadUrl] ) {
         
-        appDelegate.openURL = @"about:blank";
+        appDelegate.startupUrlList = [NSArray arrayWithObject:@"about:blank"];
+        
         [self pushBrowserButton:nil];
         
         return;
@@ -2183,6 +2187,8 @@
         if ( appDelegate.pcUaMode ) {
             
             appDelegate.pcUaMode = NO;
+            
+            //開き直す
             [self pushBrowserButton:nil];
             
             return;

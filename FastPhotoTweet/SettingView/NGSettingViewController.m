@@ -219,6 +219,7 @@
         userField.text = BLANK;
         exclusionUserField.text = BLANK;
         addButton.enabled = NO;
+        regexpSwitch.on = NO;
         
         [addedNgSettings reloadData];
     }
@@ -412,6 +413,62 @@
     
     //セルの選択状態を解除
 	[tableView deselectRowAtIndexPath:indexPath animated:YES];
+    
+    if ( ngTypeSegment.selectedSegmentIndex == 0 ) {
+    
+        NSDictionary *dic = [ngSettingArray objectAtIndex:indexPath.row];
+        
+        ngWordField.text = [dic objectForKey:@"Word"];
+        
+        if ( [EmptyCheck string:[dic objectForKey:@"User"]] ) {
+            
+            userField.text = [dic objectForKey:@"User"];
+        }
+    
+        if ( [EmptyCheck string:[dic objectForKey:@"ExclusionUser"]] ) {
+            
+            exclusionUserField.text = [dic objectForKey:@"ExclusionUser"];
+        }
+        
+        if ( [EmptyCheck string:[dic objectForKey:@"RegExp"]] ) {
+            
+            regexpSwitch.on = YES;
+        }
+        
+        [ngSettingArray removeObjectAtIndex:indexPath.row];
+        
+        [d setObject:ngSettingArray forKey:@"NGWord"];
+        
+    }else if ( ngTypeSegment.selectedSegmentIndex == 1 ) {
+    
+        NSDictionary *dic = [ngSettingArray objectAtIndex:indexPath.row];
+        
+        if ( [EmptyCheck string:[dic objectForKey:@"User"]] ) {
+            
+            ngWordField.text = [dic objectForKey:@"User"];
+        }
+        
+        [ngSettingArray removeObjectAtIndex:indexPath.row];
+        
+        [d setObject:ngSettingArray forKey:@"NGName"];
+    
+    }else if ( ngTypeSegment.selectedSegmentIndex == 2 ) {
+        
+        NSDictionary *dic = [ngSettingArray objectAtIndex:indexPath.row];
+        
+        if ( [EmptyCheck string:[dic objectForKey:@"ExclusionUser"]] ) {
+            
+            ngWordField.text = [dic objectForKey:@"ExclusionUser"];
+        }
+        
+        [ngSettingArray removeObjectAtIndex:indexPath.row];
+        
+        [d setObject:ngSettingArray forKey:@"NGClient"];
+    }
+    
+    [addedNgSettings reloadData];
+    
+    addButton.enabled = YES;
 }
 
 - (void)tableView:(UITableView *)tableView commitEditingStyle:(UITableViewCellEditingStyle)editingStyle forRowAtIndexPath:(NSIndexPath *)indexPath {

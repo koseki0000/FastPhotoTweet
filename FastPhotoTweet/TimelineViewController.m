@@ -79,7 +79,7 @@
     userStream = NO;
     openStreamAfter = NO;
     userStreamFirstResponse = NO;
-    
+
     //アイコン表示の角を丸める
     CALayer *layer = [accountIconView layer];
     [layer setMasksToBounds:YES];
@@ -627,9 +627,9 @@
     }else {
         
         NSString *targetId = [selectTweet objectForKey:@"id_str"];
-        NSString *favStartUrl = [NSString stringWithFormat:@"http://ja.favstar.fm/users/%@/status/%@",twAccount.username, targetId];
-        appDelegate.openURL = favStartUrl;
-        [d setObject:BLANK forKey:@"LastOpendPasteBoardURL"];
+        NSString *favStarUrl = [NSString stringWithFormat:@"http://ja.favstar.fm/users/%@/status/%@",twAccount.username, targetId];
+
+        appDelegate.startupUrlList = [NSArray arrayWithObject:favStarUrl];
         
         [self openBrowser];
     }
@@ -674,46 +674,34 @@
 
 - (void)requestFinished:(ASIHTTPRequest *)request {
     
-    dispatch_queue_t globalQueue = dispatch_get_global_queue( DISPATCH_QUEUE_PRIORITY_DEFAULT, 0 );
-    dispatch_async( globalQueue, ^{
-        dispatch_queue_t syncQueue = dispatch_queue_create( "info.ktysne.fastphototweet", NULL );
-        dispatch_sync( syncQueue, ^{
+    NSString *screenName = [request.userInfo objectForKey:@"screen_name"];
+    NSString *fileName = [TWIconBigger normal:request.url.absoluteString.lastPathComponent];
+    NSData *receiveData = request.responseData;
     
-            NSString *screenName = [request.userInfo objectForKey:@"screen_name"];
-            NSString *fileName = [TWIconBigger normal:request.url.absoluteString.lastPathComponent];
-            NSData *receiveData = request.responseData;
-            
-            [ActivityIndicator off];
-            [icons setObject:[UIImage imageWithData:receiveData] forKey:[NSString stringWithFormat:@"%@_%@", screenName, fileName]];
-            
-            dispatch_async(dispatch_get_main_queue(), ^ {
-                
-                int index = 0;
-                for ( NSDictionary *tweet in timelineArray ) {
-                    
-                    if ( [[[tweet objectForKey:@"user"] objectForKey:@"screen_name"] isEqualToString:screenName] ) {
-                        
-                        //TL更新
-                        NSIndexPath *indexPath = [NSIndexPath indexPathForRow:index inSection:0];
-                        NSArray *indexPaths = [NSArray arrayWithObject:indexPath];
-                        [timeline reloadRowsAtIndexPaths:indexPaths withRowAnimation:UITableViewRowAnimationNone];
-                    }
-                    
-                    index++;
-                }
-                
-                if ( [screenName hasPrefix:twAccount.username] && accountIconView.image == nil ) {
-                    
-                    accountIconView.image = [UIImage imageWithData:receiveData];
-                }
-            });
-        });
+    [ActivityIndicator off];
+    [icons setObject:[UIImage imageWithData:receiveData] forKey:[NSString stringWithFormat:@"%@_%@", screenName, fileName]];
+    
+    int index = 0;
+    for ( NSDictionary *tweet in timelineArray ) {
         
-        dispatch_release(syncQueue);
-    });
+        if ( [[[tweet objectForKey:@"user"] objectForKey:@"screen_name"] isEqualToString:screenName] ) {
+            
+            //TL更新
+            NSIndexPath *indexPath = [NSIndexPath indexPathForRow:index inSection:0];
+            NSArray *indexPaths = [NSArray arrayWithObject:indexPath];
+            [timeline reloadRowsAtIndexPaths:indexPaths withRowAnimation:UITableViewRowAnimationNone];
+        }
+        
+        index++;
+    }
+    
+    if ( [screenName hasPrefix:twAccount.username] && accountIconView.image == nil ) {
+        
+        accountIconView.image = [UIImage imageWithData:receiveData];
+    }
     
     //取得開始したアイコンURLを削除
-    int index = 0;
+    index = 0;
     BOOL delete = NO;
     for ( NSDictionary *iconUrlsDic in iconUrls ) {
         
@@ -762,7 +750,7 @@
     //リロード後にUserStreamに接続
     if ( [d boolForKey:@"ReloadAfterUSConnect"] ) {
      
-        if ( userStream ) [self pushOpenStreamButton:nil];
+        if ( !userStream ) [self pushOpenStreamButton:nil];
     }
     
     [self createTimeline];
@@ -776,8 +764,6 @@
         userStream = YES;
         openStreamButton.enabled = NO;
         userStreamFirstResponse = NO;
-        twAccount = [TWGetAccount getTwitterAccount];
-        userStreamAccount = twAccount.username;
         [self openStream];
         
     }else {
@@ -833,6 +819,10 @@
         dispatch_queue_t syncQueue = dispatch_queue_create( "info.ktysne.fastphototweet", NULL );
         dispatch_sync( syncQueue, ^{
             
+            twAccount = [TWGetAccount getTwitterAccount];
+            
+            userStreamAccount = twAccount.username;
+            
             TWRequest *request = [[TWRequest alloc] initWithURL:[NSURL URLWithString:@"https://userstream.twitter.com/2/user.json"] 
                                                      parameters:nil 
                                                   requestMethod:TWRequestMethodPOST];
@@ -881,8 +871,8 @@
                                                                                                           options:NSJSONReadingMutableLeaves 
                                                                                                             error:&error];
                 
-                NSLog(@"receiveData(%d): %@", receiveData.count, receiveData);
-                NSLog(@"event: %@", [receiveData objectForKey:@"event"]);
+//                NSLog(@"receiveData(%d): %@", receiveData.count, receiveData);
+//                NSLog(@"event: %@", [receiveData objectForKey:@"event"]);
                 
                 if ( !userStreamFirstResponse ) {
 
@@ -1258,7 +1248,7 @@
                                 delegate:self
                                 cancelButtonTitle:@"Cancel"
                                 destructiveButtonTitle:nil
-                                otherButtonTitles:@"現在のアカウントのTimelineログを削除", @"全てのTimelineログを削除", @"全てのログとアイコンキャッシュを削除", nil];
+                                otherButtonTitles:@"現在のアカウントのTimelineログを削除", @"全てのTimelineログを削除", @"全てのログとアイコンキャッシュを削除", @"タイムラインにNG情報を再適用", nil];
         
         sheet.tag = 2;
         
@@ -1311,9 +1301,8 @@
                 if ( buttonIndex == 0 ) {
                     
                     NSString *text = [TWEntities replace:selectTweet];
-                    [pboard setString:text];
-                    [d setObject:BLANK forKey:@"LastOpendPasteBoardURL"];
-                    
+                    appDelegate.startupUrlList = [RegularExpression urls:text];
+
                     [self openBrowser];
                     
                 }else if ( buttonIndex == 1 ) {
@@ -1362,14 +1351,14 @@
                         //NGワード設定を読み込む
                         NSMutableArray *ngWordArray = [NSMutableArray arrayWithArray:[d objectForKey:@"NGWord"]];
                         
-                        //NGワード
+                        //NGワードに追加
                         [addDic setObject:[DeleteWhiteSpace string:hashTag] forKey:@"Word"];
-                        
                         [ngWordArray addObject:addDic];
                         
+                        //設定に反映
                         [d setObject:ngWordArray forKey:@"NGWord"];
                         
-                        //NGワードを適用
+                        //タイムラインにNGワードを適用
                         timelineArray = [NSMutableArray arrayWithArray:[TWNgTweet ngWord:[NSArray arrayWithArray:timelineArray]]];
                         
                         //タイムラインを保存
@@ -1470,8 +1459,8 @@
                     
                     return;
                 }
-                
-                appDelegate.openURL = serviceUrl;
+
+                appDelegate.startupUrlList = [NSArray arrayWithObject:serviceUrl];
 
                 [self openBrowser];
                 
@@ -1514,6 +1503,17 @@
                         [icons removeAllObjects];
                         [iconUrls removeAllObjects];
                     }
+                
+                }else if ( buttonIndex == 3 ) {
+                    
+                    //NG情報を再適用
+                    timelineArray = [NSMutableArray arrayWithArray:[TWNgTweet ngWord:timelineArray]];
+                    timelineArray = [NSMutableArray arrayWithArray:[TWNgTweet ngName:timelineArray]];
+                    timelineArray = [NSMutableArray arrayWithArray:[TWNgTweet ngClient:timelineArray]];
+                    [allTimelines setObject:timelineArray forKey:twAccount.username];
+                    
+                    //タイムラインを更新
+                    [timeline reloadData];
                     
                 }else {
                     
@@ -1541,8 +1541,7 @@
     if ( alertView.tag == 0 && buttonIndex == 1) {
         
         NSString *searchURL = [CreateSearchURL twilog:twAccount.username searchWord:twilogSearchText.text];
-        appDelegate.openURL = searchURL;
-        [d setObject:BLANK forKey:@"LastOpendPasteBoardURL"];
+        appDelegate.startupUrlList = [NSArray arrayWithObject:searchURL];
         
         [self openBrowser];
     }
@@ -1566,7 +1565,6 @@
     NSDictionary *dictionary = [[NSDictionary alloc] initWithObjectsAndKeys:useragent, @"UserAgent", nil];
     [[NSUserDefaults standardUserDefaults] registerDefaults:dictionary];
     
-    appDelegate.timelineBrowser = YES;
     webBrowserMode = YES;
     
     dispatch_async(dispatch_get_main_queue(), ^ {
@@ -1586,8 +1584,7 @@
     if ( sender.tag == 0 ) {
         
         NSString *searchURL = [CreateSearchURL twilog:twAccount.username searchWord:twilogSearchText.text];
-        appDelegate.openURL = searchURL;
-        [d setObject:BLANK forKey:@"LastOpendPasteBoardURL"];
+        appDelegate.startupUrlList = [NSArray arrayWithObject:searchURL];
         
         [self openBrowser];
     }

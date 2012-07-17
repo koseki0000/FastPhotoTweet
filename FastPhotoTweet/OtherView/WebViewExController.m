@@ -41,6 +41,10 @@
     self = [super initWithNibName:nibNameOrNil bundle:nibBundleOrNil];
     
     if ( self ) {
+        
+        appDelegate = (AppDelegate *)[[UIApplication sharedApplication] delegate];
+        startupUrlList = appDelegate.startupUrlList;
+        urlList = [NSArray array];
     }
     
     return self;
@@ -55,8 +59,6 @@
     grayView = [[GrayView alloc] init];
     [wv addSubview:grayView];
     
-    urlList = [NSMutableArray array];
-    
     reloadButtonImage = [UIImage imageNamed:@"reload.png"];
     stopButtonImage = [UIImage imageNamed:@"stop.png"];
     
@@ -65,7 +67,6 @@
     editing = NO;
     downloading = NO;
     loading = NO;
-    openUrlMode = NO;
     
     //アプリがアクティブになった場合の通知を受け取る設定
     NSNotificationCenter *notificationCenter = [NSNotificationCenter defaultCenter];
@@ -76,7 +77,6 @@
                              object:nil];
     
     d = [NSUserDefaults standardUserDefaults];
-    appDelegate = (AppDelegate *)[[UIApplication sharedApplication] delegate];
 
     [d boolForKey:@"ClearBrowserSearchField"] ? ( searchField.clearsOnBeginEditing = YES ) : ( searchField.clearsOnBeginEditing = NO );
     
@@ -97,14 +97,156 @@
         return;
     }
     
-    //ペーストボードURL展開を確認
-    [self checkPasteBoardUrlOption];
+    if ( [EmptyCheck string:appDelegate.reOpenUrl] ) {
+        
+        [wv loadRequestWithString:appDelegate.reOpenUrl];
+        
+        appDelegate.reOpenUrl = BLANK;
+        
+    }else {
+     
+        [self selectOpenUrl];
+    }
+}
+
+- (void)selectOpenUrl {
     
-    //URLが1つ以上、FastGoogleモードではないなら中止
-    if ( urlList.count > 1 && [d boolForKey:@"OpenPasteBoardURL"] ) return;
+    //NSLog(@"startupUrlList: %@", startupUrlList);
+    //NSLog(@"pboard: %@", [RegularExpression urls:pboard.string]);
     
-    //ページをロード
-    [wv loadRequestWithString:appDelegate.openURL];
+    if ( appDelegate.tabBarController.selectedIndex == 1 ) {
+        
+        //NSLog(@"タイムラインから開いている場合はスタートアップURLを優先");
+        
+        [self selectUrl];
+        
+    }else {
+        
+        //NSLog(@"タイムラインから開かれていない場合");
+        
+        if ( [d boolForKey:@"OpenPasteBoardURL"] ) {
+            
+            //NSLog(@"ペーストボードからURLを開く設定が有効な場合");
+            
+            //ペーストボードのURLを取得
+            urlList = [RegularExpression urls:pboard.string];
+            
+            if ( startupUrlList.count == 1 && urlList.count == 0 ) {
+                
+                //NSLog(@"ペーストボードにURLが存在しない場合");
+                
+                [wv loadRequestWithString:[startupUrlList objectAtIndex:0]];
+                
+            }else if ( startupUrlList.count == 1 && urlList.count == 1 ) {
+                
+                //NSLog(@"ペーストボードにURLが1つ存在する場合");
+                
+                if ( [[startupUrlList objectAtIndex:0] isEqualToString:[d objectForKey:@"HomePageURL"]] ) {
+                    
+                    //NSLog(@"スタートアップURLがホームページだった場合はペーストボードのURLを優先して判定");
+                    
+                    if ( [[urlList objectAtIndex:0] isEqualToString:@"LastOpendPasteBoardURL"] ) {
+                        
+                        //NSLog(@"直前にペーストボードから開いたURLだった場合はスタートアップURLを開く");
+                        
+                        [wv loadRequestWithString:[startupUrlList objectAtIndex:0]];
+                        
+                    }else {
+                        
+                        //NSLog(@"直前にペーストボードから開いたURLではない場合開く");
+                        
+                        [wv loadRequestWithString:[urlList objectAtIndex:0]];
+                    }
+                    
+                }else {
+                    
+                    //NSLog(@"スタートアップURLがホームページのURLではなかった場合選択して表示");
+                    
+                    actionSheetNo = 15;
+                    
+                    UIActionSheet *sheet = [[UIActionSheet alloc]
+                                            initWithTitle:@"URL展開選択"
+                                            delegate:self
+                                            cancelButtonTitle:@"Cancel"
+                                            destructiveButtonTitle:nil
+                                            otherButtonTitles:@"アプリ指定URLを開く", @"ペーストボードから開く", nil];
+                    [sheet showInView:self.view];
+                }
+                
+            }else if ( startupUrlList.count == 1 && urlList.count > 1 ) {
+                
+                //NSLog(@"ペーストボードにURLが複数個ある場合");
+                
+                if ( [[startupUrlList objectAtIndex:0] isEqualToString:[d objectForKey:@"HomePageURL"]] ) {
+                    
+                    //NSLog(@"スタートアップURLがホームページだった場合はペーストボードのURLを優先して判定");
+                    
+                    startupUrlList = urlList;
+                    [self selectUrl];
+                    
+                }else {
+                    
+                    //NSLog(@"スタートアップURLがホームページではなかった場合、確認を表示");
+                    actionSheetNo = 15;
+                    
+                    UIActionSheet *sheet = [[UIActionSheet alloc]
+                                            initWithTitle:@"URL展開選択"
+                                            delegate:self
+                                            cancelButtonTitle:@"Cancel"
+                                            destructiveButtonTitle:nil
+                                            otherButtonTitles:@"アプリ指定URLを開く", @"ペーストボードから開く", nil];
+                    [sheet showInView:self.view];
+                }
+                
+            }else if ( startupUrlList.count > 1 && urlList.count == 0 ) {
+                
+                //NSLog(@"スタートアップURLが複数個あり、ペーストボードにURLがない場合");
+                
+                //URLを選択して表示
+                [self selectUrl];
+                
+            }else if ( startupUrlList.count > 1 && urlList.count != 0 ) {
+                
+                //NSLog(@"スタートアップURLとペーストボードにURLが複数個ある場合");
+                
+                actionSheetNo = 15;
+                
+                UIActionSheet *sheet = [[UIActionSheet alloc]
+                                        initWithTitle:@"URL展開選択"
+                                        delegate:self
+                                        cancelButtonTitle:@"Cancel"
+                                        destructiveButtonTitle:nil
+                                        otherButtonTitles:@"アプリ指定URLを開く", @"ペーストボードから開く", nil];
+                [sheet showInView:self.view];
+                
+            }else {
+                
+                //NSLog(@"その他の場合");
+                
+                [wv loadRequestWithString:[d objectForKey:@"HomePageURL"]];
+            }
+            
+        }else {
+            
+            //NSLog(@"ペーストボードからURLを開く設定が無効な場合");
+            
+            if ( startupUrlList.count == 1 ) {
+                
+                //NSLog(@"URLが1つの場合は開く");
+                [wv loadRequestWithString:[startupUrlList objectAtIndex:0]];
+                
+            }else if ( startupUrlList.count > 1 ) {
+                
+                //NSLog(@"URLが複数個の場合は選択して開く");
+                [self selectUrl];
+                
+            }else {
+                
+                //NSLog(@"その他の場合はホームページを開く");
+                [wv loadRequestWithString:[d objectForKey:@"HomePageURL"]];
+            }
+        }
+    }
 }
 
 - (void)viewWillAppear:(BOOL)animated {
@@ -112,8 +254,6 @@
     [super viewWillAppear:animated];
     
     //NSLog(@"viewWillAppear");
-    
-    //NSLog(@"Bookmark: %@", appDelegate.bookmarkUrl);
     
     if ( openBookmark ) {
         
@@ -128,142 +268,86 @@
     }
 }
 
-- (void)checkPasteBoardUrlOption {
+- (void)selectUrl {
     
-    //ペーストボード内のURLを開く設定が有効かチェック
-    if (( [d boolForKey:@"OpenPasteBoardURL"] || openUrlMode ) || appDelegate.timelineBrowser ) {
+    if (startupUrlList.count == 1 ) {
         
-        //PasteBoardがテキストかチェック
-        if ( [PasteboardType isText] ) {
-            
-            @try {
-            
-                //URLを抽出
-                urlList = [RegularExpression urls:pboard.string];
-                
-            }@catch ( NSException *e ) {
-                
-                urlList = [NSArray array];
-            }
-            
-            if ( [EmptyCheck check:urlList] ) {
-                
-                if (urlList.count == 1 ) {
-                    
-                    [self openPasteBoardUrl:[urlList objectAtIndex:0]];
-                
-                }else if (urlList.count == 2 ) {
-                    
-                    actionSheetNo = 2;
-                    
-                    UIActionSheet *sheet = [[UIActionSheet alloc]
-                                            initWithTitle:@"URL選択"
-                                            delegate:self
-                                            cancelButtonTitle:@"Cancel"
-                                            destructiveButtonTitle:nil
-                                            otherButtonTitles:[urlList objectAtIndex:0], 
-                                                              [urlList objectAtIndex:1], nil];
-                    [sheet showInView:self.view];
-                    
-                }else if (urlList.count == 3 ) {
-                    
-                    actionSheetNo = 3;
-                    
-                    UIActionSheet *sheet = [[UIActionSheet alloc]
-                                            initWithTitle:@"URL選択"
-                                            delegate:self
-                                            cancelButtonTitle:@"Cancel"
-                                            destructiveButtonTitle:nil
-                                            otherButtonTitles:[urlList objectAtIndex:0], 
-                                                              [urlList objectAtIndex:1], 
-                                                              [urlList objectAtIndex:2], nil];
-                    [sheet showInView:self.view];
-                    
-                }else if (urlList.count == 4 ) {
-                    
-                    actionSheetNo = 4;
-                    
-                    UIActionSheet *sheet = [[UIActionSheet alloc]
-                                            initWithTitle:@"URL選択"
-                                            delegate:self
-                                            cancelButtonTitle:@"Cancel"
-                                            destructiveButtonTitle:nil
-                                            otherButtonTitles:[urlList objectAtIndex:0], 
-                                                              [urlList objectAtIndex:1], 
-                                                              [urlList objectAtIndex:2], 
-                                                              [urlList objectAtIndex:3], nil];
-                    [sheet showInView:self.view];
-                    
-                }else if (urlList.count == 5 ) {
-                    
-                    actionSheetNo = 5;
-                    
-                    UIActionSheet *sheet = [[UIActionSheet alloc]
-                                            initWithTitle:@"URL選択"
-                                            delegate:self
-                                            cancelButtonTitle:@"Cancel"
-                                            destructiveButtonTitle:nil
-                                            otherButtonTitles:[urlList objectAtIndex:0], 
-                                                              [urlList objectAtIndex:1], 
-                                                              [urlList objectAtIndex:2], 
-                                                              [urlList objectAtIndex:3],
-                                                              [urlList objectAtIndex:4], nil];
-                    [sheet showInView:self.view];
-                    
-                }else if (urlList.count >= 6 ) {
-                    
-                    actionSheetNo = 6;
-                    
-                    UIActionSheet *sheet = [[UIActionSheet alloc]
-                                            initWithTitle:@"URL選択"
-                                            delegate:self
-                                            cancelButtonTitle:@"Cancel"
-                                            destructiveButtonTitle:nil
-                                            otherButtonTitles:[urlList objectAtIndex:0], 
-                                                              [urlList objectAtIndex:1], 
-                                                              [urlList objectAtIndex:2], 
-                                                              [urlList objectAtIndex:3],
-                                                              [urlList objectAtIndex:4],
-                                                              [urlList objectAtIndex:5], nil];
-                    [sheet showInView:self.view];
-                }
-            }
-        }
-    }
-}
-
-- (void)openPasteBoardUrl:(NSString *)urlString {
-    
-    if ( openUrlMode ) {
+        [wv loadRequestWithString:[startupUrlList objectAtIndex:0]];
         
-        openUrlMode = NO;
+    }else if (startupUrlList.count == 2 ) {
         
-        //URLを設定
-        appDelegate.openURL = urlString;
+        actionSheetNo = 2;
         
-        return;
-    }
-    
-    //直前にペーストボードから開いたURLでないかチェック
-    if ( ![urlString isEqualToString:[d objectForKey:@"LastOpendPasteBoardURL"]] && !appDelegate.timelineBrowser ) {
+        UIActionSheet *sheet = [[UIActionSheet alloc]
+                                initWithTitle:@"URL選択"
+                                delegate:self
+                                cancelButtonTitle:@"Cancel"
+                                destructiveButtonTitle:nil
+                                otherButtonTitles:[startupUrlList objectAtIndex:0], 
+                                [startupUrlList objectAtIndex:1], nil];
+        [sheet showInView:self.view];
         
-        //開いたURLを保存
-        [d setObject:urlString forKey:@"LastOpendPasteBoardURL"];
+    }else if (startupUrlList.count == 3 ) {
         
-        //URLを設定
-        appDelegate.openURL = urlString;
-    
-    }else if ( appDelegate.timelineBrowser ) {
+        actionSheetNo = 3;
         
-        appDelegate.openURL = urlString;
+        UIActionSheet *sheet = [[UIActionSheet alloc]
+                                initWithTitle:@"URL選択"
+                                delegate:self
+                                cancelButtonTitle:@"Cancel"
+                                destructiveButtonTitle:nil
+                                otherButtonTitles:[startupUrlList objectAtIndex:0], 
+                                [startupUrlList objectAtIndex:1], 
+                                [startupUrlList objectAtIndex:2], nil];
+        [sheet showInView:self.view];
         
-    }else {
+    }else if (startupUrlList.count == 4 ) {
         
-        if ( ![appDelegate.openURL isEqualToString:BLANK] ) {
-            
-            //URLを設定
-            appDelegate.openURL = urlString;
-        }
+        actionSheetNo = 4;
+        
+        UIActionSheet *sheet = [[UIActionSheet alloc]
+                                initWithTitle:@"URL選択"
+                                delegate:self
+                                cancelButtonTitle:@"Cancel"
+                                destructiveButtonTitle:nil
+                                otherButtonTitles:[startupUrlList objectAtIndex:0], 
+                                [startupUrlList objectAtIndex:1], 
+                                [startupUrlList objectAtIndex:2], 
+                                [startupUrlList objectAtIndex:3], nil];
+        [sheet showInView:self.view];
+        
+    }else if (startupUrlList.count == 5 ) {
+        
+        actionSheetNo = 5;
+        
+        UIActionSheet *sheet = [[UIActionSheet alloc]
+                                initWithTitle:@"URL選択"
+                                delegate:self
+                                cancelButtonTitle:@"Cancel"
+                                destructiveButtonTitle:nil
+                                otherButtonTitles:[startupUrlList objectAtIndex:0], 
+                                [startupUrlList objectAtIndex:1], 
+                                [startupUrlList objectAtIndex:2], 
+                                [startupUrlList objectAtIndex:3],
+                                [startupUrlList objectAtIndex:4], nil];
+        [sheet showInView:self.view];
+        
+    }else if (startupUrlList.count >= 6 ) {
+        
+        actionSheetNo = 6;
+        
+        UIActionSheet *sheet = [[UIActionSheet alloc]
+                                initWithTitle:@"URL選択"
+                                delegate:self
+                                cancelButtonTitle:@"Cancel"
+                                destructiveButtonTitle:nil
+                                otherButtonTitles:[startupUrlList objectAtIndex:0], 
+                                [startupUrlList objectAtIndex:1], 
+                                [startupUrlList objectAtIndex:2], 
+                                [startupUrlList objectAtIndex:3],
+                                [startupUrlList objectAtIndex:4],
+                                [startupUrlList objectAtIndex:5], nil];
+        [sheet showInView:self.view];
     }
 }
 
@@ -335,7 +419,8 @@
     
         [self resetUserAgent];
         
-        appDelegate.openURL = [[wv.request URL] absoluteString];
+        appDelegate.startupUrlList = [NSArray array];
+        appDelegate.reOpenUrl = accessURL;
     
         [self dismissModalViewControllerAnimated:YES];
     }
@@ -359,7 +444,8 @@
      
         [self resetUserAgent];
         
-        appDelegate.openURL = [d objectForKey:@"HomePageURL"];
+        appDelegate.startupUrlList = [NSArray array];
+        appDelegate.reOpenUrl = BLANK;
         
         [self dismissModalViewControllerAnimated:YES];
     }
@@ -585,7 +671,7 @@
         
         if ( buttonIndex == 0 ) {
             
-            self.tabBarController.selectedIndex = 0;
+            appDelegate.tabBarController.selectedIndex = 0;
             
             NSString *postText = BLANK;
             
@@ -616,7 +702,7 @@
             
             //NSLog(@"selectString: %@", wv.selectString);
             
-            self.tabBarController.selectedIndex = 0;
+            appDelegate.tabBarController.selectedIndex = 0;
             
             if ( [EmptyCheck check:wv.selectString] ) {
                 
@@ -784,19 +870,14 @@
         
         if ( buttonIndex == actionSheetNo ) {
             
-            appDelegate.openURL = [d objectForKey:@"HomePageURL"];
+            //キャンセルされた場合はホームページを開く
+            [wv loadRequestWithString:[d objectForKey:@"HomePageURL"]];
             
         }else {
             
-            [self openPasteBoardUrl:[urlList objectAtIndex:buttonIndex]];
+            //選択されたURLを開く
+            [wv loadRequestWithString:[startupUrlList objectAtIndex:buttonIndex]];
         }
-        
-        [urlList removeAllObjects];
-        
-        //ページをロード
-        [wv loadRequestWithString:appDelegate.openURL];
-        
-        appDelegate.browserOpenMode = YES;
         
     }else if ( actionSheetNo == 7 ) {
         
@@ -922,8 +1003,6 @@
             
             [self resetUserAgent];
             
-            appDelegate.openURL = [d objectForKey:@"HomePageURL"];
-            
             [self dismissModalViewControllerAnimated:YES];
         }
         
@@ -932,8 +1011,6 @@
         if ( buttonIndex == 0 ) {
             
             [self resetUserAgent];
-            
-            appDelegate.openURL = [[wv.request URL] absoluteString];
             
             [self dismissModalViewControllerAnimated:YES];
         }
@@ -963,11 +1040,29 @@
                 
             }else if ( buttonIndex == 2 ) {
                 
-                openUrlMode = YES;
-                [self checkPasteBoardUrlOption];
+//                [self checkPasteBoardUrlOption];
             }
             
         }@catch ( NSException *e ) {}
+        
+    }else if ( actionSheetNo == 15 ) {
+        
+        if ( buttonIndex == 0 ) {
+            
+        }else if ( buttonIndex == 1 ) {
+            
+            //ペーストボードから開く場合
+            startupUrlList = urlList;
+            
+        }else {
+            
+            //キャンセルされた場合はホームページを開く
+            [wv  loadRequestWithString:[d objectForKey:@"HomePageURL"]];
+            
+            return;
+        }
+        
+        [self selectUrl];
     }
 }
 
@@ -1377,7 +1472,6 @@
     //NSLog(@"WebViewExController viewDidUnload");
     
     appDelegate.browserOpenMode = NO;
-    appDelegate.openURL = [d objectForKey:@"HomePageURL"];
     
     [self setTopBar:nil];
     [self setBottomBar:nil];
@@ -1526,7 +1620,6 @@
 
 - (void)dealloc {
     
-    appDelegate.timelineBrowser = NO;
     appDelegate.browserOpenMode = NO;
     appDelegate.urlSchemeDownloadUrl = BLANK;
     

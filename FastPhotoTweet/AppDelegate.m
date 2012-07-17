@@ -10,26 +10,29 @@
 #import "TimelineViewController.h"
 #import "ResizeImage.h"
 
-#define OAUTH_KEY    @"dVbmOIma7UCc5ZkV3SckQ"
-#define OAUTH_SECRET @"wnDptUj4VpGLZebfLT3IInTZPkPS4XimYh6WXAmdI"
-
 #define D [NSUserDefaults standardUserDefaults]
 
 #define BLANK @""
+
+void uncaughtExceptionHandler(NSException *e) {
+    
+    NSLog(@"CRASH: %@", e);
+    NSLog(@"Stack Trace: %@", [e callStackSymbols]);
+}
 
 @implementation AppDelegate
 
 @synthesize window = _window;
 @synthesize tabBarController = _tabBarController;
 
-@synthesize oaConsumer = _oaConsumer;
-@synthesize openURL = _openURL;
 @synthesize postText = _postText;
 @synthesize postTextType = _postTextType;
 @synthesize bookmarkUrl = _bookmarkUrl;
 @synthesize urlSchemeDownloadUrl = _urlSchemeDownloadUrl;
 @synthesize tabChangeFunction = _tabChangeFunction;
 @synthesize sinceId = _sinceId;
+@synthesize reOpenUrl = _reOpenUrl;
+@synthesize startupUrlList = _startupUrlList;
 @synthesize postError = _postError;
 @synthesize postData = _postData;
 @synthesize resendNumber = _resendNumber;
@@ -37,15 +40,12 @@
 @synthesize resendMode = _resendMode;
 @synthesize browserOpenMode = _browserOpenMode;
 @synthesize pcUaMode = _pcUaMode;
-@synthesize timelineBrowser = _timelineBrowser;
 
 - (BOOL)application:(UIApplication *)application didFinishLaunchingWithOptions:(NSDictionary *)launchOptions {
     
     //NSLog(@"FinishLaunching: %@", launchOptions);
     
-    //OAConsumer設定
-    oaConsumer = [[OAConsumer alloc] initWithKey:OAUTH_KEY 
-                                          secret:OAUTH_SECRET];
+    NSSetUncaughtExceptionHandler(&uncaughtExceptionHandler);
     
     if ( [D objectForKey:@"HomePageURL"] == nil || [[D objectForKey:@"HomePageURL"] isEqualToString:BLANK] ) {
         
@@ -53,13 +53,13 @@
     }
     
     //各種初期化
-    _openURL = [D objectForKey:@"HomePageURL"];
     _postText = BLANK;
     _postTextType = BLANK;
     _bookmarkUrl = BLANK;
     _urlSchemeDownloadUrl = BLANK;
     _tabChangeFunction = BLANK;
     _sinceId = BLANK;
+    _reOpenUrl = BLANK;
     
     _postError = [NSMutableArray array];
     [_postError retain];
@@ -68,8 +68,10 @@
     _resendMode = NO;
     _browserOpenMode = NO;
     _pcUaMode = NO;
-    _timelineBrowser = NO;
 
+    _startupUrlList = [NSArray arrayWithObject:[D objectForKey:@"HomePageURL"]];
+    [_startupUrlList retain];
+    
     _postData = [NSMutableDictionary dictionary];
     [_postData retain];
     
@@ -100,7 +102,7 @@
 
 - (BOOL)application:(UIApplication *)application handleOpenURL:(NSURL *)schemeURL {
 
-    NSLog(@"handleOpenURL: %@", schemeURL.absoluteString);
+    //NSLog(@"handleOpenURL: %@", schemeURL.absoluteString);
 
     if ( [schemeURL.absoluteString hasPrefix:@"fhttp"] || [schemeURL.absoluteString hasPrefix:@"fhttps"]) {
         
@@ -161,7 +163,6 @@
 
 - (void)dealloc {
     
-    [oaConsumer release];
     [_postError release];
     [_urlSchemeDownloadUrl release];
 

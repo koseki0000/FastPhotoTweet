@@ -8,6 +8,9 @@
 #import "OAuthSetupViewController.h"
 #import "AppDelegate.h"
 
+#define OAUTH_KEY    @"dVbmOIma7UCc5ZkV3SckQ"
+#define OAUTH_SECRET @"wnDptUj4VpGLZebfLT3IInTZPkPS4XimYh6WXAmdI"
+
 @implementation OAuthSetupViewController
 @synthesize bar;
 @synthesize closeButton;
@@ -29,7 +32,9 @@
     
     [super viewDidLoad];
 
-    consumer = [((AppDelegate *)[[UIApplication sharedApplication] delegate]).oaConsumer retain];
+    //OAConsumer設定
+    consumer = [[OAConsumer alloc] initWithKey:OAUTH_KEY 
+                                        secret:OAUTH_SECRET];
     
     grayView = [[GrayView alloc] init];
     [self.view addSubview:grayView];
@@ -196,7 +201,7 @@
 - (BOOL)webView:(UIWebView *)webView shouldStartLoadWithRequest:(NSURLRequest *)request 
  navigationType:(UIWebViewNavigationType)navigationType {
 	
-    ////NSLog(@"URL: %@", [request URL].absoluteString);
+    //NSLog(@"URL: %@", [request URL].absoluteString);
     
 	[ActivityIndicator visible:YES];
     
