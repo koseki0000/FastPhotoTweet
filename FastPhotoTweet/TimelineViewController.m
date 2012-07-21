@@ -556,7 +556,7 @@
     if ( [currentTweet objectForKey:@"FavEvent"] != nil ) {
         
         NSString *temp = infoLabelText;
-        infoLabelText = [NSString stringWithFormat:@"【%@がお気に入りに追加】",[currentTweet objectForKey:@"addUser"]];
+        infoLabelText = [NSString stringWithFormat:@"【%@がお気に入りに追加】", [currentTweet objectForKey:@"addUser"]];
         
         text = [NSString stringWithFormat:@"%@\n%@", temp, text];
     }
@@ -582,6 +582,10 @@
         [mutableCurrentTweet setObject:reTweetText forKey:@"text"];
         
         currentTweet = [NSDictionary dictionaryWithDictionary:mutableCurrentTweet];
+        
+    }else if ( [currentTweet objectForKey:@"FavEvent"] != nil ) {
+        
+        return [self heightForContents:[NSString stringWithFormat:@"【%@がお気に入りに追加】\n%@", [currentTweet objectForKey:@"addUser"], [currentTweet objectForKey:@"text"]]] + 17 + 8;
     }
     
     return [self heightForContents:[TWEntities replace:currentTweet]] + 17 + 8;
@@ -618,7 +622,7 @@
                                 delegate:self
                                 cancelButtonTitle:@"Cancel"
                                 destructiveButtonTitle:nil
-                                otherButtonTitles:@"URLを開く", @"Reply", @"Favorite／UnFavorite", @"ReTweet", @"Fav+RT", @"ハッシュタグをNG", @"InReplyTo", @"Tweetをコピー", @"TweetのURLをコピー", nil];
+                                otherButtonTitles:@"URLを開く", @"Reply", @"Favorite／UnFavorite", @"ReTweet", @"Fav+RT", @"ハッシュタグをNG", @"クライアントをNG", @"InReplyTo", @"Tweetをコピー", @"TweetのURLをコピー", nil];
         
         sheet.tag = 0;
         
@@ -890,17 +894,20 @@
                 
                 NSArray *newTweet = [NSArray arrayWithObject:receiveData];
                 
-                //NGClient判定を行う
-                newTweet = [TWNgTweet ngClient:newTweet];
+                if ( [receiveData objectForKey:@"event"] == nil ) {
                 
-                //NGName判定を行う
-                newTweet = [TWNgTweet ngName:newTweet];
-                
-                //NGWord判定を行う
-                newTweet = [TWNgTweet ngWord:newTweet];
-                
-                //新着が無いので終了
-                if ( newTweet.count == 0 ) return;
+                    //NGClient判定を行う
+                    newTweet = [TWNgTweet ngClient:newTweet];
+                    
+                    //NGName判定を行う
+                    newTweet = [TWNgTweet ngName:newTweet];
+                    
+                    //NGWord判定を行う
+                    newTweet = [TWNgTweet ngWord:newTweet];
+                    
+                    //新着が無いので終了
+                    if ( newTweet.count == 0 ) return;
+                }
                 
                 receiveData = [newTweet objectAtIndex:0];
                 
@@ -1374,8 +1381,39 @@
                         
                         [ShowAlert error:@"ハッシュタグが見つかりませんでした。"];
                     }
-                    
+                
                 }else if ( buttonIndex == 6 ) {
+                    
+                    NSMutableDictionary *addDic = [NSMutableDictionary dictionary];
+                    
+                    NSString *clientName = [TWParseTimeline client:[selectTweet objectForKey:@"source"]];
+                    
+                    //NGクライアント設定を読み込む
+                    NSMutableArray *ngClientArray = [NSMutableArray arrayWithArray:[d objectForKey:@"NGClient"]];
+                    
+                    //NGクライアント
+                    [addDic setObject:clientName forKey:@"Client"];
+                    
+                    [ngClientArray addObject:addDic];
+                    
+                    //NSLog(@"ngClientArray: %@", ngClientArray);
+                    
+                    [d setObject:ngClientArray forKey:@"NGClient"];
+                    
+                    //タイムラインにNGワードを適用
+                    timelineArray = [NSMutableArray arrayWithArray:[TWNgTweet ngClient:[NSArray arrayWithArray:timelineArray]]];
+                    
+                    //タイムラインを保存
+                    [allTimelines setObject:timelineArray forKey:twAccount.username];
+                    
+                    dispatch_async(dispatch_get_main_queue(), ^ {
+                        
+                        //リロード
+                        [timeline reloadData];
+                    });
+                    
+                    
+                }else if ( buttonIndex == 7 ) {
                     
                     [inReplyTo removeAllObjects];
                     
@@ -1394,15 +1432,15 @@
                         });
                     }
                 
-                }else if ( buttonIndex == 7 ) {
+                }else if ( buttonIndex == 8 ) {
                     
                     NSString *screenName = [[selectTweet objectForKey:@"user"] objectForKey:@"screen_name"];
-                    NSString *text = [selectTweet objectForKey:@"text"];
+                    NSString *text = [TWEntities replace:selectTweet];
                     
                     NSString *copyText = [NSString stringWithFormat:@"%@: %@ [https://twitter.com/%@/status/%@]", screenName, text, screenName, tweetId];
                     [pboard setString:copyText];
                     
-                }else if ( buttonIndex == 8 ) {
+                }else if ( buttonIndex == 9 ) {
                     
                     NSString *screenName = [[selectTweet objectForKey:@"user"] objectForKey:@"screen_name"];
                     NSString *copyText = [NSString stringWithFormat:@"https://twitter.com/%@/status/%@", screenName, tweetId];
@@ -1453,7 +1491,7 @@
                 }else if ( buttonIndex == 3 ) {
                     
                     //Twitpic
-                    serviceUrl = [NSString stringWithFormat:@"http://twitpic.com/%@", openAccount];
+                    serviceUrl = [NSString stringWithFormat:@"http://twitpic.com/photos/%@", openAccount];
                     
                 }else {
                     

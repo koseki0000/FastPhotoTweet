@@ -12,6 +12,7 @@
 
 - (void)dealloc {
 
+    [cell release];
 	[super dealloc];
 }
 

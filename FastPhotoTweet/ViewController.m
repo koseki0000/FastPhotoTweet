@@ -356,7 +356,7 @@
             //NSLog(@"newVersion");
             
             [ShowAlert title:[NSString stringWithFormat:@"FastPhotoTweet %@", APP_VERSION] 
-                 message:@"リロード後のUserStream接続が機能していない問題を修正\n・NG設定にて登録済みの物をタップすると編集出来る機能を追加"];
+                 message:@"・ふぁぼられ通知のセルの高さを修正\n・メモリに関する問題を修正"];
             
             information = [[[NSMutableDictionary alloc] initWithDictionary:[d dictionaryForKey:@"Information"]] autorelease];
             [information setValue:[NSNumber numberWithInt:1] forKey:APP_VERSION];
