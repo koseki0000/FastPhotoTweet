@@ -10,10 +10,6 @@
 #import "TimelineViewController.h"
 #import "ResizeImage.h"
 
-#define D [NSUserDefaults standardUserDefaults]
-
-#define BLANK @""
-
 void uncaughtExceptionHandler(NSException *e) {
     
     NSLog(@"CRASH: %@", e);
@@ -125,6 +121,31 @@ void uncaughtExceptionHandler(NSException *e) {
     }else {
         
         result = YES;
+    }
+    
+    return result;
+}
+
+- (BOOL)iconExist:(NSString *)searchName {
+    
+    BOOL isDir = NO;
+    
+    if ( [[NSFileManager defaultManager] fileExistsAtPath:FILE_PATH isDirectory:&isDir] && !isDir ) isDir = YES;
+    
+    return isDir;
+}
+
+- (BOOL)reachability {
+    
+    BOOL result = NO;
+    
+    if ( [[Reachability reachabilityForInternetConnection] currentReachabilityStatus] != NotReachable ) {
+        
+        result = YES;
+        
+    }else {
+        
+        [ShowAlert error:@"インターネットに接続されていません。"];
     }
     
     return result;

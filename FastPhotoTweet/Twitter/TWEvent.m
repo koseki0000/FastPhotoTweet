@@ -107,8 +107,6 @@
 
 + (void)getProfile:(NSString *)screenName {
     
-    //NSLog(@"GetProfile");
-    
     ACAccount *twAccount = [TWEvent canAction];
     
     //ステータスバーに処理中表示
@@ -138,12 +136,20 @@
              
              //レスポンスのデータをNSStringに変換後JSONをDictionaryに格納
              NSString *responseDataString = [[[NSString alloc] initWithData:responseData encoding:NSUTF8StringEncoding] autorelease];
-             NSDictionary *result = [responseDataString JSONValue];
              
-             if ( result != nil ) {
+             if ( responseDataString != nil && ![responseDataString isEqualToString:@""] ) {
                  
-                 [resultProfile setObject:@"Success" forKey:@"Result"];
-                 [resultProfile setObject:result forKey:@"Profile"];
+                 NSDictionary *result = [responseDataString JSONValue];
+                 
+                 if ( result != nil ) {
+                     
+                     [resultProfile setObject:@"Success" forKey:@"Result"];
+                     [resultProfile setObject:result forKey:@"Profile"];
+                     
+                 }else {
+                     
+                     [resultProfile setObject:@"Error" forKey:@"Result"];
+                 }
                  
              }else {
                  

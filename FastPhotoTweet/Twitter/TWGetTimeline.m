@@ -76,9 +76,16 @@
                                                                                               options:NSJSONReadingMutableLeaves 
                                                                                                 error:&jsonError];
 
-                 //取得完了を通知
-                 [result setObject:@"TimelineSuccess" forKey:@"Result"];
-                 [result setObject:timeline forKey:@"Timeline"];
+                 if ( timeline != nil ) {
+                 
+                     //取得完了を通知
+                     [result setObject:@"TimelineSuccess" forKey:@"Result"];
+                     [result setObject:timeline forKey:@"Timeline"];
+                     
+                 }else {
+                     
+                     [result setObject:@"TimelineError" forKey:@"Result"];
+                 }
                  
                  //通知を実行
                  [[NSNotificationCenter defaultCenter] postNotification:notification];

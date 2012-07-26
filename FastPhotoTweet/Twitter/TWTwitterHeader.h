@@ -7,7 +7,7 @@
 
 #import "TWSendTweet.h"
 #import "TWGetAccount.h"
-#import "TWTwitterCharCounter.h"
+#import "TWCharCounter.h"
 #import "TWEntities.h"
 #import "TWIconUpload.h"
 #import "TWGetTimeline.h"
@@ -15,3 +15,4 @@
 #import "TWIconBigger.h"
 #import "TWEvent.h"
 #import "TWNgTweet.h"
+#import "TWAccountSelectView.h"

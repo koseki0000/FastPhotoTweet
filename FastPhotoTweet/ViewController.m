@@ -35,6 +35,7 @@
 @synthesize leftSwipe;
 @synthesize inputFunctionButton;
 @synthesize callbackSelectButton;
+@synthesize iconPreview;
 @synthesize browserButton;
 @synthesize actionButton;
 @synthesize nowPlayingButton;
@@ -75,12 +76,6 @@
                                name:@"PostDone" 
                              object:nil];
     
-    //イメージプレビュータップ時のジェスチャーを設定
-//    imagePreview.gestureRecognizers = nil;
-//    UITapGestureRecognizer *imagePreviewTapGesture = [[[UITapGestureRecognizer alloc] initWithTarget:self 
-//                                                                                             action:@selector(imagePreviewTapGesture:)] autorelease];
-//	[imagePreview addGestureRecognizer:imagePreviewTapGesture];
-    
     //各種初期値をセット
     d = [NSUserDefaults standardUserDefaults];
     pboard = [UIPasteboard generalPasteboard];
@@ -97,6 +92,11 @@
     nowPlayingMode = NO;
     iconUploadMode = NO;
     actionSheetNo = 0;
+    
+    //アイコン表示の角を丸める
+    CALayer *layer = [iconPreview layer];
+    [layer setMasksToBounds:YES];
+    [layer setCornerRadius:5.0f];
     
     postText.layer.borderWidth = 2;
 	postText.layer.borderColor = [[UIColor blackColor] CGColor];
@@ -117,10 +117,10 @@
     [self setCallbackButtonTitle];
     
     //インターネット接続のチェック
-    [self reachability];
+    [appDelegate reachability];
     
     //iOSバージョン判定
-    if ( [self ios5Check] ) {
+    if ( [appDelegate ios5Check] ) {
         
         ACAccountStore *accountStore = [[[ACAccountStore alloc] init] autorelease];
         ACAccountType *accountType = [accountStore accountTypeWithAccountTypeIdentifier:ACAccountTypeIdentifierTwitter];
@@ -356,7 +356,7 @@
             //NSLog(@"newVersion");
             
             [ShowAlert title:[NSString stringWithFormat:@"FastPhotoTweet %@", APP_VERSION] 
-                 message:@"・ふぁぼられ通知のセルの高さを修正\n・メモリに関する問題を修正"];
+                 message:@"Tweet画面に現在のアカウントのアイコン表示機能を追加(Timeline画面でアイコン取得後に有効)\n・Timeline初回読み込み時に重複する問題を修正\n・その他細かい不具合修正"];
             
             information = [[[NSMutableDictionary alloc] initWithDictionary:[d dictionaryForKey:@"Information"]] autorelease];
             [information setValue:[NSNumber numberWithInt:1] forKey:APP_VERSION];
@@ -379,10 +379,10 @@
 - (IBAction)pushPostButton:(id)sender {
     
     //iOSバージョン判定
-    if ( [self ios5Check] ) {
+    if ( [appDelegate ios5Check] ) {
 
         //Internet接続のチェック
-        if ( [self reachability] ) {
+        if ( [appDelegate reachability] ) {
             
             NSString *text = [[[NSString alloc] initWithString:postText.text] autorelease];
             
@@ -1350,39 +1350,6 @@
     }
 }
 
-- (BOOL)ios5Check {
-    
-    BOOL result = NO;
-    
-    if ([[[UIDevice currentDevice] systemVersion] floatValue] < 5.0) {
-        
-        //iOS5以前
-        [ShowAlert error:@"Twitter APIはiOS5以降で使用できます。最新OSに更新してください。"];
-        
-    }else {
-        
-        result = YES;
-    }
-    
-    return result;
-}
-
-- (BOOL)reachability {
-    
-    BOOL result = NO;
-    
-    if ( [[Reachability reachabilityForInternetConnection] currentReachabilityStatus] != NotReachable ) {
-        
-        result = YES;
-        
-    }else {
-        
-        [ShowAlert error:@"インターネットに接続されていません。"];
-    }
-    
-    return result;
-}
-
 - (void)textViewDidChange:(UITextView *)textView {
 
     //TextViewの内容が変更された時に呼ばれる
@@ -1394,7 +1361,7 @@
 - (void)countText {
     
     //t.coを考慮した文字数カウントを行う
-    int num = [TWTwitterCharCounter charCounter:postText.text];
+    int num = [TWCharCounter charCounter:postText.text];
     
     //画像投稿先がTwitterの場合で画像が設定されている場合入力可能文字数を21文字減らす
     if ( [[d objectForKey:@"PhotoService"] isEqualToString:@"Twitter"] ) {
@@ -1598,7 +1565,7 @@
     }
     
     //iOS5以降かチェック
-    if ( [self ios5Check] ) {
+    if ( [appDelegate ios5Check] ) {
                 
         if ( !showActionSheet && !showImagePicker ) {
             
@@ -1858,7 +1825,7 @@
         if ( pBoardType == 0 ) {
             
             //t.coを考慮した文字数カウントを行う
-            int num = [TWTwitterCharCounter charCounter:pboard.string];
+            int num = [TWCharCounter charCounter:pboard.string];
             
             if ( num < 0 ) {
                 
@@ -2152,12 +2119,32 @@
     [d setObject:dic forKey:@"ArtworkUrl"];
 }
 
+- (void)setIconPreviewImage {
+    
+    twAccount = [TWGetAccount getTwitterAccount];
+    
+    NSArray *iconsDirectory = [[NSFileManager defaultManager] contentsOfDirectoryAtPath:ICONS_DIRECTORY error:nil];
+    NSString *searchName = [NSString stringWithFormat:@"%@_", twAccount.username];
+    
+    for ( NSString *name in iconsDirectory ) {
+        
+        if ( [name hasPrefix:searchName] ) {
+            
+            UIImage *image = [[UIImage alloc] initWithContentsOfFile:[ICONS_DIRECTORY stringByAppendingPathComponent:name]];
+            iconPreview.image = image;
+            [image release];
+            
+            break;
+        }
+    }
+}
+
 - (void)viewDidAppear:(BOOL)animated {
     
     [super viewDidAppear:animated];
     
     @try {
-     
+        
         //タブ切り替え時の動作
         if ( [EmptyCheck check:appDelegate.tabChangeFunction] ) {
          
@@ -2177,6 +2164,11 @@
                 
                 [postText becomeFirstResponder];
                 [appDelegate.postData removeAllObjects];
+            
+            }else if ( [appDelegate.tabChangeFunction isEqualToString:@"PostError"] ) {
+                
+                [ShowAlert error:@"投稿に失敗しました。失敗したPostは上部中央のボタンから再投稿出来ます。"];
+                resendButton.enabled = YES;
             }
             
             appDelegate.tabChangeFunction = BLANK;
@@ -2242,13 +2234,12 @@
             
             [d removeObjectForKey:@"ChangeAccount"];
             changeAccount = NO;
-            [twAccount release];
             
             //アカウント設定を更新
             ACAccountStore *accountStore = [[[ACAccountStore alloc] init] autorelease];
             ACAccountType *accountType = [accountStore accountTypeWithAccountTypeIdentifier:ACAccountTypeIdentifierTwitter];
             NSArray *twitterAccounts = [accountStore accountsWithAccountType:accountType];
-            twAccount = [[twitterAccounts objectAtIndex:[d integerForKey:@"UseAccount"]] retain];
+            twAccount = [twitterAccounts objectAtIndex:[d integerForKey:@"UseAccount"]];
             
         }else if ( appDelegate.resendMode ) {
             
@@ -2321,12 +2312,16 @@
     [self setInputFunctionButton:nil];
     [self setCallbackSelectButton:nil];
     [self setActionButton:nil];
+    [self setIconPreview:nil];
     [super viewDidUnload];
 }
 
 - (void)viewWillAppear:(BOOL)animated {
     
     [super viewWillAppear:animated];
+    
+    //NSLog(@"viewWillAppear");
+    [self setIconPreviewImage];
 }
 
 - (void)viewWillDisappear:(BOOL)animated {
@@ -2367,6 +2362,7 @@
     [inputFunctionButton release];
     [callbackSelectButton release];
     [actionButton release];
+    [iconPreview release];
     [super dealloc];
 }
 

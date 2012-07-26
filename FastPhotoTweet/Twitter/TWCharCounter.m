@@ -1,15 +1,15 @@
 //
-//  TWTwitterCharCounter.m
+//  TWCharCounter.m
 //  FastPhotoTweet
 //
 //  Created by @peace3884 on 12/02/25.
 //
 
-#import "TWTwitterCharCounter.h"
+#import "TWCharCounter.h"
 
 #define BLANK @""
 
-@implementation TWTwitterCharCounter
+@implementation TWCharCounter
 
 //現在入力されている文字数をt.coを考慮してカウントし、残りの入力可能文字数を返す
 //URLはどんな長さでも1つ20文字としてカウント

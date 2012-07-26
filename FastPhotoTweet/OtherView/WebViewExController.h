@@ -7,7 +7,6 @@
 
 #import <UIKit/UIKit.h>
 #import "AppDelegate.h"
-#import "Reachability.h"
 #import "WebViewEx.h"
 #import "UtilityClass.h"
 #import "DeleteWhiteSpace.h"
@@ -39,6 +38,7 @@
     int actionSheetNo;
     int alertTextNo;
     
+    BOOL showActionSheet;
     BOOL openBookmark;
     BOOL fullScreen;
     BOOL editing;

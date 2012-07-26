@@ -17,7 +17,6 @@
 #import <CFNetwork/CFNetwork.h>
 #import <QuartzCore/QuartzCore.h>
 #import <SystemConfiguration/SystemConfiguration.h>
-#import "Reachability.h"
 #import "Twitter/TWTwitterHeader.h"
 #import "UtilityClass.h"
 #import "IDChangeViewController.h"
@@ -79,6 +78,7 @@
 @property (retain, nonatomic) IBOutlet UISwipeGestureRecognizer *leftSwipe;
 @property (retain, nonatomic) IBOutlet UIButton *inputFunctionButton;
 @property (retain, nonatomic) IBOutlet UIButton *callbackSelectButton;
+@property (retain, nonatomic) IBOutlet UIImageView *iconPreview;
 
 - (IBAction)pushPostButton:(id)sender;
 - (IBAction)pushTrashButton:(id)sender;
@@ -112,9 +112,8 @@
 - (void)uploadImage:(UIImage *)image;
 - (void)uploadNowPlayingImage:(UIImage *)image uploadType:(int)uploadType;
 - (void)postDone:(NSNotification *)center;
-- (BOOL)ios5Check;
-- (BOOL)reachability;
 - (NSString *)nowPlaying;
+- (void)setIconPreviewImage;
 
 - (void)nowPlayingNotification;
 - (void)postNotification:(int)pBoardType;

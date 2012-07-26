@@ -6,12 +6,17 @@
 //
 
 #import <UIKit/UIKit.h>
+#import "Reachability.h"
 
 #define BLANK @""
+#define D [NSUserDefaults standardUserDefaults]
 
 #define FIREFOX_USERAGENT @"Mozilla/5.0 (Macintosh; Intel Mac OS X 10.7; rv:13.0) Gecko/20100101 Firefox/13.0.1"
 #define IPAD_USERAFENT @"Mozilla/5.0 (iPad; CPU OS 5_1_1 like Mac OS X) AppleWebKit/534.46 (KHTML, like Gecko) Version/5.1 Mobile/9B176 Safari/7534.48.3"
 #define IPHONE_USERAGENT @"Mozilla/5.0 (iPhone; CPU iPhone OS 5_1_1 like Mac OS X) AppleWebKit/534.46 (KHTML, like Gecko) Mobile/9B206"
+
+#define ICONS_DIRECTORY [NSHomeDirectory() stringByAppendingPathComponent:@"Documents/Icons"]
+#define FILE_PATH [ICONS_DIRECTORY stringByAppendingPathComponent:searchName]
 
 void uncaughtExceptionHandler(NSException *exception);
 
@@ -40,5 +45,7 @@ void uncaughtExceptionHandler(NSException *exception);
 @property BOOL pcUaMode;
 
 - (BOOL)ios5Check;
+- (BOOL)iconExist:(NSString *)searchName;
+- (BOOL)reachability;
 
 @end

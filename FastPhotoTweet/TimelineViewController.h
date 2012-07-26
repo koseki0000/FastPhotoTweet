@@ -18,7 +18,6 @@
 #import "ASIFormDataRequest.h"
 #import <CFNetwork/CFNetwork.h>
 #import "JSON.h"
-#import "Reachability.h"
 #import "WebViewExController.h"
 
 @interface TimelineViewController : UIViewController <UIActionSheetDelegate, UITextFieldDelegate> {
@@ -26,9 +25,11 @@
     AppDelegate *appDelegate;
     
     NSUserDefaults *d;
+    NSFileManager *fileManager;
     NSMutableArray *timelineArray;
-    NSMutableArray *iconUrls;
     NSMutableArray *inReplyTo;
+    NSMutableArray *reqedUser;
+    NSMutableArray *iconUrls;
     NSMutableDictionary *allTimelines;
     NSMutableDictionary *sinceIds;
     NSMutableDictionary *icons;
@@ -53,7 +54,8 @@
     BOOL userStreamFirstResponse;
     BOOL webBrowserMode;
     BOOL inReplyToMode;
-    BOOL inReplyToModeFirts;
+    BOOL viewWillAppear;
+    BOOL userStreamBuffer;
     
     int selectRow;
     int longPressControl;
@@ -89,14 +91,12 @@
 - (void)loadTimeline:(NSNotification *)center;
 - (void)loadMentions:(NSNotification *)center;
 - (void)loadFavorites:(NSNotification *)center;
-- (void)getIconUrlWithTimeline;
-- (void)saveIcon:(NSMutableArray *)tweetData;
+- (void)getIconWithTweetArray:(NSMutableArray *)tweetArray;
+- (void)getIconWithSequential;
 - (void)getInReplyToChain:(NSDictionary *)tweetData;
 - (void)scrollTimelineForNewTweet;
 - (void)openStream;
 - (void)closeStream;
-
-- (BOOL)reachability;
 
 - (void)receiveProfile:(NSNotification *)notification;
 - (void)enterBackground:(NSNotification *)notification;

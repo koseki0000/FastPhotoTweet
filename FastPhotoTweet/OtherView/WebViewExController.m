@@ -368,16 +368,21 @@
         return;
     }
     
-    actionSheetNo = 14;
-    
-    UIActionSheet *sheet = [[UIActionSheet alloc]
-                            initWithTitle:@"動作選択"
-                            delegate:self
-                            cancelButtonTitle:@"Cancel"
-                            destructiveButtonTitle:nil
-                            otherButtonTitles:@"Tweet", @"FastGoogle", @"ペーストボードのURLを開く", nil];
-
-	[sheet showInView:self.view];
+    if ( !showActionSheet) {
+     
+        showActionSheet = YES;
+        
+        actionSheetNo = 14;
+        
+        UIActionSheet *sheet = [[UIActionSheet alloc]
+                                initWithTitle:@"動作選択"
+                                delegate:self
+                                cancelButtonTitle:@"Cancel"
+                                destructiveButtonTitle:nil
+                                otherButtonTitles:@"Tweet", @"FastGoogle", @"ペーストボードのURLを開く", nil];
+        
+        [sheet showInView:self.view];
+    }
 }
 
 - (void)setSearchEngine {
@@ -453,7 +458,7 @@
 
 - (IBAction)pushReloadButton:(id)sender {
     
-    if ( [self reachability] ) {
+    if ( [appDelegate reachability] ) {
         
         if ( loading ) {
             
@@ -470,12 +475,12 @@
 
 - (IBAction)pushBackButton:(id)sender {
     
-    if ( [self reachability] ) [wv goBack];
+    if ( [appDelegate reachability] ) [wv goBack];
 }
 
 - (IBAction)pushForwardButton:(id)sender {
     
-    if ( [self reachability] ) [wv goForward];
+    if ( [appDelegate reachability] ) [wv goForward];
 }
 
 - (IBAction)pushMenuButton:(id)sender {
@@ -1026,6 +1031,8 @@
         
     }else if ( actionSheetNo == 14 ) {
         
+        showActionSheet = NO;
+        
         @try {
             
             if ( buttonIndex == 0 ) {
@@ -1449,22 +1456,6 @@
         
         [d setObject:[d objectForKey:@"UserAgentReset"] forKey:@"UserAgent"];
     }
-}
-
-- (BOOL)reachability {
-    
-    BOOL result = NO;
-    
-    if ( [[Reachability reachabilityForInternetConnection] currentReachabilityStatus] != NotReachable ) {
-        
-        result = YES;
-        
-    }else {
-        
-        [ShowAlert error:@"インターネットに接続されていません。"];
-    }
-    
-    return result;
 }
 
 - (void)viewDidUnload {
