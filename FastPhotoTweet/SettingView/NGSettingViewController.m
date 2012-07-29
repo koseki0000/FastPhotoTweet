@@ -157,14 +157,26 @@
             
             if ( [EmptyCheck string:userField.text] ) {
                 
+                NSMutableString *removeAtMarkString = [NSMutableString stringWithString:userField.text];
+                [removeAtMarkString replaceOccurrencesOfString:@"@" 
+                                         withString:@"" 
+                                            options:0 
+                                              range:NSMakeRange(0, removeAtMarkString.length)];
+                
                 //指定ユーザーNG
-                [addDic setObject:userField.text forKey:@"User"];
+                [addDic setObject:removeAtMarkString forKey:@"User"];
             }
             
             if ( [EmptyCheck string:exclusionUserField.text] ) {
                 
+                NSMutableString *removeAtMarkString = [NSMutableString stringWithString:exclusionUserField.text];
+                [removeAtMarkString replaceOccurrencesOfString:@"@" 
+                                                    withString:@"" 
+                                                       options:0 
+                                                         range:NSMakeRange(0, removeAtMarkString.length)];
+                
                 //指定ユーザーNG除外
-                [addDic setObject:exclusionUserField.text forKey:@"ExclusionUser"];
+                [addDic setObject:removeAtMarkString forKey:@"ExclusionUser"];
             }
             
             if ( regexpSwitch.on ) {
@@ -276,26 +288,16 @@
             
         }else if ( ngTypeSegment.selectedSegmentIndex == 1 ) {
             
-            if ( ![RegularExpression boolRegExp:[DeleteWhiteSpace string:ngWordField.text] regExpPattern:@"@?[_a-zA-Z0-9]{1,15}?"] ) {
-                
-                [ShowAlert error:@"IDが正しくありません。\nIDは英数(大文字,小文字)とアンダーバーの15字以内で入力してください。"];
-                return NO;
-            }
+            
             
         }else if ( ngTypeSegment.selectedSegmentIndex == 2 ) {
             
-            if ( ngWordField.text.length > 160 ) {
-                
-                [ShowAlert error:@"クライアント名が長過ぎます。\nクライアント名は160字以内で入力してください。"];
-            }
+            
         }
         
     }else if ( sender.tag == 1 || sender.tag == 2 ) {
         
-        if ( ![RegularExpression boolRegExp:[DeleteWhiteSpace string:userField.text] regExpPattern:@"@?[_a-zA-Z0-9]{1,15}?"] ) {
-            
-            [ShowAlert error:@"IDが正しくありません。\nIDは英数(大文字,小文字)とアンダーバーの15字以内で入力してください。"];
-        }
+        
     }
     
     [sender resignFirstResponder];

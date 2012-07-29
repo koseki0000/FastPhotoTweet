@@ -42,10 +42,12 @@
     NSString *word = nil;
     
     //NG指定ユーザー
-    NSString *user = nil;
+    NSArray *users = [NSArray array];
+//    NSString *user = nil;
     
     //NG除外ユーザー
-    NSString *exclusionUser = nil;
+    NSArray *exclusionUsers = [NSArray array];
+//    NSString *exclusionUser = nil;
     
     //正規表現
     BOOL regexp = NO;
@@ -73,8 +75,8 @@
             
             //NG設定を読み込み
             word = [ngData objectForKey:@"Word"];
-            user = [ngData objectForKey:@"User"];
-            exclusionUser = [ngData objectForKey:@"ExclusionUser"];
+            users = [[ngData objectForKey:@"User"] componentsSeparatedByString:@","];
+            exclusionUsers = [[ngData objectForKey:@"ExclusionUser"] componentsSeparatedByString:@","];
             regexp = [[ngData objectForKey:@"RegExp"] boolValue];
             match = NO;
             
@@ -89,16 +91,44 @@
             //NG対象ユーザーかNG除外ユーザーが指定されている場合
             screenName = [[tweet objectForKey:@"user"] objectForKey:@"screen_name"];
             
-            if ( [EmptyCheck string:user] && ![screenName isEqualToString:user] ) {
+            if ( users.count != 0 ) {
+             
+                BOOL notUser = NO;
                 
-                //指定ユーザーのTweetではない場合は次へ
-                continue;
+                for ( NSString *user in users ) {
+                    
+                    if ( ![screenName isEqualToString:[DeleteWhiteSpace string:user]] ) {
+                        
+                        //指定ユーザーのTweetではない
+                        notUser = YES;
+                    }
+                    
+                    //指定ユーザーのTweetではないのでループ終了
+                    if ( notUser ) break;
+                }
+                
+                //指定ユーザーのTweetではないので次へ
+                if ( notUser ) continue;
             }
             
-            if ( [EmptyCheck string:exclusionUser] && [screenName isEqualToString:exclusionUser] ) {
+            if ( exclusionUsers.count != 0 ) {
                 
-                //指定ユーザーのTweetではない場合、もしくは除外ユーザーの場合は次へ
-                continue;
+                BOOL notUser = NO;
+                
+                for ( NSString *exclusionUser in exclusionUsers ) {
+                    
+                    if ( [screenName isEqualToString:[DeleteWhiteSpace string:exclusionUser]] ) {
+                        
+                        //NG除外ユーザーのTweet
+                        notUser = YES;
+                    }
+                    
+                    //NG除外ユーザーのTweetなのでループ終了
+                    if ( notUser ) break;
+                }
+                
+                //NG除外ユーザーのTweetなので次へ
+                if ( notUser ) continue;
             }
             
             if ( regexp ) {

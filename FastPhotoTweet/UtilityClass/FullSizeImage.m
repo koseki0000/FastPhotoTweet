@@ -40,7 +40,7 @@
     
     }else if ([urlString hasPrefix:@"http://p.twipple.jp/"]) {
         
-        urlString = [NSString stringWithFormat:@"http://p.twpl.jp/show/orig/", [urlString lastPathComponent]];
+        urlString = [NSString stringWithFormat:@"http://p.twpl.jp/show/orig/%@", [urlString lastPathComponent]];
     
     }else if ( [urlString hasPrefix:@"http://yfrog.com/"] ) {
         

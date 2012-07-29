@@ -1427,6 +1427,8 @@
         
         //NSLog(@"Twitpic upload");
         
+        twAccount = [TWGetAccount getTwitterAccount];
+        
         NSDictionary *dic = [d dictionaryForKey:@"OAuthAccount"];
         
         if ( [EmptyCheck check:[dic objectForKey:twAccount.username]] ) {

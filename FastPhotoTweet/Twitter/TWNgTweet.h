@@ -10,6 +10,7 @@
 #import "TWParseTimeline.h"
 #import "RegularExpression.h"
 #import "EmptyCheck.h"
+#import "DeleteWhiteSpace.h"
 
 @interface TWNgTweet : NSObject
 

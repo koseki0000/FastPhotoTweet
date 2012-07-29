@@ -307,6 +307,8 @@
     
     if ( userStream ) [self closeStream];
     
+    openStreamButton.enabled = NO;
+    
     NSString *result = [center.userInfo objectForKey:@"Result"];
     
     if ( [result isEqualToString:@"MentionsSuccess"] ) {
@@ -340,6 +342,8 @@
 - (void)loadFavorites:(NSNotification *)center {
     
     if ( userStream ) [self closeStream];
+    
+    openStreamButton.enabled = NO;
     
     NSString *result = [center.userInfo objectForKey:@"Result"];
     
@@ -477,7 +481,12 @@
     //NSLog(@"getIconWithSequential");
     
     //保存すべきURLが無ければ終了
-    if ( iconUrls.count == 0 ) return;
+    if ( iconUrls.count == 0 ) {
+     
+        [ActivityIndicator off];
+        
+        return;
+    }
     
     NSDictionary *dic = [iconUrls objectAtIndex:0];
     NSString *biggerUrl = [dic objectForKey:@"profile_image_url"];
@@ -767,7 +776,6 @@
             NSString *searchName = [request.userInfo objectForKey:@"SearchName"];
             UIImage *receiveImage = [UIImage imageWithData:request.responseData];
             
-            [ActivityIndicator off];
             [icons setObject:receiveImage forKey:searchName];
             
             if ( ![appDelegate iconExist:searchName] ) {
@@ -921,11 +929,11 @@
             [self.connection start];
             
             // 終わるまでループさせる
-            while( userStream ) {
+            do {
                 
-                [NSThread sleepForTimeInterval:0.001f];
-                [[NSRunLoop currentRunLoop] runMode:NSDefaultRunLoopMode beforeDate:[NSDate distantFuture]];
-            }
+                [[NSRunLoop currentRunLoop] runMode:NSDefaultRunLoopMode beforeDate:[NSDate dateWithTimeIntervalSinceNow:0.5]];
+                
+            }while ( userStream );
         });
         
         dispatch_release(syncQueue);
@@ -959,8 +967,8 @@
                                                                                                                                  options:NSJSONReadingMutableLeaves 
                                                                                                                                    error:&error]];
                 
-                NSLog(@"receiveData(%d): %@", receiveData.count, receiveData);
-                NSLog(@"event: %@", [receiveData objectForKey:@"event"]);
+//                NSLog(@"receiveData(%d): %@", receiveData.count, receiveData);
+//                NSLog(@"event: %@", [receiveData objectForKey:@"event"]);
                 
                 if ( !userStreamFirstResponse ) {
 
@@ -1170,11 +1178,6 @@
                     //アイコン保存
                     [self getIconWithTweetArray:[NSMutableArray arrayWithArray:newTweet]];
                     
-                    dispatch_async(dispatch_get_main_queue(), ^ {
-                    
-                        [ActivityIndicator on];
-                    });
-                    
                 }else if ( receiveData.count == 1 && [receiveData objectForKey:@"delete"] != nil ) {
                     
                     //削除イベント
@@ -1332,6 +1335,8 @@
     }else {
         
         if ( timelineSegment.selectedSegmentIndex == 0 ) {
+            
+            openStreamButton.enabled = YES;
             
             mentionsArray = [NSArray array];
             
