@@ -166,6 +166,13 @@
     //セルの選択状態を解除
 	[tableView deselectRowAtIndexPath:indexPath animated:YES];
     
+    //アカウントが切り替わったことを通知
+    NSNotification *notification =[NSNotification notificationWithName:@"ChangeAccount" 
+                                                                object:self 
+                                                              userInfo:nil];
+    
+    [[NSNotificationCenter defaultCenter] postNotification:notification];
+    
     //閉じる
     [self dismissModalViewControllerAnimated:YES];
 }

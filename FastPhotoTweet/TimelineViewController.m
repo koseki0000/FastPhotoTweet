@@ -59,6 +59,7 @@
 
     twAccount = [TWGetAccount getTwitterAccount];
     timelineArray = [NSMutableArray array];
+    timelineAppend = [NSMutableArray array];
     inReplyTo = [NSMutableArray array];
     reqedUser = [NSMutableArray array];
     iconUrls = [NSMutableArray array];
@@ -79,7 +80,10 @@
     userStream = NO;
     openStreamAfter = NO;
     userStreamFirstResponse = NO;
+    needAppend = NO;
 
+    timelineScroll = 0;
+    
     //アイコン表示の角を丸める
     CALayer *layer = [accountIconView layer];
     [layer setMasksToBounds:YES];
@@ -163,6 +167,12 @@
                            selector:@selector(enterBackground:) 
                                name:UIApplicationDidEnterBackgroundNotification 
                              object:nil];
+    
+    //アカウントが切り替わった通知を受け取る設定
+    [notificationCenter addObserver:self 
+                           selector:@selector(changeAccount:) 
+                               name:@"ChangeAccount" 
+                             object:nil];
 }
 
 #pragma mark - TimelineMethod
@@ -180,7 +190,10 @@
     
     timelineArray = [allTimelines objectForKey:twAccount.username];
     
-    appDelegate.sinceId = [sinceIds objectForKey:twAccount.username];
+    if ( timelineArray.count != 0 ) {
+        
+        timelineTopTweetId = [[timelineArray objectAtIndex:0] objectForKey:@"id_str"];
+    }
     
     [TWGetTimeline homeTimeline];
 }
@@ -274,7 +287,7 @@
                         if ( [d boolForKey:@"ReloadAfterUSConnect"] ) {
                         
                             //UserStream接続
-                            if ( !userStream ) [self pushOpenStreamButton:nil];
+                            if ( !userStream ) [self performSelector:@selector(pushOpenStreamButton:) withObject:nil afterDelay:0.1];
                         }
                     });
                     
@@ -290,7 +303,7 @@
                         if ( [d boolForKey:@"ReloadAfterUSConnect"] ) {
                             
                             //UserStream接続
-                            if ( !userStream ) [self pushOpenStreamButton:nil];
+                            if ( !userStream ) [self performSelector:@selector(pushOpenStreamButton:) withObject:nil afterDelay:0.1];
                         }
                         
                         [timeline reloadData];
@@ -500,6 +513,19 @@
     [iconUrls removeObjectAtIndex:0];
 }
 
+- (void)changeAccount:(NSNotification *)notification {
+    
+    //Tweet画面でアカウントが切り替えられた際に呼ばれる
+    
+    //NSLog(@"changeAccount");
+    
+    //UserStreamが有効な場合切断する
+    if ( userStream ) [self closeStream];
+    
+    //リロードする
+    [self performSelector:@selector(pushOpenStreamButton:) withObject:nil afterDelay:0.1];
+}
+
 #pragma mark - In reply to
 
 - (void)getInReplyToChain:(NSDictionary *)tweetData {
@@ -573,6 +599,8 @@
 		TimelineCellController *controller = [[TimelineCellController alloc] initWithNibName:identifier bundle:nil];
 		cell = (TimelineCell *)controller.view;
 	}
+    
+    timelineScroll = (int)timeline.contentOffset.y;
     
     currentTweet = [timelineArray objectAtIndex:indexPath.row];
     
@@ -711,7 +739,7 @@
                                 delegate:self
                                 cancelButtonTitle:@"Cancel"
                                 destructiveButtonTitle:nil
-                                otherButtonTitles:@"URLを開く", @"Reply", @"Favorite／UnFavorite", @"ReTweet", @"Fav+RT", @"ハッシュタグをNG", @"クライアントをNG", @"InReplyTo", @"Tweetをコピー", @"TweetのURLをコピー", nil];
+                                otherButtonTitles:@"URLを開く", @"Reply", @"Favorite／UnFavorite", @"ReTweet", @"Fav+RT", @"ハッシュタグをNG", @"クライアントをNG", @"InReplyTo", @"Tweetをコピー", @"TweetのURLをコピー", @"Tweetの本文をコピー", nil];
         
         sheet.tag = 0;
         
@@ -793,9 +821,12 @@
                     //TL更新
                     dispatch_async(dispatch_get_main_queue(), ^ {
                         
-                        NSIndexPath *indexPath = [NSIndexPath indexPathForRow:index inSection:0];
-                        NSArray *indexPaths = [NSArray arrayWithObject:indexPath];
-                        [timeline reloadRowsAtIndexPaths:indexPaths withRowAnimation:UITableViewRowAnimationNone];
+                        if ( timelineScroll < 60 ) {
+                            
+                            NSIndexPath *indexPath = [NSIndexPath indexPathForRow:index inSection:0];
+                            NSArray *indexPaths = [NSArray arrayWithObject:indexPath];
+                            [timeline reloadRowsAtIndexPaths:indexPaths withRowAnimation:UITableViewRowAnimationNone];
+                        }
                     });
                 }
                 
@@ -847,19 +878,30 @@
     
     if ( ![appDelegate reachability] ) return;
     
-    [self getMyAccountIcon];
-    
-    if ( timelineArray.count != 0 ) {
-     
-        timelineTopTweetId = [[timelineArray objectAtIndex:0] objectForKey:@"id_str"];
+    if ( timelineAppend.count != 0 ) {
+        
+        int index = 0;
+        for ( id unit in timelineAppend ) {
+            
+            //タイムラインに追加
+            [timelineArray insertObject:unit atIndex:index];
+            index++;
+        }
+        
+        [timelineAppend removeAllObjects];
+        
+        //タイムラインを保存
+        [allTimelines setObject:timelineArray forKey:twAccount.username];
     }
+    
+    [self getMyAccountIcon];
     
     reloadButton.enabled = NO;
     
     //リロード後にUserStreamに接続
     if ( [d boolForKey:@"ReloadAfterUSConnect"] ) {
      
-        if ( !userStream ) [self pushOpenStreamButton:nil];
+        if ( !userStream ) [self performSelector:@selector(pushOpenStreamButton:) withObject:nil afterDelay:0.1];
     }
     
     [self createTimeline];
@@ -901,7 +943,7 @@
     inReplyToMode = NO;
     [topBar setItems:TOP_BAR animated:YES];
     
-    [self changeSegment:nil];
+    [self performSelector:@selector(changeSegment:) withObject:nil afterDelay:0.1];
 }
 
 #pragma mark - UserStream
@@ -929,11 +971,11 @@
             [self.connection start];
             
             // 終わるまでループさせる
-            do {
-                
-                [[NSRunLoop currentRunLoop] runMode:NSDefaultRunLoopMode beforeDate:[NSDate dateWithTimeIntervalSinceNow:0.5]];
-                
-            }while ( userStream );
+            while ( userStream ) {
+
+                //NSLog(@"RunLoop");
+                [[NSRunLoop currentRunLoop] runMode:NSDefaultRunLoopMode beforeDate:[NSDate dateWithTimeIntervalSinceNow:0.1]];
+            }
         });
         
         dispatch_release(syncQueue);
@@ -1036,6 +1078,7 @@
                                     NSIndexPath *indexPath = [NSIndexPath indexPathForRow:index inSection:0];
                                     NSArray *indexPaths = [NSArray arrayWithObject:indexPath];
                                     [timeline reloadRowsAtIndexPaths:indexPaths withRowAnimation:UITableViewRowAnimationLeft];
+                                    
                                 });
                                 
                                 break;
@@ -1157,16 +1200,49 @@
                     
                     dispatch_async(dispatch_get_main_queue(), ^ {
                         
-                        //タイムラインに追加
-                        [timelineArray insertObject:receiveData atIndex:0];
+                        if ( timelineScroll < 60 ) {
                         
-                        //タイムラインを保存
-                        [allTimelines setObject:timelineArray forKey:twAccount.username];
-                        
-                        NSIndexPath *indexPath = [NSIndexPath indexPathForRow:0 inSection:0];
-                        NSArray *indexPaths = [NSArray arrayWithObjects:indexPath, nil];
-                        
-                        [timeline insertRowsAtIndexPaths:indexPaths withRowAnimation:UITableViewRowAnimationTop];                            
+                            BOOL needScroll = NO;
+                            
+                            if ( needAppend && timelineAppend.count != 0 ) {
+                                
+                                timelineTopTweetId = [[timelineArray objectAtIndex:0] objectForKey:@"id_str"];
+                                
+                                int index = 0;
+                                for ( id unit in timelineAppend ) {
+
+                                    //タイムラインに追加
+                                    [timelineArray insertObject:unit atIndex:index];
+                                    index++;
+                                }
+                                
+                                [timelineAppend removeAllObjects];
+                                
+                                needAppend = NO;
+                                needScroll = YES;
+                                
+                                [timeline reloadData];
+                            }
+                            
+                            //タイムラインに追加
+                            [timelineArray insertObject:receiveData atIndex:0];
+                            
+                            //タイムラインを保存
+                            [allTimelines setObject:timelineArray forKey:twAccount.username];
+                            
+                            NSIndexPath *indexPath = [NSIndexPath indexPathForRow:0 inSection:0];
+                            NSArray *indexPaths = [NSArray arrayWithObjects:indexPath, nil];
+                            [timeline insertRowsAtIndexPaths:indexPaths withRowAnimation:UITableViewRowAnimationTop];
+                            
+                            if ( needScroll ) [self scrollTimelineForNewTweet];
+                            
+                        }else {
+                            
+                            needAppend = YES;
+                            
+                            //仮保存に追加
+                            [timelineAppend insertObject:receiveData atIndex:0];
+                        }
                     });
                     
                     //IDを記憶
@@ -1268,6 +1344,8 @@
     
     if ( num < 0 ) return;
     
+    [NSThread sleepForTimeInterval:0.1f];
+    
     int accountCount = [TWGetAccount getTwitterAccountCount] - 1;
     
     if ( accountCount >= num ) {
@@ -1277,7 +1355,7 @@
         twAccount = [TWGetAccount getTwitterAccount:num];
         [d setInteger:num forKey:@"UseAccount"];
         
-        [self changeSegment:nil];
+        [self performSelector:@selector(changeSegment:) withObject:nil afterDelay:0.1];
     }
 }
 
@@ -1287,6 +1365,8 @@
     
     //InReplyTto表示中は何もしない
     if ( inReplyToMode ) return;
+    
+    [NSThread sleepForTimeInterval:0.1f];
     
     int num = [d integerForKey:@"UseAccount"] + 1;
     int accountCount = [TWGetAccount getTwitterAccountCount] - 1;
@@ -1298,7 +1378,7 @@
         twAccount = [TWGetAccount getTwitterAccount:num];
         [d setInteger:num forKey:@"UseAccount"];
         
-        [self changeSegment:nil];
+        [self performSelector:@selector(changeSegment:) withObject:nil afterDelay:0.1];
     }
 }
 
@@ -1349,10 +1429,42 @@
             
         }else if ( timelineSegment.selectedSegmentIndex == 1 ) {
             
+            if ( timelineAppend.count != 0 ) {
+             
+                int index = 0;
+                for ( id unit in timelineAppend ) {
+                    
+                    //タイムラインに追加
+                    [timelineArray insertObject:unit atIndex:index];
+                    index++;
+                }
+                
+                [timelineAppend removeAllObjects];
+                
+                //タイムラインを保存
+                [allTimelines setObject:timelineArray forKey:twAccount.username];
+            }
+            
             //Mentionsに切り替わった
             [TWGetTimeline mentions];
             
         }else if ( timelineSegment.selectedSegmentIndex == 2 ) {
+            
+            if ( timelineAppend.count != 0 ) {
+                
+                int index = 0;
+                for ( id unit in timelineAppend ) {
+                    
+                    //タイムラインに追加
+                    [timelineArray insertObject:unit atIndex:index];
+                    index++;
+                }
+                
+                [timelineAppend removeAllObjects];
+                
+                //タイムラインを保存
+                [allTimelines setObject:timelineArray forKey:twAccount.username];
+            }
             
             //Favoritesに切り替わった
             [TWGetTimeline favotites];
@@ -1518,6 +1630,10 @@
                     NSString *screenName = [[selectTweet objectForKey:@"user"] objectForKey:@"screen_name"];
                     NSString *copyText = [NSString stringWithFormat:@"https://twitter.com/%@/status/%@", screenName, tweetId];
                     [pboard setString:copyText];
+                    
+                }else if ( buttonIndex == 10 ) {
+                    
+                    [pboard setString:[TWEntities replace:selectTweet]];
                 }
                 
             }else if ( actionSheet.tag == 1 ) {

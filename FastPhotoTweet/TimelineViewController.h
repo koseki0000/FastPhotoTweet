@@ -27,6 +27,7 @@
     NSUserDefaults *d;
     NSFileManager *fileManager;
     NSMutableArray *timelineArray;
+    NSMutableArray *timelineAppend;
     NSMutableArray *inReplyTo;
     NSMutableArray *reqedUser;
     NSMutableArray *iconUrls;
@@ -56,9 +57,11 @@
     BOOL inReplyToMode;
     BOOL viewWillAppear;
     BOOL userStreamBuffer;
+    BOOL needAppend;
     
     int selectRow;
     int longPressControl;
+    int timelineScroll;
 }
 
 @property (retain, nonatomic) IBOutlet UIToolbar *topBar;
@@ -87,12 +90,15 @@
 - (IBAction)changeSegment:(UISegmentedControl *)sender;
 
 - (void)setNotifications;
+
 - (void)createTimeline;
 - (void)loadTimeline:(NSNotification *)center;
 - (void)loadMentions:(NSNotification *)center;
 - (void)loadFavorites:(NSNotification *)center;
 - (void)getIconWithTweetArray:(NSMutableArray *)tweetArray;
 - (void)getIconWithSequential;
+- (void)changeAccount:(NSNotification *)notification;
+
 - (void)getInReplyToChain:(NSDictionary *)tweetData;
 - (void)scrollTimelineForNewTweet;
 - (void)openStream;
