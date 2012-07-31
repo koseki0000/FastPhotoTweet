@@ -57,7 +57,6 @@
     BOOL inReplyToMode;
     BOOL viewWillAppear;
     BOOL userStreamBuffer;
-    BOOL needAppend;
     
     int selectRow;
     int longPressControl;
@@ -98,9 +97,11 @@
 - (void)getIconWithTweetArray:(NSMutableArray *)tweetArray;
 - (void)getIconWithSequential;
 - (void)changeAccount:(NSNotification *)notification;
-
+- (void)appendTimelineUnit;
+- (BOOL)appendTimelineUnitScroll;
 - (void)getInReplyToChain:(NSDictionary *)tweetData;
 - (void)scrollTimelineForNewTweet;
+- (void)scrollTimelineToTop:(BOOL)animation;
 - (void)openStream;
 - (void)closeStream;
 

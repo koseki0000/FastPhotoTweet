@@ -15,6 +15,7 @@
     
     //アカウントの取得
     ACAccount *twAccount = [TWGetAccount getTwitterAccount];
+    
     //NSLog(@"homeTimeline: %@", twAccount.username);
     
     //Twitterアカウントの確認

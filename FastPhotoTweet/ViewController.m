@@ -356,7 +356,7 @@
             //NSLog(@"newVersion");
             
             [ShowAlert title:[NSString stringWithFormat:@"FastPhotoTweet %@", APP_VERSION] 
-                 message:@"Tweet画面に現在のアカウントのアイコン表示機能を追加(Timeline画面でアイコン取得後に有効)\n・Timeline初回読み込み時に重複する問題を修正\n・その他細かい不具合修正"];
+                 message:@"・各種通信の調整\n・Timeline最上部付近でのみ自動スクロールを行うように変更(仮)"];
             
             information = [[[NSMutableDictionary alloc] initWithDictionary:[d dictionaryForKey:@"Information"]] autorelease];
             [information setValue:[NSNumber numberWithInt:1] forKey:APP_VERSION];
@@ -1503,6 +1503,8 @@
     }else if ( uploadType == 3 ) {
         
         //NSLog(@"Twitpic upload");
+        
+        twAccount = [TWGetAccount getTwitterAccount];
         
         NSDictionary *dic = [d dictionaryForKey:@"OAuthAccount"];
         

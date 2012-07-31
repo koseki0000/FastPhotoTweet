@@ -80,7 +80,6 @@
     userStream = NO;
     openStreamAfter = NO;
     userStreamFirstResponse = NO;
-    needAppend = NO;
 
     timelineScroll = 0;
     
@@ -190,7 +189,7 @@
     
     timelineArray = [allTimelines objectForKey:twAccount.username];
     
-    if ( timelineArray.count != 0 ) {
+    if ( timelineArray.count != 0 && ![timelineTopTweetId isEqualToString:BLANK] ) {
         
         timelineTopTweetId = [[timelineArray objectAtIndex:0] objectForKey:@"id_str"];
     }
@@ -300,10 +299,10 @@
                         
                         reloadButton.enabled = YES;
                         
-                        if ( [d boolForKey:@"ReloadAfterUSConnect"] ) {
+                        if ( [d boolForKey:@"ReloadAfterUSConnect"] && !userStream ) {
                             
                             //UserStream接続
-                            if ( !userStream ) [self performSelector:@selector(pushOpenStreamButton:) withObject:nil afterDelay:0.1];
+                            [self performSelector:@selector(pushOpenStreamButton:) withObject:nil afterDelay:0.1];
                         }
                         
                         [timeline reloadData];
@@ -349,6 +348,8 @@
         
         //タイムラインを再読み込み
         [timeline reloadData];
+        
+        [self scrollTimelineToTop:NO];
     }
 }
 
@@ -378,6 +379,8 @@
         
         //タイムラインを再読み込み
         [timeline reloadData];
+        
+        [self scrollTimelineToTop:NO];
     }
 }
 
@@ -526,6 +529,66 @@
     [self performSelector:@selector(pushOpenStreamButton:) withObject:nil afterDelay:0.1];
 }
 
+- (void)appendTimelineUnit {
+    
+    if ( timelineAppend.count != 0 ) {
+        
+        //NSLog(@"appendTimelineUnit");
+        
+        NSMutableArray *tempArray = [NSMutableArray arrayWithArray:timelineArray];
+        
+        int index = 0;
+        for ( id unit in timelineAppend ) {
+            
+            //タイムラインに追加
+            [tempArray insertObject:unit atIndex:index];
+            index++;
+        }
+        
+        [timelineAppend removeAllObjects];
+        
+        timelineArray = tempArray;
+        [timeline reloadData];
+        
+        //タイムラインを保存
+        [allTimelines setObject:timelineArray forKey:twAccount.username];
+    }
+}
+
+- (BOOL)appendTimelineUnitScroll {
+    
+    BOOL result = NO;
+    
+    if ( timelineAppend.count != 0 ) {
+        
+        //NSLog(@"appendTimelineUnitScroll");
+        
+        NSMutableArray *tempArray = [NSMutableArray arrayWithArray:timelineArray];
+        
+        timelineTopTweetId = [[tempArray objectAtIndex:0] objectForKey:@"id_str"];
+        
+        int index = 0;
+        for ( id unit in timelineAppend ) {
+            
+            //タイムラインに追加
+            [tempArray insertObject:unit atIndex:index];
+            index++;
+        }
+        
+        [timelineAppend removeAllObjects];
+        
+        timelineArray = tempArray;
+        [timeline reloadData];
+        
+        if ( twAccount == nil ) twAccount = [TWGetAccount getTwitterAccount];
+        [allTimelines setObject:timelineArray forKey:twAccount.username];
+        
+        result = YES;
+    }
+    
+    return result;
+}
+
 #pragma mark - In reply to
 
 - (void)getInReplyToChain:(NSDictionary *)tweetData {
@@ -599,6 +662,13 @@
 		TimelineCellController *controller = [[TimelineCellController alloc] initWithNibName:identifier bundle:nil];
 		cell = (TimelineCell *)controller.view;
 	}
+    
+    if ( timelineScroll > 60 &&
+         (int)timeline.contentOffset.y <= 60 &&
+         timelineAppend.count != 0 ) {
+        
+        if ( [self appendTimelineUnitScroll] ) [self scrollTimelineForNewTweet];
+    }
     
     timelineScroll = (int)timeline.contentOffset.y;
     
@@ -785,10 +855,16 @@
     }
     
     if ( find ) {
-     
+        
         NSIndexPath *indexPath = [NSIndexPath indexPathForRow:index inSection:0];
         [timeline scrollToRowAtIndexPath:indexPath atScrollPosition:UITableViewScrollPositionBottom animated:YES];
     }
+}
+
+- (void)scrollTimelineToTop:(BOOL)animation {
+    
+    NSIndexPath *indexPath = [NSIndexPath indexPathForRow:0 inSection:0];
+    [timeline scrollToRowAtIndexPath:indexPath atScrollPosition:UITableViewScrollPositionBottom animated:animation];
 }
 
 #pragma mark - ASIHTTPRequest
@@ -878,31 +954,14 @@
     
     if ( ![appDelegate reachability] ) return;
     
-    if ( timelineAppend.count != 0 ) {
-        
-        int index = 0;
-        for ( id unit in timelineAppend ) {
-            
-            //タイムラインに追加
-            [timelineArray insertObject:unit atIndex:index];
-            index++;
-        }
-        
-        [timelineAppend removeAllObjects];
-        
-        //タイムラインを保存
-        [allTimelines setObject:timelineArray forKey:twAccount.username];
-    }
-    
     [self getMyAccountIcon];
     
     reloadButton.enabled = NO;
     
-    //リロード後にUserStreamに接続
-    if ( [d boolForKey:@"ReloadAfterUSConnect"] ) {
-     
-        if ( !userStream ) [self performSelector:@selector(pushOpenStreamButton:) withObject:nil afterDelay:0.1];
-    }
+    [self appendTimelineUnitScroll];
+    
+    timelineArray = [allTimelines objectForKey:twAccount.username];
+    [timeline reloadData];
     
     [self createTimeline];
 }
@@ -1078,7 +1137,6 @@
                                     NSIndexPath *indexPath = [NSIndexPath indexPathForRow:index inSection:0];
                                     NSArray *indexPaths = [NSArray arrayWithObject:indexPath];
                                     [timeline reloadRowsAtIndexPaths:indexPaths withRowAnimation:UITableViewRowAnimationLeft];
-                                    
                                 });
                                 
                                 break;
@@ -1200,30 +1258,11 @@
                     
                     dispatch_async(dispatch_get_main_queue(), ^ {
                         
-                        if ( timelineScroll < 60 ) {
-                        
-                            BOOL needScroll = NO;
+                        if ( timelineScroll <= 60 ) {
                             
-                            if ( needAppend && timelineAppend.count != 0 ) {
-                                
-                                timelineTopTweetId = [[timelineArray objectAtIndex:0] objectForKey:@"id_str"];
-                                
-                                int index = 0;
-                                for ( id unit in timelineAppend ) {
-
-                                    //タイムラインに追加
-                                    [timelineArray insertObject:unit atIndex:index];
-                                    index++;
-                                }
-                                
-                                [timelineAppend removeAllObjects];
-                                
-                                needAppend = NO;
-                                needScroll = YES;
-                                
-                                [timeline reloadData];
-                            }
+                            //NSLog(@"US Add");
                             
+                            //1セル目くらいが最上部
                             //タイムラインに追加
                             [timelineArray insertObject:receiveData atIndex:0];
                             
@@ -1232,16 +1271,16 @@
                             
                             NSIndexPath *indexPath = [NSIndexPath indexPathForRow:0 inSection:0];
                             NSArray *indexPaths = [NSArray arrayWithObjects:indexPath, nil];
-                            [timeline insertRowsAtIndexPaths:indexPaths withRowAnimation:UITableViewRowAnimationTop];
-                            
-                            if ( needScroll ) [self scrollTimelineForNewTweet];
+                            [timeline insertRowsAtIndexPaths:indexPaths withRowAnimation:UITableViewRowAnimationTop];                            
                             
                         }else {
                             
-                            needAppend = YES;
+                            //NSLog(@"US Append");
                             
-                            //仮保存に追加
-                            [timelineAppend insertObject:receiveData atIndex:0];
+                            //2セル目以降くらいが最上部
+                            
+                            //仮保存
+                            [timelineAppend addObject:receiveData];
                         }
                     });
                     
@@ -1319,14 +1358,14 @@
 
 - (void)connectionDidFinishLoading:(NSURLConnection *)connection {
     
-    //NSLog(@"connectionDidFinishLoading:");
+    NSLog(@"connectionDidFinishLoading:");
 }
 
 #pragma mark - NSURLConnectionDelegate
 
 - (void)connection:(NSURLConnection *)connection didFailWithError:(NSError *)error {
     
-    //NSLog(@"didFailWithError:%@", error);
+    NSLog(@"didFailWithError:%@", error);
     
     [self closeStream];
 }
@@ -1416,55 +1455,29 @@
         
         if ( timelineSegment.selectedSegmentIndex == 0 ) {
             
+            if ( mentionsArray.count != 0 ) {
+                
+                //Timelineに切り替わった
+                timelineArray = [allTimelines objectForKey:twAccount.username];
+                [timeline reloadData];
+            }
+            
             openStreamButton.enabled = YES;
             
             mentionsArray = [NSArray array];
-            
-            //Timelineに切り替わった
-            timelineArray = [allTimelines objectForKey:twAccount.username];
-            
-            [timeline reloadData];
             
             [self pushReloadButton:nil];
             
         }else if ( timelineSegment.selectedSegmentIndex == 1 ) {
             
-            if ( timelineAppend.count != 0 ) {
-             
-                int index = 0;
-                for ( id unit in timelineAppend ) {
-                    
-                    //タイムラインに追加
-                    [timelineArray insertObject:unit atIndex:index];
-                    index++;
-                }
-                
-                [timelineAppend removeAllObjects];
-                
-                //タイムラインを保存
-                [allTimelines setObject:timelineArray forKey:twAccount.username];
-            }
+            [self appendTimelineUnitScroll];
             
             //Mentionsに切り替わった
             [TWGetTimeline mentions];
             
         }else if ( timelineSegment.selectedSegmentIndex == 2 ) {
             
-            if ( timelineAppend.count != 0 ) {
-                
-                int index = 0;
-                for ( id unit in timelineAppend ) {
-                    
-                    //タイムラインに追加
-                    [timelineArray insertObject:unit atIndex:index];
-                    index++;
-                }
-                
-                [timelineAppend removeAllObjects];
-                
-                //タイムラインを保存
-                [allTimelines setObject:timelineArray forKey:twAccount.username];
-            }
+            [self appendTimelineUnitScroll];
             
             //Favoritesに切り替わった
             [TWGetTimeline favotites];
