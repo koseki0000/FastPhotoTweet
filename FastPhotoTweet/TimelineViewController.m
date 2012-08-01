@@ -47,7 +47,7 @@
     
     [super viewDidLoad];
     
-    //NSLog(@"viewDidLoad");
+    NSLog(@"viewDidLoad");
     
     //各種通知設定
     [self setNotifications];
@@ -178,7 +178,7 @@
 
 - (void)createTimeline {
 
-    //NSLog(@"createTimeline");
+    NSLog(@"createTimeline");
     
     twAccount = [TWGetAccount getTwitterAccount];
     
@@ -189,7 +189,13 @@
     
     timelineArray = [allTimelines objectForKey:twAccount.username];
     
-    if ( timelineArray.count != 0 && ![timelineTopTweetId isEqualToString:BLANK] ) {
+    if ( timelineArray.count != 0 ) {
+        
+        [sinceIds setObject:[[timelineArray objectAtIndex:0] objectForKey:@"id_str"] forKey:twAccount.username];
+        appDelegate.sinceId = [[timelineArray objectAtIndex:0] objectForKey:@"id_str"];
+    }
+    
+    if ( timelineArray.count != 0 ) {
         
         timelineTopTweetId = [[timelineArray objectAtIndex:0] objectForKey:@"id_str"];
     }
@@ -199,7 +205,7 @@
 
 - (void)loadTimeline:(NSNotification *)center {
     
-    //NSLog(@"loadTimeline");
+    NSLog(@"loadTimeline[%d], userStream[%d]", timelineArray.count, userStream);
     
     dispatch_queue_t globalQueue = dispatch_get_global_queue( DISPATCH_QUEUE_PRIORITY_DEFAULT, 0 );
     dispatch_async( globalQueue, ^{
@@ -222,6 +228,8 @@
                 
                 if ( newTweet.count == 0 ) {
                     
+                    NSLog(@"newTweet.count == 0");
+                    
                     dispatch_async(dispatch_get_main_queue(), ^ {
                         
                         reloadButton.enabled = YES;
@@ -233,12 +241,26 @@
                         }
                     });
                     
+                    if ( [d boolForKey:@"ReloadAfterUSConnect"] && !userStream ) {
+                        
+                        //UserStream接続
+                        [self pushOpenStreamButton:nil];
+                    }
+                    
                     return;
                 }
                 
                 if ( [[newTweet objectAtIndex:0] objectForKey:@"errors"] != nil ) {
                     
+                    NSLog(@"newTweet error");
+                    
                     [ShowAlert error:@"タイムライン取得時にエラーが発生しました。"];
+                    
+                    if ( [d boolForKey:@"ReloadAfterUSConnect"] && !userStream ) {
+                        
+                        //UserStream接続
+                        [self pushOpenStreamButton:nil];
+                    }
                     
                     return;
                 }
@@ -253,11 +275,6 @@
                 newTweet = [TWNgTweet ngWord:newTweet];
                 
                 if ( [EmptyCheck check:newTweet] ) {
-                    
-                    if ( ![[[newTweet objectAtIndex:0] objectForKey:@"id_str"] isEqualToString:BLANK] ) {
-                     
-                        [sinceIds setObject:[[newTweet objectAtIndex:0] objectForKey:@"id_str"] forKey:twAccount.username];
-                    }
                     
                     int index = 0;
                     for ( id tweet in newTweet ) {
@@ -283,10 +300,10 @@
                         //新着取得前の最新までスクロール
                         [self scrollTimelineForNewTweet];
                     
-                        if ( [d boolForKey:@"ReloadAfterUSConnect"] ) {
+                        if ( [d boolForKey:@"ReloadAfterUSConnect"] && !userStream ) {
                         
                             //UserStream接続
-                            if ( !userStream ) [self performSelector:@selector(pushOpenStreamButton:) withObject:nil afterDelay:0.1];
+                            [self performSelector:@selector(pushOpenStreamButton:) withObject:nil afterDelay:0.1];
                         }
                     });
                     
@@ -520,7 +537,7 @@
     
     //Tweet画面でアカウントが切り替えられた際に呼ばれる
     
-    //NSLog(@"changeAccount");
+    NSLog(@"changeAccount");
     
     //UserStreamが有効な場合切断する
     if ( userStream ) [self closeStream];
@@ -533,7 +550,7 @@
     
     if ( timelineAppend.count != 0 ) {
         
-        //NSLog(@"appendTimelineUnit");
+        NSLog(@"appendTimelineUnit");
         
         NSMutableArray *tempArray = [NSMutableArray arrayWithArray:timelineArray];
         
@@ -561,29 +578,32 @@
     
     if ( timelineAppend.count != 0 ) {
         
-        //NSLog(@"appendTimelineUnitScroll");
+        NSLog(@"appendTimelineUnitScroll");
         
         NSMutableArray *tempArray = [NSMutableArray arrayWithArray:timelineArray];
         
         timelineTopTweetId = [[tempArray objectAtIndex:0] objectForKey:@"id_str"];
         
-        int index = 0;
-        for ( id unit in timelineAppend ) {
+        if ( [EmptyCheck string:timelineTopTweetId] ) {
+         
+            int index = 0;
+            for ( id unit in timelineAppend ) {
+                
+                //タイムラインに追加
+                [tempArray insertObject:unit atIndex:index];
+                index++;
+            }
             
-            //タイムラインに追加
-            [tempArray insertObject:unit atIndex:index];
-            index++;
+            [timelineAppend removeAllObjects];
+            
+            timelineArray = tempArray;
+            [timeline reloadData];
+            
+            if ( twAccount == nil ) twAccount = [TWGetAccount getTwitterAccount];
+            [allTimelines setObject:timelineArray forKey:twAccount.username];
+            
+            result = YES;
         }
-        
-        [timelineAppend removeAllObjects];
-        
-        timelineArray = tempArray;
-        [timeline reloadData];
-        
-        if ( twAccount == nil ) twAccount = [TWGetAccount getTwitterAccount];
-        [allTimelines setObject:timelineArray forKey:twAccount.username];
-        
-        result = YES;
     }
     
     return result;
@@ -836,6 +856,7 @@
 
 - (void)scrollTimelineForNewTweet {
     
+    if ( twAccount == nil ) twAccount = [TWGetAccount getTwitterAccount];
     NSArray *tl = [allTimelines objectForKey:twAccount.username];
     
     if ( ![EmptyCheck check:timelineTopTweetId] ) return;
@@ -927,7 +948,7 @@
 
 - (void)requestFailed:(ASIHTTPRequest *)request {
     
-    //NSLog(@"requestFailed");
+    NSLog(@"requestFailed");
     
     [ActivityIndicator off];
     
@@ -950,7 +971,7 @@
 
 - (IBAction)pushReloadButton:(UIBarButtonItem *)sender {
     
-    //NSLog(@"pushReloadButton");
+    NSLog(@"pushReloadButton");
     
     if ( ![appDelegate reachability] ) return;
     
@@ -958,7 +979,7 @@
     
     reloadButton.enabled = NO;
     
-    [self appendTimelineUnitScroll];
+    if ( timelineAppend.count != 0 ) [self appendTimelineUnitScroll];
     
     timelineArray = [allTimelines objectForKey:twAccount.username];
     [timeline reloadData];
@@ -1009,7 +1030,7 @@
 
 - (void)openStream {
     
-    //NSLog(@"openStream");
+    NSLog(@"openStream");
     
     dispatch_queue_t globalQueue = dispatch_get_global_queue( DISPATCH_QUEUE_PRIORITY_DEFAULT, 0 );
     dispatch_async( globalQueue, ^{
@@ -1043,7 +1064,7 @@
 
 - (void)closeStream {
     
-    //NSLog(@"closeStream");
+    NSLog(@"closeStream");
     
     userStream = NO;
     userStreamFirstResponse = NO;
@@ -1260,7 +1281,7 @@
                         
                         if ( timelineScroll <= 60 ) {
                             
-                            //NSLog(@"US Add");
+                            NSLog(@"US Add");
                             
                             //1セル目くらいが最上部
                             //タイムラインに追加
@@ -1275,7 +1296,7 @@
                             
                         }else {
                             
-                            //NSLog(@"US Append");
+                            NSLog(@"US Append");
                             
                             //2セル目以降くらいが最上部
                             
@@ -1374,7 +1395,7 @@
 
 - (IBAction)swipeTimelineRight:(UISwipeGestureRecognizer *)sender {
     
-    //NSLog(@"swipeTimelineRight");
+    NSLog(@"swipeTimelineRight");
 
     //InReplyTto表示中は何もしない
     if ( inReplyToMode ) return;
@@ -1391,6 +1412,8 @@
      
         if ( userStream ) [self closeStream];
         
+        appDelegate.sinceId = BLANK;
+        
         twAccount = [TWGetAccount getTwitterAccount:num];
         [d setInteger:num forKey:@"UseAccount"];
         
@@ -1400,7 +1423,7 @@
 
 - (IBAction)swipeTimelineLeft:(UISwipeGestureRecognizer *)sender {
     
-    //NSLog(@"swipeTimelineLeft");
+    NSLog(@"swipeTimelineLeft");
     
     //InReplyTto表示中は何もしない
     if ( inReplyToMode ) return;
@@ -1413,6 +1436,8 @@
     if ( accountCount >= num ) {
         
         if ( userStream ) [self closeStream];
+        
+        appDelegate.sinceId = BLANK;
         
         twAccount = [TWGetAccount getTwitterAccount:num];
         [d setInteger:num forKey:@"UseAccount"];
@@ -1444,7 +1469,7 @@
 
 - (IBAction)changeSegment:(UISegmentedControl *)sender {
     
-    //NSLog(@"changeSegment");
+    NSLog(@"changeSegment");
     
     //InReplyTo表示中なら閉じる
     if ( inReplyToMode ) {
@@ -1455,12 +1480,11 @@
         
         if ( timelineSegment.selectedSegmentIndex == 0 ) {
             
-            if ( mentionsArray.count != 0 ) {
-                
-                //Timelineに切り替わった
-                timelineArray = [allTimelines objectForKey:twAccount.username];
-                [timeline reloadData];
-            }
+            [self appendTimelineUnitScroll];
+            
+            //Timelineに切り替わった
+            timelineArray = [allTimelines objectForKey:twAccount.username];
+            [timeline reloadData];
             
             openStreamButton.enabled = YES;
             
@@ -1716,6 +1740,7 @@
                     
                     //SinceIDを削除
                     [sinceIds setObject:BLANK forKey:twAccount.username];
+                    appDelegate.sinceId = BLANK;
                     
                     //タイムラインを保存
                     [allTimelines setObject:timelineArray forKey:twAccount.username];
@@ -1733,6 +1758,8 @@
                         [allTimelines setObject:[NSMutableArray array] forKey:account.username];
                         [sinceIds setObject:BLANK forKey:account.username];
                     }
+                    
+                    appDelegate.sinceId = BLANK;
                     
                     //タイムラインログを削除
                     timelineArray = [NSMutableArray array];
@@ -1962,7 +1989,7 @@
     
     [super viewWillAppear:animated];
     
-    //NSLog(@"viewWillAppear");
+    NSLog(@"viewWillAppear");
     
     ACAccount *account = [TWGetAccount getTwitterAccount];
     
