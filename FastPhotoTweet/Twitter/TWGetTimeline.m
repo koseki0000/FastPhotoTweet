@@ -14,7 +14,7 @@
 + (void)homeTimeline {
     
     //アカウントの取得
-    ACAccount *twAccount = [TWGetAccount getTwitterAccount];
+    ACAccount *twAccount = [TWGetAccount currentAccount];
     
     //NSLog(@"homeTimeline: %@", twAccount.username);
     
@@ -102,7 +102,7 @@
 + (void)mentions {
     
     //アカウントの取得
-    ACAccount *twAccount = [TWGetAccount getTwitterAccount];
+    ACAccount *twAccount = [TWGetAccount currentAccount];
     //NSLog(@"mentions: %@", twAccount.username);
     
     //Twitterアカウントの確認
@@ -173,7 +173,7 @@
 + (void)favotites {
     
     //アカウントの取得
-    ACAccount *twAccount = [TWGetAccount getTwitterAccount];
+    ACAccount *twAccount = [TWGetAccount currentAccount];
     //NSLog(@"mentions: %@", twAccount.username);
     
     //Twitterアカウントの確認

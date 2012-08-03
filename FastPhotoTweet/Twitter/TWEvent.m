@@ -217,9 +217,9 @@
 
 + (ACAccount *)canAction {
     
-    ACAccount *twAccount = [TWGetAccount getTwitterAccount];
+    ACAccount *twAccount = [TWGetAccount currentAccount];
     
-    if ( [TWTweetComposeViewController canSendTweet] && [TWGetAccount getTwitterAccount] != nil ) {
+    if ( [TWTweetComposeViewController canSendTweet] && [TWGetAccount currentAccount] != nil ) {
         
         //ステータスバーに処理中表示
         [ActivityIndicator visible:YES];

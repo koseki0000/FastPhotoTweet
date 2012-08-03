@@ -30,7 +30,7 @@
     if ( targets.count == 0 || ngWords.count == 0 ) return [NSArray arrayWithArray:tweets];
     
     //現在の自分のアカウント名
-    NSString *myAccont = [[TWGetAccount getTwitterAccount] username];
+    NSString *myAccont = [[TWGetAccount currentAccount] username];
     
     //対象Tweetのtext
     NSString *text = nil;

@@ -1427,7 +1427,7 @@
         
         //NSLog(@"Twitpic upload");
         
-        twAccount = [TWGetAccount getTwitterAccount];
+        twAccount = [TWGetAccount currentAccount];
         
         NSDictionary *dic = [d dictionaryForKey:@"OAuthAccount"];
         
@@ -1504,7 +1504,7 @@
         
         //NSLog(@"Twitpic upload");
         
-        twAccount = [TWGetAccount getTwitterAccount];
+        twAccount = [TWGetAccount currentAccount];
         
         NSDictionary *dic = [d dictionaryForKey:@"OAuthAccount"];
         
@@ -2125,7 +2125,7 @@
 
 - (void)setIconPreviewImage {
     
-    twAccount = [TWGetAccount getTwitterAccount];
+    twAccount = [TWGetAccount currentAccount];
     
     NSArray *iconsDirectory = [[NSFileManager defaultManager] contentsOfDirectoryAtPath:ICONS_DIRECTORY error:nil];
     NSString *searchName = [NSString stringWithFormat:@"%@_", twAccount.username];

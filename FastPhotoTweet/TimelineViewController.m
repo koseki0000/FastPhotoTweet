@@ -57,7 +57,7 @@
     fileManager = [NSFileManager defaultManager];
     pboard = [UIPasteboard generalPasteboard];
 
-    twAccount = [TWGetAccount getTwitterAccount];
+    twAccount = [TWGetAccount currentAccount];
     timelineArray = [NSMutableArray array];
     timelineAppend = [NSMutableArray array];
     inReplyTo = [NSMutableArray array];
@@ -180,7 +180,7 @@
 
     NSLog(@"createTimeline");
     
-    twAccount = [TWGetAccount getTwitterAccount];
+    twAccount = [TWGetAccount currentAccount];
     
     if ( [allTimelines objectForKey:twAccount.username] == nil ) {
         
@@ -599,7 +599,7 @@
             timelineArray = tempArray;
             [timeline reloadData];
             
-            if ( twAccount == nil ) twAccount = [TWGetAccount getTwitterAccount];
+            if ( twAccount == nil ) twAccount = [TWGetAccount currentAccount];
             [allTimelines setObject:timelineArray forKey:twAccount.username];
             
             result = YES;
@@ -683,12 +683,12 @@
 		cell = (TimelineCell *)controller.view;
 	}
     
-    if ( timelineScroll > 60 &&
-         (int)timeline.contentOffset.y <= 60 &&
-         timelineAppend.count != 0 ) {
-        
-        if ( [self appendTimelineUnitScroll] ) [self scrollTimelineForNewTweet];
-    }
+//    if ( timelineScroll > 60 &&
+//         (int)timeline.contentOffset.y <= 60 &&
+//         timelineAppend.count != 0 ) {
+//        
+//        if ( [self appendTimelineUnitScroll] ) [self scrollTimelineForNewTweet];
+//    }
     
     timelineScroll = (int)timeline.contentOffset.y;
     
@@ -856,7 +856,7 @@
 
 - (void)scrollTimelineForNewTweet {
     
-    if ( twAccount == nil ) twAccount = [TWGetAccount getTwitterAccount];
+    if ( twAccount == nil ) twAccount = [TWGetAccount currentAccount];
     NSArray *tl = [allTimelines objectForKey:twAccount.username];
     
     if ( ![EmptyCheck check:timelineTopTweetId] ) return;
@@ -918,12 +918,12 @@
                     //TL更新
                     dispatch_async(dispatch_get_main_queue(), ^ {
                         
-                        if ( timelineScroll < 60 ) {
+//                        if ( timelineScroll <= 60 ) {
                             
                             NSIndexPath *indexPath = [NSIndexPath indexPathForRow:index inSection:0];
                             NSArray *indexPaths = [NSArray arrayWithObject:indexPath];
                             [timeline reloadRowsAtIndexPaths:indexPaths withRowAnimation:UITableViewRowAnimationNone];
-                        }
+//                        }
                     });
                 }
                 
@@ -979,7 +979,7 @@
     
     reloadButton.enabled = NO;
     
-    if ( timelineAppend.count != 0 ) [self appendTimelineUnitScroll];
+//    if ( timelineAppend.count != 0 ) [self appendTimelineUnitScroll];
     
     timelineArray = [allTimelines objectForKey:twAccount.username];
     [timeline reloadData];
@@ -1037,7 +1037,7 @@
         dispatch_queue_t syncQueue = dispatch_queue_create( "info.ktysne.fastphototweet", NULL );
         dispatch_sync( syncQueue, ^{
             
-            twAccount = [TWGetAccount getTwitterAccount];
+            twAccount = [TWGetAccount currentAccount];
             
             userStreamAccount = twAccount.username;
             
@@ -1279,30 +1279,31 @@
                     
                     dispatch_async(dispatch_get_main_queue(), ^ {
                         
-                        if ( timelineScroll <= 60 ) {
+//                        int index = 0;
+//                        if ( timelineScroll > 60 ) index = -1;
+                        
+//                      NSLog(@"US Add: %d", timelineScroll);
+                        
+                        //1セル目くらいが最上部
+                        //タイムラインに追加
+                        [timelineArray insertObject:receiveData atIndex:0];
+                        
+                        //タイムラインを保存
+                        [allTimelines setObject:timelineArray forKey:twAccount.username];
+                        
+                        NSIndexPath *indexPath = [NSIndexPath indexPathForRow:0 inSection:0];
+                        NSArray *indexPaths = [NSArray arrayWithObjects:indexPath, nil];
+                        [timeline insertRowsAtIndexPaths:indexPaths withRowAnimation:UITableViewRowAnimationTop];
+                        
+//                        }else {
                             
-                            NSLog(@"US Add");
-                            
-                            //1セル目くらいが最上部
-                            //タイムラインに追加
-                            [timelineArray insertObject:receiveData atIndex:0];
-                            
-                            //タイムラインを保存
-                            [allTimelines setObject:timelineArray forKey:twAccount.username];
-                            
-                            NSIndexPath *indexPath = [NSIndexPath indexPathForRow:0 inSection:0];
-                            NSArray *indexPaths = [NSArray arrayWithObjects:indexPath, nil];
-                            [timeline insertRowsAtIndexPaths:indexPaths withRowAnimation:UITableViewRowAnimationTop];                            
-                            
-                        }else {
-                            
-                            NSLog(@"US Append");
+//                            NSLog(@"US Append: %d", timelineScroll);
                             
                             //2セル目以降くらいが最上部
                             
                             //仮保存
-                            [timelineAppend addObject:receiveData];
-                        }
+//                            [timelineAppend addObject:receiveData];
+//                        }
                     });
                     
                     //IDを記憶
@@ -1414,7 +1415,7 @@
         
         appDelegate.sinceId = BLANK;
         
-        twAccount = [TWGetAccount getTwitterAccount:num];
+        twAccount = [TWGetAccount selectAccount:num];
         [d setInteger:num forKey:@"UseAccount"];
         
         [self performSelector:@selector(changeSegment:) withObject:nil afterDelay:0.1];
@@ -1439,7 +1440,7 @@
         
         appDelegate.sinceId = BLANK;
         
-        twAccount = [TWGetAccount getTwitterAccount:num];
+        twAccount = [TWGetAccount selectAccount:num];
         [d setInteger:num forKey:@"UseAccount"];
         
         [self performSelector:@selector(changeSegment:) withObject:nil afterDelay:0.1];
@@ -1480,7 +1481,7 @@
         
         if ( timelineSegment.selectedSegmentIndex == 0 ) {
             
-            [self appendTimelineUnitScroll];
+//            [self appendTimelineUnitScroll];
             
             //Timelineに切り替わった
             timelineArray = [allTimelines objectForKey:twAccount.username];
@@ -1494,14 +1495,14 @@
             
         }else if ( timelineSegment.selectedSegmentIndex == 1 ) {
             
-            [self appendTimelineUnitScroll];
+//            [self appendTimelineUnitScroll];
             
             //Mentionsに切り替わった
             [TWGetTimeline mentions];
             
         }else if ( timelineSegment.selectedSegmentIndex == 2 ) {
             
-            [self appendTimelineUnitScroll];
+//            [self appendTimelineUnitScroll];
             
             //Favoritesに切り替わった
             [TWGetTimeline favotites];
@@ -1991,7 +1992,7 @@
     
     NSLog(@"viewWillAppear");
     
-    ACAccount *account = [TWGetAccount getTwitterAccount];
+    ACAccount *account = [TWGetAccount currentAccount];
     
     if ( ![lastUpdateAccount isEqualToString:account.username] && [EmptyCheck string:lastUpdateAccount] ) {
         

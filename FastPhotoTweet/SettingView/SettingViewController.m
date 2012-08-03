@@ -1213,7 +1213,7 @@
             NSDictionary *dic = [d dictionaryForKey:@"OAuthAccount"];
             NSArray *oauthAccountNames = [dic allKeys];
             
-            ACAccount *twAccount = [TWGetAccount getTwitterAccount];
+            ACAccount *twAccount = [TWGetAccount currentAccount];
             NSString *twitpicName = nil;
             
             for ( NSString *accountName in oauthAccountNames ) {

@@ -9,7 +9,7 @@
 
 @implementation TWGetAccount
 
-+ (ACAccount *)getTwitterAccount {
++ (ACAccount *)currentAccount {
     
     NSUserDefaults *d = [NSUserDefaults standardUserDefaults];
     
@@ -34,7 +34,7 @@
     return twAccount;
 }
 
-+ (ACAccount *)getTwitterAccount:(int)num {
++ (ACAccount *)selectAccount:(int)num {
     
     ACAccount *twAccount = [[[ACAccount alloc] init] autorelease];
     
