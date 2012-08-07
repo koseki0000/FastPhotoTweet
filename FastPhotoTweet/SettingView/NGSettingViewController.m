@@ -399,11 +399,11 @@
         
     }else if ( ngTypeSegment.selectedSegmentIndex == 1 ) {
         
-        cellString = [NSString stringWithFormat:@"NGユーザー: ", [currentNg objectForKey:@"User"]];
+        cellString = [NSString stringWithFormat:@"NGユーザー: %@", [currentNg objectForKey:@"User"]];
         
     }else if ( ngTypeSegment.selectedSegmentIndex == 2 ) {
         
-        cellString = [NSString stringWithFormat:@"NGクライアント: ", [currentNg objectForKey:@"Client"]];
+        cellString = [NSString stringWithFormat:@"NGクライアント: %@", [currentNg objectForKey:@"Client"]];
     }
     
     //NSLog(@"[%d]%@", indexPath.row , cellString);

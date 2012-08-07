@@ -9,6 +9,7 @@
 
 @interface ArrayDuplicate : NSObject
 
-+ (NSMutableArray *)check:(NSMutableArray *)array;
++ (NSMutableArray *)string:(NSMutableArray *)array;
++ (NSMutableArray *)arrayInDictionaryForKey:(NSMutableArray *)array key:(NSString *)key;
 
 @end

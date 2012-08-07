@@ -1,5 +1,5 @@
 //
-//  TWParseTimeline.m
+//  TWParser
 //  FastPhotoTweet
 //
 //  Created by @peace3884 on 12/07/08.
@@ -9,12 +9,12 @@
 //////// ARC ENABLED ////////
 /////////////////////////////
 
-#import "TWParseTimeline.h"
+#import "TWParser.h"
 
 #define DATE_FORMAT @"HH:mm:ss"
 #define BLANK @""
 
-@implementation TWParseTimeline
+@implementation TWParser
 
 //in: create_at
 //out: JSTタイムゾーン適用済み時刻
@@ -60,6 +60,17 @@
 	}
     
     return tweetData;
+}
+
++ (NSDictionary *)rtText:(NSDictionary *)tweet {
+    
+    NSString *userMentionsScreenName = [[[[tweet objectForKey:@"entities"] objectForKey:@"user_mentions"] objectAtIndex:0] objectForKey:@"screen_name"];
+    NSString *reTweetText = [NSString stringWithFormat:@"RT @%@: %@", userMentionsScreenName, [[tweet objectForKey:@"retweeted_status"] objectForKey:@"text"]];
+    
+    NSMutableDictionary *mutableCurrentTweet = [NSMutableDictionary dictionaryWithDictionary:tweet];
+    [mutableCurrentTweet setObject:reTweetText forKey:@"text"];
+    
+    return [NSDictionary dictionaryWithDictionary:mutableCurrentTweet];
 }
 
 @end

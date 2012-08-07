@@ -298,7 +298,7 @@
     for ( NSDictionary *tweet in targets ) {
         
         //Tweetを読み込み
-        client = [TWParseTimeline client:[tweet objectForKey:@"source"]];
+        client = [TWParser client:[tweet objectForKey:@"source"]];
         
         //NG設定を順次読み込む
         for ( NSDictionary *ngData in ngClients ) {

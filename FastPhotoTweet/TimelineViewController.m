@@ -51,7 +51,7 @@
     
     //各種通知設定
     [self setNotifications];
-    
+
     appDelegate = (AppDelegate *)[[UIApplication sharedApplication] delegate];
     d = [NSUserDefaults standardUserDefaults];
     fileManager = [NSFileManager defaultManager];
@@ -336,6 +336,7 @@
     
     if ( userStream ) [self closeStream];
     
+    reloadButton.enabled = YES;
     openStreamButton.enabled = NO;
     
     NSString *result = [center.userInfo objectForKey:@"Result"];
@@ -375,6 +376,7 @@
     if ( userStream ) [self closeStream];
     
     openStreamButton.enabled = NO;
+    reloadButton.enabled = YES;
     
     NSString *result = [center.userInfo objectForKey:@"Result"];
     
@@ -697,13 +699,7 @@
     //ReTweetの色変えと本文の調整は先にやっておく
     if ( [[currentTweet objectForKey:@"retweeted_status"] objectForKey:@"id"] ) {
         
-        NSString *userMentionsScreenName = [[[[currentTweet objectForKey:@"entities"] objectForKey:@"user_mentions"] objectAtIndex:0] objectForKey:@"screen_name"];
-        NSString *reTweetText = [NSString stringWithFormat:@"RT @%@: %@", userMentionsScreenName, [[currentTweet objectForKey:@"retweeted_status"] objectForKey:@"text"]];
-        
-        NSMutableDictionary *mutableCurrentTweet = [NSMutableDictionary dictionaryWithDictionary:currentTweet];
-        [mutableCurrentTweet setObject:reTweetText forKey:@"text"];
-        
-        currentTweet = [NSDictionary dictionaryWithDictionary:mutableCurrentTweet];
+        currentTweet = [TWParser rtText:currentTweet];
         
         cell.infoLabel.textColor = [UIColor colorWithRed:0.0 green:0.4 blue:0.0 alpha:1.0];
         cell.textLabel.textColor = [UIColor colorWithRed:0.0 green:0.4 blue:0.0 alpha:1.0];
@@ -712,8 +708,8 @@
     NSString *myAccountName = twAccount.username;
     NSString *text = [TWEntities replace:currentTweet];
     NSString *screenName = [[currentTweet objectForKey:@"user"] objectForKey:@"screen_name"];
-    NSString *jstDate = [TWParseTimeline JSTDate:[currentTweet objectForKey:@"created_at"]];
-    NSString *clientName = [TWParseTimeline client:[currentTweet objectForKey:@"source"]];
+    NSString *jstDate = [TWParser JSTDate:[currentTweet objectForKey:@"created_at"]];
+    NSString *clientName = [TWParser client:[currentTweet objectForKey:@"source"]];
     NSString *infoLabelText = [NSString stringWithFormat:@"%@ - %@ [%@]", screenName, jstDate, clientName];
     BOOL favorited = [[currentTweet objectForKey:@"favorited"] boolValue];
     
@@ -782,13 +778,7 @@
     
     if ( [[currentTweet objectForKey:@"retweeted_status"] objectForKey:@"id"] ) {
         
-        NSString *userMentionsScreenName = [[[[currentTweet objectForKey:@"entities"] objectForKey:@"user_mentions"] objectAtIndex:0] objectForKey:@"screen_name"];
-        NSString *reTweetText = [NSString stringWithFormat:@"RT @%@: %@", userMentionsScreenName, [[currentTweet objectForKey:@"retweeted_status"] objectForKey:@"text"]];
-        
-        NSMutableDictionary *mutableCurrentTweet = [NSMutableDictionary dictionaryWithDictionary:currentTweet];
-        [mutableCurrentTweet setObject:reTweetText forKey:@"text"];
-        
-        currentTweet = [NSDictionary dictionaryWithDictionary:mutableCurrentTweet];
+        currentTweet = [TWParser rtText:currentTweet];
         
     }else if ( [currentTweet objectForKey:@"FavEvent"] != nil ) {
         
@@ -978,13 +968,22 @@
     [self getMyAccountIcon];
     
     reloadButton.enabled = NO;
-    
-//    if ( timelineAppend.count != 0 ) [self appendTimelineUnitScroll];
-    
-    timelineArray = [allTimelines objectForKey:twAccount.username];
-    [timeline reloadData];
-    
-    [self createTimeline];
+ 
+    if ( timelineSegment.selectedSegmentIndex == 0 ) {
+     
+        timelineArray = [allTimelines objectForKey:twAccount.username];
+        [timeline reloadData];
+        
+        [self createTimeline];
+        
+    }else if ( timelineSegment.selectedSegmentIndex == 1 ) {
+        
+        [TWGetTimeline mentions];
+        
+    }else if ( timelineSegment.selectedSegmentIndex == 2 ) {
+        
+        [TWGetTimeline favotites];
+    }
 }
 
 - (IBAction)pushOpenStreamButton:(UIBarButtonItem *)sender {
@@ -1125,6 +1124,9 @@
                     //新着が無いので終了
                     if ( newTweet.count == 0 ) return;
                 }
+                
+                //重複する場合は無視
+                if ( [[receiveData objectForKey:@"id_str"] isEqualToString:[[timelineArray objectAtIndex:0] objectForKey:@"id_str"]] ) return;
                 
                 receiveData = [newTweet objectAtIndex:0];
                 
@@ -1371,8 +1373,7 @@
         
     }else {
         
-        userStream = NO;
-        openStreamButton.image = startImage;
+        [self closeStream];
     }
     
     openStreamButton.enabled = YES;
@@ -1527,6 +1528,11 @@
                 
                 if ( buttonIndex == 0 ) {
                     
+                    if ( [[selectTweet objectForKey:@"retweeted_status"] objectForKey:@"id"] ) {
+                        
+                        selectTweet = [TWParser rtText:selectTweet];
+                    }
+                    
                     NSString *text = [TWEntities replace:selectTweet];
                     appDelegate.startupUrlList = [RegularExpression urls:text];
 
@@ -1608,7 +1614,7 @@
                     
                     NSMutableDictionary *addDic = [NSMutableDictionary dictionary];
                     
-                    NSString *clientName = [TWParseTimeline client:[selectTweet objectForKey:@"source"]];
+                    NSString *clientName = [TWParser client:[selectTweet objectForKey:@"source"]];
                     
                     //NGクライアント設定を読み込む
                     NSMutableArray *ngClientArray = [NSMutableArray arrayWithArray:[d objectForKey:@"NGClient"]];
@@ -1657,6 +1663,11 @@
                 
                 }else if ( buttonIndex == 8 ) {
                     
+                    if ( [[selectTweet objectForKey:@"retweeted_status"] objectForKey:@"id"] ) {
+                        
+                        selectTweet = [TWParser rtText:selectTweet];
+                    }
+                    
                     NSString *screenName = [[selectTweet objectForKey:@"user"] objectForKey:@"screen_name"];
                     NSString *text = [TWEntities replace:selectTweet];
                     
@@ -1665,11 +1676,21 @@
                     
                 }else if ( buttonIndex == 9 ) {
                     
+                    if ( [[selectTweet objectForKey:@"retweeted_status"] objectForKey:@"id"] ) {
+                        
+                        selectTweet = [TWParser rtText:selectTweet];
+                    }
+                    
                     NSString *screenName = [[selectTweet objectForKey:@"user"] objectForKey:@"screen_name"];
                     NSString *copyText = [NSString stringWithFormat:@"https://twitter.com/%@/status/%@", screenName, tweetId];
                     [pboard setString:copyText];
                     
                 }else if ( buttonIndex == 10 ) {
+                    
+                    if ( [[selectTweet objectForKey:@"retweeted_status"] objectForKey:@"id"] ) {
+                        
+                        selectTweet = [TWParser rtText:selectTweet];
+                    }
                     
                     [pboard setString:[TWEntities replace:selectTweet]];
                 }
@@ -1732,6 +1753,8 @@
             }else if ( actionSheet.tag == 2 ) {
                 
                 longPressControl = 0;
+                
+                [self closeStream];
                 
                 if ( buttonIndex == 0 ) {
                     

@@ -11,7 +11,7 @@
 #import "TWEntities.h"
 #import "TWIconUpload.h"
 #import "TWGetTimeline.h"
-#import "TWParseTimeline.h"
+#import "TWParser.h"
 #import "TWIconBigger.h"
 #import "TWEvent.h"
 #import "TWNgTweet.h"
