@@ -1536,7 +1536,19 @@
                     NSString *text = [TWEntities replace:selectTweet];
                     appDelegate.startupUrlList = [RegularExpression urls:text];
 
-                    [self openBrowser];
+                    NSLog(@"startupUrlList[%d]: %@", appDelegate.startupUrlList.count, appDelegate.startupUrlList);
+                    
+                    if ( appDelegate.startupUrlList.count == 0 || appDelegate.startupUrlList == nil ) {
+                        
+                        dispatch_sync(dispatch_get_main_queue(), ^{
+                            
+                            [ShowAlert error:@"URLがありません。"];
+                        });
+                        
+                    }else {
+                    
+                        [self openBrowser];
+                    }
                     
                 }else if ( buttonIndex == 1 ) {
                     

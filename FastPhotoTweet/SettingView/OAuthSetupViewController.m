@@ -8,9 +8,6 @@
 #import "OAuthSetupViewController.h"
 #import "AppDelegate.h"
 
-#define OAUTH_KEY    @"dVbmOIma7UCc5ZkV3SckQ"
-#define OAUTH_SECRET @"wnDptUj4VpGLZebfLT3IInTZPkPS4XimYh6WXAmdI"
-
 @implementation OAuthSetupViewController
 @synthesize bar;
 @synthesize closeButton;
@@ -48,7 +45,7 @@
     //NSLog(@"oaRequestStart");
     
     wv.delegate = self;
-	pinField.text = @"";
+	pinField.text = BLANK;
 	
 	NSURL *oaUrlGetRequestToken = [NSURL URLWithString:@"https://api.twitter.com/oauth/request_token"];
 	
@@ -259,8 +256,8 @@
 	if ( match.numberOfRanges != 0 ) {
         
 		NSMutableString *pinString = [NSMutableString stringWithFormat:@"%@", [responseString substringWithRange:[match rangeAtIndex:0]]];
-		[pinString replaceOccurrencesOfString:@"<code>" withString:@"" options:0 range:NSMakeRange(0, [pinString length] )];
-		[pinString replaceOccurrencesOfString:@"</code>" withString:@"" options:0 range:NSMakeRange(0, [pinString length] )];
+		[pinString replaceOccurrencesOfString:@"<code>" withString:BLANK options:0 range:NSMakeRange(0, [pinString length] )];
+		[pinString replaceOccurrencesOfString:@"</code>" withString:BLANK options:0 range:NSMakeRange(0, [pinString length] )];
 		pinField.text = pinString;
         
 		[self performSelector:@selector(finish) withObject:nil afterDelay:0.1];
@@ -279,7 +276,7 @@
     
     NSUserDefaults *d = [NSUserDefaults standardUserDefaults];
     
-	if ( [pinField.text isEqualToString:@""] || 
+	if ( [pinField.text isEqualToString:BLANK] || 
          [d objectForKey:@"OAuthRequestTokenKey"] == nil ||
          [d objectForKey:@"OAuthRequestTokenSecret"] == nil ) {
         
@@ -309,7 +306,7 @@
 								didFinishSelector:@selector(accessTokenTicket:didFinishWithData:)
 								  didFailSelector:@selector(accessTokenTicket:didFailWithError:)];
 		
-		pinField.text = @"";
+		pinField.text = BLANK;
 		
 		[oaRequestToken release];
 		[oaUrlAccessToken release];
@@ -340,10 +337,7 @@
     
     [pinField resignFirstResponder];
     
-    if ( [EmptyCheck check:pinField.text] ) {
-        
-        [self setPinCode];
-    }
+    if ( [EmptyCheck string:pinField.text] ) [self setPinCode];
 }
 
 - (void)viewDidUnload {
@@ -361,10 +355,7 @@
     
     //NSLog(@"OAuthSetupView dealloc");
     
-    if ( wv.loading ) {
-        
-        [wv stopLoading];
-    }
+    if ( wv.loading ) [wv stopLoading];
 
     wv.delegate = nil;
     [wv removeFromSuperview];

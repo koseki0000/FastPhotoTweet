@@ -8,6 +8,11 @@
 #import <UIKit/UIKit.h>
 #import "Reachability.h"
 
+#define IMGUR_API_KEY   @"6de089e68b55d6e390d246c4bf932901"
+#define TWITPIC_API_KEY @"95cf146048caad3267f95219b379e61c"
+#define OAUTH_KEY       @"dVbmOIma7UCc5ZkV3SckQ"
+#define OAUTH_SECRET    @"wnDptUj4VpGLZebfLT3IInTZPkPS4XimYh6WXAmdI"
+
 #define BLANK @""
 #define D [NSUserDefaults standardUserDefaults]
 

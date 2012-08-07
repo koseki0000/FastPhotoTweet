@@ -12,11 +12,6 @@
 #define TOP_BAR [NSArray arrayWithObjects:trashButton, flexibleSpace, idButton, flexibleSpace, resendButton, flexibleSpace, imageSettingButton, flexibleSpace, postButton, nil]
 #define BOTTOM_BAR [NSArray arrayWithObjects:settingButton, flexibleSpace, browserButton, flexibleSpace, nowPlayingButton, flexibleSpace, actionButton, nil]
 
-#define IMGUR_API_KEY   @"6de089e68b55d6e390d246c4bf932901"
-#define TWITPIC_API_KEY @"95cf146048caad3267f95219b379e61c"
-#define OAUTH_KEY       @"dVbmOIma7UCc5ZkV3SckQ"
-#define OAUTH_SECRET    @"wnDptUj4VpGLZebfLT3IInTZPkPS4XimYh6WXAmdI"
-
 @implementation ViewController
 @synthesize resendButton;
 @synthesize sv;
