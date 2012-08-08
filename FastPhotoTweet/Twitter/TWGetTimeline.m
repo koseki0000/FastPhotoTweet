@@ -77,6 +77,8 @@
                                                                                               options:NSJSONReadingMutableLeaves 
                                                                                                 error:&jsonError];
 
+                 [result setObject:twAccount.username forKey:@"Account"];
+                 
                  if ( timeline != nil ) {
                  
                      //取得完了を通知

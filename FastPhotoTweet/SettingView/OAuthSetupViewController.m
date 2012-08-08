@@ -360,6 +360,7 @@
     wv.delegate = nil;
     [wv removeFromSuperview];
     
+    [grayView release];
     [bar release];
     [closeButton release];
     [pinField release];

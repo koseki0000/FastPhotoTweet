@@ -12,6 +12,6 @@
 
 + (ACAccount *)currentAccount;
 + (ACAccount *)selectAccount:(int)num;
-+ (int)getTwitterAccountCount;
++ (int)getCount;
 
 @end

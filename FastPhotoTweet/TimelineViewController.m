@@ -212,6 +212,17 @@
         dispatch_queue_t syncQueue = dispatch_queue_create( "info.ktysne.fastphototweet", NULL );
         dispatch_sync( syncQueue, ^{
             
+            twAccount = [TWGetAccount currentAccount];
+            
+            NSLog(@"Account: %@, twAccount: %@", [center.userInfo objectForKey:@"Account"], twAccount.username);
+            
+            if ( ![[center.userInfo objectForKey:@"Account"] isEqualToString:twAccount.username] ) {
+             
+                NSLog(@"not active account reload");
+                
+                return;
+            }
+            
             //自分のアイコンを設定
             [self getMyAccountIcon];
             
@@ -543,6 +554,13 @@
     
     //UserStreamが有効な場合切断する
     if ( userStream ) [self closeStream];
+    
+    twAccount = [TWGetAccount currentAccount];
+    
+    [self getMyAccountIcon];
+    
+    timelineArray = [allTimelines objectForKey:twAccount.username];
+    [timeline reloadData];
     
     //リロードする
     [self performSelector:@selector(pushOpenStreamButton:) withObject:nil afterDelay:0.1];
@@ -968,7 +986,9 @@
     [self getMyAccountIcon];
     
     reloadButton.enabled = NO;
- 
+
+    twAccount = [TWGetAccount currentAccount];
+    
     if ( timelineSegment.selectedSegmentIndex == 0 ) {
      
         timelineArray = [allTimelines objectForKey:twAccount.username];
@@ -1408,7 +1428,7 @@
     
     [NSThread sleepForTimeInterval:0.1f];
     
-    int accountCount = [TWGetAccount getTwitterAccountCount] - 1;
+    int accountCount = [TWGetAccount getCount] - 1;
     
     if ( accountCount >= num ) {
      
@@ -1416,7 +1436,6 @@
         
         appDelegate.sinceId = BLANK;
         
-        twAccount = [TWGetAccount selectAccount:num];
         [d setInteger:num forKey:@"UseAccount"];
         
         [self performSelector:@selector(changeSegment:) withObject:nil afterDelay:0.1];
@@ -1433,7 +1452,7 @@
     [NSThread sleepForTimeInterval:0.1f];
     
     int num = [d integerForKey:@"UseAccount"] + 1;
-    int accountCount = [TWGetAccount getTwitterAccountCount] - 1;
+    int accountCount = [TWGetAccount getCount] - 1;
     
     if ( accountCount >= num ) {
         
@@ -1441,7 +1460,6 @@
         
         appDelegate.sinceId = BLANK;
         
-        twAccount = [TWGetAccount selectAccount:num];
         [d setInteger:num forKey:@"UseAccount"];
         
         [self performSelector:@selector(changeSegment:) withObject:nil afterDelay:0.1];
@@ -1480,9 +1498,9 @@
         
     }else {
         
+        twAccount = [TWGetAccount currentAccount];
+        
         if ( timelineSegment.selectedSegmentIndex == 0 ) {
-            
-//            [self appendTimelineUnitScroll];
             
             //Timelineに切り替わった
             timelineArray = [allTimelines objectForKey:twAccount.username];
@@ -1496,14 +1514,10 @@
             
         }else if ( timelineSegment.selectedSegmentIndex == 1 ) {
             
-//            [self appendTimelineUnitScroll];
-            
             //Mentionsに切り替わった
             [TWGetTimeline mentions];
             
         }else if ( timelineSegment.selectedSegmentIndex == 2 ) {
-            
-//            [self appendTimelineUnitScroll];
             
             //Favoritesに切り替わった
             [TWGetTimeline favotites];

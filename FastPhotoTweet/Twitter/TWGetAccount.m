@@ -54,7 +54,7 @@
     return twAccount;
 }
 
-+ (int)getTwitterAccountCount {
++ (int)getCount {
     
     ACAccountStore *accountStore = [[[ACAccountStore alloc] init] autorelease];
     ACAccountType *accountType = [accountStore accountTypeWithAccountTypeIdentifier:ACAccountTypeIdentifierTwitter];
