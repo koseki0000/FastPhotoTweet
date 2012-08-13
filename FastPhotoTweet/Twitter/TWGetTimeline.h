@@ -17,8 +17,10 @@
 @interface TWGetTimeline : NSObject
 
 + (void)homeTimeline;
++ (void)userTimeline:(NSString *)screenName;
 + (void)mentions;
 + (void)favotites;
++ (void)twitterSearch:(NSString *)searchWord;
 
 + (BOOL)reachability;
 

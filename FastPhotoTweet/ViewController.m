@@ -2164,6 +2164,16 @@
                 [postText becomeFirstResponder];
                 [appDelegate.postData removeAllObjects];
             
+            }else if ( [appDelegate.tabChangeFunction isEqualToString:@"Edit"] ) {
+                
+                NSDictionary *postData = appDelegate.postData;
+                postText.text = [postData objectForKey:@"Text"];
+                inReplyToId = [postData objectForKey:@"InReplyToId"];
+                [inReplyToId retain];
+                
+                [postText becomeFirstResponder];
+                [appDelegate.postData removeAllObjects];
+                
             }else if ( [appDelegate.tabChangeFunction isEqualToString:@"PostError"] ) {
                 
                 [ShowAlert error:@"投稿に失敗しました。失敗したPostは上部中央のボタンから再投稿出来ます。"];

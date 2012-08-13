@@ -45,6 +45,7 @@
     }else if ( [urlString hasPrefix:@"http://yfrog.com/"] ) {
         
         NSString *yfrogReqUrl = [NSString stringWithFormat:@"http://yfrog.com/api/xmlInfo?path=%@", [urlString lastPathComponent]];
+        
         NSURLRequest *request = [NSURLRequest requestWithURL:[NSURL URLWithString:yfrogReqUrl]];
         NSError *error = nil;
         NSData *response = [NSURLConnection sendSynchronousRequest:request 
@@ -63,12 +64,19 @@
         
         if ( match.numberOfRanges != 0 ) {
             
-            NSString *tempString = [NSString stringWithString:[xmlString substringWithRange:[match rangeAtIndex:0]]];
+            NSMutableString *tempString = [NSMutableString stringWithString:[xmlString substringWithRange:[match rangeAtIndex:0]]];
             
-            urlString = [regexp stringByReplacingMatchesInString:@"</?image_link>"
-                                                         options:0
-                                                           range:NSMakeRange(0, tempString.length)
-                                                    withTemplate:BLANK];
+            [tempString replaceOccurrencesOfString:@"<image_link>"
+                                     withString:@""
+                                        options:0
+                                          range:NSMakeRange(0, tempString.length)];
+            
+            [tempString replaceOccurrencesOfString:@"</image_link>"
+                                        withString:@""
+                                           options:0
+                                             range:NSMakeRange(0, tempString.length)];
+            
+            urlString = (NSString *)tempString;
         }
         
     }else if ( [urlString hasPrefix:@"http://ow.ly/i/"] ) {

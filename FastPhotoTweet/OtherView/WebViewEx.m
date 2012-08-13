@@ -279,35 +279,41 @@
     
     //NSLog(@"loadRequestWithString");
     
-    if ( ![EmptyCheck check:URLString] ) {
+    if ( ![EmptyCheck string:URLString] ) {
         
         [ShowAlert error:@"URLがありません。"];
     }
     
-    if ( [RegularExpression boolRegExp:URLString regExpPattern:@"(https?://.*|about:blank)"] ) {
+    URL = [NSURL URLWithString:URLString];
+    
+    if ( [RegularExpression boolRegExp:URLString regExpPattern:@"about:blank|https?://.*"] ) {
         
+        //そのままアクセス出来そうなURL
         //NSLog(@"http(s) address");
         
-        URL = [NSURL URLWithString:URLString];
         URLReq = [NSURLRequest requestWithURL:URL];
-        [self loadRequest:URLReq];   
+        [self loadRequest:URLReq];
         
     }else {
         
-        //NSLog(@"not http(s) address");
+        NSLog(@"not http(s) address");
         
-        BOOL canOpen = [[UIApplication sharedApplication] canOpenURL:[NSURL URLWithString:URLString]];
+        BOOL canOpen = [[UIApplication sharedApplication] canOpenURL:URL];
         
         if ( canOpen ) {
             
-            //NSLog(@"scheme");
-            
+            //URLScheme
+            NSLog(@"scheme");
+        
             [UIApplication sharedApplication].networkActivityIndicatorVisible = NO;
-			[[UIApplication sharedApplication] openURL:URL];
+            [[UIApplication sharedApplication] openURL:URL];
             
         }else {
             
-            //NSLog(@"add protocol");
+            //そのままアクセス出来なそうでURLSchemeでもない
+            //http://を付けてみる
+            NSLog(@"add protocol");
+            
             URL = [NSURL URLWithString:[NSString stringWithFormat:@"http://%@", URLString]];
             URLReq = [NSURLRequest requestWithURL:URL];
             [self loadRequest:URLReq];

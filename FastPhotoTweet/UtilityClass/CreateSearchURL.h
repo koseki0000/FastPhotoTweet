@@ -9,7 +9,9 @@
 
 @interface CreateSearchURL : NSObject
 
-+ (NSString *)google:(NSString *)word;
++ (NSString *)google:(NSString *)searchWord;
 + (NSString *)twilog:(NSString *)screenName searchWord:(NSString *)searchWord;
+
++ (NSString *)encodeWord:(NSString *)word;
 
 @end

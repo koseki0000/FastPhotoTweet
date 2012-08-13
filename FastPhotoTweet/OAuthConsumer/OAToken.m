@@ -60,7 +60,7 @@
 	self.secret = aSecret;
 	self.session = aSession;
 	self.duration = aDuration;
-	self.attributes = theAttributes;
+	self.attributes = [NSMutableDictionary dictionaryWithDictionary:theAttributes];
 	created = [creation retain];
 	renewable = renew;
 	forRenewal = NO;
@@ -207,7 +207,7 @@
 
 - (void)setAttributesWithString:(NSString *)theAttributes
 {
-	self.attributes = [[self class] attributesWithString:theAttributes];
+	self.attributes = [NSMutableDictionary dictionaryWithDictionary:[[self class] attributesWithString:theAttributes]];
 }
 
 - (NSDictionary *)parameters

@@ -15,13 +15,13 @@
 @synthesize doneButton;
 @synthesize space;
 
--(id)init{
+-(id)init {
     
     self = [super init];
     
     if ( self != nil ) {
         
-        [[NSBundle mainBundle] loadNibNamed:@"TWAccountSelectView" owner:self options:nil];
+       [[NSBundle mainBundle] loadNibNamed:@"TWAccountSelectView" owner:self options:nil];
     }
     
     return self;

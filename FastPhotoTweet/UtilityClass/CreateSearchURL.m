@@ -9,29 +9,29 @@
 
 @implementation CreateSearchURL
 
-+ (NSString *)google:(NSString *)word {
++ (NSString *)google:(NSString *)searchWord {
     
     NSString *searchURL = @"http://www.google.co.jp/search?q=";
-    NSString *encodedSearchWord = [(NSString *)CFURLCreateStringByAddingPercentEscapes(kCFAllocatorDefault,
-                                                                                      (CFStringRef)word,
-                                                                                      NULL,
-                                                                                      (CFStringRef)@"!*'();:@&=+$,/?%#[]",
-                                                                                      kCFStringEncodingShiftJIS) autorelease];
     
-    return [NSString stringWithFormat:@"%@%@", searchURL, encodedSearchWord];
+    return [NSString stringWithFormat:@"%@%@", searchURL, [CreateSearchURL encodeWord:searchWord]];
 }
 
 + (NSString *)twilog:(NSString *)screenName searchWord:(NSString *)searchWord {
     
     NSString *searchURL = [NSString stringWithFormat:@"http://twilog.org/tweets.cgi?id=%@&word=%@", 
                            screenName, 
-                           [((NSString *)CFURLCreateStringByAddingPercentEscapes (kCFAllocatorDefault, 
-                                                                                 (CFStringRef)searchWord, 
-                                                                                 NULL, 
-                                                                                 (CFStringRef)@"!*'();:@&=+$,/?%#[]", 
-                                                                                 kCFStringEncodingUTF8)) autorelease]];
+                           [CreateSearchURL encodeWord:searchWord]];
     
     return searchURL;
+}
+
++ (NSString *)encodeWord:(NSString *)word {
+    
+    return [(NSString *)CFURLCreateStringByAddingPercentEscapes(kCFAllocatorDefault,
+                                                                (CFStringRef)word,
+                                                                NULL,
+                                                                (CFStringRef)@"!*'();:@&=+$,/?%#[]",
+                                                                kCFStringEncodingShiftJIS) autorelease];
 }
 
 @end

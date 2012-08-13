@@ -16,6 +16,7 @@
 + (NSMutableArray *)mArrayRegExp:(NSString *)matchString regExpPattern:(NSString *)regExpPattern;
 
 + (NSMutableArray *)urls:(id)string;
++ (void)twitterIds:(id)searchString;
 
 + (void)regExpError;
 

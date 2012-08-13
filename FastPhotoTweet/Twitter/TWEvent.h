@@ -26,6 +26,7 @@
 + (void)getTweet:(NSString *)tweetId;
 
 + (void)unFavorite:(NSString *)tweetId;
++ (void)destroy:(NSString *)tweetId;
 
 + (ACAccount *)canAction;
 

@@ -45,8 +45,8 @@
     UIImage *startImage;
     UIImage *stopImage;
     UIImage *defaultActionButtonImage;
-    UIAlertView *twilogSearch;
-    UITextField *twilogSearchText;
+    UIAlertView *alertSearch;
+    UITextField *alertSearchText;
     
     ACAccount *twAccount;
     
@@ -54,7 +54,7 @@
     BOOL openStreamAfter;
     BOOL userStreamFirstResponse;
     BOOL webBrowserMode;
-    BOOL inReplyToMode;
+    BOOL otherTweetsMode;
     BOOL viewWillAppear;
     BOOL userStreamBuffer;
     
@@ -71,7 +71,7 @@
 @property (retain, nonatomic) IBOutlet UIBarButtonItem *reloadButton;
 @property (retain, nonatomic) IBOutlet UIBarButtonItem *openStreamButton;
 @property (retain, nonatomic) IBOutlet UIBarButtonItem *actionButton;
-@property (retain, nonatomic) IBOutlet UIBarButtonItem *closeInReplyToButton;
+@property (retain, nonatomic) IBOutlet UIBarButtonItem *closeOtherTweetsButton;
 @property (retain, nonatomic) IBOutlet UIImageView *accountIconView;
 @property (retain, nonatomic) IBOutlet UISegmentedControl *timelineSegment;
 @property (strong, nonatomic) NSURLConnection *connection;
@@ -80,7 +80,7 @@
 - (IBAction)pushReloadButton:(UIBarButtonItem *)sender;
 - (IBAction)pushOpenStreamButton:(UIBarButtonItem *)sender;
 - (IBAction)pushActionButton:(UIBarButtonItem *)sender;
-- (IBAction)pushCloseInReplyToButton:(UIBarButtonItem *)sender;
+- (IBAction)pushCloseOtherTweetsButton:(UIBarButtonItem *)sender;
 
 - (IBAction)swipeTimelineRight:(UISwipeGestureRecognizer *)sender;
 - (IBAction)swipeTimelineLeft:(UISwipeGestureRecognizer *)sender;

@@ -1172,6 +1172,41 @@
         }
     }
     
+    if ( [RegularExpression boolRegExp:accessURL regExpPattern:@"about:blank|https?://.*"] ) {
+        
+        //そのままアクセス出来そうなURL
+        //NSLog(@"http(s) address");
+        
+    }else {
+        
+        NSLog(@"not http(s) address");
+        
+        NSURL *URL = [NSURL URLWithString:accessURL];
+        BOOL canOpen = [[UIApplication sharedApplication] canOpenURL:URL];
+        
+        if ( canOpen ) {
+            
+            //URLScheme
+            NSLog(@"scheme");
+            
+            [UIApplication sharedApplication].networkActivityIndicatorVisible = NO;
+            [[UIApplication sharedApplication] openURL:URL];
+            
+            return NO;
+            
+        }else {
+            
+            //そのままアクセス出来なそうでURLSchemeでもない
+            //http://を付けてみる
+            NSLog(@"add protocol");
+            
+            [wv loadRequestWithString:[NSString stringWithFormat:@"http://%@", accessURL]];
+            
+            return NO;
+        }
+    }
+    
+    //保存メニューを表示するかチェック
     [self performSelectorInBackground:@selector(showDownloadMenu:) withObject:accessURL];
     
     loading = YES;
@@ -1309,6 +1344,13 @@
         if ( ![EmptyCheck check:url] ) {
             
             [ShowAlert error:@"URLがありません。"];
+            return;
+        }
+        
+        if ( downloading ) {
+            
+            [ShowAlert title:@"ダウンロード進行中" message:@"現在ダウンロードしているファイルが完了した後やり直してください。"];
+            return;
         }
         
         //キャッシュの削除
@@ -1342,15 +1384,24 @@
     }
 }
 
-- (void)connection:(NSURLConnection *)connection didReceiveResponse:(NSURLResponse *)response{
+- (void)connection:(NSURLConnection *)connection didReceiveResponse:(NSURLResponse *)response {
     
-    //NSLog(@"didReceiveResponse: %lldbytes", [response expectedContentLength]);
+    NSHTTPURLResponse *httpResponse = (NSHTTPURLResponse*)response;
+    NSLog(@"didReceiveResponse:%d, %lldbytes", httpResponse.statusCode, response.expectedContentLength);
     
-    //データを初期化
-	asyncData = [[NSMutableData alloc] initWithData:0];
-    
-    //総ファイルサイズをセット
-    totalbytes = [response expectedContentLength];
+    if ( httpResponse.statusCode == 200 ) {
+        
+        //データを初期化
+        asyncData = [[NSMutableData alloc] initWithData:0];
+        
+        //総ファイルサイズをセット
+        totalbytes = [response expectedContentLength];
+        
+    }else {
+     
+        [ShowAlert error:@"不明なエラー"];
+        [self endDownload];
+    }
 }
 
 - (void)connection:(NSURLConnection *)connection didReceiveData:(NSData *)data{

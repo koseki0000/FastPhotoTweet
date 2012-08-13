@@ -8,6 +8,7 @@
 #import <Foundation/Foundation.h>
 #import "TWGetAccount.h"
 #import "TWParser.h"
+#import "TWEntities.h"
 #import "RegularExpression.h"
 #import "EmptyCheck.h"
 #import "DeleteWhiteSpace.h"
