@@ -49,7 +49,7 @@
             twAccount = [twitterAccounts objectAtIndex:num];
         }
         
-    }@catch ( NSException *e ) {}
+    }@catch ( NSException *e ) { return nil; }
     
     return twAccount;
 }

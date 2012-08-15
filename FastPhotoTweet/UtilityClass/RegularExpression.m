@@ -184,11 +184,11 @@
     return urlList;
 }
 
-+ (void)twitterIds:(id)searchString {
++ (NSMutableArray *)twitterIds:(id)searchString {
     
     NSString *string = [NSString stringWithString:searchString];
     
-    [RegularExpression mArrayRegExp:string regExpPattern:@"@?[a-zA-Z0-9_]{1,15}"];
+    return [RegularExpression mArrayRegExp:string regExpPattern:@"@[a-zA-Z0-9_]{1,15}"];
 }
 
 + (void)regExpError {

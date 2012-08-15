@@ -70,6 +70,7 @@
     selectTweet = [NSDictionary dictionary];
     userStreamAccount = BLANK;
     timelineTopTweetId = BLANK;
+    selectAccount = BLANK;
     
     startImage = [UIImage imageNamed:@"ForwardIcon.png"];
     stopImage = [UIImage imageNamed:@"stop.png"];
@@ -253,7 +254,7 @@
                 
                 NSArray *newTweet = [center.userInfo objectForKey:@"Timeline"];
                 
-                //NSLog(@"newTweet: %@", newTweet);
+                NSLog(@"newTweet: %@", newTweet);
                 
                 if ( newTweet.count == 0 ) {
                     
@@ -303,7 +304,7 @@
                 //NGWord判定を行う
                 newTweet = [TWNgTweet ngWord:newTweet];
                 
-                if ( timelineArray.count != 0 ) {
+                if ( timelineArray.count != 0 && newTweet.count != 0 ) {
                 
 //                    NSLog(@"[0]: %@, [count]: %@", [[newTweet objectAtIndex:0] objectForKey:@"id_str"], [[newTweet objectAtIndex:newTweet.count - 1] objectForKey:@"id_str"]);
                     
@@ -849,7 +850,7 @@
     }
     
     NSString *myAccountName = twAccount.username;
-    NSString *text = [TWEntities replace:currentTweet];
+    NSString *text = [TWEntities openTco:currentTweet];
     NSString *screenName = [[currentTweet objectForKey:@"user"] objectForKey:@"screen_name"];
     NSString *jstDate = [TWParser JSTDate:[currentTweet objectForKey:@"created_at"]];
     NSString *clientName = [TWParser client:[currentTweet objectForKey:@"source"]];
@@ -928,7 +929,7 @@
         return [self heightForContents:[NSString stringWithFormat:@"【%@がお気に入りに追加】\n%@", [currentTweet objectForKey:@"addUser"], [currentTweet objectForKey:@"text"]]] + 17 + 8;
     }
     
-    return [self heightForContents:[TWEntities replace:currentTweet]] + 17 + 8;
+    return [self heightForContents:[TWEntities openTco:currentTweet]] + 17 + 8;
 }
 
 - (CGFloat)heightForContents:(NSString *)contents {
@@ -1051,6 +1052,8 @@
                 
                 [request.responseData writeToFile:FILE_PATH atomically:YES];
             }
+            
+            if ( timelineArray.count == 0 ) return;
             
             NSArray *tempTimelineArray = [NSArray arrayWithArray:timelineArray];
             int index = 0;
@@ -1687,7 +1690,7 @@
                 
                 if ( buttonIndex == 0 ) {
                     
-                    NSString *text = [TWEntities replace:selectTweet];
+                    NSString *text = [TWEntities openTco:selectTweet];
                     appDelegate.startupUrlList = [RegularExpression urls:text];
 
                     NSLog(@"startupUrlList[%d]: %@", appDelegate.startupUrlList.count, appDelegate.startupUrlList);
@@ -1816,7 +1819,7 @@
                     
                     NSString *inReplyToId = [selectTweet objectForKey:@"in_reply_to_status_id_str"];
                     
-                    if ( [EmptyCheck string:inReplyToId] ) {
+                    if ( [EmptyCheck check:inReplyToId] ) {
                         
                         otherTweetsMode = YES;
                         
@@ -1833,7 +1836,7 @@
                 
                 }else if ( buttonIndex == 8 ) {
                     
-                    NSString *text = [TWEntities replace:selectTweet];
+                    NSString *text = [TWEntities openTco:selectTweet];
                     
                     NSString *copyText = [NSString stringWithFormat:@"%@: %@ [https://twitter.com/%@/status/%@]", screenName, text, screenName, tweetId];
                     [pboard setString:copyText];
@@ -1845,7 +1848,7 @@
                     
                 }else if ( buttonIndex == 10 ) {
                     
-                    [pboard setString:[TWEntities replace:selectTweet]];
+                    [pboard setString:[TWEntities openTco:selectTweet]];
                 
                 }else if ( buttonIndex == 11 ) {
                     
@@ -1891,18 +1894,16 @@
                     
                 }else if ( buttonIndex == 13 ) {
                     
-                    UIActionSheet *sheet = [[UIActionSheet alloc]
-                                            initWithTitle:@"ユーザーメニュー"
-                                            delegate:self
-                                            cancelButtonTitle:@"Cancel"
-                                            destructiveButtonTitle:nil
-                                            otherButtonTitles:@"Tweetを表示", nil];
+                    NSMutableArray *ids = [RegularExpression twitterIds:[selectTweet objectForKey:@"text"]];
+                    [ids insertObject:[NSString stringWithFormat:@"@%@", [[selectTweet objectForKey:@"user"] objectForKey:@"screen_name"]] atIndex:0];
                     
-                    sheet.tag = 3;
+                    selectTweetIds = [ArrayDuplicate checkArray:ids];
+                    
+                    if ( ids.count == 0 ) return;
                     
                     dispatch_async(dispatch_get_main_queue(), ^ {
                         
-                        [sheet showInView:appDelegate.tabBarController.self.view];
+                        [self showTwitterAccountSelectActionSheet:selectTweetIds];
                     });
                 }
                 
@@ -2021,7 +2022,7 @@
                     
                     [self closeStream];
                 });
-                    
+                
                 if ( buttonIndex == 0 ) {
                     
                     //タイムラインからログを削除
@@ -2091,15 +2092,131 @@
                 
             }else if ( actionSheet.tag == 3 ) {
                 
+                
+                
+            }else if ( actionSheet.tag == 4 ) {
+                
+                if ( buttonIndex == selectTweetIds.count ) {
+                 
+                    selectAccount = BLANK;
+                    selectTweetIds = [NSArray array];
+                    return;
+                }
+                
+                selectAccount = [selectTweetIds objectAtIndex:buttonIndex];
+                
+                UIActionSheet *sheet = [[UIActionSheet alloc]
+                                        initWithTitle:selectAccount
+                                        delegate:self
+                                        cancelButtonTitle:@"Cancel"
+                                        destructiveButtonTitle:nil
+                                        otherButtonTitles:@"ユーザータイムライン", nil];
+                
+                dispatch_async(dispatch_get_main_queue(), ^ {
+                    
+                    sheet.tag = 5;
+                    [sheet showInView:appDelegate.tabBarController.self.view];
+                });
+                
+            }else if ( actionSheet.tag == 5 ) {
+                
                 if ( buttonIndex == 0 ) {
                     
-                    [TWGetTimeline userTimeline:screenName];
+                    //選択ユーザーのユーザータイムラインを取得
+                    [TWGetTimeline userTimeline:selectAccount];
                 }
+                
+                //後処理
+                selectAccount = BLANK;
+                selectTweetIds = [NSArray array];
             }
         });
         
         dispatch_release(syncQueue);
     });
+}
+
+- (void)showTwitterAccountSelectActionSheet:(NSArray *)ids {
+    
+    NSLog(@"showTwitterAccountSelectActionSheet[%d]", ids.count);
+    
+    UIActionSheet *sheet = nil;
+    
+    if (ids.count == 1 ) {
+        
+        sheet = [[UIActionSheet alloc]
+                 initWithTitle:@"URL選択"
+                 delegate:self
+                 cancelButtonTitle:@"Cancel"
+                 destructiveButtonTitle:nil
+                 otherButtonTitles:[ids objectAtIndex:0], nil];
+        
+    }else if (ids.count == 2 ) {
+        
+        sheet = [[UIActionSheet alloc]
+                                initWithTitle:@"URL選択"
+                                delegate:self
+                                cancelButtonTitle:@"Cancel"
+                                destructiveButtonTitle:nil
+                                otherButtonTitles:[ids objectAtIndex:0],
+                                [ids objectAtIndex:1], nil];
+        
+    }else if (ids.count == 3 ) {
+        
+        sheet = [[UIActionSheet alloc]
+                                initWithTitle:@"URL選択"
+                                delegate:self
+                                cancelButtonTitle:@"Cancel"
+                                destructiveButtonTitle:nil
+                                otherButtonTitles:[ids objectAtIndex:0],
+                                [ids objectAtIndex:1],
+                                [ids objectAtIndex:2], nil];
+        
+    }else if (ids.count == 4 ) {
+        
+        sheet = [[UIActionSheet alloc]
+                                initWithTitle:@"URL選択"
+                                delegate:self
+                                cancelButtonTitle:@"Cancel"
+                                destructiveButtonTitle:nil
+                                otherButtonTitles:[ids objectAtIndex:0],
+                                [ids objectAtIndex:1],
+                                [ids objectAtIndex:2],
+                                [ids objectAtIndex:3], nil];
+        
+    }else if (ids.count == 5 ) {
+        
+        sheet = [[UIActionSheet alloc]
+                                initWithTitle:@"URL選択"
+                                delegate:self
+                                cancelButtonTitle:@"Cancel"
+                                destructiveButtonTitle:nil
+                                otherButtonTitles:[ids objectAtIndex:0],
+                                [ids objectAtIndex:1],
+                                [ids objectAtIndex:2],
+                                [ids objectAtIndex:3],
+                                [ids objectAtIndex:4], nil];
+        
+    }else if (ids.count >= 6 ) {
+        
+        sheet = [[UIActionSheet alloc]
+                                initWithTitle:@"URL選択"
+                                delegate:self
+                                cancelButtonTitle:@"Cancel"
+                                destructiveButtonTitle:nil
+                                otherButtonTitles:[ids objectAtIndex:0],
+                                [ids objectAtIndex:1],
+                                [ids objectAtIndex:2],
+                                [ids objectAtIndex:3],
+                                [ids objectAtIndex:4],
+                                [ids objectAtIndex:5], nil];
+    }
+    
+    if ( sheet != nil ) {
+     
+        sheet.tag = 4;
+        [sheet showInView:appDelegate.tabBarController.self.view];
+    }
 }
 
 #pragma mark - UIAlertView
@@ -2302,7 +2419,9 @@
 
 - (void)becomeActive:(NSNotification *)notification {
     
-    if ( [d boolForKey:@"BecomeActiveUSConnect"] && timelineSegment.selectedSegmentIndex == 0 && !otherTweetsMode ) {
+    if ( !otherTweetsMode ) return;
+    
+    if ( [d boolForKey:@"BecomeActiveUSConnect"] && timelineSegment.selectedSegmentIndex == 0 ) {
      
         if ( !userStream ) [self pushReloadButton:nil];
     }

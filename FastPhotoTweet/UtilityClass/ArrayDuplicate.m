@@ -9,7 +9,7 @@
 
 @implementation ArrayDuplicate
 
-+ (NSMutableArray *)string:(NSMutableArray *)array {
++ (NSMutableArray *)checkArray:(NSMutableArray *)array {
     
     for ( int i = 0; i < array.count; i++ ) {
         

@@ -360,8 +360,10 @@
     
     //リクエストパラメータを作成
     NSMutableDictionary *params = [[[NSMutableDictionary alloc] init] autorelease];
-    //取得数
+    //サーチワード
     [params setObject:searchWord forKey:@"q"];
+    //取得数
+    [params setObject:@"60" forKey:@"count"];
     //エンティティの有効化
     [params setObject:@"1" forKey:@"include_entities"];
     //日本

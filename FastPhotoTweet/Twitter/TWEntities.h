@@ -10,6 +10,7 @@
 
 @interface TWEntities : NSObject
 
-+ (NSString *)replace:(NSDictionary *)dictionary;
++ (NSString *)openTco:(NSDictionary *)tweet;
++ (NSMutableString *)replace:(NSDictionary *)tweet text:(NSMutableString *)text entitiesType:(NSString *)entitiesType;
 
 @end

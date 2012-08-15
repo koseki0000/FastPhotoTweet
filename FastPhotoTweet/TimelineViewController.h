@@ -35,11 +35,13 @@
     NSMutableDictionary *sinceIds;
     NSMutableDictionary *icons;
     NSArray *mentionsArray;
+    NSArray *selectTweetIds;
     NSDictionary *currentTweet;
     NSDictionary *selectTweet;
     NSString *userStreamAccount;
     NSString *lastUpdateAccount;
     NSString *timelineTopTweetId;
+    NSString *selectAccount;
     
     UIPasteboard *pboard;
     UIImage *startImage;
@@ -104,6 +106,7 @@
 - (void)scrollTimelineToTop:(BOOL)animation;
 - (void)openStream;
 - (void)closeStream;
+- (void)showTwitterAccountSelectActionSheet:(NSArray *)ids;
 
 - (void)receiveProfile:(NSNotification *)notification;
 - (void)enterBackground:(NSNotification *)notification;
