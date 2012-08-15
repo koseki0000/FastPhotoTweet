@@ -28,6 +28,15 @@
         text = [NSMutableString stringWithString:[[tweet objectForKey:@"target_object"] objectForKey:@"text"]];
     }
     
+    //ついでに記号も置換
+    [text replaceOccurrencesOfString:@"&gt;"  withString:@">" options:0 range:NSMakeRange(0, [text length] )];
+    [text replaceOccurrencesOfString:@"&lt;"  withString:@"<" options:0 range:NSMakeRange(0, [text length] )];
+    [text replaceOccurrencesOfString:@"&amp;" withString:@"&" options:0 range:NSMakeRange(0, [text length] )];
+    
+    //展開するt.coがない場合は何もせず終了
+    if ( [[tweet objectForKey:@"entities"] objectForKey:@"urls"]  == nil &&
+         [[tweet objectForKey:@"entities"] objectForKey:@"media"] == nil ) return text;
+    
     //t.coの展開を行う
     text = [TWEntities replace:tweet text:text entitiesType:@"urls"];
     
@@ -40,10 +49,6 @@
 + (NSMutableString *)replace:(NSDictionary *)tweet text:(NSMutableString *)text entitiesType:(NSString *)entitiesType {
     
     @try {
-        
-        //展開すべきものがない場合は何もせず終了
-        if ( [[tweet objectForKey:@"entities"] objectForKey:@"urls"]  == nil &&
-            [[tweet objectForKey:@"entities"] objectForKey:@"media"] == nil ) return text;
         
         if ( [[tweet objectForKey:@"entities"] objectForKey:entitiesType] != nil ) {
             
@@ -71,15 +76,10 @@
             }
         }
         
-        //ついでに記号も置換
-        [text replaceOccurrencesOfString:@"&gt;"  withString:@">" options:0 range:NSMakeRange(0, [text length] )];
-        [text replaceOccurrencesOfString:@"&lt;"  withString:@"<" options:0 range:NSMakeRange(0, [text length] )];
-        [text replaceOccurrencesOfString:@"&amp;" withString:@"&" options:0 range:NSMakeRange(0, [text length] )];
-        
     }@catch ( NSException *e ) {
         
         //何か起きた時はとりあえず元の本文を返す
-        return [tweet objectForKey:@"text"];
+        return text;
     }
     
     //t.co展開済みの本文を返す
