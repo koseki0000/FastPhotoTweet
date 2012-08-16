@@ -52,6 +52,7 @@
     //各種通知設定
     [self setNotifications];
 
+    //各種初期化
     appDelegate = (AppDelegate *)[[UIApplication sharedApplication] delegate];
     d = [NSUserDefaults standardUserDefaults];
     fileManager = [NSFileManager defaultManager];
@@ -76,6 +77,7 @@
     stopImage = [UIImage imageNamed:@"stop.png"];
     openStreamButton.image = startImage;
     
+    //ツールバーにボタンを設定
     [topBar setItems:TOP_BAR animated:NO];
     
     userStream = NO;
@@ -107,6 +109,7 @@
     NSArray *twitterAccounts = [accountStore accountsWithAccountType:accountType];
     ACAccount *account = [[ACAccount alloc] init];
     
+    //各アカウントのタイムラインを生成
     for ( account in twitterAccounts ) {
     
         [allTimelines setObject:[NSMutableArray array] forKey:account.username];
@@ -199,26 +202,29 @@
 
     NSLog(@"createTimeline");
     
+    //アクティブアカウントを取得
     twAccount = [TWGetAccount currentAccount];
     
     if ( [allTimelines objectForKey:twAccount.username] == nil ) {
         
+        //アクティブアカウントのタイムラインが無い場合は作成する
         [allTimelines setObject:[NSMutableArray array] forKey:twAccount.username];
     }
     
+    //アクティブアカウントのタイムラインを反映
     timelineArray = [allTimelines objectForKey:twAccount.username];
     
     if ( timelineArray.count != 0 ) {
         
+        //差分取得用にタイムライン最上部のTweetのIDを取得する
         [sinceIds setObject:[[timelineArray objectAtIndex:0] objectForKey:@"id_str"] forKey:twAccount.username];
         appDelegate.sinceId = [[timelineArray objectAtIndex:0] objectForKey:@"id_str"];
-    }
-    
-    if ( timelineArray.count != 0 ) {
         
+        //最上部スクロール用
         timelineTopTweetId = [[timelineArray objectAtIndex:0] objectForKey:@"id_str"];
     }
     
+    //タイムライン取得
     [TWGetTimeline homeTimeline];
 }
 
@@ -365,6 +371,7 @@
                             [self performSelector:@selector(pushOpenStreamButton:) withObject:nil afterDelay:0.1];
                         }
                         
+                        //タイムライン表示を更新
                         [timeline reloadData];
                     });
                 }
@@ -383,8 +390,10 @@
     
     NSLog(@"loadUserTimeline");
     
+    //レスポンスが空の場合は何もしない
     if ( [[center.userInfo objectForKey:@"UserTimeline"] count] == 0 ) return;
     
+    //UserStream接続中の場合は切断する
     if ( userStream ) [self closeStream];
     
     reloadButton.enabled = YES;
@@ -431,6 +440,7 @@
     //Mentionsタブ以外が選択されている場合は終了
     if ( timelineSegment.selectedSegmentIndex != 1 ) return;
     
+    //UserStream接続中の場合は切断する
     if ( userStream ) [self closeStream];
     
     reloadButton.enabled = YES;
@@ -475,6 +485,7 @@
     //Favoritesタブ以外が選択されている場合は終了
     if ( timelineSegment.selectedSegmentIndex != 2 ) return;
     
+    //UserStream接続中の場合は切断する
     if ( userStream ) [self closeStream];
     
     openStreamButton.enabled = NO;
@@ -501,6 +512,7 @@
         //タイムラインを再読み込み
         [timeline reloadData];
         
+        //最上部までアニメーションなしにスクロールする
         [self scrollTimelineToTop:NO];
     }
 }
@@ -509,6 +521,7 @@
 
     NSLog(@"loadSearch");
     
+    //UserStream接続中の場合は切断する
     if ( userStream ) [self closeStream];
     
     reloadButton.enabled = YES;
@@ -570,6 +583,7 @@
         
         if ( ![EmptyCheck string:biggerUrl] ) {
             
+            //URLをbiggersサイズに変換する
             biggerUrl = [TWIconBigger normal:[dic objectForKey:@"profile_image_url"]];
         }
         
@@ -580,10 +594,11 @@
         
         if ( [appDelegate iconExist:searchName] ) {
          
+            //アイコンファイルを読み込み
             UIImage *image = [[UIImage alloc] initWithContentsOfFile:FILE_PATH];
-            
             [icons setObject:image forKey:searchName];
             
+            //自分のアイコンの場合は上部バーに設定
             if ( [screenName isEqualToString:twAccount.username] ) accountIconView.image = image;
             
             [ActivityIndicator off];
@@ -668,15 +683,18 @@
         return;
     }
     
+    //アイコンのURLを取得
     NSDictionary *dic = [iconUrls objectAtIndex:0];
     NSString *biggerUrl = [dic objectForKey:@"profile_image_url"];
     
+    //アイコンダウンロード開始
     NSURL *URL = [NSURL URLWithString:biggerUrl];
     ASIFormDataRequest *reSendRequest = [[ASIFormDataRequest alloc] initWithURL:URL];
     reSendRequest.userInfo = dic;
     [reSendRequest setDelegate:self];
     [reSendRequest start];
     
+    //ダウンロードリクエスト開始
     [iconUrls removeObjectAtIndex:0];
 }
 
@@ -689,10 +707,13 @@
     //UserStreamが有効な場合切断する
     if ( userStream ) [self closeStream];
     
+    //アクティブアカウントを設定
     twAccount = [TWGetAccount currentAccount];
     
+    //自分のアカウントを設定
     [self getMyAccountIcon];
     
+    //タイムラインをアクティブアカウントの物に切り替え
     timelineArray = [allTimelines objectForKey:twAccount.username];
     [timeline reloadData];
     
@@ -771,10 +792,14 @@
     
     if ( [EmptyCheck check:inReplyToId] ) {
         
+        //InReplyToIDがある場合は取得
+        
         [ActivityIndicator on];
         [TWEvent getTweet:inReplyToId];
         
     }else {
+        
+        //InReplyToIDがもうない場合は表示を行う
         
         if ( [EmptyCheck check:inReplyTo] && inReplyTo.count > 1 ) {
             
@@ -908,8 +933,11 @@
         text = [NSString stringWithFormat:@"%@\n%@", temp, text];
     }
     
+    //セルのテキストを設定
     cell.infoLabel.text = infoLabelText;
     cell.textLabel.text = text;
+    
+    //セルの高さを設定
     cell.textLabel.frame = CGRectMake(54, 22, 264, [self heightForContents:text]);
     
     return cell;
@@ -934,12 +962,14 @@
 
 - (CGFloat)heightForContents:(NSString *)contents {
     
+    //標準フォント12.0pxで横264pxの範囲に表示した際の縦幅
 	CGSize labelSize = [contents sizeWithFont:[UIFont systemFontOfSize:12.0]
                                                        constrainedToSize:CGSizeMake(264, 20000)
                                                            lineBreakMode:UILineBreakModeWordWrap];
 	
     CGFloat height = labelSize.height;
     
+    //アイコン表示があるため、最低31px必要
     if ( height < 31 ) {
         
         height = 31;
@@ -1076,6 +1106,7 @@
                     
                     dispatch_async(dispatch_get_main_queue(), ^ {
                         
+                        //アカウントアイコンを設定
                         accountIconView.image = [[UIImage alloc] initWithContentsOfFile:FILE_PATH];
                     });
                 }
@@ -1117,33 +1148,43 @@
     
     NSLog(@"pushReloadButton");
     
+    //インターネットに接続されていない場合中止
     if ( ![appDelegate reachability] ) return;
     
+    //自分のアイコンを取得
     [self getMyAccountIcon];
     
     reloadButton.enabled = NO;
 
+    //アクティブアカウントを取得
     twAccount = [TWGetAccount currentAccount];
     
     if ( timelineSegment.selectedSegmentIndex == 0 ) {
      
+        //タイムラインのセグメントが選択されている場合
+        
+        //アクティブアカウントのタイムラインを反映
         timelineArray = [allTimelines objectForKey:twAccount.username];
         [timeline reloadData];
         
+        //リロード
         [self createTimeline];
         
     }else if ( timelineSegment.selectedSegmentIndex == 1 ) {
         
+        //Mentionsを取得
         [TWGetTimeline mentions];
         
     }else if ( timelineSegment.selectedSegmentIndex == 2 ) {
         
+        //Favoritesを取得
         [TWGetTimeline favotites];
     }
 }
 
 - (IBAction)pushOpenStreamButton:(UIBarButtonItem *)sender {
     
+    //UserStream未接続かつインターネットに接続されている場合は接続する
     if ( !userStream && [appDelegate reachability] ) {
     
         //UserStream未接続
@@ -1192,16 +1233,21 @@
         dispatch_queue_t syncQueue = dispatch_queue_create( "info.ktysne.fastphototweet", NULL );
         dispatch_sync( syncQueue, ^{
             
+            //アクティブアカウント
             twAccount = [TWGetAccount currentAccount];
             
+            //UserStreamに接続したアカウントを記憶
             userStreamAccount = twAccount.username;
             
+            //UserStream接続リクエストの作成
             TWRequest *request = [[TWRequest alloc] initWithURL:[NSURL URLWithString:@"https://userstream.twitter.com/2/user.json"] 
                                                      parameters:nil 
                                                   requestMethod:TWRequestMethodPOST];
             
+            //アカウントの設定
             [request setAccount:twAccount];
             
+            //接続開始
             self.connection = [NSURLConnection connectionWithRequest:request.signedURLRequest delegate:self];
             [self.connection start];
             
@@ -1424,6 +1470,7 @@
                             [tempDic setObject:[[favDic objectForKey:@"user"] objectForKey:@"screen_name"] forKey:@"screen_name"];
                             [tempDic setObject:[TWIconBigger normal:[[favDic objectForKey:@"user"] objectForKey:@"profile_image_url"]] forKey:@"profile_image_url"];
                             
+                            //アイコン取得
                             [self getIconWithTweetArray:[NSMutableArray arrayWithObject:tempDic]];
                         }
                                                
@@ -1435,6 +1482,7 @@
                             //タイムラインを保存
                             [allTimelines setObject:timelineArray forKey:twAccount.username];
                             
+                            //タイムラインを更新
                             NSIndexPath *indexPath = [NSIndexPath indexPathForRow:0 inSection:0];
                             NSArray *indexPaths = [NSArray arrayWithObjects:indexPath, nil];
                             [timeline insertRowsAtIndexPaths:indexPaths withRowAnimation:UITableViewRowAnimationTop];
@@ -1678,6 +1726,7 @@
     
             if ( [[selectTweet objectForKey:@"retweeted_status"] objectForKey:@"id"] ) {
                 
+                //RTの場合はTextを組み替える
                 selectTweet = [TWParser rtText:selectTweet];
             }
             
@@ -1690,12 +1739,15 @@
                 
                 if ( buttonIndex == 0 ) {
                     
+                    //t.co展開済みの本文を取得
                     NSString *text = [TWEntities openTco:selectTweet];
                     appDelegate.startupUrlList = [RegularExpression urls:text];
 
                     NSLog(@"startupUrlList[%d]: %@", appDelegate.startupUrlList.count, appDelegate.startupUrlList);
                     
                     if ( appDelegate.startupUrlList.count == 0 || appDelegate.startupUrlList == nil ) {
+                        
+                        //開くべきURLがない
                         
                         dispatch_sync(dispatch_get_main_queue(), ^{
                             
@@ -1704,6 +1756,7 @@
                         
                     }else {
                     
+                        //開くべきURLがある場合ブラウザを開く
                         [self openBrowser];
                     }
                     
@@ -1716,7 +1769,6 @@
                         [appDelegate.postData removeAllObjects];
                         
                         NSString *inReplyToId = [selectTweet objectForKey:@"id_str"];
-                        
                         [appDelegate.postData setObject:screenName forKey:@"ScreenName"];
                         [appDelegate.postData setObject:inReplyToId forKey:@"InReplyToId"];
                         
