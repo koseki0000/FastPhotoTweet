@@ -254,7 +254,7 @@
                 
                 NSArray *newTweet = [center.userInfo objectForKey:@"Timeline"];
                 
-                NSLog(@"newTweet: %@", newTweet);
+                //NSLog(@"newTweet: %@", newTweet);
                 
                 if ( newTweet.count == 0 ) {
                     
@@ -2419,7 +2419,7 @@
 
 - (void)becomeActive:(NSNotification *)notification {
     
-    if ( !otherTweetsMode ) return;
+    if ( otherTweetsMode ) return;
     
     if ( [d boolForKey:@"BecomeActiveUSConnect"] && timelineSegment.selectedSegmentIndex == 0 ) {
      
