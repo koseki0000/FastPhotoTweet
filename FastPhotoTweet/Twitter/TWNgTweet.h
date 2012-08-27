@@ -12,6 +12,7 @@
 #import "RegularExpression.h"
 #import "EmptyCheck.h"
 #import "DeleteWhiteSpace.h"
+#import "ArrayDuplicate.h"
 
 @interface TWNgTweet : NSObject
 

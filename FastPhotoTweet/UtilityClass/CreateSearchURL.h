@@ -12,6 +12,6 @@
 + (NSString *)google:(NSString *)searchWord;
 + (NSString *)twilog:(NSString *)screenName searchWord:(NSString *)searchWord;
 
-+ (NSString *)encodeWord:(NSString *)word;
++ (NSString *)encodeWord:(NSString *)word encoding:(int)encoding;
 
 @end

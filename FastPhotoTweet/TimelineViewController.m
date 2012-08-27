@@ -2295,7 +2295,7 @@
         
     }else if ( alertView.tag == 2 && buttonIndex == 1 ) {
         
-        [TWGetTimeline twitterSearch:[CreateSearchURL encodeWord:alertSearchText.text]];
+        [TWGetTimeline twitterSearch:[CreateSearchURL encodeWord:alertSearchText.text encoding:kCFStringEncodingUTF8]];
     }
 }
 
@@ -2352,7 +2352,7 @@
         
     }else if ( sender.tag == 2 ) {
         
-        [TWGetTimeline twitterSearch:[CreateSearchURL encodeWord:alertSearchText.text]];
+        [TWGetTimeline twitterSearch:[CreateSearchURL encodeWord:alertSearchText.text encoding:kCFStringEncodingUTF8]];
     }
     
     //キーボードを閉じる

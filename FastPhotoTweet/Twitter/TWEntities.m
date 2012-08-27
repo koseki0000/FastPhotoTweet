@@ -46,6 +46,11 @@
     return [NSString stringWithString:text];
 }
 
++ (NSDictionary *)replaceTco:(NSDictionary *)tweet text:(NSString *)text {
+    
+    return tweet;
+}
+
 + (NSMutableString *)replace:(NSDictionary *)tweet text:(NSMutableString *)text entitiesType:(NSString *)entitiesType {
     
     @try {

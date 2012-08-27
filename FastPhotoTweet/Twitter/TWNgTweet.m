@@ -43,11 +43,9 @@
     
     //NG指定ユーザー
     NSArray *users = [NSArray array];
-//    NSString *user = nil;
     
     //NG除外ユーザー
     NSArray *exclusionUsers = [NSArray array];
-//    NSString *exclusionUser = nil;
     
     //正規表現
     BOOL regexp = NO;
@@ -173,11 +171,26 @@
     
     if ( ngList.count != 0 ) {
         
+        NSLog(@"ngList: %@", ngList);
+        
+        [ArrayDuplicate checkArrayInNumber:ngList];
+        
+        int removeIndex = 0;
+        
+        NSLog(@"ngList: %@", ngList);
+        
         //NGすべきものがある場合
         for ( int i = ngList.count - 1; i >= 0; i-- ) {
             
-            //対象Tweetを削除
-            [targets removeObjectAtIndex:[[ngList objectAtIndex:i] intValue]];
+            removeIndex = [[ngList objectAtIndex:i] intValue];
+            
+            NSLog(@"i: %d, targets: %d, removeIndex: %d", i, targets.count, removeIndex);
+            
+            if ( targets.count >= removeIndex ) {
+             
+                //対象Tweetを削除
+                [targets removeObjectAtIndex:removeIndex];
+            }
         }
     }
     

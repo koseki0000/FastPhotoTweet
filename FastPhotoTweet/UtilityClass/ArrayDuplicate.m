@@ -32,6 +32,32 @@
     return array;
 }
 
++ (NSMutableArray *)checkArrayInNumber:(NSMutableArray *)array {
+    
+    for ( int i = 0; i < array.count; i++ ) {
+        
+        int currentNumber = [[array objectAtIndex:i] intValue];
+        
+        int index = 0;
+        int tempInt = 0;
+        for ( NSNumber *tempNum in array ) {
+            
+            tempInt = [tempNum intValue];
+            
+            if ( tempInt == currentNumber && index != i ) {
+                
+                [array removeObjectAtIndex:i];
+                i--;
+                break;
+            }
+            
+            index++;
+        }
+    }
+    
+    return array;
+}
+
 + (NSMutableArray *)arrayInDictionaryForKey:(NSMutableArray *)array key:(NSString *)key {
     
     //引数チェック

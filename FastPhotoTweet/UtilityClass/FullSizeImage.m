@@ -108,9 +108,14 @@
     
         if ( sourceCode == nil ) return urlString;
         
-        urlString = [NSString stringWithFormat:@"%@:large", [RegularExpression strRegExp:sourceCode 
-                                                                           regExpPattern:@"https?://p\\.twimg\\.com/[-_\\.a-zA-Z0-9]+"]];
-    
+        urlString = [RegularExpression strRegExp:sourceCode
+                                   regExpPattern:@"https?://p\\.twimg\\.com/[-_\\.a-zA-Z0-9]+(:large)?"];
+        
+        if ( ![urlString hasSuffix:@":large"] ) {
+            
+            urlString = [NSString stringWithFormat:@"%@:large", urlString];
+        }
+        
     }else if ( [RegularExpression boolRegExp:urlString regExpPattern:@"https?://via.me/-[a-zA-Z0-9]+"] ) {
         
         NSString *sourceCode = [FullSizeImage getSourceCode:urlString];
