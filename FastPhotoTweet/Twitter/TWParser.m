@@ -41,6 +41,8 @@
 //out: クライアント名
 + (NSString *)client:(NSString *)tweetData {
     
+    NSString *clientName = nil;
+    
     NSError *error = nil;
 	NSRegularExpression *regexp = [NSRegularExpression regularExpressionWithPattern:@">.{1,160}<" 
                                                                             options:0 
@@ -55,9 +57,13 @@
 	
 	if ( match.numberOfRanges != 0 ) {
         
+        //クライアント名が取得できた場合
 		tweetData = [tweetData substringWithRange:[match rangeAtIndex:0]];
-		tweetData = [tweetData substringWithRange:NSMakeRange( 1, tweetData.length-2 )];
+		clientName = [tweetData substringWithRange:NSMakeRange( 1, tweetData.length-2 )];
 	}
+    
+    //クライアント名が取得できなかった場合
+    if ( clientName == nil ) return BLANK;
     
     return tweetData;
 }
