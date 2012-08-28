@@ -65,7 +65,7 @@
     //クライアント名が取得できなかった場合
     if ( clientName == nil ) return BLANK;
     
-    return tweetData;
+    return clientName;
 }
 
 + (NSDictionary *)rtText:(NSDictionary *)tweet {
