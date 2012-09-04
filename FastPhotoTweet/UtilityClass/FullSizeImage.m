@@ -88,7 +88,8 @@
               ![urlString hasPrefix:@"http://twitpic.com/session"] && ![urlString hasPrefix:@"http://twitpic.com/events"] &&
               ![urlString hasPrefix:@"http://twitpic.com/faces"] && ![urlString hasPrefix:@"http://twitpic.com/upload"] && 
               ![urlString hasPrefix:@"http://twitpic.com/ad_"] && ![urlString hasSuffix:@".do"] &&
-              ![urlString isEqualToString:@"http://twitpic.com/"] ) {
+              ![urlString isEqualToString:@"http://twitpic.com/"] &&
+              ![RegularExpression boolRegExp:urlString regExpPattern:@"http://twitpic.com/[0-9a-zA-Z]+/full$"] ) {
         
         urlString = [NSString stringWithFormat:@"http://twitpic.com/show/full/%@", [urlString lastPathComponent]];
         

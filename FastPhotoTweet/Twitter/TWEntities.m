@@ -48,7 +48,11 @@
 
 + (NSDictionary *)replaceTco:(NSDictionary *)tweet text:(NSString *)text {
     
-    return tweet;
+    NSMutableDictionary *replacedTweet = [NSMutableDictionary dictionaryWithDictionary:tweet];
+    
+    [replacedTweet setObject:text forKey:@"text"];
+    
+    return [NSDictionary dictionaryWithDictionary:replacedTweet];
 }
 
 + (NSMutableString *)replace:(NSDictionary *)tweet text:(NSMutableString *)text entitiesType:(NSString *)entitiesType {

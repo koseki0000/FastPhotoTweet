@@ -405,6 +405,8 @@
         
         NSArray *newTweet = [center.userInfo objectForKey:@"UserTimeline"];
         
+        NSLog(@"UserTimeline: %dTweet", newTweet.count);
+        
         //NGClient判定を行う
         newTweet = [TWNgTweet ngClient:newTweet];
         
@@ -430,6 +432,10 @@
         [timeline reloadData];
         
         [self scrollTimelineToTop:NO];
+        
+    }else {
+        
+        [ShowAlert error:@"UserTimelineが読み込めませんでした。"];
     }
 }
 
@@ -1290,7 +1296,8 @@
                                                                                                                                  options:NSJSONReadingMutableLeaves 
                                                                                                                                    error:&error]];
                 
-//                NSLog(@"receiveData(%d): %@", receiveData.count, receiveData);
+//                NSLog(@"receiveData[%d]: %@", receiveData.count, receiveData);
+//                NSLog(@"receiveDataCount: %d", receiveData.count);
 //                NSLog(@"event: %@", [receiveData objectForKey:@"event"]);
                 
                 if ( !userStreamFirstResponse ) {
@@ -1346,7 +1353,7 @@
                     if ( [[receiveData objectForKey:@"event"] isEqualToString:@"favorite"] &&
                         [[[receiveData objectForKey:@"source"] objectForKey:@"screen_name"] isEqualToString:twAccount.username] ) {
                         
-                        NSLog(@"add fav");
+                        NSLog(@"UserStream Add Fav Event");
                         
                         //自分のふぁぼりイベント
                         NSString *favedTweetId = [[receiveData objectForKey:@"target_object"] objectForKey:@"id_str"];
@@ -1385,7 +1392,7 @@
                         
                         if ( timelineArray.count == 0 ) return;
                         
-                        NSLog(@"remove fav");
+                        NSLog(@"UserStream Remove Fav Event");
                         
                         //自分のふぁぼり外しイベント
                         NSString *favedTweetId = [[receiveData objectForKey:@"target_object"] objectForKey:@"id_str"];
@@ -1421,7 +1428,7 @@
                         
                     }else if ( [[receiveData objectForKey:@"event"] isEqualToString:@"favorite"] ) {
                         
-                        NSLog(@"fav event");
+                        NSLog(@"UserStream Receive Fav Event");
                         
                         NSMutableDictionary *favDic = [NSMutableDictionary dictionary];
                         //user
@@ -1591,15 +1598,18 @@
     NSLog(@"connectionDidFinishLoading:");
     
     [self closeStream];
+    [self pushReloadButton:nil];
 }
 
 #pragma mark - NSURLConnectionDelegate
 
 - (void)connection:(NSURLConnection *)connection didFailWithError:(NSError *)error {
     
-    NSLog(@"didFailWithError:%@", error);
+    NSLog(@"didFailWithError: %@", error);
+    NSLog(@"TimelineCount: %d", timelineArray.count);
     
     [self closeStream];
+    [self pushReloadButton:nil];
 }
 
 #pragma mark - GestureRecognizer
@@ -2150,21 +2160,23 @@
                 
                 if ( buttonIndex == selectTweetIds.count ) {
                  
+                    NSLog(@"buttonIndex == selectTweetIds.count");
+                    
                     selectAccount = BLANK;
                     selectTweetIds = [NSArray array];
                     return;
                 }
                 
-                selectAccount = [selectTweetIds objectAtIndex:buttonIndex];
-                
-                UIActionSheet *sheet = [[UIActionSheet alloc]
-                                        initWithTitle:selectAccount
-                                        delegate:self
-                                        cancelButtonTitle:@"Cancel"
-                                        destructiveButtonTitle:nil
-                                        otherButtonTitles:@"ユーザータイムライン", nil];
-                
                 dispatch_async(dispatch_get_main_queue(), ^ {
+                    
+                    selectAccount = [selectTweetIds objectAtIndex:buttonIndex];
+                    
+                    UIActionSheet *sheet = [[UIActionSheet alloc]
+                                            initWithTitle:selectAccount
+                                            delegate:self
+                                            cancelButtonTitle:@"Cancel"
+                                            destructiveButtonTitle:nil
+                                            otherButtonTitles:@"UserTimeline(α)", nil];
                     
                     sheet.tag = 5;
                     [sheet showInView:appDelegate.tabBarController.self.view];
@@ -2173,6 +2185,8 @@
             }else if ( actionSheet.tag == 5 ) {
                 
                 if ( buttonIndex == 0 ) {
+                    
+                    NSLog(@"userTimeline start");
                     
                     //選択ユーザーのユーザータイムラインを取得
                     [TWGetTimeline userTimeline:selectAccount];

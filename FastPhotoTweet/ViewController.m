@@ -351,7 +351,7 @@
             //NSLog(@"newVersion");
             
             [ShowAlert title:[NSString stringWithFormat:@"FastPhotoTweet %@", APP_VERSION] 
-                 message:@"・ユーザータイムライン表示(α)を追加\n・Twitter検索(α)を追加\n・Tweetを削除を追加\n・Tweetを編集を追加\n・新着Tweet取得時の重複チェックを改善\n・Timelineログ、アイコンキャッシュ削除時の動作を改善\n・NGWord機能でt.coが展開されていない問題を修正\n・yfrogのフルサイズ取得の問題を修正\n・フレームワークの細かい問題を修正\n・URLスキームに飛べない場合があるのを修正\n・リロード中にアカウントを切り替えた際の問題を修正\n・アイコン読み込み開始後、TL反映前にアカウントを切り替えた際にクラッシュする問題を修正\n・その他多数のクラッシュに繋がる問題を修正"];
+                 message:@"・UserStreamが意図せず切断された際に自動で再接続する機能を追加\n・その他細かな修正"];
             
             information = [[[NSMutableDictionary alloc] initWithDictionary:[d dictionaryForKey:@"Information"]] autorelease];
             [information setValue:[NSNumber numberWithInt:1] forKey:APP_VERSION];

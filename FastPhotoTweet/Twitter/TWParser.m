@@ -43,6 +43,8 @@
     
     NSString *clientName = nil;
     
+    if ( [tweetData isEqualToString:@"web"] ) return @"web";
+    
     NSError *error = nil;
 	NSRegularExpression *regexp = [NSRegularExpression regularExpressionWithPattern:@">.{1,160}<" 
                                                                             options:0 

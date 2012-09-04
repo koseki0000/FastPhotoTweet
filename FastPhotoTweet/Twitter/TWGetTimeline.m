@@ -103,10 +103,16 @@
 
 + (void)userTimeline:(NSString *)screenName {
     
+    if ( [screenName hasPrefix:@"@"] ) {
+        
+        screenName = [screenName substringFromIndex:1];
+    }
+    
     //アカウントの取得
     ACAccount *twAccount = [TWGetAccount currentAccount];
     
-    //NSLog(@"homeTimeline: %@", twAccount.username);
+    NSLog(@"userTimeline: %@", twAccount.username);
+    NSLog(@"TargetUser: %@", screenName);
     
     //Twitterアカウントの確認
     if ( twAccount == nil ) {
@@ -171,13 +177,24 @@
                  
                  [result setObject:twAccount.username forKey:@"Account"];
                  
-                 if ( timeline != nil ) {
+                 if ( timeline != nil && timeline.count != 0 ) {
+                     
+                     NSLog(@"UserTimelineSuccess");
                      
                      //取得完了を通知
                      [result setObject:@"UserTimelineSuccess" forKey:@"Result"];
                      [result setObject:timeline forKey:@"UserTimeline"];
                      
                  }else {
+                     
+                     NSLog(@"UserTimelineError");
+                     
+                     NSString *responseDataString = [[[NSString alloc] initWithData:responseData encoding:NSUTF8StringEncoding] autorelease];
+                     
+                     NSLog(@"responseData: %@", responseDataString);
+                     
+                     if ( timeline == nil ) NSLog(@"timeline == nil");
+                     if ( timeline.count == 0 ) NSLog(@"timeline.count == 0");
                      
                      [result setObject:@"UserTimelineError" forKey:@"Result"];
                  }
@@ -186,6 +203,10 @@
                  [[NSNotificationCenter defaultCenter] postNotification:notification];
                  
                  [ActivityIndicator off];
+                 
+             }else {
+                 
+                 NSLog(@"responseData nil");
              }
          });
      }];
