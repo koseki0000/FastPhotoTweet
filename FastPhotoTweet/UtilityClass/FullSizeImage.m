@@ -105,17 +105,21 @@
         
     }else if ( [RegularExpression boolRegExp:urlString regExpPattern:@"https?://(mobile\\.)?twitter\\.com/[_a-zA-Z0-9]{1,15}/status/[0-9]+/photo/1"] ) {
         
+        NSString *originalUrl = urlString;
+        
         NSString *sourceCode = [FullSizeImage getSourceCode:urlString];
-    
+        
         if ( sourceCode == nil ) return urlString;
         
         urlString = [RegularExpression strRegExp:sourceCode
-                                   regExpPattern:@"https?://p\\.twimg\\.com/[-_\\.a-zA-Z0-9]+(:large)?"];
+                                   regExpPattern:@"https?://p(bs)?\\.twimg\\.com/(media/)?[-_\\.a-zA-Z0-9]+(:large)?"];
         
         if ( ![urlString hasSuffix:@":large"] ) {
             
             urlString = [NSString stringWithFormat:@"%@:large", urlString];
         }
+        
+        if ( [urlString isEqualToString:@":large"] ) urlString = originalUrl;
         
     }else if ( [RegularExpression boolRegExp:urlString regExpPattern:@"https?://via.me/-[a-zA-Z0-9]+"] ) {
         
@@ -126,8 +130,6 @@
         urlString = [RegularExpression strRegExp:sourceCode 
                                    regExpPattern:@"https?://(s[0-9]\\.amazonaws\\.com/com\\.clixtr\\.picbounce|img\\.viame-cdn\\.com)/photos/[-a-zA-Z0-9]+/[a-z]600x600\\.(jpe?g|png)"];
     }
-    
-    //NSLog(@"fullUrl: %@", urlString);
     
     return urlString;
 }

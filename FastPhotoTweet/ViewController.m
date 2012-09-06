@@ -2122,6 +2122,9 @@
     NSArray *iconsDirectory = [[NSFileManager defaultManager] contentsOfDirectoryAtPath:ICONS_DIRECTORY error:nil];
     NSString *searchName = [NSString stringWithFormat:@"%@_", twAccount.username];
     
+    //アイコンが見つかったか
+    BOOL find = NO;
+    
     for ( NSString *name in iconsDirectory ) {
         
         if ( [name hasPrefix:searchName] ) {
@@ -2130,9 +2133,14 @@
             iconPreview.image = image;
             [image release];
             
+            find = YES;
+            
             break;
         }
     }
+    
+    //アイコンが見つからなかった場合はnilをセット
+    if ( !find ) iconPreview.image = nil;
 }
 
 - (void)viewDidAppear:(BOOL)animated {

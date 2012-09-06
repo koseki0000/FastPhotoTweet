@@ -46,10 +46,13 @@
     return [NSString stringWithString:text];
 }
 
-+ (NSDictionary *)replaceTco:(NSDictionary *)tweet text:(NSString *)text {
++ (NSDictionary *)replaceTco:(NSDictionary *)tweet {
     
+    //t.co展開済みの本文を生成
+    NSString *text = [TWEntities openTco:tweet];
+    
+    //textを置き換える
     NSMutableDictionary *replacedTweet = [NSMutableDictionary dictionaryWithDictionary:tweet];
-    
     [replacedTweet setObject:text forKey:@"text"];
     
     return [NSDictionary dictionaryWithDictionary:replacedTweet];

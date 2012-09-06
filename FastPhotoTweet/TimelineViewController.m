@@ -2080,10 +2080,13 @@
                 
                 longPressControl = 0;
                 
-                dispatch_async(dispatch_get_main_queue(), ^ {
-                    
-                    [self closeStream];
-                });
+                if ( buttonIndex != 4 ) {
+                
+                    dispatch_async(dispatch_get_main_queue(), ^ {
+                        
+                        [self closeStream];
+                    });
+                }
                 
                 if ( buttonIndex == 0 ) {
                     
@@ -2116,11 +2119,19 @@
                     
                     //タイムラインログを削除
                     timelineArray = [NSMutableArray array];
+                    mentionsArray = [NSArray array];
                     
                     if ( buttonIndex == 2 ) {
                         
+                        dispatch_async(dispatch_get_main_queue(), ^ {
+                            
+                            accountIconView.image = nil;
+                        });
+                        
                         //アイコンキャッシュを削除
                         [icons removeAllObjects];
+                        [iconUrls removeAllObjects];
+                        [reqedUser removeAllObjects];
                         
                         //アイコンファイルを削除
                         [[NSFileManager defaultManager] removeItemAtPath:ICONS_DIRECTORY error:nil];
@@ -2154,10 +2165,6 @@
                 
             }else if ( actionSheet.tag == 3 ) {
                 
-                
-                
-            }else if ( actionSheet.tag == 4 ) {
-                
                 if ( buttonIndex == selectTweetIds.count ) {
                  
                     NSLog(@"buttonIndex == selectTweetIds.count");
@@ -2178,11 +2185,11 @@
                                             destructiveButtonTitle:nil
                                             otherButtonTitles:@"UserTimeline(α)", nil];
                     
-                    sheet.tag = 5;
+                    sheet.tag = 4;
                     [sheet showInView:appDelegate.tabBarController.self.view];
                 });
                 
-            }else if ( actionSheet.tag == 5 ) {
+            }else if ( actionSheet.tag == 4 ) {
                 
                 if ( buttonIndex == 0 ) {
                     
@@ -2280,7 +2287,7 @@
     
     if ( sheet != nil ) {
      
-        sheet.tag = 4;
+        sheet.tag = 3;
         [sheet showInView:appDelegate.tabBarController.self.view];
     }
 }
@@ -2504,16 +2511,23 @@
         //アイコンが1つもない場合は自分のアイコンがないので保存を行う
         [TWEvent getProfile:twAccount.username];
         
+        NSLog(@"icon file 0");
+        
         return;
     }
     
+    twAccount = [TWGetAccount currentAccount];
     NSArray *array = [icons allKeys];
     NSString *string = BLANK;
     BOOL find = NO;
     
+    //NSLog(@"icons key: %@", array);
+    
     for ( string in array ) {
         
         if ( [RegularExpression boolRegExp:string regExpPattern:[NSString stringWithFormat:@"%@_", twAccount.username]] ) {
+            
+            NSLog(@"icon find");
             
             accountIconView.image = [icons objectForKey:string];
             find = YES;
@@ -2525,6 +2539,8 @@
     }
     
     if ( !find ) {
+        
+        NSLog(@"icon not found");
         
         [TWEvent getProfile:twAccount.username];
     }

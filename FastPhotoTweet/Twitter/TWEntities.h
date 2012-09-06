@@ -11,7 +11,7 @@
 @interface TWEntities : NSObject
 
 + (NSString *)openTco:(NSDictionary *)tweet;
-+ (NSDictionary *)replaceTco:(NSDictionary *)tweet text:(NSString *)text;
++ (NSDictionary *)replaceTco:(NSDictionary *)tweet;
 + (NSMutableString *)replace:(NSDictionary *)tweet text:(NSMutableString *)text entitiesType:(NSString *)entitiesType;
 
 @end
