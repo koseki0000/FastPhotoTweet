@@ -351,7 +351,7 @@
             //NSLog(@"newVersion");
             
             [ShowAlert title:[NSString stringWithFormat:@"FastPhotoTweet %@", APP_VERSION] 
-                 message:@"・UserStreamが意図せず切断された際に自動で再接続する機能を追加\n・その他細かな修正"];
+                 message:@"・t.co展開の方式を変更し、Timeline表示を高速化"];
             
             information = [[[NSMutableDictionary alloc] initWithDictionary:[d dictionaryForKey:@"Information"]] autorelease];
             [information setValue:[NSNumber numberWithInt:1] forKey:APP_VERSION];

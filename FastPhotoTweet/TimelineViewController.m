@@ -881,7 +881,8 @@
     }
     
     NSString *myAccountName = twAccount.username;
-    NSString *text = [TWEntities openTco:currentTweet];
+    NSString *text = [currentTweet objectForKey:@"text"];
+//    NSString *text = [TWEntities openTco:currentTweet];
     NSString *screenName = [[currentTweet objectForKey:@"user"] objectForKey:@"screen_name"];
     NSString *jstDate = [TWParser JSTDate:[currentTweet objectForKey:@"created_at"]];
     NSString *clientName = [TWParser client:[currentTweet objectForKey:@"source"]];
@@ -963,7 +964,7 @@
         return [self heightForContents:[NSString stringWithFormat:@"【%@がお気に入りに追加】\n%@", [currentTweet objectForKey:@"addUser"], [currentTweet objectForKey:@"text"]]] + 17 + 8;
     }
     
-    return [self heightForContents:[TWEntities openTco:currentTweet]] + 17 + 8;
+    return [self heightForContents:[currentTweet objectForKey:@"text"]] + 17 + 8;
 }
 
 - (CGFloat)heightForContents:(NSString *)contents {
@@ -1292,9 +1293,10 @@
             @try {
                 
                 NSError *error = nil;
-                NSMutableDictionary *receiveData = [NSMutableDictionary dictionaryWithDictionary:[NSJSONSerialization JSONObjectWithData:data
-                                                                                                                                 options:NSJSONReadingMutableLeaves 
-                                                                                                                                   error:&error]];
+                NSMutableDictionary *receiveData = [NSMutableDictionary dictionaryWithDictionary:
+                                                    [NSJSONSerialization JSONObjectWithData:data
+                                                                                    options:NSJSONReadingMutableLeaves
+                                                                                      error:&error]];
                 
 //                NSLog(@"receiveData[%d]: %@", receiveData.count, receiveData);
 //                NSLog(@"receiveDataCount: %d", receiveData.count);
@@ -1316,6 +1318,9 @@
                 
                 //更新アカウントを記憶
                 lastUpdateAccount = twAccount.username;
+                
+                //t.coを展開
+                receiveData = [NSMutableDictionary dictionaryWithDictionary:[TWEntities replaceTco:receiveData]];
                 
                 NSArray *newTweet = [NSArray arrayWithObject:receiveData];
                 
@@ -1750,7 +1755,8 @@
                 if ( buttonIndex == 0 ) {
                     
                     //t.co展開済みの本文を取得
-                    NSString *text = [TWEntities openTco:selectTweet];
+                    NSString *text = [selectTweet objectForKey:@"text"];
+//                    NSString *text = [TWEntities openTco:selectTweet];
                     appDelegate.startupUrlList = [RegularExpression urls:text];
 
                     NSLog(@"startupUrlList[%d]: %@", appDelegate.startupUrlList.count, appDelegate.startupUrlList);
@@ -1898,7 +1904,8 @@
                 
                 }else if ( buttonIndex == 8 ) {
                     
-                    NSString *text = [TWEntities openTco:selectTweet];
+                    NSString *text = [selectTweet objectForKey:@"text"];
+//                    NSString *text = [TWEntities openTco:selectTweet];
                     
                     NSString *copyText = [NSString stringWithFormat:@"%@: %@ [https://twitter.com/%@/status/%@]", screenName, text, screenName, tweetId];
                     [pboard setString:copyText];
@@ -1910,7 +1917,8 @@
                     
                 }else if ( buttonIndex == 10 ) {
                     
-                    [pboard setString:[TWEntities openTco:selectTweet]];
+                    [pboard setString:[selectTweet objectForKey:@"text"]];
+//                    [pboard setString:[TWEntities openTco:selectTweet]];
                 
                 }else if ( buttonIndex == 11 ) {
                     

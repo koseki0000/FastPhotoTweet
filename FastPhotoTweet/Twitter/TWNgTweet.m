@@ -66,7 +66,7 @@
     for ( NSDictionary *tweet in targets ) {
         
         //Tweetを読み込み
-        text = [TWEntities openTco:tweet];
+        text = [tweet objectForKey:@"text"];
         
         //NG設定を順次読み込む
         for ( NSDictionary *ngData in ngWords ) {

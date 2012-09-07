@@ -14,4 +14,6 @@
 + (NSDictionary *)replaceTco:(NSDictionary *)tweet;
 + (NSMutableString *)replace:(NSDictionary *)tweet text:(NSMutableString *)text entitiesType:(NSString *)entitiesType;
 
++ (NSMutableArray *)replaceTcoAll:(NSMutableArray *)tweets;
+
 @end

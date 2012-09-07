@@ -13,6 +13,7 @@
 #import "ActivityIndicator.h"
 #import "AppDelegate.h"
 #import "Reachability.h"
+#import "TWEntities.h"
 
 @interface TWGetTimeline : NSObject
 

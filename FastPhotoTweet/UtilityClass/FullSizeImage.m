@@ -131,6 +131,8 @@
                                    regExpPattern:@"https?://(s[0-9]\\.amazonaws\\.com/com\\.clixtr\\.picbounce|img\\.viame-cdn\\.com)/photos/[-a-zA-Z0-9]+/[a-z]600x600\\.(jpe?g|png)"];
     }
     
+    //NSLog(@"fullUrl: %@", urlString);
+    
     return urlString;
 }
 

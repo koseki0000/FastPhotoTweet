@@ -151,7 +151,8 @@
                      }
                      
                      //Postしたテキストのt.coを展開
-                     NSString *text = [TWEntities openTco:result];
+                     NSString *text = [result objectForKey:@"text"];
+//                     NSString *text = [TWEntities openTco:result];
                      //NSLog(@"text: %@", text);
                      
                      if ( error != nil ) {

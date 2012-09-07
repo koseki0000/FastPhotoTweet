@@ -98,4 +98,19 @@
     return text;
 }
 
++ (NSMutableArray *)replaceTcoAll:(NSMutableArray *)tweets {
+
+    NSMutableArray *replacedTweets = [NSMutableArray array];
+    
+    //t.coをすべて展開
+    for ( id tweet in tweets ) {
+        
+        [replacedTweets addObject:[TWEntities replaceTco:tweet]];
+    }
+    
+    //NSLog(@"replaceTcoAll: %@", replacedTweets);
+    
+    return replacedTweets;
+}
+
 @end

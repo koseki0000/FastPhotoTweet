@@ -81,6 +81,9 @@
                  
                  if ( timeline != nil ) {
                  
+                     //t.coを全て展開する
+                     timeline = [TWEntities replaceTcoAll:timeline];
+                     
                      //取得完了を通知
                      [result setObject:@"TimelineSuccess" forKey:@"Result"];
                      [result setObject:timeline forKey:@"Timeline"];
