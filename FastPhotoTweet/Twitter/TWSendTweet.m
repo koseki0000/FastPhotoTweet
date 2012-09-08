@@ -7,6 +7,8 @@
 
 #import "TWSendTweet.h"
 
+#define API_VERSION @"1"
+
 @implementation TWSendTweet
 
 + (void)post:(NSArray *)postData {
@@ -74,11 +76,11 @@
             NSString *tReqURL;
             if ( postMode == 0 ) {
                 
-                tReqURL = @"https://upload.twitter.com/1/statuses/update_with_media.json?include_entities=true";
+                tReqURL = [NSString stringWithFormat:@"https://upload.twitter.com/%@/statuses/update_with_media.json?include_entities=true", API_VERSION];
                 image = [postData objectAtIndex:2];
                 
             }else if ( postMode == 1 ) {
-                
+                tReqURL = [NSString stringWithFormat:@"https://api.twitter.com/%@/statuses/update.json?include_entities=true", API_VERSION];
                 tReqURL = @"https://api.twitter.com/1/statuses/update.json?include_entities=true";
             }
             

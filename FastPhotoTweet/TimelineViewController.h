@@ -61,6 +61,7 @@
     BOOL viewWillAppear;
     BOOL userStreamBuffer;
     BOOL alertSearchType;
+    BOOL twitterSearchMode;
     
     int selectRow;
     int longPressControl;

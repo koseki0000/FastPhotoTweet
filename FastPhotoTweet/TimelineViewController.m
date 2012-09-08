@@ -539,22 +539,13 @@
         
         NSArray *newTweet = [center.userInfo objectForKey:@"Search"];
         
-//        //NGClient判定を行う
-//        newTweet = [TWNgTweet ngClient:newTweet];
-//        
-//        //NGName判定を行う
-//        newTweet = [TWNgTweet ngName:newTweet];
-//        
-//        //NGWord判定を行う
-//        newTweet = [TWNgTweet ngWord:newTweet];
-        
         //InReplyToからの復帰用に保存しておく
         mentionsArray = newTweet;
         
         timelineArray = [NSMutableArray arrayWithArray:newTweet];
         
         //タイムラインからアイコンのURLを取得
-//        [self getIconWithTweetArray:[NSMutableArray arrayWithArray:newTweet]];
+        [self getIconWithTweetArray:[NSMutableArray arrayWithArray:newTweet]];
         
         [ActivityIndicator off];
         
@@ -878,15 +869,28 @@
     }
     
     NSString *myAccountName = twAccount.username;
+    
+    //Tweetの本文
     NSString *text = [currentTweet objectForKey:@"text"];
+    
+    //ID
     NSString *screenName = [[currentTweet objectForKey:@"user"] objectForKey:@"screen_name"];
+    
+    //日付
     NSString *jstDate = [TWParser JSTDate:[currentTweet objectForKey:@"created_at"]];
+    
+    //投稿クライアント名
     NSString *clientName = [TWParser client:[currentTweet objectForKey:@"source"]];
+    
+    //ID - 日付 [クライアント名]
     NSString *infoLabelText = [NSString stringWithFormat:@"%@ - %@ [%@]", screenName, jstDate, clientName];
+    
+    //Favorite判定
     BOOL favorited = [[currentTweet objectForKey:@"favorited"] boolValue];
     
     //アイコン検索用
     NSString *fileName = [TWIconBigger normal:[[[currentTweet objectForKey:@"user"] objectForKey:@"profile_image_url"] lastPathComponent]];
+    
     NSString *searchName = [NSString stringWithFormat:@"%@_%@", screenName, fileName];
     
     if ( [icons objectForKey:searchName] != nil ) {
@@ -1219,7 +1223,7 @@
                             delegate:self
                             cancelButtonTitle:@"Cancel"
                             destructiveButtonTitle:nil
-                            otherButtonTitles:@"Twilog", @"TwilogSearch", @"favstar", @"Twitpic", @"UserTimeline(α)", @"TwitterSearch(α)", nil];
+                            otherButtonTitles:@"Twilog", @"TwilogSearch", @"favstar", @"Twitpic", @"UserTimeline", @"TwitterSearch", nil];
     
     sheet.tag = 1;
     
@@ -2119,7 +2123,7 @@
     if (ids.count == 1 ) {
         
         sheet = [[UIActionSheet alloc]
-                 initWithTitle:@"URL選択"
+                 initWithTitle:@"ユーザー選択"
                  delegate:self
                  cancelButtonTitle:@"Cancel"
                  destructiveButtonTitle:nil
@@ -2128,7 +2132,7 @@
     }else if (ids.count == 2 ) {
         
         sheet = [[UIActionSheet alloc]
-                                initWithTitle:@"URL選択"
+                                initWithTitle:@"ユーザー選択"
                                 delegate:self
                                 cancelButtonTitle:@"Cancel"
                                 destructiveButtonTitle:nil
@@ -2138,7 +2142,7 @@
     }else if (ids.count == 3 ) {
         
         sheet = [[UIActionSheet alloc]
-                                initWithTitle:@"URL選択"
+                                initWithTitle:@"ユーザー選択"
                                 delegate:self
                                 cancelButtonTitle:@"Cancel"
                                 destructiveButtonTitle:nil
@@ -2149,7 +2153,7 @@
     }else if (ids.count == 4 ) {
         
         sheet = [[UIActionSheet alloc]
-                                initWithTitle:@"URL選択"
+                                initWithTitle:@"ユーザー選択"
                                 delegate:self
                                 cancelButtonTitle:@"Cancel"
                                 destructiveButtonTitle:nil
@@ -2161,7 +2165,7 @@
     }else if (ids.count == 5 ) {
         
         sheet = [[UIActionSheet alloc]
-                                initWithTitle:@"URL選択"
+                                initWithTitle:@"ユーザー選択"
                                 delegate:self
                                 cancelButtonTitle:@"Cancel"
                                 destructiveButtonTitle:nil
@@ -2174,7 +2178,7 @@
     }else if (ids.count >= 6 ) {
         
         sheet = [[UIActionSheet alloc]
-                                initWithTitle:@"URL選択"
+                                initWithTitle:@"ユーザー選択"
                                 delegate:self
                                 cancelButtonTitle:@"Cancel"
                                 destructiveButtonTitle:nil
@@ -2283,6 +2287,8 @@
     }else if ( serviceType == 5 ) {
         
         dispatch_async(dispatch_get_main_queue(), ^ {
+            
+            otherTweetsMode = YES;
             
             if ( alertSearchType ) {
                 

@@ -8,6 +8,7 @@
 #import "TWGetTimeline.h"
 
 #define BLANK @""
+#define API_VERSION @"1"
 
 @implementation TWGetTimeline
 
@@ -34,7 +35,8 @@
     AppDelegate *appDelegate = (AppDelegate *)[[UIApplication sharedApplication] delegate];
     
     //タイムライン取得リクエストURL作成
-    NSURL *reqUrl = [NSURL URLWithString:@"https://api.twitter.com/1/statuses/home_timeline.json"];
+    NSString *urlString = [NSString stringWithFormat:@"https://api.twitter.com/%@/statuses/home_timeline.json", API_VERSION];
+    NSURL *reqUrl = [NSURL URLWithString:urlString];
     
     //リクエストパラメータを作成
     NSMutableDictionary *params = [[[NSMutableDictionary alloc] init] autorelease];
@@ -134,10 +136,10 @@
     if ( ![TWGetTimeline reachability] ) return;
     
     [ActivityIndicator on];
-    AppDelegate *appDelegate = (AppDelegate *)[[UIApplication sharedApplication] delegate];
     
     //タイムライン取得リクエストURL作成
-    NSURL *reqUrl = [NSURL URLWithString:@"https://api.twitter.com/1/statuses/user_timeline.json"];
+    NSString *urlString = [NSString stringWithFormat:@"https://api.twitter.com/%@/statuses/user_timeline.json", API_VERSION];
+    NSURL *reqUrl = [NSURL URLWithString:urlString];
     
     //リクエストパラメータを作成
     NSMutableDictionary *params = [[[NSMutableDictionary alloc] init] autorelease];
@@ -149,12 +151,6 @@
     [params setObject:@"1" forKey:@"include_entities"];
     //RT表示
     [params setObject:@"1" forKey:@"include_rts"];
-    
-    //差分取得
-    if ( ![appDelegate.sinceId isEqualToString:BLANK] ) {
-        
-        [params setObject:appDelegate.sinceId forKey:@"since_id"];
-    }
     
     //リクエストを作成
     TWRequest *request = [[[TWRequest alloc] initWithURL:reqUrl
@@ -187,6 +183,9 @@
                  if ( timeline != nil && timeline.count != 0 ) {
                      
                      NSLog(@"UserTimelineSuccess");
+                     
+                     //t.coを全て展開する
+                     timeline = [TWEntities replaceTcoAll:timeline];
                      
                      //取得完了を通知
                      [result setObject:@"UserTimelineSuccess" forKey:@"Result"];
@@ -242,7 +241,8 @@
     [ActivityIndicator on];
     
     //タイムライン取得リクエストURL作成
-    NSURL *reqUrl = [NSURL URLWithString:@"http://api.twitter.com/1/statuses/mentions.json"];
+    NSString *urlString = [NSString stringWithFormat:@"http://api.twitter.com/%@/statuses/mentions.json", API_VERSION];
+    NSURL *reqUrl = [NSURL URLWithString:urlString];
     
     //リクエストパラメータを作成
     NSMutableDictionary *params = [[[NSMutableDictionary alloc] init] autorelease];
@@ -313,7 +313,8 @@
     [ActivityIndicator on];
     
     //タイムライン取得リクエストURL作成
-    NSURL *reqUrl = [NSURL URLWithString:@"https://api.twitter.com/1/favorites.json"];
+    NSString *urlString = [NSString stringWithFormat:@"https://api.twitter.com/%@/favorites.json", API_VERSION];
+    NSURL *reqUrl = [NSURL URLWithString:urlString];
     
     //リクエストパラメータを作成
     NSMutableDictionary *params = [[[NSMutableDictionary alloc] init] autorelease];
@@ -424,7 +425,15 @@
                                                                                                  error:&jsonError];
                  
                  
-                 NSLog(@"searchResult: %@", searchResult);
+                 //レスポンスを整形する
+                 searchResult = [TWGetTimeline fixTwitterSearchResponse:searchResult];
+                 
+                 //t.coを全て展開する
+                 NSMutableArray *results = [NSMutableArray arrayWithArray:[searchResult objectForKey:@"results"]];
+                 results = [TWEntities replaceTcoAll:results];
+                 searchResult = @{ @"results" : results };
+                 
+                 //NSLog(@"searchResult: %@", searchResult);
                  
                  //取得完了を通知
                  [result setObject:@"SearchSuccess" forKey:@"Result"];
@@ -455,6 +464,37 @@
     }
     
     return result;
+}
+
++ (NSDictionary *)fixTwitterSearchResponse:(NSDictionary *)twitterSearchResponse {
+    
+    //NSLog(@"fixTwitterSearchResponse: %@", twitterSearchResponse);
+    
+    NSArray *results = [twitterSearchResponse objectForKey:@"results"];
+    
+    NSMutableArray *fixedResponse = [NSMutableArray array];
+    
+    for ( id tweet in results ) {
+        
+        NSMutableDictionary *fixedTweet = [NSMutableDictionary dictionaryWithDictionary:tweet];
+        
+        NSMutableDictionary *user = [NSMutableDictionary dictionary];
+        [user setObject:[fixedTweet objectForKey:@"from_user"] forKey:@"screen_name"];
+        [user setObject:[fixedTweet objectForKey:@"profile_image_url"] forKey:@"profile_image_url"];
+        
+        NSMutableString *source = [fixedTweet objectForKey:@"source"];
+        [source replaceOccurrencesOfString:@"&gt;"  withString:@">" options:0 range:NSMakeRange(0, [source length] )];
+        [source replaceOccurrencesOfString:@"&lt;"  withString:@"<" options:0 range:NSMakeRange(0, [source length] )];
+        [source replaceOccurrencesOfString:@"&amp;" withString:@"&" options:0 range:NSMakeRange(0, [source length] )];
+        [source replaceOccurrencesOfString:@"&quot;" withString:@"""" options:0 range:NSMakeRange(0, [source length] )];
+        
+        [fixedTweet setObject:user forKey:@"user"];
+        [fixedTweet setObject:source forKey:@"source"];
+        
+        [fixedResponse addObject:fixedTweet];
+    }
+    
+    return @{ @"results" : fixedResponse };
 }
 
 @end

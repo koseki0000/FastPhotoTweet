@@ -7,6 +7,8 @@
 
 #import "TWIconUpload.h"
 
+#define API_VERSION @"1"
+
 @implementation TWIconUpload
 
 + (void)image:(UIImage *)image {
@@ -34,7 +36,7 @@
             [ActivityIndicator visible:YES];
             
             //リクエストURLを指定
-            NSString *tReqURL = @"https://api.twitter.com/1/account/update_profile_image.json";
+            NSString *tReqURL = [NSString stringWithFormat:@"https://api.twitter.com/%@/account/update_profile_image.json", API_VERSION];
             
             //リクエストの作成
             TWRequest *postRequest = [[[TWRequest alloc] initWithURL:[NSURL URLWithString:tReqURL] 

@@ -23,6 +23,8 @@
 + (void)favotites;
 + (void)twitterSearch:(NSString *)searchWord;
 
++ (NSDictionary *)fixTwitterSearchResponse:(NSDictionary *)twitterSearchResponse;
+
 + (BOOL)reachability;
 
 @end

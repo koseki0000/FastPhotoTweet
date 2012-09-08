@@ -171,20 +171,20 @@
     
     if ( ngList.count != 0 ) {
         
-        NSLog(@"ngList: %@", ngList);
+        //NSLog(@"ngList: %@", ngList);
         
         [ArrayDuplicate checkArrayInNumber:ngList];
         
         int removeIndex = 0;
         
-        NSLog(@"ngList: %@", ngList);
+        //NSLog(@"ngList: %@", ngList);
         
         //NGすべきものがある場合
         for ( int i = ngList.count - 1; i >= 0; i-- ) {
             
             removeIndex = [[ngList objectAtIndex:i] intValue];
             
-            NSLog(@"i: %d, targets: %d, removeIndex: %d", i, targets.count, removeIndex);
+            //NSLog(@"i: %d, targets: %d, removeIndex: %d", i, targets.count, removeIndex);
             
             if ( targets.count >= removeIndex ) {
              

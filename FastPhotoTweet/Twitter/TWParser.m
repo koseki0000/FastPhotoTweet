@@ -20,7 +20,12 @@
 //out: JSTタイムゾーン適用済み時刻
 + (NSString *)JSTDate:(NSString *)tweetData {
     
-    NSString *date = [tweetData substringWithRange:NSMakeRange(11,8)];
+    int from = 11;
+    
+    //,がある場合はTwitterSearchのパターン
+    if ( [tweetData rangeOfString:@","].location != NSNotFound ) from = 17;
+    
+    NSString *date = [tweetData substringWithRange:NSMakeRange(from, 8)];
     
     NSDateFormatter *inputDateFormatter = [[NSDateFormatter alloc] init];
 	[inputDateFormatter setDateFormat:DATE_FORMAT];

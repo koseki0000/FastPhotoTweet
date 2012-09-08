@@ -351,7 +351,7 @@
             //NSLog(@"newVersion");
             
             [ShowAlert title:[NSString stringWithFormat:@"FastPhotoTweet %@", APP_VERSION] 
-                 message:@"・Timelineメニューのユーザーメニューから各種外部サービス等を開ける機能を追加\n・t.co展開に関する問題を修正"];
+                 message:@"・TwitterSearchを実用レベルに改良\n・UserTimelineの問題を修正\n・その他細かな修正"];
             
             information = [[[NSMutableDictionary alloc] initWithDictionary:[d dictionaryForKey:@"Information"]] autorelease];
             [information setValue:[NSNumber numberWithInt:1] forKey:APP_VERSION];
