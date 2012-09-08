@@ -16,7 +16,7 @@
     //アカウントの取得
     ACAccount *twAccount = [TWGetAccount currentAccount];
     
-    //NSLog(@"homeTimeline: %@", twAccount.username);
+    //NSLog(@"Get HomeTimeline: %@", twAccount.username);
     
     //Twitterアカウントの確認
     if ( twAccount == nil ) {
@@ -34,7 +34,7 @@
     AppDelegate *appDelegate = (AppDelegate *)[[UIApplication sharedApplication] delegate];
     
     //タイムライン取得リクエストURL作成
-    NSURL *reqUrl = [NSURL URLWithString:@"http://api.twitter.com/1/statuses/home_timeline.json"];
+    NSURL *reqUrl = [NSURL URLWithString:@"https://api.twitter.com/1/statuses/home_timeline.json"];
     
     //リクエストパラメータを作成
     NSMutableDictionary *params = [[[NSMutableDictionary alloc] init] autorelease];
@@ -70,6 +70,8 @@
          
          dispatch_async(dispatch_get_main_queue(), ^{
              
+             NSLog(@"HomeTimeline receive ressponse");
+             
              if ( responseData ) {
                  
                  NSError *jsonError = nil;
@@ -93,6 +95,8 @@
                      [result setObject:@"TimelineError" forKey:@"Result"];
                  }
                  
+                 //NSLog(@"Get HomeTimeline done");
+                 
                  //通知を実行
                  [[NSNotificationCenter defaultCenter] postNotification:notification];
                  
@@ -101,7 +105,7 @@
          });
      }];
     
-    //NSLog(@"Timeline request sended");
+    //NSLog(@"HomeTimeline request sended");
 }
 
 + (void)userTimeline:(NSString *)screenName {

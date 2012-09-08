@@ -7,6 +7,7 @@
 
 #import <Foundation/Foundation.h>
 #import "JSON.h"
+#import "TWParser.h"
 
 @interface TWEntities : NSObject
 

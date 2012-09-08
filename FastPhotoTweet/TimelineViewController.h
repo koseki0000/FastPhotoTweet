@@ -42,6 +42,7 @@
     NSString *lastUpdateAccount;
     NSString *timelineTopTweetId;
     NSString *selectAccount;
+    NSString *alertSearchUserName;
     
     UIPasteboard *pboard;
     UIImage *startImage;
@@ -59,6 +60,7 @@
     BOOL otherTweetsMode;
     BOOL viewWillAppear;
     BOOL userStreamBuffer;
+    BOOL alertSearchType;
     
     int selectRow;
     int longPressControl;
@@ -107,6 +109,7 @@
 - (void)openStream;
 - (void)closeStream;
 - (void)showTwitterAccountSelectActionSheet:(NSArray *)ids;
+- (void)openTwitterService:(NSString *)username serviceType:(int)serviceType;
 
 - (void)receiveProfile:(NSNotification *)notification;
 - (void)enterBackground:(NSNotification *)notification;

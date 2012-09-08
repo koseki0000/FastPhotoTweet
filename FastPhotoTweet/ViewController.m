@@ -351,7 +351,7 @@
             //NSLog(@"newVersion");
             
             [ShowAlert title:[NSString stringWithFormat:@"FastPhotoTweet %@", APP_VERSION] 
-                 message:@"・t.co展開の方式を変更し、Timeline表示を高速化"];
+                 message:@"・Timelineメニューのユーザーメニューから各種外部サービス等を開ける機能を追加\n・t.co展開に関する問題を修正"];
             
             information = [[[NSMutableDictionary alloc] initWithDictionary:[d dictionaryForKey:@"Information"]] autorelease];
             [information setValue:[NSNumber numberWithInt:1] forKey:APP_VERSION];
@@ -990,9 +990,7 @@
                             delegate:self
                             cancelButtonTitle:@"Cancel"
                             destructiveButtonTitle:nil
-                            otherButtonTitles:@"半角カナ変換(カタカナ)", @"半角カナ変換(ひらがな)", @"半角カナ変換(カタカナ+ひらがな)", 
-                                              @"ペーストボードへコピー", @"ペーストボードからコピー", 
-                                              @"現在位置から右を削除", @"現在位置から左を削除", nil];
+                            otherButtonTitles:@"半角カナ変換(カタカナ)", @"半角カナ変換(ひらがな)", @"半角カナ変換(カタカナ+ひらがな)", nil];
     [sheet autorelease];
     [sheet showInView:appDelegate.tabBarController.self.view];
 }
@@ -1146,29 +1144,6 @@
             
             postText.text = [HankakuKana kanaHiragana:postText.text];
         
-        }else if ( buttonIndex == 3 ) {
-            
-            [pboard setString:postText.text];
-            
-        }else if ( buttonIndex == 4 ) {
-            
-            postText.text = [NSString stringWithFormat:@"%@%@", postText.text, pboard.string];
-        
-        }else if ( buttonIndex == 5 ) {
-            
-            if ( ![EmptyCheck check:postText.text] ) {
-                
-                postText.text = [NSString stringWithString:[postText.text substringWithRange:NSMakeRange( 0, postText.selectedRange.location )]];
-                [postText setSelectedRange:NSMakeRange( postText.text.length, 0 )];
-            }
-            
-        }else if ( buttonIndex == 6 ) {
-        
-            if ( ![EmptyCheck check:postText.text] ) {
-                
-                postText.text = [NSString stringWithString:[postText.text substringWithRange:NSMakeRange( postText.selectedRange.location, postText.text.length - ( postText.selectedRange.location ))]];
-                [postText setSelectedRange:NSMakeRange( 0, 0 )];
-            }
         }
     
     }else if ( actionSheetNo == 6 ) {

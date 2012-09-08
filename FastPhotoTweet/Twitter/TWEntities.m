@@ -17,14 +17,14 @@
     
     NSMutableString *text = nil;
     
-    if ( [tweet objectForKey:@"event"] == nil ) {
+    if ( [tweet objectForKey:@"event"] == nil || [[tweet objectForKey:@"retweeted_status"] objectForKey:@"id"] ) {
         
-        //通常のTweet
+        //通常のTweet, 公式RTなど
         text = [NSMutableString stringWithString:[tweet objectForKey:@"text"]];
         
     }else {
     
-        //公式RTなど
+        //イベント系
         text = [NSMutableString stringWithString:[[tweet objectForKey:@"target_object"] objectForKey:@"text"]];
     }
     
@@ -105,6 +105,14 @@
     //t.coをすべて展開
     for ( id tweet in tweets ) {
         
+        //公式RTであるか
+        if ( [[tweet objectForKey:@"retweeted_status"] objectForKey:@"id"] ) {
+            
+            //公式RTの場合はテキストを組み替える
+            tweet = [TWParser rtText:tweet];
+        }
+        
+        //t.coを展開して追加
         [replacedTweets addObject:[TWEntities replaceTco:tweet]];
     }
     
