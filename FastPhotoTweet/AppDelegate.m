@@ -21,21 +21,22 @@ void uncaughtExceptionHandler(NSException *e) {
 @synthesize window = _window;
 @synthesize tabBarController = _tabBarController;
 
-@synthesize postText = _postText;
-@synthesize postTextType = _postTextType;
-@synthesize bookmarkUrl = _bookmarkUrl;
-@synthesize urlSchemeDownloadUrl = _urlSchemeDownloadUrl;
-@synthesize tabChangeFunction = _tabChangeFunction;
-@synthesize sinceId = _sinceId;
-@synthesize reOpenUrl = _reOpenUrl;
-@synthesize startupUrlList = _startupUrlList;
-@synthesize postError = _postError;
-@synthesize postData = _postData;
-@synthesize resendNumber = _resendNumber;
-@synthesize launchMode = _launchMode;
-@synthesize resendMode = _resendMode;
-@synthesize browserOpenMode = _browserOpenMode;
-@synthesize pcUaMode = _pcUaMode;
+@synthesize postText;
+@synthesize postTextType;
+@synthesize bookmarkUrl;
+@synthesize urlSchemeDownloadUrl;
+@synthesize tabChangeFunction;
+@synthesize sinceId;
+@synthesize reOpenUrl;
+@synthesize listId;
+@synthesize startupUrlList;
+@synthesize postError;
+@synthesize postData;
+@synthesize resendNumber;
+@synthesize launchMode;
+@synthesize resendMode;
+@synthesize browserOpenMode;
+@synthesize pcUaMode;
 
 - (BOOL)application:(UIApplication *)application didFinishLaunchingWithOptions:(NSDictionary *)launchOptions {
     
@@ -49,32 +50,33 @@ void uncaughtExceptionHandler(NSException *e) {
     }
     
     //各種初期化
-    _postText = BLANK;
-    _postTextType = BLANK;
-    _bookmarkUrl = BLANK;
-    _urlSchemeDownloadUrl = BLANK;
-    _tabChangeFunction = BLANK;
-    _sinceId = BLANK;
-    _reOpenUrl = BLANK;
+    postText = BLANK;
+    postTextType = BLANK;
+    bookmarkUrl = BLANK;
+    urlSchemeDownloadUrl = BLANK;
+    tabChangeFunction = BLANK;
+    sinceId = BLANK;
+    reOpenUrl = BLANK;
+    listId = BLANK;
     
-    _postError = [NSMutableArray array];
-    [_postError retain];
+    postError = [NSMutableArray array];
+    [postError retain];
     
-    _resendNumber = 0;
-    _resendMode = NO;
-    _browserOpenMode = NO;
-    _pcUaMode = NO;
+    resendNumber = 0;
+    resendMode = NO;
+    browserOpenMode = NO;
+    pcUaMode = NO;
 
-    _startupUrlList = [NSArray arrayWithObject:[D objectForKey:@"HomePageURL"]];
-    [_startupUrlList retain];
+    startupUrlList = [NSArray arrayWithObject:[D objectForKey:@"HomePageURL"]];
+    [startupUrlList retain];
     
-    _postData = [NSMutableDictionary dictionary];
-    [_postData retain];
+    postData = [NSMutableDictionary dictionary];
+    [postData retain];
     
     if ( launchOptions == NULL ) {
-        _launchMode = 0;
+        launchMode = 0;
     }else {
-        _launchMode = 1;
+        launchMode = 1;
     }
     
     self.window = [[[UIWindow alloc] initWithFrame:[[UIScreen mainScreen] bounds]] autorelease];
@@ -102,8 +104,8 @@ void uncaughtExceptionHandler(NSException *e) {
 
     if ( [schemeURL.absoluteString hasPrefix:@"fhttp"] || [schemeURL.absoluteString hasPrefix:@"fhttps"]) {
         
-        _urlSchemeDownloadUrl = [schemeURL.absoluteString substringFromIndex:1];
-        [_urlSchemeDownloadUrl retain];
+        urlSchemeDownloadUrl = [schemeURL.absoluteString substringFromIndex:1];
+        [urlSchemeDownloadUrl retain];
     }
     
     return YES;
@@ -184,8 +186,8 @@ void uncaughtExceptionHandler(NSException *e) {
 
 - (void)dealloc {
     
-    [_postError release];
-    [_urlSchemeDownloadUrl release];
+    [postError release];
+    [urlSchemeDownloadUrl release];
 
     [_window release];
     [_tabBarController release];

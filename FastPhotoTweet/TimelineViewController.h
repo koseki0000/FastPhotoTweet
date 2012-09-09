@@ -31,9 +31,11 @@
     NSMutableArray *inReplyTo;
     NSMutableArray *reqedUser;
     NSMutableArray *iconUrls;
+    NSMutableArray *currentList;
     NSMutableDictionary *allTimelines;
     NSMutableDictionary *sinceIds;
     NSMutableDictionary *icons;
+    NSMutableDictionary *allLists;
     NSArray *mentionsArray;
     NSArray *selectTweetIds;
     NSDictionary *currentTweet;
@@ -61,7 +63,7 @@
     BOOL viewWillAppear;
     BOOL userStreamBuffer;
     BOOL alertSearchType;
-    BOOL twitterSearchMode;
+    BOOL listMode;
     
     int selectRow;
     int longPressControl;

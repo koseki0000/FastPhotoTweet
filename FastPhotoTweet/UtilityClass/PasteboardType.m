@@ -19,9 +19,7 @@
     
     for ( NSString *temp in pboard.pasteboardTypes ) {
      
-        if ( [[pboard.pasteboardTypes objectAtIndex:i] isEqualToString:@"public.text"] ||
-             [[pboard.pasteboardTypes objectAtIndex:i] isEqualToString:@"public.utf8-plain-text"] ||
-             [[pboard.pasteboardTypes objectAtIndex:i] isEqualToString:@"public.url"] ) {
+        if ( [EmptyCheck string:pboard.string] ) {
             
             //テキストの場合
             return 0;
@@ -44,18 +42,12 @@
 + (BOOL)isText {
     
     UIPasteboard *pboard = [UIPasteboard generalPasteboard];
-    int i = 0;
     BOOL result = NO;
     
-    for ( NSString *temp in pboard.pasteboardTypes ) {
+    if ( [EmptyCheck string:pboard.string] ) {
         
-        if ( [[pboard.pasteboardTypes objectAtIndex:i] isEqualToString:@"public.text"] ||
-             [[pboard.pasteboardTypes objectAtIndex:i] isEqualToString:@"public.utf8-plain-text"] ||
-             [[pboard.pasteboardTypes objectAtIndex:i] isEqualToString:@"public.url"] ) {
-            
-            //テキストの場合
-            result = YES;
-        }
+        //テキストの場合
+        result = YES;
     }
     
     return result;

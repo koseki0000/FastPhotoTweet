@@ -7,6 +7,7 @@
 
 #import <Foundation/Foundation.h>
 #import "ShowAlert.h"
+#import "EmptyCheck.h"
 
 @interface PasteboardType : NSObject
 

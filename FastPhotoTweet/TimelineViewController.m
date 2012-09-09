@@ -64,14 +64,17 @@
     inReplyTo = [NSMutableArray array];
     reqedUser = [NSMutableArray array];
     iconUrls = [NSMutableArray array];
+    currentList = [NSMutableArray array];
     icons = [NSMutableDictionary dictionary];
     allTimelines = [NSMutableDictionary dictionary];
     mentionsArray = [NSArray array];
     sinceIds = [NSMutableDictionary dictionary];
+    allLists = [NSMutableDictionary dictionary];
     selectTweet = [NSDictionary dictionary];
     userStreamAccount = BLANK;
     timelineTopTweetId = BLANK;
     selectAccount = BLANK;
+    alertSearchUserName = BLANK;
     
     startImage = [UIImage imageNamed:@"ForwardIcon.png"];
     stopImage = [UIImage imageNamed:@"stop.png"];
@@ -157,6 +160,12 @@
     [notificationCenter addObserver:self
                            selector:@selector(loadSearch:)
                                name:@"GetSearch"
+                             object:nil];
+    
+    //リスト取得完了通知を受け取る設定
+    [notificationCenter addObserver:self
+                           selector:@selector(loadList:)
+                               name:@"ReceiveList"
                              object:nil];
     
     //プロフィール取得完了を受け取る設定
@@ -558,6 +567,39 @@
     }
 }
 
+- (void)loadList:(NSNotification *)center {
+
+    NSLog(@"loadList");
+    
+    reloadButton.enabled = YES;
+    openStreamButton.enabled = NO;
+    
+    NSArray *newTweet = [center.userInfo objectForKey:@"ResultData"];
+    
+    //NGClient判定を行う
+    newTweet = [TWNgTweet ngClient:newTweet];
+    
+    //NGName判定を行う
+    newTweet = [TWNgTweet ngName:newTweet];
+    
+    //NGWord判定を行う
+    newTweet = [TWNgTweet ngWord:newTweet];
+    
+    currentList = [NSMutableArray arrayWithArray:newTweet];
+    
+    [allLists setObject:currentList forKey:appDelegate.listId];
+    
+    timelineArray = currentList;
+    
+    //タイムラインからアイコンのURLを取得
+    [self getIconWithTweetArray:timelineArray];
+    
+    //タイムラインを再読み込み
+    [timeline reloadData];
+    
+    [self scrollTimelineToTop:NO];
+}
+
 - (void)getIconWithTweetArray:(NSMutableArray *)tweetArray {
     
     //NSLog(@"getIconWithTweetArray");
@@ -858,6 +900,8 @@
 		cell = (TimelineCell *)controller.view;
 	}
     
+    //Tweet表示モード
+    
     timelineScroll = (int)timeline.contentOffset.y;
     currentTweet = [timelineArray objectAtIndex:indexPath.row];
     
@@ -890,7 +934,6 @@
     
     //アイコン検索用
     NSString *fileName = [TWIconBigger normal:[[[currentTweet objectForKey:@"user"] objectForKey:@"profile_image_url"] lastPathComponent]];
-    
     NSString *searchName = [NSString stringWithFormat:@"%@_%@", screenName, fileName];
     
     if ( [icons objectForKey:searchName] != nil ) {
@@ -916,7 +959,7 @@
     }
     
     //Replyの色を変える
-    if ( [RegularExpression boolRegExp:text 
+    if ( [RegularExpression boolRegExp:text
                          regExpPattern:[NSString stringWithFormat:@"@%@", myAccountName]] &&
         ![[currentTweet objectForKey:@"retweeted_status"] objectForKey:@"id"] ) {
         
@@ -997,7 +1040,9 @@
                                 delegate:self
                                 cancelButtonTitle:@"Cancel"
                                 destructiveButtonTitle:nil
-                                otherButtonTitles:@"URLを開く", @"Reply", @"Favorite／UnFavorite", @"ReTweet", @"Fav+RT", @"ハッシュタグをNG", @"クライアントをNG", @"InReplyTo", @"Tweetをコピー", @"TweetのURLをコピー", @"Tweetの本文をコピー", @"Tweetを削除", @"Tweetを編集", @"ユーザーメニュー", nil];
+                                otherButtonTitles:@"URLを開く", @"Reply", @"Favorite／UnFavorite", @"ReTweet",
+                                @"Fav+RT", @"ハッシュタグをNG", @"クライアントをNG", @"InReplyTo", @"Tweetをコピー",
+                                @"Tweetを削除", @"Tweetを編集", @"ユーザーメニュー", nil];
         
         sheet.tag = 0;
         
@@ -1183,6 +1228,11 @@
         
         //Favoritesを取得
         [TWGetTimeline favotites];
+        
+    }else if ( timelineSegment.selectedSegmentIndex == 3 ) {
+        
+        //リストを再読み込み
+        [TWList getList:appDelegate.listId];
     }
 }
 
@@ -1232,6 +1282,7 @@
 
 - (IBAction)pushCloseOtherTweetsButton:(UIBarButtonItem *)sender {
     
+    listMode = NO;
     otherTweetsMode = NO;
     [topBar setItems:TOP_BAR animated:YES];
     
@@ -1331,6 +1382,13 @@
                 //t.coを展開
                 receiveData = [NSMutableDictionary dictionaryWithDictionary:[TWEntities replaceTco:receiveData]];
                 
+                //公式RTであるか
+                if ( [[receiveData objectForKey:@"retweeted_status"] objectForKey:@"id"] ) {
+                    
+                    //公式RTの場合はテキストを組み替える
+                    receiveData = [NSMutableDictionary dictionaryWithDictionary:[TWParser rtText:[NSDictionary dictionaryWithDictionary:receiveData]]];
+                }
+                
                 NSArray *newTweet = [NSArray arrayWithObject:receiveData];
                 
                 if ( [receiveData objectForKey:@"event"] == nil && [receiveData objectForKey:@"delete"] == nil ) {
@@ -1347,8 +1405,6 @@
                     //新着が無いので終了
                     if ( newTweet.count == 0 ) return;
                 }
-                
-//                NSLog(@"receiveData: %@, timelineArray: %@", [receiveData objectForKey:@"id_str"], [[timelineArray objectAtIndex:0] objectForKey:@"id_str"]);
                 
                 if ( [receiveData objectForKey:@"id_str"] != nil &&
                     [[timelineArray objectAtIndex:0] objectForKey:@"id_str"] != nil ) {
@@ -1520,7 +1576,6 @@
                     
                     dispatch_async(dispatch_get_main_queue(), ^ {
                         
-                        //1セル目くらいが最上部
                         //タイムラインに追加
                         [timelineArray insertObject:receiveData atIndex:0];
                         
@@ -1648,6 +1703,7 @@
         if ( userStream ) [self closeStream];
         
         appDelegate.sinceId = BLANK;
+        appDelegate.listId = BLANK;
         
         [d setInteger:num forKey:@"UseAccount"];
         
@@ -1672,6 +1728,7 @@
         if ( userStream ) [self closeStream];
         
         appDelegate.sinceId = BLANK;
+        appDelegate.listId = BLANK;
         
         [d setInteger:num forKey:@"UseAccount"];
         
@@ -1720,6 +1777,7 @@
             timelineArray = [allTimelines objectForKey:twAccount.username];
             [timeline reloadData];
             
+            listMode = NO;
             openStreamButton.enabled = YES;
             
             mentionsArray = [NSArray array];
@@ -1728,13 +1786,33 @@
             
         }else if ( timelineSegment.selectedSegmentIndex == 1 ) {
             
+            listMode = NO;
+            
             //Mentionsに切り替わった
             [TWGetTimeline mentions];
             
         }else if ( timelineSegment.selectedSegmentIndex == 2 ) {
             
+            listMode = NO;
+            
             //Favoritesに切り替わった
             [TWGetTimeline favotites];
+        
+        }else if ( timelineSegment.selectedSegmentIndex == 3 ) {
+            
+            //UserStream接続中の場合は切断する
+            if ( userStream ) [self closeStream];
+            
+            reloadButton.enabled = YES;
+            openStreamButton.enabled = NO;
+            listMode = YES;
+            
+            timelineArray = [NSMutableArray array];
+            [timeline reloadData];
+            
+            ListViewController *dialog = [[ListViewController alloc] init];
+            dialog.modalTransitionStyle = UIModalTransitionStyleCoverVertical;
+            [self presentModalViewController:dialog animated:YES];
         }
     }
 }
@@ -1906,27 +1984,34 @@
                 
                 }else if ( buttonIndex == 8 ) {
                     
-                    NSString *text = [selectTweet objectForKey:@"text"];
-                    NSString *copyText = [NSString stringWithFormat:@"%@: %@ [https://twitter.com/%@/status/%@]", screenName, text, screenName, tweetId];
-                    [pboard setString:copyText];
+                    dispatch_async(dispatch_get_main_queue(), ^ {
+                        
+                        UIActionSheet *sheet = [[UIActionSheet alloc]
+                                                initWithTitle:@"Tweetをコピー"
+                                                delegate:self
+                                                cancelButtonTitle:@"Cancel"
+                                                destructiveButtonTitle:nil
+                                                otherButtonTitles:@"STOT形式", @"本文", @"TweetへのURL", nil];
+                        
+                        sheet.tag = 6;
+                        [sheet showInView:appDelegate.tabBarController.self.view];
+                    });
                     
                 }else if ( buttonIndex == 9 ) {
-                    
-                    NSString *copyText = [NSString stringWithFormat:@"https://twitter.com/%@/status/%@", screenName, tweetId];
-                    [pboard setString:copyText];
-                    
-                }else if ( buttonIndex == 10 ) {
-                    
-                    [pboard setString:[selectTweet objectForKey:@"text"]];
-                
-                }else if ( buttonIndex == 11 ) {
                     
                     if ( [[[selectTweet objectForKey:@"user"] objectForKey:@"screen_name"] isEqualToString:twAccount.username] ) {
                         
                         [TWEvent destroy:tweetId];
+                        
+                    }else {
+                        
+                        dispatch_async(dispatch_get_main_queue(), ^ {
+                            
+                            [ShowAlert error:@"自分のTweetではありません。"];
+                        });
                     }
                     
-                }else if ( buttonIndex == 12 ) {
+                }else if ( buttonIndex == 10 ) {
                     
                     if ( [[[selectTweet objectForKey:@"user"] objectForKey:@"screen_name"] isEqualToString:twAccount.username] ) {
                         
@@ -1959,9 +2044,16 @@
                             
                             self.tabBarController.selectedIndex = 0;
                         });
+                        
+                    }else {
+                        
+                        dispatch_async(dispatch_get_main_queue(), ^ {
+                            
+                            [ShowAlert error:@"自分のTweetではありません。"];
+                        });
                     }
                     
-                }else if ( buttonIndex == 13 ) {
+                }else if ( buttonIndex == 11 ) {
                     
                     NSMutableArray *ids = [RegularExpression twitterIds:[selectTweet objectForKey:@"text"]];
                     [ids insertObject:[NSString stringWithFormat:@"@%@", [[selectTweet objectForKey:@"user"] objectForKey:@"screen_name"]] atIndex:0];
@@ -2081,6 +2173,16 @@
                 dispatch_async(dispatch_get_main_queue(), ^ {
                     
                     selectAccount = [selectTweetIds objectAtIndex:buttonIndex];
+                    
+                    if ( [selectAccount hasPrefix:@"@"] ) {
+                        
+                        //@から始まっている場合取り除く
+                        selectAccount = [selectAccount substringFromIndex:1];
+                    }
+                    
+                    //前後の空白文字を取り除く
+                    selectAccount = [DeleteWhiteSpace string:selectAccount];
+                    
                     alertSearchUserName = selectAccount;
                     
                     UIActionSheet *sheet = [[UIActionSheet alloc]
@@ -2088,7 +2190,7 @@
                                             delegate:self
                                             cancelButtonTitle:@"Cancel"
                                             destructiveButtonTitle:nil
-                                            otherButtonTitles:@"外部サービスやユーザー情報を開く", nil];
+                                            otherButtonTitles:@"外部サービスやユーザー情報を開く", @"フォロー関連", nil];
                     
                     sheet.tag = 4;
                     [sheet showInView:appDelegate.tabBarController.self.view];
@@ -2102,11 +2204,91 @@
                         
                         [self pushActionButton:nil];
                     });
+                    
+                    //後処理
+                    selectAccount = BLANK;
+                    selectTweetIds = [NSArray array];
+                    
+                }else if ( buttonIndex == 1 ) {
+                    
+                    dispatch_async(dispatch_get_main_queue(), ^ {
+                        
+                        twAccount = [TWGetAccount currentAccount];
+                        
+                        if ( [selectAccount isEqualToString:twAccount.username] ) {
+                         
+                            [ShowAlert error:@"それはあなたです！"];
+                            
+                        }else {
+                            
+                            UIActionSheet *sheet = [[UIActionSheet alloc]
+                                                    initWithTitle:selectAccount
+                                                    delegate:self
+                                                    cancelButtonTitle:@"Cancel"
+                                                    destructiveButtonTitle:@"スパム報告"
+                                                    otherButtonTitles:@"ブロック", @"ブロック解除", @"フォロー", @"フォロー解除", nil];
+                            
+                            sheet.tag = 5;
+                            [sheet showInView:appDelegate.tabBarController.self.view];
+                        }
+                    });
                 }
                 
-                //後処理
-                selectAccount = BLANK;
-                selectTweetIds = [NSArray array];
+            }else if ( actionSheet.tag == 5 ) {
+                
+                if ( buttonIndex == 0 ) {
+                    
+                    //スパム報告
+                    [TWFriends reportSpam:selectAccount];
+                
+                }else if ( buttonIndex == 1 ) {
+                    
+                    //ブロック
+                    [TWFriends block:selectAccount];
+                    
+                }else if ( buttonIndex == 2 ) {
+                    
+                    //ブロック解除
+                    [TWFriends unblock:selectAccount];
+                    
+                }else if ( buttonIndex == 3 ) {
+                    
+                    //フォロー
+                    [TWFriends follow:selectAccount];
+                    
+                }else if ( buttonIndex == 4 ) {
+                    
+                    //フォロー解除
+                    [TWFriends unfollow:selectAccount];
+                }
+                
+            }else if ( actionSheet.tag == 6 ) {
+                
+                //公式RTであるか
+                if ( [[selectTweet objectForKey:@"retweeted_status"] objectForKey:@"id"] ) {
+                    
+                    screenName = [[[selectTweet objectForKey:@"retweeted_status"] objectForKey:@"user"] objectForKey:@"screen_name"];
+                    tweetId = [[selectTweet objectForKey:@"retweeted_status"] objectForKey:@"id_str"];
+                }
+                
+                if ( buttonIndex == 0 ) {
+                    
+                    //STOT形式
+                    NSString *text = [selectTweet objectForKey:@"text"];
+                    NSString *copyText = [NSString stringWithFormat:@"%@: %@ [https://twitter.com/%@/status/%@]", screenName, text, screenName, tweetId];
+                    [pboard setString:copyText];
+                    
+                }else if ( buttonIndex == 1 ) {
+                    
+                    //本文
+                    [pboard setString:[selectTweet objectForKey:@"text"]];
+                    
+                }else if ( buttonIndex == 2 ) {
+                    
+                    //URL
+                    NSString *copyText = [NSString stringWithFormat:@"https://twitter.com/%@/status/%@", screenName, tweetId];
+                    [pboard setString:copyText];
+                }
             }
         });
         
@@ -2200,13 +2382,6 @@
 - (void)openTwitterService:(NSString *)username serviceType:(int)serviceType {
     
     if ( ![EmptyCheck string:username] ) return;
-    
-    if ( [username hasPrefix:@"@"] ) {
-        
-        username = [username substringFromIndex:1];
-    }
-    
-    username = [DeleteWhiteSpace string:username];
     
     NSString *serviceUrl = nil;
     
@@ -2598,6 +2773,8 @@
     
     [super viewDidAppear:animated];
     
+    NSLog(@"viewDidAppear");
+    
     if ( webBrowserMode ) {
         
         webBrowserMode = NO;
@@ -2610,6 +2787,24 @@
             
             return;
         }
+    }
+    
+    if ( listMode && [EmptyCheck string:appDelegate.listId] ) {
+        
+        if ( userStream ) [self closeStream];
+        
+        if ( [allLists objectForKey:appDelegate.listId] != nil ) {
+            
+            timelineArray = [allLists objectForKey:appDelegate.listId];
+            
+        }else {
+            
+            timelineArray = [NSMutableArray array];
+        }
+        
+        [timeline reloadData];
+        
+        [TWList getList:appDelegate.listId];
     }
 }
 
