@@ -46,6 +46,7 @@
     return [NSString stringWithString:text];
 }
 
+//Tweetのtextをt.co展開済みの物に置き換える
 + (NSDictionary *)replaceTco:(NSDictionary *)tweet {
     
     //t.co展開済みの本文を生成
@@ -55,9 +56,12 @@
     NSMutableDictionary *replacedTweet = [NSMutableDictionary dictionaryWithDictionary:tweet];
     [replacedTweet setObject:text forKey:@"text"];
     
-    return [NSDictionary dictionaryWithDictionary:replacedTweet];
+    tweet = [NSDictionary dictionaryWithDictionary:replacedTweet];
+    
+    return tweet;
 }
 
+//t.co置換処理本体
 + (NSMutableString *)replace:(NSDictionary *)tweet text:(NSMutableString *)text entitiesType:(NSString *)entitiesType {
     
     @try {
@@ -67,7 +71,17 @@
             //t.coを元のURLに置換する
             
             //t.coの情報を全て読み込む
-            NSArray *urls = [[tweet objectForKey:@"entities"] objectForKey:entitiesType];
+            NSArray *urls = nil;
+            
+            //公式RTであるか
+            if ( [[tweet objectForKey:@"retweeted_status"] objectForKey:@"id"] ) {
+                
+                urls = [[[tweet objectForKey:@"retweeted_status"] objectForKey:@"entities"] objectForKey:entitiesType];
+                
+            }else {
+                
+                urls = [[tweet objectForKey:@"entities"] objectForKey:entitiesType];
+            }
             
             //t.coの情報が無い場合は何もせず終了
             if ( urls.count == 0 ) return text;
@@ -98,6 +112,7 @@
     return text;
 }
 
+//複数のTweetのt.coを全て展開する
 + (NSMutableArray *)replaceTcoAll:(NSMutableArray *)tweets {
 
     NSMutableArray *replacedTweets = [NSMutableArray array];

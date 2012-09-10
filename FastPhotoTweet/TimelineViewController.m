@@ -269,7 +269,7 @@
                 
                 NSArray *newTweet = [center.userInfo objectForKey:@"Timeline"];
                 
-                //NSLog(@"newTweet: %@", newTweet);
+                NSLog(@"newTweet: %@", newTweet);
                 
                 if ( newTweet.count == 0 ) {
                     
@@ -1358,7 +1358,7 @@
                                                                                     options:NSJSONReadingMutableLeaves
                                                                                       error:&error]];
                 
-//                NSLog(@"receiveData[%d]: %@", receiveData.count, receiveData);
+                NSLog(@"receiveData[%d]: %@", receiveData.count, receiveData);
 //                NSLog(@"receiveDataCount: %d", receiveData.count);
 //                NSLog(@"event: %@", [receiveData objectForKey:@"event"]);
                 
@@ -1378,9 +1378,6 @@
                 
                 //更新アカウントを記憶
                 lastUpdateAccount = twAccount.username;
-                
-                //t.coを展開
-                receiveData = [NSMutableDictionary dictionaryWithDictionary:[TWEntities replaceTco:receiveData]];
                 
                 //公式RTであるか
                 if ( [[receiveData objectForKey:@"retweeted_status"] objectForKey:@"id"] ) {
@@ -1412,6 +1409,9 @@
                     //重複する場合は無視
                     if ( [[receiveData objectForKey:@"id_str"] isEqualToString:[[timelineArray objectAtIndex:0] objectForKey:@"id_str"]] ) return;
                 }
+                
+                //t.coを展開
+                newTweet = [TWEntities replaceTcoAll:[NSMutableArray arrayWithArray:newTweet]];
                 
                 receiveData = [newTweet objectAtIndex:0];
                 
@@ -2264,9 +2264,12 @@
                 
             }else if ( actionSheet.tag == 6 ) {
                 
+                NSString *text = [selectTweet objectForKey:@"text"];
+                
                 //公式RTであるか
                 if ( [[selectTweet objectForKey:@"retweeted_status"] objectForKey:@"id"] ) {
                     
+                    text = [[selectTweet objectForKey:@"retweeted_status"] objectForKey:@"text"];
                     screenName = [[[selectTweet objectForKey:@"retweeted_status"] objectForKey:@"user"] objectForKey:@"screen_name"];
                     tweetId = [[selectTweet objectForKey:@"retweeted_status"] objectForKey:@"id_str"];
                 }
@@ -2274,7 +2277,6 @@
                 if ( buttonIndex == 0 ) {
                     
                     //STOT形式
-                    NSString *text = [selectTweet objectForKey:@"text"];
                     NSString *copyText = [NSString stringWithFormat:@"%@: %@ [https://twitter.com/%@/status/%@]", screenName, text, screenName, tweetId];
                     [pboard setString:copyText];
                     
