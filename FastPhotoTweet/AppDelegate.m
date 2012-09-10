@@ -137,22 +137,6 @@ void uncaughtExceptionHandler(NSException *e) {
     return isDir;
 }
 
-- (BOOL)reachability {
-    
-    BOOL result = NO;
-    
-    if ( [[Reachability reachabilityForInternetConnection] currentReachabilityStatus] != NotReachable ) {
-        
-        result = YES;
-        
-    }else {
-        
-        [ShowAlert error:@"インターネットに接続されていません。"];
-    }
-    
-    return result;
-}
-
 - (void)applicationWillResignActive:(UIApplication *)application {
     
     [D setBool:YES forKey:@"applicationWillResignActive"];

@@ -458,7 +458,7 @@
 
 - (IBAction)pushReloadButton:(id)sender {
     
-    if ( [appDelegate reachability] ) {
+    if ( [InternetConnection enable] ) {
         
         if ( loading ) {
             
@@ -475,12 +475,12 @@
 
 - (IBAction)pushBackButton:(id)sender {
     
-    if ( [appDelegate reachability] ) [wv goBack];
+    if ( [InternetConnection enable] ) [wv goBack];
 }
 
 - (IBAction)pushForwardButton:(id)sender {
     
-    if ( [appDelegate reachability] ) [wv goForward];
+    if ( [InternetConnection enable] ) [wv goForward];
 }
 
 - (IBAction)pushMenuButton:(id)sender {

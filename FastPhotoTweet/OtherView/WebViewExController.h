@@ -11,6 +11,7 @@
 #import "UtilityClass.h"
 #import "DeleteWhiteSpace.h"
 #import "BookmarkViewController.h"
+#import "InternetConnection.h"
 
 @interface WebViewExController : UIViewController <UIWebViewDelegate, UIActionSheetDelegate, UITextFieldDelegate, NSXMLParserDelegate> {
     

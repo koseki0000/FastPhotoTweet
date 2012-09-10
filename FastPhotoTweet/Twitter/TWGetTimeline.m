@@ -29,7 +29,7 @@
     }
     
     //インターネット未接続
-    if ( ![TWGetTimeline reachability] ) return;
+    if ( [InternetConnection disable] ) return;
     
     [ActivityIndicator on];
     AppDelegate *appDelegate = (AppDelegate *)[[UIApplication sharedApplication] delegate];
@@ -133,7 +133,7 @@
     }
     
     //インターネット未接続
-    if ( ![TWGetTimeline reachability] ) return;
+    if ( [InternetConnection disable] ) return;
     
     [ActivityIndicator on];
     
@@ -236,7 +236,7 @@
     }
     
     //インターネット未接続
-    if ( ![TWGetTimeline reachability] ) return;
+    if ( [InternetConnection disable] ) return;
     
     [ActivityIndicator on];
     
@@ -308,7 +308,7 @@
     }
     
     //インターネット未接続
-    if ( ![TWGetTimeline reachability] ) return;
+    if ( [InternetConnection disable] ) return;
     
     [ActivityIndicator on];
     
@@ -380,7 +380,7 @@
     }
     
     //インターネット未接続
-    if ( ![TWGetTimeline reachability] ) return;
+    if ( [InternetConnection disable] ) return;
     
     [ActivityIndicator on];
     
@@ -448,22 +448,6 @@
      }];
     
     //NSLog(@"Favorites request sended");
-}
-
-+ (BOOL)reachability {
-    
-    BOOL result = NO;
-    
-    if ( [[Reachability reachabilityForInternetConnection] currentReachabilityStatus] != NotReachable ) {
-        
-        result = YES;
-        
-    }else {
-        
-        [ShowAlert error:@"インターネットに接続されていません。"];
-    }
-    
-    return result;
 }
 
 + (NSDictionary *)fixTwitterSearchResponse:(NSDictionary *)twitterSearchResponse {

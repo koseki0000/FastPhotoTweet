@@ -92,7 +92,16 @@
                 NSString *tcoURL = [url objectForKey:@"url"];
                 
                 //元のURL
-                NSString *expandedURL = [url objectForKey:@"expanded_url"];
+                NSString *expandedURL = nil;
+                
+                if ( [entitiesType isEqualToString:@"urls"] ) {
+                    
+                    expandedURL = [url objectForKey:@"expanded_url"];
+                    
+                }else {
+                    
+                    expandedURL = [url objectForKey:@"media_url_https"];
+                }
                 
                 //置換を行う
                 [text replaceOccurrencesOfString:tcoURL

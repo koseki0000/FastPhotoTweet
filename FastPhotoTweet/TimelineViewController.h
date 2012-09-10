@@ -19,6 +19,7 @@
 #import <CFNetwork/CFNetwork.h>
 #import "JSON.h"
 #import "WebViewExController.h"
+#import "InternetConnection.h"
 
 @interface TimelineViewController : UIViewController <UIActionSheetDelegate, UITextFieldDelegate> {
     

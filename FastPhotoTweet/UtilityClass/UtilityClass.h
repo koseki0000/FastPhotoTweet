@@ -22,3 +22,4 @@
 #import "UUIDEncryptor.h"
 #import "CreateSearchURL.h"
 #import "ArrayDuplicate.h"
+#import "InternetConnection.h"

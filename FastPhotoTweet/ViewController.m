@@ -112,7 +112,7 @@
     [self setCallbackButtonTitle];
     
     //インターネット接続のチェック
-    [appDelegate reachability];
+    [InternetConnection enable];
     
     //iOSバージョン判定
     if ( [appDelegate ios5Check] ) {
@@ -377,7 +377,7 @@
     if ( [appDelegate ios5Check] ) {
 
         //Internet接続のチェック
-        if ( [appDelegate reachability] ) {
+        if ( [InternetConnection enable] ) {
             
             NSString *text = [[[NSString alloc] initWithString:postText.text] autorelease];
             

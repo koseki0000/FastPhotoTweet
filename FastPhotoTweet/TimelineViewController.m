@@ -120,7 +120,7 @@
     }
     
     //インターネット接続を確認
-    if ( ![appDelegate reachability] ) return;
+    if ( [InternetConnection disable] ) return;
     
     [timeline reloadData];
     
@@ -269,7 +269,7 @@
                 
                 NSArray *newTweet = [center.userInfo objectForKey:@"Timeline"];
                 
-                NSLog(@"newTweet: %@", newTweet);
+                //NSLog(@"newTweet: %@", newTweet);
                 
                 if ( newTweet.count == 0 ) {
                     
@@ -1198,7 +1198,7 @@
     NSLog(@"pushReloadButton");
     
     //インターネットに接続されていない場合中止
-    if ( ![appDelegate reachability] ) return;
+    if ( [InternetConnection disable] ) return;
     
     //自分のアイコンを取得
     [self getMyAccountIcon];
@@ -1239,7 +1239,7 @@
 - (IBAction)pushOpenStreamButton:(UIBarButtonItem *)sender {
     
     //UserStream未接続かつインターネットに接続されている場合は接続する
-    if ( !userStream && [appDelegate reachability] ) {
+    if ( !userStream && [InternetConnection enable] ) {
     
         //UserStream未接続
         userStream = YES;
@@ -1358,7 +1358,7 @@
                                                                                     options:NSJSONReadingMutableLeaves
                                                                                       error:&error]];
                 
-                NSLog(@"receiveData[%d]: %@", receiveData.count, receiveData);
+//                NSLog(@"receiveData[%d]: %@", receiveData.count, receiveData);
 //                NSLog(@"receiveDataCount: %d", receiveData.count);
 //                NSLog(@"event: %@", [receiveData objectForKey:@"event"]);
                 

@@ -6,7 +6,6 @@
 //
 
 #import <UIKit/UIKit.h>
-#import "Reachability.h"
 
 #define IMGUR_API_KEY   @"6de089e68b55d6e390d246c4bf932901"
 #define TWITPIC_API_KEY @"95cf146048caad3267f95219b379e61c"
@@ -52,6 +51,5 @@ void uncaughtExceptionHandler(NSException *exception);
 
 - (BOOL)ios5Check;
 - (BOOL)iconExist:(NSString *)searchName;
-- (BOOL)reachability;
 
 @end

@@ -106,13 +106,14 @@
         
         //リクエストパラメータを作成
         NSMutableDictionary *params = [[[NSMutableDictionary alloc] init] autorelease];
-        
         //取得リスト
         [params setObject:listId forKey:@"list_id"];
         //エンティティの有効化
         [params setObject:@"1" forKey:@"include_entities"];
         //RT表示
         [params setObject:@"1" forKey:@"include_rts"];
+        //取得数
+        [params setObject:@"60" forKey:@"per_page"];
         
         //リクエストURLを指定
         NSString *tReqURL = [NSString stringWithFormat:@"https://api.twitter.com/%@/lists/statuses.json", API_VERSION];
@@ -143,7 +144,8 @@
                      //t.coを全て展開する
                      result = [TWEntities replaceTcoAll:[NSMutableArray arrayWithArray:result]];
                      
-                     //NSLog(@"result: %@", result);
+                     //NSLog(@"ReceiveList: %@", result);
+                     NSLog(@"ReceiveList count: %d", result.count);
                      
                      NSDictionary *resultData = @{ @"ResultData" : result };
                      

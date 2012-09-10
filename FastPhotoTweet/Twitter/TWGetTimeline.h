@@ -12,7 +12,7 @@
 #import "ShowAlert.h"
 #import "ActivityIndicator.h"
 #import "AppDelegate.h"
-#import "Reachability.h"
+#import "InternetConnection.h"
 #import "TWEntities.h"
 
 @interface TWGetTimeline : NSObject
@@ -24,7 +24,5 @@
 + (void)twitterSearch:(NSString *)searchWord;
 
 + (NSDictionary *)fixTwitterSearchResponse:(NSDictionary *)twitterSearchResponse;
-
-+ (BOOL)reachability;
 
 @end
