@@ -2268,8 +2268,8 @@
                 
                 //公式RTであるか
                 if ( [[selectTweet objectForKey:@"retweeted_status"] objectForKey:@"id"] ) {
-                    
-                    text = [[selectTweet objectForKey:@"retweeted_status"] objectForKey:@"text"];
+
+                    text = [TWEntities openTcoWithReTweet:selectTweet];
                     screenName = [[[selectTweet objectForKey:@"retweeted_status"] objectForKey:@"user"] objectForKey:@"screen_name"];
                     tweetId = [[selectTweet objectForKey:@"retweeted_status"] objectForKey:@"id_str"];
                 }

@@ -46,6 +46,70 @@
     return [NSString stringWithString:text];
 }
 
++ (NSString *)openTcoWithReTweet:(NSDictionary *)tweet {
+    
+    //公式RTでない場合はtext
+    if ( ![[tweet objectForKey:@"retweeted_status"] objectForKey:@"id"] ) {
+        
+        return [tweet objectForKey:@"text"];
+    }
+    
+    NSMutableString *text = [NSMutableString stringWithString:[[tweet objectForKey:@"retweeted_status"] objectForKey:@"text"]];
+    NSArray *urls = [[[tweet objectForKey:@"retweeted_status"] objectForKey:@"entities"] objectForKey:@"urls"];
+    NSArray *media = [[[tweet objectForKey:@"retweeted_status"] objectForKey:@"entities"] objectForKey:@"media"];
+    
+    //entitiesがない場合はそのままのtext
+    if ( ![EmptyCheck check:urls] && ![EmptyCheck check:media] ) {
+     
+        return [[tweet objectForKey:@"retweeted_status"] objectForKey:@"text"];
+    }
+    
+    //retweeted_status/entities/urls と retweeted_status/entities/media を1つにまとめる
+    NSMutableArray *entities = [NSMutableArray array];
+    
+    for ( id url in urls ) {
+        
+        [entities addObject:url];
+    }
+    
+    for ( id mediaUrl in media ) {
+        
+        [entities addObject:mediaUrl];
+    }
+    
+//    NSLog(@"entities: %@", entities);
+//    NSLog(@"text: %@", text);
+    
+    //全て置換を行う
+    for ( NSDictionary *entitiy in entities ) {
+        
+        NSString *replaceUrl = nil;
+        NSString *tcoUrl = [entitiy objectForKey:@"url"];
+        
+        if ( [entitiy objectForKey:@"media_url_https"] == nil ) {
+            
+            //url
+            replaceUrl = [entitiy objectForKey:@"expanded_url"];
+            
+        }else {
+            
+            //media
+            replaceUrl = [entitiy objectForKey:@"media_url_https"];
+        }
+        
+        //NSLog(@"%@→%@", tcoUrl, replaceUrl);
+        
+        //置換を行う
+        [text replaceOccurrencesOfString:tcoUrl
+                              withString:replaceUrl
+                                 options:0
+                                   range:NSMakeRange( 0, text.length )];
+    }
+    
+    //t.coが展開されたReTweet本文が返される
+    return [NSString stringWithString:text];
+}
+
 //Tweetのtextをt.co展開済みの物に置き換える
 + (NSDictionary *)replaceTco:(NSDictionary *)tweet {
     
@@ -66,7 +130,8 @@
     
     @try {
         
-        if ( [[tweet objectForKey:@"entities"] objectForKey:entitiesType] != nil ) {
+        if ( [[tweet objectForKey:@"entities"] objectForKey:entitiesType] != nil ||
+             [[[tweet objectForKey:@"retweeted_status"] objectForKey:@"entities"] objectForKey:entitiesType] != nil ) {
             
             //t.coを元のURLに置換する
             
