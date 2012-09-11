@@ -174,39 +174,55 @@
              if ( responseData ) {
                  
                  NSError *jsonError = nil;
-                 NSMutableArray *timeline = (NSMutableArray *)[NSJSONSerialization JSONObjectWithData:responseData
-                                                                                              options:NSJSONReadingMutableLeaves
-                                                                                                error:&jsonError];
+                 id responseJSONData = [NSJSONSerialization
+                                      JSONObjectWithData:responseData
+                                      options:NSJSONReadingMutableLeaves
+                                      error:&jsonError];
                  
-                 [result setObject:twAccount.username forKey:@"Account"];
-                 
-                 if ( timeline != nil && timeline.count != 0 ) {
+                 if ( [responseJSONData isKindOfClass:[NSArray class]] ) {
                      
-                     NSLog(@"UserTimelineSuccess");
+                     NSMutableArray *userTimeline = [NSMutableArray arrayWithArray:responseJSONData];
                      
-                     //t.coを全て展開する
-                     timeline = [TWEntities replaceTcoAll:timeline];
+                     [result setObject:twAccount.username forKey:@"Account"];
                      
-                     //取得完了を通知
-                     [result setObject:@"UserTimelineSuccess" forKey:@"Result"];
-                     [result setObject:timeline forKey:@"UserTimeline"];
+                     if ( userTimeline != nil && userTimeline.count != 0 ) {
+                         
+                         NSLog(@"UserTimelineSuccess");
+                         
+                         //t.coを全て展開する
+                         userTimeline = [TWEntities replaceTcoAll:userTimeline];
+                         
+                         //取得完了を通知
+                         [result setObject:@"UserTimelineSuccess" forKey:@"Result"];
+                         [result setObject:userTimeline forKey:@"UserTimeline"];
+                         
+                     }else {
+                         
+                         NSLog(@"UserTimelineError");
+                         
+                         NSString *responseDataString = [[[NSString alloc] initWithData:responseData encoding:NSUTF8StringEncoding] autorelease];
+                         
+                         NSLog(@"responseData: %@", responseDataString);
+                         
+                         if ( userTimeline == nil ) NSLog(@"timeline == nil");
+                         if ( userTimeline.count == 0 ) NSLog(@"timeline.count == 0");
+                         
+                         [result setObject:@"UserTimelineError" forKey:@"Result"];
+                     }
+                     
+                     //通知を実行
+                     [[NSNotificationCenter defaultCenter] postNotification:notification];
+                     
+                 }else if ( [responseJSONData isKindOfClass:[NSDictionary class]] ) {
+                     
+                     NSDictionary *errorData = [NSDictionary dictionaryWithDictionary:responseJSONData];
+                     
+                     [ShowAlert error:[errorData objectForKey:@"error"]];
                      
                  }else {
                      
-                     NSLog(@"UserTimelineError");
-                     
-                     NSString *responseDataString = [[[NSString alloc] initWithData:responseData encoding:NSUTF8StringEncoding] autorelease];
-                     
-                     NSLog(@"responseData: %@", responseDataString);
-                     
-                     if ( timeline == nil ) NSLog(@"timeline == nil");
-                     if ( timeline.count == 0 ) NSLog(@"timeline.count == 0");
-                     
-                     [result setObject:@"UserTimelineError" forKey:@"Result"];
+                     [ShowAlert unknownError];
                  }
-                 
-                 //通知を実行
-                 [[NSNotificationCenter defaultCenter] postNotification:notification];
                  
                  [ActivityIndicator off];
                  

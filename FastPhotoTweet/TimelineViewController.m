@@ -829,14 +829,7 @@
 
     NSString *inReplyToId = [tweetData objectForKey:@"in_reply_to_status_id_str"];
     
-    if ( [EmptyCheck check:inReplyToId] ) {
-        
-        //InReplyToIDがある場合は取得
-        
-        [ActivityIndicator on];
-        [TWEvent getTweet:inReplyToId];
-        
-    }else {
+    if ( [inReplyToId isEqualToString:@"END"] || ![EmptyCheck check:inReplyToId] ) {
         
         //InReplyToIDがもうない場合は表示を行う
         
@@ -867,12 +860,21 @@
                             NSArray *indexPaths = [NSArray arrayWithObjects:indexPath, nil];
                             [timeline insertRowsAtIndexPaths:indexPaths withRowAnimation:UITableViewRowAnimationRight];
                         }
+                        
+                        //タイムラインからアイコンのURLを取得
+                        [self getIconWithTweetArray:[NSMutableArray arrayWithArray:timelineArray]];
                     });
                 });
                 
                 dispatch_release(syncQueue);
             });
         }
+        
+    }else {
+        
+        //InReplyToIDがある場合は取得
+        [ActivityIndicator on];
+        [TWEvent getTweet:inReplyToId];
     }
 }
 
@@ -2283,7 +2285,7 @@
                 }else if ( buttonIndex == 1 ) {
                     
                     //本文
-                    [pboard setString:[selectTweet objectForKey:@"text"]];
+                    [pboard setString:text];
                     
                 }else if ( buttonIndex == 2 ) {
                     
@@ -2643,6 +2645,10 @@
         [ActivityIndicator on];
         [inReplyTo insertObject:[notification.userInfo objectForKey:@"Tweet"] atIndex:0];
         [self getInReplyToChain:[notification.userInfo objectForKey:@"Tweet"]];
+    
+    }else if ( [[notification.userInfo objectForKey:@"Result"] isEqualToString:@"AuthorizeError"] ) {
+        
+        [self getInReplyToChain:@{ @"in_reply_to_status_id_str" : @"END" }];
         
     }else {
         

@@ -51,6 +51,8 @@
     //公式RTでない場合はtext
     if ( ![[tweet objectForKey:@"retweeted_status"] objectForKey:@"id"] ) {
         
+//        NSLog(@"not retweet");
+        
         return [tweet objectForKey:@"text"];
     }
     
@@ -61,6 +63,8 @@
     //entitiesがない場合はそのままのtext
     if ( ![EmptyCheck check:urls] && ![EmptyCheck check:media] ) {
      
+//        NSLog(@"urls and media is empty");
+        
         return [[tweet objectForKey:@"retweeted_status"] objectForKey:@"text"];
     }
     
@@ -105,6 +109,8 @@
                                  options:0
                                    range:NSMakeRange( 0, text.length )];
     }
+    
+    //NSLog(@"ResutlText: %@", text);
     
     //t.coが展開されたReTweet本文が返される
     return [NSString stringWithString:text];

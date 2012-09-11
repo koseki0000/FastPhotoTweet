@@ -205,10 +205,20 @@
                  NSString *responseDataString = [[[NSString alloc] initWithData:responseData encoding:NSUTF8StringEncoding] autorelease];
                  NSDictionary *result = [responseDataString JSONValue];
                  
+                 NSLog(@"Tweet: %@", result);
+                 
                  if ( result != nil ) {
                      
-                     [resultProfile setObject:@"Success" forKey:@"Result"];
-                     [resultProfile setObject:result forKey:@"Tweet"];
+                     if ( [result objectForKey:@"error"] == nil ) {
+                     
+                         [resultProfile setObject:@"Success" forKey:@"Result"];
+                         [resultProfile setObject:result forKey:@"Tweet"];
+                         
+                     }else {
+                         
+                         [ShowAlert error:[result objectForKey:@"error"]];
+                         [resultProfile setObject:@"AuthorizeError" forKey:@"Result"];
+                     }
                      
                  }else {
                      
