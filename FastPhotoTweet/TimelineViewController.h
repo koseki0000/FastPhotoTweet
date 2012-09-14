@@ -110,6 +110,7 @@
 - (void)getInReplyToChain:(NSDictionary *)tweetData;
 - (void)scrollTimelineForNewTweet;
 - (void)scrollTimelineToTop:(BOOL)animation;
+- (void)refreshTimelineCell:(NSNumber *)index;
 - (void)openStream;
 - (void)closeStream;
 - (void)showTwitterAccountSelectActionSheet:(NSArray *)ids;

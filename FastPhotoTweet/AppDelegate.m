@@ -14,6 +14,25 @@ void uncaughtExceptionHandler(NSException *e) {
     
     NSLog(@"CRASH: %@", e);
     NSLog(@"Stack Trace: %@", [e callStackSymbols]);
+    
+    NSString *outputText = [NSString stringWithFormat:@"%@\n\n%@", e, [e callStackSymbols]];
+    
+    NSDate *now = [NSDate date];
+    NSDateFormatter *formatter = [[NSDateFormatter alloc] init];
+    [formatter setDateFormat:@"YYYY-MM-dd_hh-mm-ss"];
+    
+    NSString *convertedDate = [formatter stringFromDate:now];
+    [formatter release];
+    
+    NSMutableString *fileName = [NSMutableString stringWithFormat:@"%@.txt", convertedDate];
+    NSString *dataPath = [LOGS_DIRECTORY stringByAppendingPathComponent:fileName];
+    
+    if ( ![[NSFileManager defaultManager] fileExistsAtPath:dataPath] ) {
+        
+        [outputText writeToFile:dataPath atomically:NO
+                 encoding:NSUTF8StringEncoding
+                    error:nil];
+    }
 }
 
 @implementation AppDelegate

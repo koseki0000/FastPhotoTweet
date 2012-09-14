@@ -55,6 +55,15 @@
     }else {
         
         [ShowAlert error:@"インターネットに接続されていません。"];
+        
+        //オフラインであることを通知する
+        NSNotification *notification =[NSNotification notificationWithName:@"Offline"
+                                                                    object:self
+                                                                  userInfo:nil];
+        
+        //通知を実行
+        [[NSNotificationCenter defaultCenter] postNotification:notification];
+        
     }
     
     return result;

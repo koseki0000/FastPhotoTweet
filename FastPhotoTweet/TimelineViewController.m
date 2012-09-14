@@ -107,6 +107,19 @@
                                      error:nil];
     }
     
+    //クラッシュログ保存用ディレクトリ確認
+    isDir = NO;
+    directoryExists = ( [fileManager fileExistsAtPath:LOGS_DIRECTORY isDirectory:&isDir] && isDir );
+    
+    if ( !directoryExists ) {
+        
+        //存在しない場合作成
+        [fileManager createDirectoryAtPath:LOGS_DIRECTORY
+               withIntermediateDirectories:YES
+                                attributes:nil
+                                     error:nil];
+    }
+    
     ACAccountStore *accountStore = [[ACAccountStore alloc] init];
     ACAccountType *accountType = [accountStore accountTypeWithAccountTypeIdentifier:ACAccountTypeIdentifierTwitter];
     NSArray *twitterAccounts = [accountStore accountsWithAccountType:accountType];
@@ -203,6 +216,12 @@
                            selector:@selector(changeAccount:) 
                                name:@"ChangeAccount" 
                              object:nil];
+    
+    //オフライン通知を受け取る
+    [notificationCenter addObserver:self
+                           selector:@selector(receiveOfflineNotification:)
+                               name:@"Offline"
+                             object:nil];
 }
 
 #pragma mark - TimelineMethod
@@ -210,6 +229,9 @@
 - (void)createTimeline {
 
     NSLog(@"createTimeline");
+
+    //インターネット接続を確認
+    if ( ![InternetConnection enable] ) return;
     
     //アクティブアカウントを取得
     twAccount = [TWGetAccount currentAccount];
@@ -226,11 +248,27 @@
     if ( timelineArray.count != 0 ) {
         
         //差分取得用にタイムライン最上部のTweetのIDを取得する
-        [sinceIds setObject:[[timelineArray objectAtIndex:0] objectForKey:@"id_str"] forKey:twAccount.username];
-        appDelegate.sinceId = [[timelineArray objectAtIndex:0] objectForKey:@"id_str"];
         
-        //最上部スクロール用
-        timelineTopTweetId = [[timelineArray objectAtIndex:0] objectForKey:@"id_str"];
+        BOOL find = NO;
+        int i;
+        
+        for ( i = 0; i < timelineArray.count - 1; i++ ) {
+            
+            if ( [timelineArray objectAtIndex:i] != nil ) {
+             
+                find = YES;
+                break;
+            }
+        }
+        
+        if ( find ) {
+         
+            [sinceIds setObject:[[timelineArray objectAtIndex:i] objectForKey:@"id_str"] forKey:twAccount.username];
+            appDelegate.sinceId = [[timelineArray objectAtIndex:i] objectForKey:@"id_str"];
+            
+            //最上部スクロール用
+            timelineTopTweetId = [[timelineArray objectAtIndex:i] objectForKey:@"id_str"];
+        }
     }
     
     //タイムライン取得
@@ -823,13 +861,24 @@
     return result;
 }
 
+- (void)refreshTimelineCell:(NSNumber *)index {
+    
+    int i = [index intValue];
+    
+    NSIndexPath *indexPath = [NSIndexPath indexPathForRow:i inSection:0];
+    NSArray *indexPaths = [NSArray arrayWithObject:indexPath];
+    [timeline reloadRowsAtIndexPaths:indexPaths withRowAnimation:UITableViewRowAnimationNone];
+}
+
 #pragma mark - In reply to
 
 - (void)getInReplyToChain:(NSDictionary *)tweetData {
 
     NSString *inReplyToId = [tweetData objectForKey:@"in_reply_to_status_id_str"];
     
-    if ( [inReplyToId isEqualToString:@"END"] || ![EmptyCheck check:inReplyToId] ) {
+    NSLog(@"getInReplyToChain: %@", inReplyToId);
+    
+    if ( ![EmptyCheck check:inReplyToId] || [inReplyToId isEqualToString:@"END"] ) {
         
         //InReplyToIDがもうない場合は表示を行う
         
@@ -1146,9 +1195,7 @@
                     //TL更新
                     dispatch_async(dispatch_get_main_queue(), ^ {
                         
-                        NSIndexPath *indexPath = [NSIndexPath indexPathForRow:index inSection:0];
-                        NSArray *indexPaths = [NSArray arrayWithObject:indexPath];
-                        [timeline reloadRowsAtIndexPaths:indexPaths withRowAnimation:UITableViewRowAnimationNone];
+                        [self performSelector:@selector(refreshTimelineCell:) withObject:[NSNumber numberWithInt:index] afterDelay:0.1];
                     });
                 }
                 
@@ -1199,8 +1246,8 @@
     
     NSLog(@"pushReloadButton");
     
-    //インターネットに接続されていない場合中止
-    if ( [InternetConnection disable] ) return;
+    //インターネット接続を確認
+    if ( ![InternetConnection enable] ) return;
     
     //自分のアイコンを取得
     [self getMyAccountIcon];
@@ -1770,6 +1817,9 @@
         [self pushCloseOtherTweetsButton:nil];
         
     }else {
+        
+        //インターネット接続を確認
+        if ( ![InternetConnection enable] ) return;
         
         twAccount = [TWGetAccount currentAccount];
         
@@ -2711,6 +2761,14 @@
             [timeline deleteRowsAtIndexPaths:indexPaths withRowAnimation:UITableViewRowAnimationBottom];
         });
     }
+}
+
+- (void)receiveOfflineNotification:(NSNotification *)notification {
+
+    NSLog(@"receiveOfflineNotification");
+    
+    reloadButton.enabled = YES;
+    [self closeStream];
 }
 
 - (void)enterBackground:(NSNotification *)notification {

@@ -28,8 +28,8 @@
         return;
     }
     
-    //インターネット未接続
-    if ( [InternetConnection disable] ) return;
+    //インターネット接続を確認
+    if ( ![InternetConnection enable] ) return;
     
     [ActivityIndicator on];
     AppDelegate *appDelegate = (AppDelegate *)[[UIApplication sharedApplication] delegate];
@@ -72,7 +72,7 @@
          
          dispatch_async(dispatch_get_main_queue(), ^{
              
-             NSLog(@"HomeTimeline receive ressponse");
+             NSLog(@"HomeTimeline receive response");
              
              if ( responseData ) {
                  
@@ -132,8 +132,8 @@
         return;
     }
     
-    //インターネット未接続
-    if ( [InternetConnection disable] ) return;
+    //インターネット接続を確認
+    if ( ![InternetConnection enable] ) return;
     
     [ActivityIndicator on];
     
@@ -251,8 +251,8 @@
         return;
     }
     
-    //インターネット未接続
-    if ( [InternetConnection disable] ) return;
+    //インターネット接続を確認
+    if ( ![InternetConnection enable] ) return;
     
     [ActivityIndicator on];
     
@@ -323,8 +323,8 @@
         return;
     }
     
-    //インターネット未接続
-    if ( [InternetConnection disable] ) return;
+    //インターネット接続を確認
+    if ( ![InternetConnection enable] ) return;
     
     [ActivityIndicator on];
     
@@ -395,8 +395,8 @@
         return;
     }
     
-    //インターネット未接続
-    if ( [InternetConnection disable] ) return;
+    //インターネット接続を確認
+    if ( ![InternetConnection enable] ) return;
     
     [ActivityIndicator on];
     

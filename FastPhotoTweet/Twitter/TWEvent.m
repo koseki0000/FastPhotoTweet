@@ -205,7 +205,7 @@
                  NSString *responseDataString = [[[NSString alloc] initWithData:responseData encoding:NSUTF8StringEncoding] autorelease];
                  NSDictionary *result = [responseDataString JSONValue];
                  
-                 NSLog(@"Tweet: %@", result);
+                 //NSLog(@"Tweet: %@", result);
                  
                  if ( result != nil ) {
                      

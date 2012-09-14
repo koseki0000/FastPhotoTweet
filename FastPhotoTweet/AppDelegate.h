@@ -20,6 +20,7 @@
 #define IPHONE_USERAGENT @"Mozilla/5.0 (iPhone; CPU iPhone OS 5_1_1 like Mac OS X) AppleWebKit/534.46 (KHTML, like Gecko) Mobile/9B206"
 
 #define ICONS_DIRECTORY [NSHomeDirectory() stringByAppendingPathComponent:@"Documents/Icons"]
+#define LOGS_DIRECTORY [NSHomeDirectory() stringByAppendingPathComponent:@"Documents/Logs"]
 #define FILE_PATH [ICONS_DIRECTORY stringByAppendingPathComponent:searchName]
 
 void uncaughtExceptionHandler(NSException *exception);
