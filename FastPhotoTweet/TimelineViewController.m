@@ -452,6 +452,9 @@
         
         NSArray *newTweet = [center.userInfo objectForKey:@"UserTimeline"];
         
+        //t.coを展開
+        newTweet = [TWEntities replaceTcoAll:[NSMutableArray arrayWithArray:newTweet]];
+        
         NSLog(@"UserTimeline: %dTweet", newTweet.count);
         
         //NGClient判定を行う
@@ -505,6 +508,9 @@
         
         NSArray *newTweet = [center.userInfo objectForKey:@"Mentions"];
         
+        //t.coを展開
+        newTweet = [TWEntities replaceTcoAll:[NSMutableArray arrayWithArray:newTweet]];
+        
         //NGClient判定を行う
         newTweet = [TWNgTweet ngClient:newTweet];
         
@@ -550,8 +556,9 @@
 
         NSArray *newTweet = [center.userInfo objectForKey:@"Favorites"];
 
-        //NSLog(@"newTweet: %@", newTweet);
-
+        //t.coを展開
+        newTweet = [TWEntities replaceTcoAll:[NSMutableArray arrayWithArray:newTweet]];
+        
         //InReplyToからの復帰用に保存しておく
         mentionsArray = newTweet;
 
@@ -613,6 +620,9 @@
     openStreamButton.enabled = NO;
     
     NSArray *newTweet = [center.userInfo objectForKey:@"ResultData"];
+    
+    //t.coを展開
+    newTweet = [TWEntities replaceTcoAll:[NSMutableArray arrayWithArray:newTweet]];
     
     //NGClient判定を行う
     newTweet = [TWNgTweet ngClient:newTweet];
@@ -865,6 +875,8 @@
     
     int i = [index intValue];
     
+    if ( [timelineArray objectAtIndex:i] == nil ) return;
+    
     NSIndexPath *indexPath = [NSIndexPath indexPathForRow:i inSection:0];
     NSArray *indexPaths = [NSArray arrayWithObject:indexPath];
     [timeline reloadRowsAtIndexPaths:indexPaths withRowAnimation:UITableViewRowAnimationNone];
@@ -884,6 +896,8 @@
         
         if ( [EmptyCheck check:inReplyTo] && inReplyTo.count > 1 ) {
             
+            NSLog(@"InReplyTo GET END");
+            
             [self closeStream];
             
             dispatch_queue_t globalQueue = dispatch_get_global_queue( DISPATCH_QUEUE_PRIORITY_DEFAULT, 0 );
@@ -893,6 +907,9 @@
                     
                     //表示開始
                     dispatch_async(dispatch_get_main_queue(), ^ {
+                        
+                        //t.coを展開
+                        inReplyTo = [TWEntities replaceTcoAll:inReplyTo];
                         
                         [topBar setItems:OTHER_TWEETS_BAR animated:YES];
                         
@@ -921,9 +938,40 @@
         
     }else {
         
-        //InReplyToIDがある場合は取得
+        BOOL find = NO;
+        NSDictionary *findTweet = [NSDictionary dictionary];
+        
+        for ( NSDictionary *searchTweet in timelineArray ) {
+            
+            NSString *searchTweetID = [searchTweet objectForKey:@"id_str"];
+            
+            if ( [EmptyCheck check:searchTweetID] ) {
+                
+                if ( [searchTweetID isEqualToString:inReplyToId] ) {
+                    
+                    find = YES;
+                    findTweet = searchTweet;
+                    [inReplyTo insertObject:findTweet atIndex:0];
+                }
+            }
+            
+            if ( find ) break;
+        }
+        
         [ActivityIndicator on];
-        [TWEvent getTweet:inReplyToId];
+        
+        if ( find ) {
+         
+            NSLog(@"InReplyTo TL");
+            
+            [self getInReplyToChain:findTweet];
+            
+        }else {
+        
+            NSLog(@"InReplyTo REST");
+            
+            [TWEvent getTweet:inReplyToId];
+        }
     }
 }
 
@@ -2021,10 +2069,12 @@
                     
                     if ( [EmptyCheck check:inReplyToId] ) {
                         
+                        NSLog(@"InReplyTo GET START");
+                        
                         otherTweetsMode = YES;
                         
                         [inReplyTo addObject:selectTweet];
-                        [TWEvent getTweet:inReplyToId];
+                        [self getInReplyToChain:selectTweet];
                         
                     }else {
                         

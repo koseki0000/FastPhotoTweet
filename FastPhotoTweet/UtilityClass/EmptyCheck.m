@@ -18,7 +18,7 @@
     ////NSLog(@"obj: %@", obj);
     
     //オブジェクトが空かチェック
-    if ( obj != nil ) {
+    if ( obj != nil || obj != [NSNull null] ) {
         
         //空ではない
         if ( [obj isKindOfClass:[NSString class]] ) {
