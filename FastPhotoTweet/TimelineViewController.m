@@ -11,7 +11,7 @@
 
 #import "TimelineViewController.h"
 
-#define TOP_BAR [NSArray arrayWithObjects:actionButton, flexibleSpace, openStreamButton, flexibleSpace, fixedSpace, flexibleSpace , reloadButton, flexibleSpace, postButton, nil]
+#define TOP_BAR [NSArray arrayWithObjects:actionButton, flexibleSpace, timelineControlButton, flexibleSpace, fixedSpace, flexibleSpace , reloadButton, flexibleSpace, postButton, nil]
 #define OTHER_TWEETS_BAR [NSArray arrayWithObjects:flexibleSpace, closeOtherTweetsButton, nil]
 
 @implementation TimelineViewController
@@ -20,7 +20,7 @@
 @synthesize flexibleSpace;
 @synthesize fixedSpace;
 @synthesize postButton;
-@synthesize openStreamButton;
+@synthesize timelineControlButton;
 @synthesize actionButton;
 @synthesize closeOtherTweetsButton;
 @synthesize accountIconView;
@@ -67,7 +67,7 @@
     currentList = [NSMutableArray array];
     icons = [NSMutableDictionary dictionary];
     allTimelines = [NSMutableDictionary dictionary];
-    mentionsArray = [NSArray array];
+    mentionsArray = BLANK_ARRAY;
     sinceIds = [NSMutableDictionary dictionary];
     allLists = [NSMutableDictionary dictionary];
     selectTweet = [NSDictionary dictionary];
@@ -78,7 +78,8 @@
     
     startImage = [UIImage imageNamed:@"ForwardIcon.png"];
     stopImage = [UIImage imageNamed:@"stop.png"];
-    openStreamButton.image = startImage;
+    listImage = [UIImage imageNamed:@"list.png"];
+    timelineControlButton.image = startImage;
     
     //ツールバーにボタンを設定
     [topBar setItems:TOP_BAR animated:NO];
@@ -327,7 +328,7 @@
                     if ( [d boolForKey:@"ReloadAfterUSConnect"] && !userStream ) {
                         
                         //UserStream接続
-                        [self pushOpenStreamButton:nil];
+                        [self pushTimelineControlButton:nil];
                     }
                     
                     return;
@@ -342,7 +343,7 @@
                     if ( [d boolForKey:@"ReloadAfterUSConnect"] && !userStream ) {
                         
                         //UserStream接続
-                        [self pushOpenStreamButton:nil];
+                        [self pushTimelineControlButton:nil];
                     }
                     
                     return;
@@ -399,7 +400,7 @@
                         if ( [d boolForKey:@"ReloadAfterUSConnect"] && !userStream ) {
                         
                             //UserStream接続
-                            [self performSelector:@selector(pushOpenStreamButton:) withObject:nil afterDelay:0.1];
+                            [self performSelector:@selector(pushTimelineControlButton:) withObject:nil afterDelay:0.1];
                         }
                     });
                     
@@ -415,7 +416,7 @@
                         if ( [d boolForKey:@"ReloadAfterUSConnect"] && !userStream ) {
                             
                             //UserStream接続
-                            [self performSelector:@selector(pushOpenStreamButton:) withObject:nil afterDelay:0.1];
+                            [self performSelector:@selector(pushTimelineControlButton:) withObject:nil afterDelay:0.1];
                         }
                         
                         //タイムライン表示を更新
@@ -444,7 +445,7 @@
     if ( userStream ) [self closeStream];
     
     reloadButton.enabled = YES;
-    openStreamButton.enabled = NO;
+    timelineControlButton.enabled = NO;
     
     NSString *result = [center.userInfo objectForKey:@"Result"];
     
@@ -500,7 +501,7 @@
     if ( userStream ) [self closeStream];
     
     reloadButton.enabled = YES;
-    openStreamButton.enabled = NO;
+    timelineControlButton.enabled = NO;
     
     NSString *result = [center.userInfo objectForKey:@"Result"];
     
@@ -547,7 +548,7 @@
     //UserStream接続中の場合は切断する
     if ( userStream ) [self closeStream];
     
-    openStreamButton.enabled = NO;
+    timelineControlButton.enabled = NO;
     reloadButton.enabled = YES;
     
     NSString *result = [center.userInfo objectForKey:@"Result"];
@@ -585,7 +586,7 @@
     if ( userStream ) [self closeStream];
     
     reloadButton.enabled = YES;
-    openStreamButton.enabled = NO;
+    timelineControlButton.enabled = NO;
     
     NSString *result = [center.userInfo objectForKey:@"Result"];
     
@@ -617,7 +618,6 @@
     NSLog(@"loadList");
     
     reloadButton.enabled = YES;
-    openStreamButton.enabled = NO;
     
     NSArray *newTweet = [center.userInfo objectForKey:@"ResultData"];
     
@@ -800,12 +800,15 @@
     //自分のアカウントを設定
     [self getMyAccountIcon];
     
+    //List一覧のキャッシュを削除
+    appDelegate.listAll = BLANK_ARRAY;
+    
     //タイムラインをアクティブアカウントの物に切り替え
     timelineArray = [allTimelines objectForKey:twAccount.username];
     [timeline reloadData];
     
     //リロードする
-    [self performSelector:@selector(pushOpenStreamButton:) withObject:nil afterDelay:0.1];
+    [self performSelector:@selector(pushTimelineControlButton:) withObject:nil afterDelay:0.1];
 }
 
 - (void)appendTimelineUnit {
@@ -875,11 +878,102 @@
     
     int i = [index intValue];
     
-    if ( [timelineArray objectAtIndex:i] == nil ) return;
+    if ( [timelineArray objectAtIndex:i] == nil ||
+          timelineArray.count - 1 < i ) return;
     
     NSIndexPath *indexPath = [NSIndexPath indexPathForRow:i inSection:0];
     NSArray *indexPaths = [NSArray arrayWithObject:indexPath];
     [timeline reloadRowsAtIndexPaths:indexPaths withRowAnimation:UITableViewRowAnimationNone];
+}
+
+- (void)copyTweetInUrl:(NSArray *)urlList {
+    
+    NSLog(@"copyTweetInUrl[%d]: %@", urlList.count, urlList);
+    
+    if (urlList.count == 0 ) {
+        
+        [ShowAlert error:@"Tweet内にURLがありません。"];
+        
+    }else if (urlList.count == 1 ) {
+        
+        [pboard setString:[urlList objectAtIndex:0]];
+        tweetInUrls = BLANK_ARRAY;
+        
+    }else if (urlList.count == 2 ) {
+        
+        UIActionSheet *sheet = [[UIActionSheet alloc]
+                                initWithTitle:@"Tweet内のURLをコピー"
+                                delegate:self
+                                cancelButtonTitle:@"Cancel"
+                                destructiveButtonTitle:nil
+                                otherButtonTitles:[urlList objectAtIndex:0],
+                                [urlList objectAtIndex:1], nil];
+        sheet.tag = 7;
+        
+        [sheet showInView:appDelegate.tabBarController.self.view];
+        
+    }else if (urlList.count == 3 ) {
+        
+        UIActionSheet *sheet = [[UIActionSheet alloc]
+                                initWithTitle:@"Tweet内のURLをコピー"
+                                delegate:self
+                                cancelButtonTitle:@"Cancel"
+                                destructiveButtonTitle:nil
+                                otherButtonTitles:[urlList objectAtIndex:0],
+                                [urlList objectAtIndex:1],
+                                [urlList objectAtIndex:2], nil];
+        sheet.tag = 8;
+        
+        [sheet showInView:appDelegate.tabBarController.self.view];
+        
+    }else if (urlList.count == 4 ) {
+        
+        UIActionSheet *sheet = [[UIActionSheet alloc]
+                                initWithTitle:@"Tweet内のURLをコピー"
+                                delegate:self
+                                cancelButtonTitle:@"Cancel"
+                                destructiveButtonTitle:nil
+                                otherButtonTitles:[urlList objectAtIndex:0],
+                                [urlList objectAtIndex:1],
+                                [urlList objectAtIndex:2],
+                                [urlList objectAtIndex:3], nil];
+        sheet.tag = 9;
+        
+        [sheet showInView:appDelegate.tabBarController.self.view];
+        
+    }else if (urlList.count == 5 ) {
+        
+        UIActionSheet *sheet = [[UIActionSheet alloc]
+                                initWithTitle:@"Tweet内のURLをコピー"
+                                delegate:self
+                                cancelButtonTitle:@"Cancel"
+                                destructiveButtonTitle:nil
+                                otherButtonTitles:[urlList objectAtIndex:0],
+                                [urlList objectAtIndex:1],
+                                [urlList objectAtIndex:2],
+                                [urlList objectAtIndex:3],
+                                [urlList objectAtIndex:4], nil];
+        sheet.tag = 10;
+        
+        [sheet showInView:appDelegate.tabBarController.self.view];
+        
+    }else if (urlList.count >= 6 ) {
+        
+        UIActionSheet *sheet = [[UIActionSheet alloc]
+                                initWithTitle:@"Tweet内のURLをコピー"
+                                delegate:self
+                                cancelButtonTitle:@"Cancel"
+                                destructiveButtonTitle:nil
+                                otherButtonTitles:[urlList objectAtIndex:0],
+                                [urlList objectAtIndex:1],
+                                [urlList objectAtIndex:2],
+                                [urlList objectAtIndex:3],
+                                [urlList objectAtIndex:4],
+                                [urlList objectAtIndex:5], nil];
+        sheet.tag = 11;
+        
+        [sheet showInView:appDelegate.tabBarController.self.view];
+    }
 }
 
 #pragma mark - In reply to
@@ -1004,8 +1098,10 @@
     timelineScroll = (int)timeline.contentOffset.y;
     currentTweet = [timelineArray objectAtIndex:indexPath.row];
     
+    BOOL reTweet = [[[currentTweet objectForKey:@"retweeted_status"] objectForKey:@"id"] boolValue];
+    
     //ReTweetの色変えと本文の調整は先にやっておく
-    if ( [[currentTweet objectForKey:@"retweeted_status"] objectForKey:@"id"] ) {
+    if ( reTweet ) {
         
         cell.infoLabel.textColor = [UIColor colorWithRed:0.0 green:0.4 blue:0.0 alpha:1.0];
         cell.textLabel.textColor = [UIColor colorWithRed:0.0 green:0.4 blue:0.0 alpha:1.0];
@@ -1051,7 +1147,8 @@
     }
     
     //自分の発言の色を変える
-    if ( [screenName isEqualToString:myAccountName] ) {
+    if ( [screenName isEqualToString:myAccountName] &&
+         !reTweet ) {
         
         cell.infoLabel.textColor = [UIColor blueColor];
         cell.textLabel.textColor = [UIColor blueColor];
@@ -1060,14 +1157,15 @@
     //Replyの色を変える
     if ( [RegularExpression boolRegExp:text
                          regExpPattern:[NSString stringWithFormat:@"@%@", myAccountName]] &&
-        ![[currentTweet objectForKey:@"retweeted_status"] objectForKey:@"id"] ) {
+        !reTweet ) {
         
         cell.infoLabel.textColor = [UIColor redColor];
         cell.textLabel.textColor = [UIColor redColor];
     }
     
     //Favoriteの色を変えて星をつける
-    if ( favorited ) {
+    if ( favorited &&
+        !reTweet ) {
         
         infoLabelText = [NSMutableString stringWithFormat:@"★%@",infoLabelText];
         cell.infoLabel.textColor = [UIColor colorWithRed:0.5 green:0.4 blue:0.0 alpha:1.0];
@@ -1243,7 +1341,7 @@
                     //TL更新
                     dispatch_async(dispatch_get_main_queue(), ^ {
                         
-                        [self performSelector:@selector(refreshTimelineCell:) withObject:[NSNumber numberWithInt:index] afterDelay:0.1];
+                        [self performSelector:@selector(refreshTimelineCell:) withObject:[NSNumber numberWithInt:index] afterDelay:0.05];
                     });
                 }
                 
@@ -1333,14 +1431,18 @@
     }
 }
 
-- (IBAction)pushOpenStreamButton:(UIBarButtonItem *)sender {
+- (IBAction)pushTimelineControlButton:(UIBarButtonItem *)sender {
     
-    //UserStream未接続かつインターネットに接続されている場合は接続する
-    if ( !userStream && [InternetConnection enable] ) {
-    
-        //UserStream未接続
+    if ( listMode ) {
+        
+        //Listモード中はList再選択を行う
+        [self showListSelectView];
+        
+    }else if ( !userStream && [InternetConnection enable] ) {
+        
+        //UserStream未接続かつインターネットに接続されている場合は接続する
         userStream = YES;
-        openStreamButton.enabled = NO;
+        timelineControlButton.enabled = NO;
         userStreamFirstResponse = NO;
         [self openStream];
         
@@ -1433,8 +1535,8 @@
     
     userStream = NO;
     userStreamFirstResponse = NO;
-    openStreamButton.enabled = YES;
-    openStreamButton.image = startImage;
+    timelineControlButton.enabled = YES;
+    timelineControlButton.image = startImage;
     [self.connection cancel];
 }
 
@@ -1749,14 +1851,14 @@
     if ( httpResponse.statusCode == 200 ) {
      
         userStream = YES;
-        openStreamButton.image = stopImage;
+        timelineControlButton.image = stopImage;
         
     }else {
         
         [self closeStream];
     }
     
-    openStreamButton.enabled = YES;
+    timelineControlButton.enabled = YES;
 }
 
 - (void)connectionDidFinishLoading:(NSURLConnection *)connection {
@@ -1799,6 +1901,7 @@
      
         if ( userStream ) [self closeStream];
         
+        appDelegate.listAll = BLANK_ARRAY;
         appDelegate.sinceId = BLANK;
         appDelegate.listId = BLANK;
         
@@ -1824,6 +1927,7 @@
         
         if ( userStream ) [self closeStream];
         
+        appDelegate.listAll = BLANK_ARRAY;
         appDelegate.sinceId = BLANK;
         appDelegate.listId = BLANK;
         
@@ -1878,9 +1982,9 @@
             [timeline reloadData];
             
             listMode = NO;
-            openStreamButton.enabled = YES;
+            timelineControlButton.enabled = YES;
             
-            mentionsArray = [NSArray array];
+            mentionsArray = BLANK_ARRAY;
             
             [self pushReloadButton:nil];
             
@@ -1900,19 +2004,8 @@
         
         }else if ( timelineSegment.selectedSegmentIndex == 3 ) {
             
-            //UserStream接続中の場合は切断する
-            if ( userStream ) [self closeStream];
-            
-            reloadButton.enabled = YES;
-            openStreamButton.enabled = NO;
-            listMode = YES;
-            
-            timelineArray = [NSMutableArray array];
-            [timeline reloadData];
-            
-            ListViewController *dialog = [[ListViewController alloc] init];
-            dialog.modalTransitionStyle = UIModalTransitionStyleCoverVertical;
-            [self presentModalViewController:dialog animated:YES];
+            //リスト選択画面を表示
+            [self showListSelectView];
         }
     }
 }
@@ -1928,6 +2021,7 @@
     
             NSString *tweetId = [selectTweet objectForKey:@"id_str"];
             NSString *screenName = [[selectTweet objectForKey:@"user"] objectForKey:@"screen_name"];
+            NSString *text = [selectTweet objectForKey:@"text"];
             
             if ( actionSheet.tag == 0 ) {
                 
@@ -1935,8 +2029,7 @@
                 
                 if ( buttonIndex == 0 ) {
                     
-                    //t.co展開済みの本文を取得
-                    NSString *text = [selectTweet objectForKey:@"text"];
+                    
                     appDelegate.startupUrlList = [RegularExpression urls:text];
 
                     NSLog(@"startupUrlList[%d]: %@", appDelegate.startupUrlList.count, appDelegate.startupUrlList);
@@ -2093,7 +2186,7 @@
                                                 delegate:self
                                                 cancelButtonTitle:@"Cancel"
                                                 destructiveButtonTitle:nil
-                                                otherButtonTitles:@"STOT形式", @"本文", @"TweetへのURL", nil];
+                                                otherButtonTitles:@"STOT形式", @"本文", @"TweetへのURL", @"Tweet内のURL", nil];
                         
                         sheet.tag = 6;
                         [sheet showInView:appDelegate.tabBarController.self.view];
@@ -2119,7 +2212,6 @@
                         
                         [appDelegate.postData removeAllObjects];
                         
-                        NSString *text = [selectTweet objectForKey:@"text"];
                         NSString *inReplyToId = [selectTweet objectForKey:@"in_reply_to_status_id_str"];
                         [appDelegate.postData setObject:text forKey:@"Text"];
                         [appDelegate.postData setObject:inReplyToId forKey:@"InReplyToId"];
@@ -2217,7 +2309,7 @@
                     
                     //タイムラインログを削除
                     timelineArray = [NSMutableArray array];
-                    mentionsArray = [NSArray array];
+                    mentionsArray = BLANK_ARRAY;
                     
                     if ( buttonIndex == 2 ) {
                         
@@ -2268,7 +2360,7 @@
                     NSLog(@"buttonIndex == selectTweetIds.count");
                     
                     selectAccount = BLANK;
-                    selectTweetIds = [NSArray array];
+                    selectTweetIds = BLANK_ARRAY;
                     return;
                 }
                 
@@ -2309,7 +2401,7 @@
                     
                     //後処理
                     selectAccount = BLANK;
-                    selectTweetIds = [NSArray array];
+                    selectTweetIds = BLANK_ARRAY;
                     
                 }else if ( buttonIndex == 1 ) {
                     
@@ -2366,8 +2458,6 @@
                 
             }else if ( actionSheet.tag == 6 ) {
                 
-                NSString *text = [selectTweet objectForKey:@"text"];
-                
                 //公式RTであるか
                 if ( [[selectTweet objectForKey:@"retweeted_status"] objectForKey:@"id"] ) {
 
@@ -2392,7 +2482,35 @@
                     //URL
                     NSString *copyText = [NSString stringWithFormat:@"https://twitter.com/%@/status/%@", screenName, tweetId];
                     [pboard setString:copyText];
+                
+                }else if ( buttonIndex == 3 ) {
+                    
+                    dispatch_async(dispatch_get_main_queue(), ^ {
+                        
+                        //Tweet内のURL
+                        tweetInUrls = [RegularExpression urls:text];
+                        [self copyTweetInUrl:tweetInUrls];
+                    });
                 }
+                
+            }else if ( actionSheet.tag >= 7 && actionSheet.tag <= 11 ) {
+                
+                int cancelIndex = actionSheet.tag - 5;
+                
+                //キャンセルボタンが押された
+                if ( buttonIndex == cancelIndex ) {
+                 
+                    NSLog(@"Tweet in URL copy cancel");
+                    
+                    tweetInUrls = BLANK_ARRAY;
+                    
+                    return;
+                }
+                
+                NSLog(@"Copy URL: %@", [tweetInUrls objectAtIndex:buttonIndex]);
+                
+                [pboard setString:[tweetInUrls objectAtIndex:buttonIndex]];
+                tweetInUrls = BLANK_ARRAY;
             }
         });
         
@@ -2885,6 +3003,24 @@
     }
 }
 
+- (void)showListSelectView {
+    
+    //UserStream接続中の場合は切断する
+    if ( userStream ) [self closeStream];
+    
+    reloadButton.enabled = YES;
+    timelineControlButton.enabled = YES;
+    listMode = YES;
+    timelineControlButton.image = listImage;
+    
+    timelineArray = [NSMutableArray array];
+    [timeline reloadData];
+    
+    ListViewController *dialog = [[ListViewController alloc] init];
+    dialog.modalTransitionStyle = UIModalTransitionStyleCoverVertical;
+    [self presentModalViewController:dialog animated:YES];
+}
+
 - (void)viewDidAppear:(BOOL)animated {
     
     [super viewDidAppear:animated];
@@ -2919,7 +3055,6 @@
         }
         
         [timeline reloadData];
-        
         [TWList getList:appDelegate.listId];
     }
 }
@@ -2950,7 +3085,7 @@
     [self setTimeline:nil];
     [self setFlexibleSpace:nil];
     [self setPostButton:nil];
-    [self setOpenStreamButton:nil];
+    [self setTimelineControlButton:nil];
     [self setReloadButton:nil];
     [self setActionButton:nil];
     [self setCloseOtherTweetsButton:nil];

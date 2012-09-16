@@ -165,6 +165,8 @@
 
 + (NSMutableArray *)urls:(id)string {
     
+    if ( string == nil ) return [NSMutableArray array];
+    
     NSError *error = nil;
     NSString *searchString = [NSString stringWithString:string];
     NSMutableArray *urlList = [NSMutableArray array];

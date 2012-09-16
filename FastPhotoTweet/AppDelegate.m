@@ -49,6 +49,7 @@ void uncaughtExceptionHandler(NSException *e) {
 @synthesize reOpenUrl;
 @synthesize listId;
 @synthesize startupUrlList;
+@synthesize listAll;
 @synthesize postError;
 @synthesize postData;
 @synthesize resendNumber;
@@ -88,6 +89,9 @@ void uncaughtExceptionHandler(NSException *e) {
 
     startupUrlList = [NSArray arrayWithObject:[D objectForKey:@"HomePageURL"]];
     [startupUrlList retain];
+    
+    listAll = BLANK_ARRAY;
+    [listAll retain];
     
     postData = [NSMutableDictionary dictionary];
     [postData retain];
@@ -191,6 +195,8 @@ void uncaughtExceptionHandler(NSException *e) {
     
     [postError release];
     [urlSchemeDownloadUrl release];
+    [startupUrlList release];
+    [listAll release];
 
     [_window release];
     [_tabBarController release];

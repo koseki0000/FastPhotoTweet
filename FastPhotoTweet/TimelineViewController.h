@@ -19,7 +19,6 @@
 #import <CFNetwork/CFNetwork.h>
 #import "JSON.h"
 #import "WebViewExController.h"
-#import "InternetConnection.h"
 
 @interface TimelineViewController : UIViewController <UIActionSheetDelegate, UITextFieldDelegate> {
     
@@ -39,6 +38,7 @@
     NSMutableDictionary *allLists;
     NSArray *mentionsArray;
     NSArray *selectTweetIds;
+    NSArray *tweetInUrls;
     NSDictionary *currentTweet;
     NSDictionary *selectTweet;
     NSString *userStreamAccount;
@@ -50,6 +50,7 @@
     UIPasteboard *pboard;
     UIImage *startImage;
     UIImage *stopImage;
+    UIImage *listImage;
     UIImage *defaultActionButtonImage;
     UIAlertView *alertSearch;
     UITextField *alertSearchText;
@@ -77,7 +78,7 @@
 @property (retain, nonatomic) IBOutlet UIBarButtonItem *fixedSpace;
 @property (retain, nonatomic) IBOutlet UIBarButtonItem *postButton;
 @property (retain, nonatomic) IBOutlet UIBarButtonItem *reloadButton;
-@property (retain, nonatomic) IBOutlet UIBarButtonItem *openStreamButton;
+@property (retain, nonatomic) IBOutlet UIBarButtonItem *timelineControlButton;
 @property (retain, nonatomic) IBOutlet UIBarButtonItem *actionButton;
 @property (retain, nonatomic) IBOutlet UIBarButtonItem *closeOtherTweetsButton;
 @property (retain, nonatomic) IBOutlet UIImageView *accountIconView;
@@ -86,7 +87,7 @@
 
 - (IBAction)pushPostButton:(UIBarButtonItem *)sender;
 - (IBAction)pushReloadButton:(UIBarButtonItem *)sender;
-- (IBAction)pushOpenStreamButton:(UIBarButtonItem *)sender;
+- (IBAction)pushTimelineControlButton:(UIBarButtonItem *)sender;
 - (IBAction)pushActionButton:(UIBarButtonItem *)sender;
 - (IBAction)pushCloseOtherTweetsButton:(UIBarButtonItem *)sender;
 
@@ -111,6 +112,7 @@
 - (void)scrollTimelineForNewTweet;
 - (void)scrollTimelineToTop:(BOOL)animation;
 - (void)refreshTimelineCell:(NSNumber *)index;
+- (void)copyTweetInUrl:(NSArray *)urlList;
 - (void)openStream;
 - (void)closeStream;
 - (void)showTwitterAccountSelectActionSheet:(NSArray *)ids;
@@ -121,5 +123,6 @@
 - (void)becomeActive:(NSNotification *)notification;
 
 - (void)getMyAccountIcon;
+- (void)showListSelectView;
 
 @end

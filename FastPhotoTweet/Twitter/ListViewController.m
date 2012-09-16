@@ -38,12 +38,22 @@
                                name:@"ReceiveListAll"
                              object:nil];
     
-    [TWList getListAll];
+    if ( appDelegate.listAll.count == 0 ) {
+    
+        //取得済みリストがない場合は取得
+        [TWList getListAll];
+        
+    }else {
+        
+        //取得済みリストがある場合は表示
+        listAll = appDelegate.listAll;
+    }
 }
 
 - (void)receiveListAll:(NSNotification *)center {
     
     listAll = [center.userInfo objectForKey:@"ResultData"];
+    appDelegate.listAll = listAll;
     
     NSLog(@"listData: %d", listAll.count);
     

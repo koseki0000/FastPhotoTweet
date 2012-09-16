@@ -12,6 +12,7 @@
 #import "NGSettingViewController.h"
 
 #define BLANK @""
+#define BLANK_ARRAY [NSArray array]
 
 @implementation NGSettingViewController
 @synthesize sv;
@@ -50,15 +51,15 @@
     exclusionUserField.text = BLANK;
     
     if ( ![EmptyCheck check:[d arrayForKey:@"NGWord"]] ) {
-        [d setObject:[NSArray array] forKey:@"NGWord"];
+        [d setObject:BLANK_ARRAY forKey:@"NGWord"];
     }
     
     if ( ![EmptyCheck check:[d arrayForKey:@"NGName"]] ) {
-        [d setObject:[NSArray array] forKey:@"NGName"];
+        [d setObject:BLANK_ARRAY forKey:@"NGName"];
     }
     
     if ( ![EmptyCheck check:[d arrayForKey:@"NGClient"]] ) {
-        [d setObject:[NSArray array] forKey:@"NGClient"];
+        [d setObject:BLANK_ARRAY forKey:@"NGClient"];
     }
     
     ngSettingArray = [NSMutableArray arrayWithArray:[d objectForKey:@"NGWord"]];

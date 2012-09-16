@@ -12,6 +12,7 @@
 #import "DeleteWhiteSpace.h"
 #import "BookmarkViewController.h"
 #import "InternetConnection.h"
+#import "ADBlock.h"
 
 @interface WebViewExController : UIViewController <UIWebViewDelegate, UIActionSheetDelegate, UITextFieldDelegate, NSXMLParserDelegate> {
     
@@ -103,5 +104,6 @@
 - (void)endDownload;
 - (void)showDownloadMenu:(NSString *)url;
 - (void)resetUserAgent;
+- (void)adBlock;
 
 @end

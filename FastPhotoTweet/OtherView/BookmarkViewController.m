@@ -7,8 +7,6 @@
 
 #import "BookmarkViewController.h"
 
-#define BLANK @""
-
 @implementation BookmarkViewController
 @synthesize topBar;
 @synthesize closeButton;
@@ -33,7 +31,7 @@
     
     if ( ![EmptyCheck check:[d arrayForKey:@"Bookmark"]] ) {
         
-        [d setObject:[NSArray array] forKey:@"Bookmark"];
+        [d setObject:BLANK_ARRAY forKey:@"Bookmark"];
     }
 
     bookMarkArray = [[NSMutableArray alloc] initWithArray:[d arrayForKey:@"Bookmark"]];

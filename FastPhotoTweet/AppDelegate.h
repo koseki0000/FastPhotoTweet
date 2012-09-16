@@ -13,6 +13,7 @@
 #define OAUTH_SECRET    @"wnDptUj4VpGLZebfLT3IInTZPkPS4XimYh6WXAmdI"
 
 #define BLANK @""
+#define BLANK_ARRAY [NSArray array]
 #define D [NSUserDefaults standardUserDefaults]
 
 #define FIREFOX_USERAGENT @"Mozilla/5.0 (Macintosh; Intel Mac OS X 10.7; rv:13.0) Gecko/20100101 Firefox/13.0.1"
@@ -42,6 +43,7 @@ void uncaughtExceptionHandler(NSException *exception);
 @property (nonatomic, retain) NSString *reOpenUrl;
 @property (nonatomic, retain) NSString *listId;
 @property (nonatomic, retain) NSArray *startupUrlList;
+@property (nonatomic, retain) NSArray *listAll;
 @property (nonatomic, retain) NSMutableArray *postError;
 @property (nonatomic, retain) NSMutableDictionary *postData;
 @property int resendNumber;

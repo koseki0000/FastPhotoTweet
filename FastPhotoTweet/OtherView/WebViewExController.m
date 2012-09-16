@@ -15,8 +15,6 @@
 #define BOTTOM_BAR [NSArray arrayWithObjects:closeButton, flexibleSpace, reloadButton, flexibleSpace, backButton, flexibleSpace, forwardButton, flexibleSpace, composeButton, flexibleSpace, bookmarkButton, flexibleSpace, menuButton, nil]
 #define EXTENSIONS [NSArray arrayWithObjects:@"zip", @"mp4", @"mov", @"m4a", @"rar", @"dmg", @"deb", nil]
 
-#define BLANK @""
-
 @implementation WebViewExController
 @synthesize wv;
 @synthesize topBar;
@@ -44,7 +42,7 @@
         
         appDelegate = (AppDelegate *)[[UIApplication sharedApplication] delegate];
         startupUrlList = appDelegate.startupUrlList;
-        urlList = [NSArray array];
+        urlList = BLANK_ARRAY;
     }
     
     return self;
@@ -97,7 +95,8 @@
         return;
     }
     
-    if ( [EmptyCheck string:appDelegate.reOpenUrl] ) {
+    if ( [EmptyCheck string:appDelegate.reOpenUrl] &&
+        appDelegate.tabBarController.selectedIndex != 1 ) {
         
         [wv loadRequestWithString:appDelegate.reOpenUrl];
         
@@ -107,6 +106,13 @@
      
         [self selectOpenUrl];
     }
+    
+//    NSTimer *adBlockTimer = [NSTimer scheduledTimerWithTimeInterval:1.5f
+//                                                             target:self
+//                                                           selector:@selector(adBlock)
+//                                                           userInfo:nil
+//                                                            repeats:YES];
+//    [adBlockTimer fire];
 }
 
 - (void)selectOpenUrl {
@@ -136,6 +142,12 @@
                 //NSLog(@"ペーストボードにURLが存在しない場合");
                 
                 [wv loadRequestWithString:[startupUrlList objectAtIndex:0]];
+                
+            }else if ( startupUrlList.count == 0 && urlList.count == 1 ) {
+                
+                //NSLog(@"スタートアップURLがなく、ペーストボードにURLが1つ存在する場合");
+                
+                [wv loadRequestWithString:[urlList objectAtIndex:0]];
                 
             }else if ( startupUrlList.count == 1 && urlList.count == 1 ) {
                 
@@ -424,7 +436,7 @@
     
         [self resetUserAgent];
         
-        appDelegate.startupUrlList = [NSArray array];
+        appDelegate.startupUrlList = BLANK_ARRAY;
         appDelegate.reOpenUrl = accessURL;
     
         [self dismissModalViewControllerAnimated:YES];
@@ -449,7 +461,7 @@
      
         [self resetUserAgent];
         
-        appDelegate.startupUrlList = [NSArray array];
+        appDelegate.startupUrlList = BLANK_ARRAY;
         appDelegate.reOpenUrl = BLANK;
         
         [self dismissModalViewControllerAnimated:YES];
@@ -783,7 +795,7 @@
             
             if ( ![EmptyCheck check:[d arrayForKey:@"Bookmark"]] ) {
                 
-                [d setObject:[NSArray array] forKey:@"Bookmark"];
+                [d setObject:BLANK_ARRAY forKey:@"Bookmark"];
             }
             
             NSMutableArray *bookMarkArray = [[NSMutableArray alloc] initWithArray:[d arrayForKey:@"Bookmark"]];
@@ -1064,7 +1076,7 @@
         }else {
             
             //キャンセルされた場合はホームページを開く
-            [wv  loadRequestWithString:[d objectForKey:@"HomePageURL"]];
+            [wv loadRequestWithString:[d objectForKey:@"HomePageURL"]];
             
             return;
         }
@@ -1144,6 +1156,9 @@
     
     accessURL = [[request URL] absoluteString];
     
+    //広告をブロック
+    if ( [ADBlock check:accessURL] ) return NO;
+    
     //フルサイズ取得が有効
     if ( [d boolForKey:@"FullSizeImage"] ) {
         
@@ -1160,7 +1175,8 @@
     }
     
     //Amazonのアフィリンクの場合無効化して再アクセス
-    if ( [RegularExpression boolRegExp:accessURL regExpPattern:@"https?://(www\\.)?amazon\\.co\\.jp/((exec/obidos|o)/ASIN|dp)/[A-Z0-9]{10}(/|\\?tag=)[-_a-zA-Z0-9]+-22/?"] ) {
+    if ( [RegularExpression boolRegExp:accessURL
+                         regExpPattern:@"https?://(www\\.)?amazon\\.co\\.jp/((exec/obidos|o)/ASIN|dp)/[A-Z0-9]{10}(/|\\?tag=)[-_a-zA-Z0-9]+-22/?"] ) {
         
         NSString *affiliateCuttedUrl = [AmazonAffiliateCutter string:accessURL];
         
@@ -1213,7 +1229,7 @@
     
     if ( ![[[request URL] absoluteString] isEqualToString:@"about:blank"] ) {
         
-        //NSLog(@"shouldStartLoadWithRequest: %@", [[request URL] absoluteString]);
+        //NSLog(@"%@", [[request URL] absoluteString]);
         
         urlField.text = [ProtocolCutter url:[[request URL] absoluteString]];
     }
@@ -1234,6 +1250,8 @@
     loading = NO;
     [ActivityIndicator off];
     [self updateWebBrowser];
+    
+    [self adBlock];
 }
 
 - (void)webViewDidStartLoad:(UIWebView *)webView {
@@ -1658,6 +1676,11 @@
     }
     
     return YES;
+}
+
+- (void)adBlock {
+    
+    [wv stringByEvaluatingJavaScriptFromString:@"var delads=document.getElementsByTagName(""div"");for(i=0;i<delads.length;i++){if(delads[i].className==""adlantis_sp_sticky_container""){delads[i].style.display=none}}"];
 }
 
 - (void)dealloc {
