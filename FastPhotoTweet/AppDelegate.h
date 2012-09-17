@@ -14,6 +14,9 @@
 
 #define BLANK @""
 #define BLANK_ARRAY [NSArray array]
+#define BLANK_M_ARRAY [NSMutableArray array]
+#define BLANC_DIC [NSDictionary dictionary]
+#define BLANC_M_DIC [NSMutableDictionary dictionary]
 #define D [NSUserDefaults standardUserDefaults]
 
 #define FIREFOX_USERAGENT @"Mozilla/5.0 (Macintosh; Intel Mac OS X 10.7; rv:13.0) Gecko/20100101 Firefox/13.0.1"

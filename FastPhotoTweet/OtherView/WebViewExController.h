@@ -84,11 +84,12 @@
 
 - (IBAction)onUrlField: (id)sender;
 - (IBAction)leaveUrlField: (id)sender;
-
 - (IBAction)onSearchField: (id)sender;
 - (IBAction)leaveSearchField: (id)sender;
 
 - (IBAction)fullScreenGesture:(id)sender;
+
+- (IBAction)doubleTapUrlField:(id)sender;
 
 - (void)selectOpenUrl;
 - (void)selectUrl;

@@ -7,8 +7,7 @@
 
 #import "ADBlock.h"
 
-//ブロックするURLリスト
-#define BLOCK_LIST @[ @"https://static.adlantis.jp/", @"http://xid.i-mobile.co.jp/", @"http://i.adimg.net/", @"http://uuid.adlantis.jp/", @"http://ad.yieldmanager.com/", @"http://adserver.twitpic.com/", @"http://googleads.g.doubleclick.net/", @"http://j.amoad.com/", @"http://ad.adlantis.jp/" ]
+#define BLOCK_PATTERN @".+\\.adlantis\\.jp|xid\\.i-mobile\\.co\\.jp|i\\.adimg\\.net|ad\\.yieldmanager\\.com|adserver\\.twitpic\\.com|googleads\\.g\\.doubleclick\\.net|j\\.amoad\\.com"
 
 @implementation ADBlock
 
@@ -16,17 +15,21 @@
     
     BOOL result = NO;
     
-    //ブロックするURLリストから順にチェック
-    for ( NSString *blockUrl in BLOCK_LIST ) {
+    NSError *error = nil;
+    NSRegularExpression *regexp = [NSRegularExpression regularExpressionWithPattern:BLOCK_PATTERN
+                                                                            options:0
+                                                                              error:&error];
+    
+    NSTextCheckingResult *match = [regexp firstMatchInString:url
+                                                     options:0
+                                                       range:NSMakeRange( 0, url.length )];
+    
+    if ( !error ) {
         
-        //チェック対象のURLがブロックリストのURLで始まっているかチェック
-        if ( [url hasPrefix:blockUrl ] ) {
+        if ( match.numberOfRanges != 0 ) {
             
-            //条件にマッチした場合ブロックを行う
-            NSLog(@"BlockPattern: %@", blockUrl);
-            
+            NSLog(@"Blocked: %@", url);
             result = YES;
-            break;
         }
     }
     

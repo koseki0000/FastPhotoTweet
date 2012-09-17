@@ -132,7 +132,7 @@
         
         if ( [d boolForKey:@"OpenPasteBoardURL"] ) {
             
-            //NSLog(@"ペーストボードからURLを開く設定が有効な場合");
+            //NSLog(@"ペーストボードからURLを開く設定が有効な場合: %@", [d objectForKey:@"LastOpendPasteBoardURL"]);
             
             //ペーストボードのURLを取得
             urlList = [RegularExpression urls:pboard.string];
@@ -147,7 +147,15 @@
                 
                 //NSLog(@"スタートアップURLがなく、ペーストボードにURLが1つ存在する場合");
                 
-                [wv loadRequestWithString:[urlList objectAtIndex:0]];
+                if ( [[urlList objectAtIndex:0] isEqualToString:[d objectForKey:@"LastOpendPasteBoardURL"]] ) {
+                
+                    [wv loadRequestWithString:[d objectForKey:@"HomePageURL"]];
+                    
+                }else {
+                    
+                    [wv loadRequestWithString:[urlList objectAtIndex:0]];
+                    [d setObject:[urlList objectAtIndex:0] forKey:@"LastOpendPasteBoardURL"];
+                }
                 
             }else if ( startupUrlList.count == 1 && urlList.count == 1 ) {
                 
@@ -157,7 +165,7 @@
                     
                     //NSLog(@"スタートアップURLがホームページだった場合はペーストボードのURLを優先して判定");
                     
-                    if ( [[urlList objectAtIndex:0] isEqualToString:@"LastOpendPasteBoardURL"] ) {
+                    if ( [[urlList objectAtIndex:0] isEqualToString:[d objectForKey:@"LastOpendPasteBoardURL"]] ) {
                         
                         //NSLog(@"直前にペーストボードから開いたURLだった場合はスタートアップURLを開く");
                         
@@ -168,6 +176,7 @@
                         //NSLog(@"直前にペーストボードから開いたURLではない場合開く");
                         
                         [wv loadRequestWithString:[urlList objectAtIndex:0]];
+                        [d setObject:[urlList objectAtIndex:0] forKey:@"LastOpendPasteBoardURL"];
                     }
                     
                 }else {
@@ -656,6 +665,23 @@
     [self shouldAutorotateToInterfaceOrientation:[[UIDevice currentDevice] orientation]];
 }
 
+- (IBAction)doubleTapUrlField:(id)sender {
+    
+    NSLog(@"doubleTapUrlField");
+    
+    [urlField resignFirstResponder];
+    
+    actionSheetNo = 16;
+    
+    UIActionSheet *sheet = [[UIActionSheet alloc]
+                            initWithTitle:[NSString stringWithFormat:@"%@\n%@", wv.pageTitle, wv.url]
+                            delegate:self
+                            cancelButtonTitle:@"Cancel"
+                            destructiveButtonTitle:nil
+                            otherButtonTitles:@"タイトルをコピー", @"URLをコピー", @"タイトルとURLをコピー", nil];
+    [sheet showInView:self.view];
+}
+
 - (void)actionSheet:(UIActionSheet *)actionSheet clickedButtonAtIndex:(NSInteger)buttonIndex {
     
     //NSLog(@"No: %d Index: %d", actionSheetNo, buttonIndex);
@@ -688,33 +714,63 @@
         
         if ( buttonIndex == 0 ) {
             
-            appDelegate.tabBarController.selectedIndex = 0;
-            
             NSString *postText = BLANK;
             
-            if ( [EmptyCheck check:[d objectForKey:@"WebPagePostFormat"]] ) {
+            if ( [RegularExpression boolRegExp:urlField.text regExpPattern:@"(https?://)?shindanmaker.com/[0-9]+"] ) {
                 
-                postText = [d objectForKey:@"WebPagePostFormat"];
+                NSLog(@"Shindanmaker Post");
+                
+                NSData *wvData = [NSURLConnection sendSynchronousRequest:[wv request]
+                                                       returningResponse:nil
+                                                                   error:nil];
+                
+                postText = [[NSString alloc] initWithData:wvData
+                                                 encoding:NSUTF8StringEncoding];
+                
+                postText = [ReplaceOrDelete deleteWordReturnStr:postText deleteWord:@"\n"];
+                postText = [ReplaceOrDelete replaceWordReturnStr:postText replaceWord:@"\t" replacedWord:@" "];
+                postText = [ReplaceOrDelete replaceWordReturnStr:postText replaceWord:@"  " replacedWord:@" "];
+                postText = [RegularExpression strRegExp:postText regExpPattern:@"this.select...>.{1,140}?<.textarea>"];
+                postText = [ReplaceOrDelete deleteWordReturnStr:postText deleteWord:@"this.select()\">"];
+                postText = [ReplaceOrDelete deleteWordReturnStr:postText deleteWord:@"</textarea>"];
+                
+                //NSLog(@"postText: %@", postText);
+                
+                if ( ![EmptyCheck string:postText] ) {
+                    
+                    [ShowAlert error:@"データ取得に失敗しました。"];
+                    
+                    return;
+                }
                 
             }else {
                 
-                postText = @" \"[title]\" [url] ";
-                [d setObject:postText forKey:@"WebPagePostFormat"];
+                if ( [EmptyCheck check:[d objectForKey:@"WebPagePostFormat"]] ) {
+                    
+                    postText = [d objectForKey:@"WebPagePostFormat"];
+                    
+                }else {
+                    
+                    postText = @" \"[title]\" [url] ";
+                    [d setObject:postText forKey:@"WebPagePostFormat"];
+                }
+                
+                postText = [ReplaceOrDelete replaceWordReturnStr:postText
+                                                     replaceWord:@"[title]"
+                                                    replacedWord:wv.pageTitle];
+                
+                postText = [ReplaceOrDelete replaceWordReturnStr:postText
+                                                     replaceWord:@"[url]"
+                                                    replacedWord:[[wv.request URL] absoluteString]];
             }
             
-            postText = [ReplaceOrDelete replaceWordReturnStr:postText 
-                                                 replaceWord:@"[title]" 
-                                                replacedWord:wv.pageTitle];
-            
-            postText = [ReplaceOrDelete replaceWordReturnStr:postText 
-                                                 replaceWord:@"[url]" 
-                                                replacedWord:[[wv.request URL] absoluteString]];
+            appDelegate.tabBarController.selectedIndex = 0;
             
             appDelegate.postTextType = @"WebPage";
             appDelegate.postText = postText;
             
             [self pushComposeButton:nil];
-        
+            
         }else if ( buttonIndex == 1 ) {
             
             //NSLog(@"selectString: %@", wv.selectString);
@@ -1082,6 +1138,21 @@
         }
         
         [self selectUrl];
+        
+    }else if ( actionSheetNo == 16 ) {
+        
+        if ( buttonIndex == 0 ) {
+            
+            [pboard setString:wv.pageTitle];
+            
+        }else if ( buttonIndex == 1 ) {
+            
+            [pboard setString:wv.url];
+            
+        }else if ( buttonIndex == 2 ) {
+            
+            [pboard setString:[NSString stringWithFormat:@"\"%@\" %@", wv.pageTitle, wv.url]];
+        }
     }
 }
 
@@ -1251,7 +1322,7 @@
     [ActivityIndicator off];
     [self updateWebBrowser];
     
-    [self adBlock];
+    //[self adBlock];
 }
 
 - (void)webViewDidStartLoad:(UIWebView *)webView {
@@ -1680,7 +1751,17 @@
 
 - (void)adBlock {
     
-    [wv stringByEvaluatingJavaScriptFromString:@"var delads=document.getElementsByTagName(""div"");for(i=0;i<delads.length;i++){if(delads[i].className==""adlantis_sp_sticky_container""){delads[i].style.display=none}}"];
+    NSLog(@"adBlock");
+    
+//    [wv stringByEvaluatingJavaScriptFromString:@"var delads=document.getElementsByTagName(\\'div\\');for(i=0;i<delads.length;i++){if(delads[i].className==\\'_naver_ad_area\\'){delads[i].style.display=none}}"];
+//    [wv stringByEvaluatingJavaScriptFromString:@"var delads=document.getElementsByTagName(\\'div\\');for(i=0;i<delads.length;i++){if(delads[i].className==\\'adlantis_sp_sticky_container\\'){delads[i].style.display=none}}"];
+    
+    
+    [wv stringByEvaluatingJavaScriptFromString:
+     @"var delads=document.getElementsByClassName(\"_naver_ad_area\");for(i=0;i<delads.length;i++){delads[i].style.display=none}"];
+    
+    [wv stringByEvaluatingJavaScriptFromString:
+     @"var delads=document.getElementsByClassName(\"adlantis_sp_sticky_container\");for(i=0;i<delads.length;i++){delads[i].style.display=none}"];
 }
 
 - (void)dealloc {

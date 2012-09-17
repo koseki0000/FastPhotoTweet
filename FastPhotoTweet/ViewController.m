@@ -38,6 +38,8 @@
 @synthesize bottomBar;
 @synthesize settingButton;
 
+#pragma mark - Initialize
+
 - (id)initWithNibName:(NSString *)nibNameOrNil bundle:(NSBundle *)nibBundleOrNil {
     
     self = [super initWithNibName:nibNameOrNil bundle:nibBundleOrNil];
@@ -371,6 +373,8 @@
     [d synchronize];
 }
 
+#pragma mark - IBAction
+
 - (IBAction)pushPostButton:(id)sender {
     
     //iOSバージョン判定
@@ -450,59 +454,6 @@
     }
 }
 
-- (void)tohaSearch:(NSString *)text {
-    
-    appDelegate.startupUrlList = [NSArray arrayWithObject:[CreateSearchURL google:[text substringWithRange:NSMakeRange(0, text.length - 2)]]];
-    
-    [self pushBrowserButton:nil];
-}
-
-- (void)postDone:(NSNotification *)center {
-
-    //NSLog(@"postDone: %@", center.userInfo);
-    
-    NSString *result = [center.userInfo objectForKey:@"PostResult"];
-    
-    if ( [result isEqualToString:@"Success"] || [result isEqualToString:@"PhotoSuccess"] ) {
-        
-        //投稿成功
-        NSString *successText = [center.userInfo objectForKey:@"SuccessText"];
-        
-        //再投稿リストから投稿成功したものを探し削除        
-        int arrayIndex = 0;
-        BOOL find = NO;
-        for ( NSArray *temp in appDelegate.postError ) {
-            
-            if ( [successText hasPrefix:[temp objectAtIndex:2]] ) {
-                
-                find = YES;
-                break;
-            }
-            
-            arrayIndex++;
-        }
-        
-        if ( find ) {
-            
-            [appDelegate.postError removeObjectAtIndex:arrayIndex];
-        }
-        
-    }else if ( [result isEqualToString:@"Error"] || [result isEqualToString:@"PhotoError"]) {
-        
-        [ShowAlert error:@"投稿に失敗しました。失敗したPostは上部中央のボタンから再投稿出来ます。"];
-    }
-    
-    //再投稿ボタンの有効･無効切り替え
-    if ( appDelegate.postError.count == 0 ) {
-        
-        resendButton.enabled = NO;
-        
-    }else {
-        
-        resendButton.enabled = YES;
-    }
-}
-
 - (IBAction)pushNowPlayingButton:(id)sender {
     
     //NSLog(@"pushNowPlayingButton");
@@ -544,7 +495,7 @@
     NSString *useragent = IPHONE_USERAGENT;
     
     if ( [[d objectForKey:@"UserAgent"] isEqualToString:@"FireFox"] ) {
-    
+        
         useragent = FIREFOX_USERAGENT;
         
     }else if ( [[d objectForKey:@"UserAgent"] isEqualToString:@"iPad"] ) {
@@ -592,30 +543,12 @@
                             delegate:self
                             cancelButtonTitle:@"Cancel"
                             destructiveButtonTitle:nil
-                            otherButtonTitles:@"FastPhotoTweet", @"Twitter for iPhone", 
-                                              @"Tweetbot", @"Echofon", @"Echofon Pro", 
-                                              @"SOICHA", @"Tweetings", @"Osfoora", 
-                                              @"Twittelator", @"TweetList!", @"Tweet ATOK", 
-                                              @"Tweetlogix",  @"HootSuite", @"SimplyTweet", 
-                                              @"Reeder", nil];
-	[sheet autorelease];
-	[sheet showInView:appDelegate.tabBarController.self.view];
-}
-
-- (void)showActionMenu {
-    
-    showActionSheet = YES;
-    
-    actionSheetNo = 0;
-    
-    UIActionSheet *sheet = [[UIActionSheet alloc]
-                            initWithTitle:@"動作選択"
-                            delegate:self
-                            cancelButtonTitle:@"Cancel"
-                            destructiveButtonTitle:nil
-                            otherButtonTitles:@"Tweet", @"FastTweet", @"PhotoTweet", 
-                                              @"NowPlaying", @"FastGoogle", @"Browser",
-                                              @"FastPagePost", nil];
+                            otherButtonTitles:@"FastPhotoTweet", @"Twitter for iPhone",
+                            @"Tweetbot", @"Echofon", @"Echofon Pro",
+                            @"SOICHA", @"Tweetings", @"Osfoora",
+                            @"Twittelator", @"TweetList!", @"Tweet ATOK",
+                            @"Tweetlogix",  @"HootSuite", @"SimplyTweet",
+                            @"Reeder", nil];
 	[sheet autorelease];
 	[sheet showInView:appDelegate.tabBarController.self.view];
 }
@@ -626,10 +559,11 @@
     
     //カメラか投稿時選択
     if ( [d integerForKey:@"ImageSource"] == 0 ||
-         [d integerForKey:@"ImageSource"] == 2 ) {
+        [d integerForKey:@"ImageSource"] == 2 ) {
         
-        //連続投稿確認がON
         if ( [d boolForKey:@"RepeatedPost"] ) {
+        
+            //連続投稿確認がON
             
             actionSheetNo = 2;
             UIActionSheet *sheet = [[UIActionSheet alloc]
@@ -640,17 +574,17 @@
                                     otherButtonTitles:@"ON", @"OFF", nil];
             [sheet autorelease];
             [sheet showInView:appDelegate.tabBarController.self.view];
-        
-        //連続投稿確認がOFF
+            
         }else {
             
+            //連続投稿確認がOFF
             repeatedPost = NO;
             [self showImagePicker];
         }
         
-    //カメラ
     }else {
         
+        //カメラ
         repeatedPost = NO;
         [self showImagePicker];
     }
@@ -669,6 +603,183 @@
     [sheet autorelease];
     [sheet showInView:appDelegate.tabBarController.self.view];
 }
+
+- (IBAction)pushInputFunctionButton:(id)sender {
+    
+    actionSheetNo = 5;
+    
+    UIActionSheet *sheet = [[UIActionSheet alloc]
+                            initWithTitle:@"入力支援機能"
+                            delegate:self
+                            cancelButtonTitle:@"Cancel"
+                            destructiveButtonTitle:nil
+                            otherButtonTitles:@"半角カナ変換(カタカナ)", @"半角カナ変換(ひらがな)", @"半角カナ変換(カタカナ+ひらがな)", nil];
+    [sheet autorelease];
+    [sheet showInView:appDelegate.tabBarController.self.view];
+}
+
+- (IBAction)callbackSwitchDidChage:(id)sender {
+    
+    //スイッチの状態を保存
+    if ( callbackSwitch.on ) {
+        
+        [d setBool:YES forKey:@"CallBack"];
+        
+    }else {
+        
+        [d setBool:NO forKey:@"CallBack"];
+    }
+}
+
+#pragma mark - GestureRecognizer
+
+- (IBAction)svTapGesture:(id)sender {
+    
+    //NSLog(@"svTapGesture");
+    
+    [postText resignFirstResponder];
+    [sv setContentOffset:CGPointMake(0, 0) animated:YES];
+}
+
+- (IBAction)svSwipeGesture:(UISwipeGestureRecognizer *)sender {
+    
+    self.tabBarController.selectedIndex = 1;
+}
+
+- (IBAction)imagePreviewSwipeGesture:(UISwipeGestureRecognizer *)sender {
+    
+    self.tabBarController.selectedIndex = 1;
+}
+
+- (IBAction)swipeToMoveCursorRight:(id)sender {
+    
+    int location = postText.selectedRange.location + 1;
+    
+    if ( location <= postText.text.length ) {
+        
+        [postText setSelectedRange:NSMakeRange( location, 0 )];
+    }
+}
+
+- (IBAction)swipeToMoveCursorLeft:(id)sender {
+    
+    if ( postText.selectedRange.location != 0 ) {
+        
+        int location = postText.selectedRange.location - 1;
+        [postText setSelectedRange:NSMakeRange( location, 0 )];
+    }
+}
+
+#pragma mark - Notification
+
+- (void)postDone:(NSNotification *)center {
+
+    //NSLog(@"postDone: %@", center.userInfo);
+    
+    NSString *result = [center.userInfo objectForKey:@"PostResult"];
+    
+    if ( [result isEqualToString:@"Success"] || [result isEqualToString:@"PhotoSuccess"] ) {
+        
+        //投稿成功
+        NSString *successText = [center.userInfo objectForKey:@"SuccessText"];
+        
+        //再投稿リストから投稿成功したものを探し削除        
+        int arrayIndex = 0;
+        BOOL find = NO;
+        for ( NSArray *temp in appDelegate.postError ) {
+            
+            if ( [successText hasPrefix:[temp objectAtIndex:2]] ) {
+                
+                find = YES;
+                break;
+            }
+            
+            arrayIndex++;
+        }
+        
+        if ( find ) {
+            
+            [appDelegate.postError removeObjectAtIndex:arrayIndex];
+        }
+        
+    }else if ( [result isEqualToString:@"Error"] || [result isEqualToString:@"PhotoError"]) {
+        
+        [ShowAlert error:@"投稿に失敗しました。失敗したPostは上部中央のボタンから再投稿出来ます。"];
+    }
+    
+    //再投稿ボタンの有効･無効切り替え
+    if ( appDelegate.postError.count == 0 ) {
+        
+        resendButton.enabled = NO;
+        
+    }else {
+        
+        resendButton.enabled = YES;
+    }
+}
+
+- (void)becomeActive:(NSNotification *)notification {
+    
+    //アプリケーションがアクティブになった際に呼ばれる
+    //NSLog(@"becomeActive");
+    
+    if ( appDelegate.browserOpenMode ) return;
+    
+    if ( [d boolForKey:@"applicationWillResignActive"] ) {
+        
+        [d removeObjectForKey:@"applicationWillResignActive"];
+        return;
+    }
+    
+    if ( [EmptyCheck check:appDelegate.urlSchemeDownloadUrl] ) {
+        
+        appDelegate.startupUrlList = [NSArray arrayWithObject:@"about:blank"];
+        
+        [self pushBrowserButton:nil];
+        
+        return;
+    }
+    
+    if ( self.tabBarController.selectedIndex == 1 ) return;
+    
+    //設定が有効な場合Post入力可能状態にする
+    if ( [d boolForKey:@"ShowKeyboard"] ) {
+        
+        [postText becomeFirstResponder];
+    }
+    
+    //iOS5以降かチェック
+    if ( [appDelegate ios5Check] ) {
+        
+        if ( !showActionSheet && !showImagePicker ) {
+            
+            if ( appDelegate.launchMode == 2 ) {
+                
+                [self showActionMenu];
+                
+            }else {
+                
+                if ( appDelegate.launchMode == 1 ) {
+                    
+                    [self showActionMenu];
+                }
+            }
+        }
+        
+        appDelegate.launchMode = 2;
+    }
+    
+    [self countText];
+}
+
+- (void)tohaSearch:(NSString *)text {
+    
+    appDelegate.startupUrlList = [NSArray arrayWithObject:[CreateSearchURL google:[text substringWithRange:NSMakeRange(0, text.length - 2)]]];
+    
+    [self pushBrowserButton:nil];
+}
+
+#pragma mark - ImagePicker
 
 - (void)showImagePicker {
     
@@ -787,6 +898,8 @@
         [sheet showInView:appDelegate.tabBarController.self.view];
     }
 }
+
+#pragma mark - ASIHTTPRequest
 
 - (void)requestFinished:(ASIHTTPRequest *)request {
     
@@ -908,14 +1021,6 @@
     [sheet showInView:appDelegate.tabBarController.self.view];
 }
 
-- (IBAction)svTapGesture:(id)sender {
-    
-    //NSLog(@"svTapGesture");
-    
-    [postText resignFirstResponder];
-    [sv setContentOffset:CGPointMake(0, 0) animated:YES];
-}
-
 - (void)imagePreviewTapGesture:(UITapGestureRecognizer *)sender {
     
     [postText resignFirstResponder];
@@ -952,61 +1057,7 @@
     }
 }
 
-- (IBAction)svSwipeGesture:(UISwipeGestureRecognizer *)sender {
-    
-    self.tabBarController.selectedIndex = 1;
-}
-
-- (IBAction)imagePreviewSwipeGesture:(UISwipeGestureRecognizer *)sender {
-    
-    self.tabBarController.selectedIndex = 1;
-}
-
-- (IBAction)swipeToMoveCursorRight:(id)sender {
-    
-    int location = postText.selectedRange.location + 1;
-    
-    if ( location <= postText.text.length ) {
-        
-        [postText setSelectedRange:NSMakeRange( location, 0 )];   
-    }
-}
-
-- (IBAction)swipeToMoveCursorLeft:(id)sender {
-    
-    if ( postText.selectedRange.location != 0 ) {
-        
-        int location = postText.selectedRange.location - 1;
-        [postText setSelectedRange:NSMakeRange( location, 0 )];
-    }
-}
-
-- (IBAction)pushInputFunctionButton:(id)sender {
-    
-    actionSheetNo = 5;
-    
-    UIActionSheet *sheet = [[UIActionSheet alloc]
-                            initWithTitle:@"入力支援機能"
-                            delegate:self
-                            cancelButtonTitle:@"Cancel"
-                            destructiveButtonTitle:nil
-                            otherButtonTitles:@"半角カナ変換(カタカナ)", @"半角カナ変換(ひらがな)", @"半角カナ変換(カタカナ+ひらがな)", nil];
-    [sheet autorelease];
-    [sheet showInView:appDelegate.tabBarController.self.view];
-}
-
-- (IBAction)callbackSwitchDidChage:(id)sender {
-    
-    //スイッチの状態を保存
-    if ( callbackSwitch.on ) {
-     
-        [d setBool:YES forKey:@"CallBack"];
-        
-    }else {
-        
-        [d setBool:NO forKey:@"CallBack"];
-    }
-}
+#pragma mark - ActionSheet
 
 - (void)actionSheet:(UIActionSheet *)actionSheet clickedButtonAtIndex:(NSInteger)buttonIndex {
     
@@ -1320,6 +1371,26 @@
     }
 }
 
+- (void)showActionMenu {
+    
+    showActionSheet = YES;
+    
+    actionSheetNo = 0;
+    
+    UIActionSheet *sheet = [[UIActionSheet alloc]
+                            initWithTitle:@"動作選択"
+                            delegate:self
+                            cancelButtonTitle:@"Cancel"
+                            destructiveButtonTitle:nil
+                            otherButtonTitles:@"Tweet", @"FastTweet", @"PhotoTweet",
+                            @"NowPlaying", @"FastGoogle", @"Browser",
+                            @"FastPagePost", nil];
+	[sheet autorelease];
+	[sheet showInView:appDelegate.tabBarController.self.view];
+}
+
+#pragma mark - ViewControl
+
 - (void)textViewDidChange:(UITextView *)textView {
 
     //TextViewの内容が変更された時に呼ばれる
@@ -1431,6 +1502,250 @@
     [request start];
 }
 
+- (void)callback {
+    
+    //NSLog(@"Callback Start");
+    
+    if (( ![d boolForKey:@"CallBack"] && ![d boolForKey:@"NowPlayingCallBack"] ) ||
+        ( ![d boolForKey:@"CallBack"] && [d boolForKey:@"NowPlayingCallBack"] && !nowPlayingMode )) {
+        
+        nowPlayingMode = NO;
+        
+        return;
+    }
+    
+    nowPlayingMode = NO;
+    
+    BOOL canOpen = NO;
+    
+    //CallbackSchemeが空でない
+    if ( [EmptyCheck check:[d objectForKey:@"CallBackScheme"]] ) {
+        
+        if ( [[d objectForKey:@"CallBackScheme"] isEqualToString:@"FPT"] ) {
+            
+            [postText resignFirstResponder];
+            self.tabBarController.selectedIndex = 1;
+            
+        }else {
+            
+            //CallbackSchemeがアクセス可能な物がテスト
+            canOpen = [[UIApplication sharedApplication] canOpenURL:[NSURL URLWithString:[d objectForKey:@"CallBackScheme"]]];
+            
+            //コールバックスキームが開けない
+            if ( !canOpen ) {
+                
+                //NSLog(@"Can't callBack");
+                
+                [ShowAlert error:@"コールバックスキームが有効でありません。"];
+                
+                //コールバックスキームを開くことが出来る
+            }else {
+                
+                //NSLog(@"CallBack");
+                
+                [[UIApplication sharedApplication] openURL:[NSURL URLWithString:[d objectForKey:@"CallBackScheme"]]];
+            }
+        }
+    }
+}
+
+#pragma mark - NowPlaying
+
+- (NSString *)nowPlaying {
+    
+    //NSLog(@"nowPlaying");
+    
+    NSMutableString *resultText = [NSMutableString stringWithString:BLANK];
+    
+    @try {
+        
+        //再生中各種の曲の各種情報を取得
+        MPMusicPlayerController *player = [MPMusicPlayerController iPodMusicPlayer];
+        NSString *songTitle = [player.nowPlayingItem valueForProperty:MPMediaItemPropertyTitle];
+        NSString *songArtist = [player.nowPlayingItem valueForProperty:MPMediaItemPropertyArtist];
+        NSString *albumTitle = [player.nowPlayingItem valueForProperty:MPMediaItemPropertyAlbumTitle];
+        NSNumber *playCount = [player.nowPlayingItem valueForProperty:MPMediaItemPropertyPlayCount];
+        NSNumber *ratingNum = [player.nowPlayingItem valueForProperty:MPMediaItemPropertyRating];
+        
+        NSString *url = nil;
+        
+        if ( [d boolForKey:@"NowPlayingArtWork"] ) {
+            
+            NSString *searchKey = [NSString stringWithFormat:@"%@ - %@ - %@", songTitle, songArtist, albumTitle];
+            NSDictionary *dic = [d dictionaryForKey:@"ArtworkUrl"];
+            
+            for ( NSString *key in dic ) {
+                
+                if ( [key isEqualToString:searchKey] ) {
+                    
+                    url = [dic objectForKey:key];
+                    
+                    break;
+                }
+            }
+            
+            MPMediaItemArtwork *artwork = [player.nowPlayingItem valueForProperty:MPMediaItemPropertyArtwork];
+            
+            int h = (int)artwork.bounds.size.height;
+            int w = (int)artwork.bounds.size.width;
+            
+            imagePreview.image = [ResizeImage aspectResizeSetMaxSize:[artwork imageWithSize:CGSizeMake(500, 500)]
+                                                             maxSize:500];
+            
+            if ( ![EmptyCheck check:url] ) {
+                
+                if ( h != 0 && w != 0 ) {
+                    
+                    int uploadType = [d integerForKey:@"NowPlayingPhotoService"];
+                    
+                    if ( uploadType == 0 ) {
+                        
+                        if ( [[d objectForKey:@"PhotoService"] isEqualToString:@"img.ur"] ) {
+                            
+                            uploadType = 2;
+                            
+                        }else if ( [[d objectForKey:@"PhotoService"] isEqualToString:@"Twitpic"] ) {
+                            
+                            uploadType = 3;
+                        }
+                    }
+                    
+                    //アップロード先がTwitter以外
+                    if ( uploadType != 0 && uploadType != 1 ) {
+                        
+                        artWorkUploading = YES;
+                        
+                        //アートワークをアップロード
+                        [self uploadNowPlayingImage:imagePreview.image
+                                         uploadType:uploadType];
+                    }
+                }
+            }
+        }
+        
+        //曲名が無い場合は終了
+        if ( songTitle.length == 0 ) return BLANK;
+        
+        //NSNumberをNSStringにキャスト
+        int playCountInt = [playCount intValue];
+        NSString *playCountStr = [NSString stringWithFormat:@"%d", playCountInt];
+	    
+        //NSNumberをNSStringにキャスト
+        int rating = [ratingNum intValue];
+        NSString *ratingStr = [NSString stringWithFormat:@"%d", rating];
+        
+        //数字の文字から☆表記に変換
+        if ([ratingStr isEqualToString:@"0"]) {
+            ratingStr = @"☆☆☆☆☆";
+        }else if ([ratingStr isEqualToString:@"1"]) {
+            ratingStr = @"★☆☆☆☆";
+        }else if ([ratingStr isEqualToString:@"2"]) {
+            ratingStr = @"★★☆☆☆";
+        }else if ([ratingStr isEqualToString:@"3"]) {
+            ratingStr = @"★★★☆☆";
+        }else if ([ratingStr isEqualToString:@"4"]) {
+            ratingStr = @"★★★★☆";
+        }else if ([ratingStr isEqualToString:@"5"]) {
+            ratingStr = @"★★★★★";
+        }
+        
+        //自分で設定した書式を使用しない場合
+        if ( [d boolForKey:@"NowPlayingEdit"] ) {
+            
+            //NSLog(@"template");
+            
+            //自分で設定した書式に再生中の曲の情報を埋め込む
+            
+            resultText = [NSMutableString stringWithString:[d stringForKey:@"NowPlayingEditText"]];
+            
+            //サブ書式使用設定が2(OFF)以外の場合
+            if ( [d boolForKey:@"NowPlayingEditSub"] != 0 ) {
+                
+                //サブ書式使用設定が完全一致かつ条件に当てはまる場合
+                if ( [d integerForKey:@"NowPlayingEditSub"] == 2 && [albumTitle isEqualToString:songTitle] ) {
+                    
+                    resultText = [NSMutableString stringWithString:[d stringForKey:@"NowPlayingEditTextSub"]];
+                    
+                    //サブ書式使用設定が前方一致かつ条件に当てはまる場合
+                }else if ( [d integerForKey:@"NowPlayingEditSub"] == 1 && [albumTitle hasPrefix:songTitle] ) {
+                    
+                    resultText = [NSMutableString stringWithString:[d stringForKey:@"NowPlayingEditTextSub"]];
+                }
+            }
+            
+            //曲情報を書式に埋め込み
+            resultText = [ReplaceOrDelete replaceWordReturnMStr:resultText replaceWord:@"[st]" replacedWord:songTitle];
+            resultText = [ReplaceOrDelete replaceWordReturnMStr:resultText replaceWord:@"[ar]" replacedWord:songArtist];
+            resultText = [ReplaceOrDelete replaceWordReturnMStr:resultText replaceWord:@"[at]" replacedWord:albumTitle];
+            resultText = [ReplaceOrDelete replaceWordReturnMStr:resultText replaceWord:@"[pc]" replacedWord:playCountStr];
+            resultText = [ReplaceOrDelete replaceWordReturnMStr:resultText replaceWord:@"[rt]" replacedWord:ratingStr];
+            
+        }else {
+            
+            //NSLog(@"default");
+            
+            //デフォルトの書式を適用
+            resultText = [NSMutableString stringWithFormat:@" #nowplaying : %@ - %@ ", songTitle, songArtist];
+        }
+        
+        if ( [d boolForKey:@"NowPlayingArtWork"] && [EmptyCheck check:url] ) {
+            
+            resultText = [NSMutableString stringWithFormat:@"%@%@", resultText, url];
+        }
+        
+    }@catch (NSException *e) {
+        
+        [ShowAlert unknownError];
+        
+        return BLANK;
+    }
+    
+    return (NSString *)resultText;
+}
+
+- (void)saveArtworkUrl:(NSString *)url {
+    
+    MPMusicPlayerController *player = [MPMusicPlayerController iPodMusicPlayer];
+    NSString *songTitle = [player.nowPlayingItem valueForProperty:MPMediaItemPropertyTitle];
+    NSString *songArtist = [player.nowPlayingItem valueForProperty:MPMediaItemPropertyArtist];
+    NSString *albumTitle = [player.nowPlayingItem valueForProperty:MPMediaItemPropertyAlbumTitle];
+    
+    NSString *keyName = [NSString stringWithFormat:@"%@ - %@ - %@", songTitle, songArtist, albumTitle];
+    
+    NSMutableDictionary *dic = [NSMutableDictionary dictionaryWithDictionary:[d dictionaryForKey:@"ArtworkUrl"]];
+    [dic setValue:url forKey:keyName];
+    
+    [d setObject:dic forKey:@"ArtworkUrl"];
+}
+
+- (void)setIconPreviewImage {
+    
+    twAccount = [TWGetAccount currentAccount];
+    
+    NSArray *iconsDirectory = [[NSFileManager defaultManager] contentsOfDirectoryAtPath:ICONS_DIRECTORY error:nil];
+    NSString *searchName = [NSString stringWithFormat:@"%@_", twAccount.username];
+    
+    //アイコンが見つかったか
+    BOOL find = NO;
+    
+    for ( NSString *name in iconsDirectory ) {
+        
+        if ( [name hasPrefix:searchName] ) {
+            
+            UIImage *image = [[UIImage alloc] initWithContentsOfFile:[ICONS_DIRECTORY stringByAppendingPathComponent:name]];
+            iconPreview.image = image;
+            [image release];
+            
+            find = YES;
+            
+            break;
+        }
+    }
+    
+    //アイコンが見つからなかった場合はnilをセット
+    if ( !find ) iconPreview.image = nil;
+}
+
 - (void)uploadNowPlayingImage:(UIImage *)image uploadType:(int)uploadType {
     
     //NSLog(@"uploadType: %d", uploadType);
@@ -1508,59 +1823,7 @@
     [request start];
 }
 
-- (void)becomeActive:(NSNotification *)notification {
-    
-    //アプリケーションがアクティブになった際に呼ばれる
-    //NSLog(@"becomeActive");
-    
-    if ( appDelegate.browserOpenMode ) return;
-    
-    if ( [d boolForKey:@"applicationWillResignActive"] ) {
-        
-        [d removeObjectForKey:@"applicationWillResignActive"];
-        return;
-    }
-    
-    if ( [EmptyCheck check:appDelegate.urlSchemeDownloadUrl] ) {
-        
-        appDelegate.startupUrlList = [NSArray arrayWithObject:@"about:blank"];
-        
-        [self pushBrowserButton:nil];
-        
-        return;
-    }
-    
-    if ( self.tabBarController.selectedIndex == 1 ) return;
-    
-    //設定が有効な場合Post入力可能状態にする
-    if ( [d boolForKey:@"ShowKeyboard"] ) {
-        
-        [postText becomeFirstResponder];
-    }
-    
-    //iOS5以降かチェック
-    if ( [appDelegate ios5Check] ) {
-                
-        if ( !showActionSheet && !showImagePicker ) {
-            
-            if ( appDelegate.launchMode == 2 ) {
-                
-                [self showActionMenu];
-                
-            }else {
-                
-                if ( appDelegate.launchMode == 1 ) {
-                    
-                    [self showActionMenu];
-                }
-            }
-        }
-        
-        appDelegate.launchMode = 2;
-    }
-    
-    [self countText];
-}
+#pragma mark - NotificationAction
 
 - (void)webPageShareNotification:(int)pBoardType {
     
@@ -1876,247 +2139,7 @@
     }
 }
 
-- (void)callback {
-    
-    //NSLog(@"Callback Start");
-    
-    if (( ![d boolForKey:@"CallBack"] && ![d boolForKey:@"NowPlayingCallBack"] ) ||
-        ( ![d boolForKey:@"CallBack"] && [d boolForKey:@"NowPlayingCallBack"] && !nowPlayingMode )) {
-        
-        nowPlayingMode = NO;
-        
-        return;
-    }
-    
-    nowPlayingMode = NO;
-    
-    BOOL canOpen = NO;
-    
-    //CallbackSchemeが空でない
-    if ( [EmptyCheck check:[d objectForKey:@"CallBackScheme"]] ) {
-        
-        if ( [[d objectForKey:@"CallBackScheme"] isEqualToString:@"FPT"] ) {
-            
-            [postText resignFirstResponder];
-            self.tabBarController.selectedIndex = 1;
-            
-        }else {
-            
-            //CallbackSchemeがアクセス可能な物がテスト
-            canOpen = [[UIApplication sharedApplication] canOpenURL:[NSURL URLWithString:[d objectForKey:@"CallBackScheme"]]];
-            
-            //コールバックスキームが開けない
-            if ( !canOpen ) {
-                
-                //NSLog(@"Can't callBack");
-                
-                [ShowAlert error:@"コールバックスキームが有効でありません。"];
-                
-                //コールバックスキームを開くことが出来る
-            }else {
-                
-                //NSLog(@"CallBack");
-                
-                [[UIApplication sharedApplication] openURL:[NSURL URLWithString:[d objectForKey:@"CallBackScheme"]]];
-            }
-        }
-    }
-}
-
-- (NSString *)nowPlaying {
-    
-    //NSLog(@"nowPlaying");
-    
-    NSMutableString *resultText = [NSMutableString stringWithString:BLANK];
-    
-    @try {
-        
-        //再生中各種の曲の各種情報を取得
-        MPMusicPlayerController *player = [MPMusicPlayerController iPodMusicPlayer];
-        NSString *songTitle = [player.nowPlayingItem valueForProperty:MPMediaItemPropertyTitle];
-        NSString *songArtist = [player.nowPlayingItem valueForProperty:MPMediaItemPropertyArtist];
-        NSString *albumTitle = [player.nowPlayingItem valueForProperty:MPMediaItemPropertyAlbumTitle];
-        NSNumber *playCount = [player.nowPlayingItem valueForProperty:MPMediaItemPropertyPlayCount];
-        NSNumber *ratingNum = [player.nowPlayingItem valueForProperty:MPMediaItemPropertyRating];
-        
-        NSString *url = nil;
-        
-        if ( [d boolForKey:@"NowPlayingArtWork"] ) {
-            
-            NSString *searchKey = [NSString stringWithFormat:@"%@ - %@ - %@", songTitle, songArtist, albumTitle];
-            NSDictionary *dic = [d dictionaryForKey:@"ArtworkUrl"];
-            
-            for ( NSString *key in dic ) {
-                
-                if ( [key isEqualToString:searchKey] ) {
-                    
-                    url = [dic objectForKey:key];
-                    
-                    break;
-                }
-            }
-            
-            MPMediaItemArtwork *artwork = [player.nowPlayingItem valueForProperty:MPMediaItemPropertyArtwork];
-            
-            int h = (int)artwork.bounds.size.height;
-            int w = (int)artwork.bounds.size.width;
-            
-            imagePreview.image = [ResizeImage aspectResizeSetMaxSize:[artwork imageWithSize:CGSizeMake(500, 500)] 
-                                                             maxSize:500];
-            
-            if ( ![EmptyCheck check:url] ) {
-                
-                if ( h != 0 && w != 0 ) {
-                    
-                    int uploadType = [d integerForKey:@"NowPlayingPhotoService"];
-                    
-                    if ( uploadType == 0 ) {
-                        
-                        if ( [[d objectForKey:@"PhotoService"] isEqualToString:@"img.ur"] ) {
-                            
-                            uploadType = 2;
-                            
-                        }else if ( [[d objectForKey:@"PhotoService"] isEqualToString:@"Twitpic"] ) {    
-                            
-                            uploadType = 3;
-                        }
-                    }
-                    
-                    //アップロード先がTwitter以外
-                    if ( uploadType != 0 && uploadType != 1 ) {
-                        
-                        artWorkUploading = YES;
-                        
-                        //アートワークをアップロード
-                        [self uploadNowPlayingImage:imagePreview.image 
-                                         uploadType:uploadType];
-                    }
-                }
-            }
-        }
-        
-        //曲名が無い場合は終了
-        if ( songTitle.length == 0 ) return BLANK;
-        
-        //NSNumberをNSStringにキャスト
-        int playCountInt = [playCount intValue];
-        NSString *playCountStr = [NSString stringWithFormat:@"%d", playCountInt];
-	    
-        //NSNumberをNSStringにキャスト
-        int rating = [ratingNum intValue];
-        NSString *ratingStr = [NSString stringWithFormat:@"%d", rating];
-        
-        //数字の文字から☆表記に変換
-        if ([ratingStr isEqualToString:@"0"]) {
-            ratingStr = @"☆☆☆☆☆";
-        }else if ([ratingStr isEqualToString:@"1"]) {
-            ratingStr = @"★☆☆☆☆";
-        }else if ([ratingStr isEqualToString:@"2"]) {
-            ratingStr = @"★★☆☆☆";
-        }else if ([ratingStr isEqualToString:@"3"]) {
-            ratingStr = @"★★★☆☆";
-        }else if ([ratingStr isEqualToString:@"4"]) {
-            ratingStr = @"★★★★☆";
-        }else if ([ratingStr isEqualToString:@"5"]) {
-            ratingStr = @"★★★★★";
-        }
-        
-        //自分で設定した書式を使用しない場合
-        if ( [d boolForKey:@"NowPlayingEdit"] ) {
-            
-            //NSLog(@"template");
-            
-            //自分で設定した書式に再生中の曲の情報を埋め込む
-            
-            resultText = [NSMutableString stringWithString:[d stringForKey:@"NowPlayingEditText"]];
-            
-            //サブ書式使用設定が2(OFF)以外の場合
-            if ( [d boolForKey:@"NowPlayingEditSub"] != 0 ) {
-                
-                //サブ書式使用設定が完全一致かつ条件に当てはまる場合
-                if ( [d integerForKey:@"NowPlayingEditSub"] == 2 && [albumTitle isEqualToString:songTitle] ) {
-                    
-                    resultText = [NSMutableString stringWithString:[d stringForKey:@"NowPlayingEditTextSub"]];
-                    
-                //サブ書式使用設定が前方一致かつ条件に当てはまる場合
-                }else if ( [d integerForKey:@"NowPlayingEditSub"] == 1 && [albumTitle hasPrefix:songTitle] ) {
-                    
-                    resultText = [NSMutableString stringWithString:[d stringForKey:@"NowPlayingEditTextSub"]];
-                }
-            }
-            
-            //曲情報を書式に埋め込み
-            resultText = [ReplaceOrDelete replaceWordReturnMStr:resultText replaceWord:@"[st]" replacedWord:songTitle];
-            resultText = [ReplaceOrDelete replaceWordReturnMStr:resultText replaceWord:@"[ar]" replacedWord:songArtist];
-            resultText = [ReplaceOrDelete replaceWordReturnMStr:resultText replaceWord:@"[at]" replacedWord:albumTitle];
-            resultText = [ReplaceOrDelete replaceWordReturnMStr:resultText replaceWord:@"[pc]" replacedWord:playCountStr];
-            resultText = [ReplaceOrDelete replaceWordReturnMStr:resultText replaceWord:@"[rt]" replacedWord:ratingStr];
-            
-        }else {
-            
-            //NSLog(@"default");
-            
-            //デフォルトの書式を適用
-            resultText = [NSMutableString stringWithFormat:@" #nowplaying : %@ - %@ ", songTitle, songArtist];
-        }
-        
-        if ( [d boolForKey:@"NowPlayingArtWork"] && [EmptyCheck check:url] ) {
-            
-            resultText = [NSMutableString stringWithFormat:@"%@%@", resultText, url];
-        }
-        
-    }@catch (NSException *e) {
-        
-        [ShowAlert unknownError];
-        
-        return BLANK;
-    }
-    
-    return (NSString *)resultText;
-}
-
-- (void)saveArtworkUrl:(NSString *)url {
-
-    MPMusicPlayerController *player = [MPMusicPlayerController iPodMusicPlayer];
-    NSString *songTitle = [player.nowPlayingItem valueForProperty:MPMediaItemPropertyTitle];
-    NSString *songArtist = [player.nowPlayingItem valueForProperty:MPMediaItemPropertyArtist];
-    NSString *albumTitle = [player.nowPlayingItem valueForProperty:MPMediaItemPropertyAlbumTitle];
-    
-    NSString *keyName = [NSString stringWithFormat:@"%@ - %@ - %@", songTitle, songArtist, albumTitle];
-    
-    NSMutableDictionary *dic = [NSMutableDictionary dictionaryWithDictionary:[d dictionaryForKey:@"ArtworkUrl"]];
-    [dic setValue:url forKey:keyName];
-    
-    [d setObject:dic forKey:@"ArtworkUrl"];
-}
-
-- (void)setIconPreviewImage {
-    
-    twAccount = [TWGetAccount currentAccount];
-    
-    NSArray *iconsDirectory = [[NSFileManager defaultManager] contentsOfDirectoryAtPath:ICONS_DIRECTORY error:nil];
-    NSString *searchName = [NSString stringWithFormat:@"%@_", twAccount.username];
-    
-    //アイコンが見つかったか
-    BOOL find = NO;
-    
-    for ( NSString *name in iconsDirectory ) {
-        
-        if ( [name hasPrefix:searchName] ) {
-            
-            UIImage *image = [[UIImage alloc] initWithContentsOfFile:[ICONS_DIRECTORY stringByAppendingPathComponent:name]];
-            iconPreview.image = image;
-            [image release];
-            
-            find = YES;
-            
-            break;
-        }
-    }
-    
-    //アイコンが見つからなかった場合はnilをセット
-    if ( !find ) iconPreview.image = nil;
-}
+#pragma mark - View
 
 - (void)viewDidAppear:(BOOL)animated {
     

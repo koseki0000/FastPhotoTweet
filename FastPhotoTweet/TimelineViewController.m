@@ -781,7 +781,6 @@
     [reSendRequest setDelegate:self];
     [reSendRequest start];
     
-    //ダウンロードリクエスト開始
     [iconUrls removeObjectAtIndex:0];
 }
 
@@ -1331,32 +1330,29 @@
             
             if ( timelineArray.count == 0 ) return;
             
-            NSArray *tempTimelineArray = [NSArray arrayWithArray:timelineArray];
-            int index = 0;
-            
-            for ( NSDictionary *tweet in tempTimelineArray ) {
+            dispatch_async(dispatch_get_main_queue(), ^ {
                 
-                if ( [[[tweet objectForKey:@"user"] objectForKey:@"screen_name"] isEqualToString:screenName] ) {
+                NSArray *tempTimelineArray = [NSArray arrayWithArray:timelineArray];
+                int index = 0;
+                
+                for ( NSDictionary *tweet in tempTimelineArray ) {
                     
-                    //TL更新
-                    dispatch_async(dispatch_get_main_queue(), ^ {
+                    if ( [[[tweet objectForKey:@"user"] objectForKey:@"screen_name"] isEqualToString:screenName] ) {
                         
-                        [self performSelector:@selector(refreshTimelineCell:) withObject:[NSNumber numberWithInt:index] afterDelay:0.05];
-                    });
-                }
-                
-                //自分のアイコンの場合はツールバーにも設定
-                if ( [screenName isEqualToString:twAccount.username] ) {
+                        //TL更新
+                        [self refreshTimelineCell:[NSNumber numberWithInt:index]];
+                    }
                     
-                    dispatch_async(dispatch_get_main_queue(), ^ {
+                    //自分のアイコンの場合はツールバーにも設定
+                    if ( [screenName isEqualToString:twAccount.username] ) {
                         
                         //アカウントアイコンを設定
                         accountIconView.image = [[UIImage alloc] initWithContentsOfFile:FILE_PATH];
-                    });
+                    }
+                    
+                    index++;
                 }
-                
-                index++;
-            }
+            });
         });
         
         dispatch_release(syncQueue);
@@ -1982,6 +1978,7 @@
             [timeline reloadData];
             
             listMode = NO;
+            timelineControlButton.image = startImage;
             timelineControlButton.enabled = YES;
             
             mentionsArray = BLANK_ARRAY;
@@ -1991,6 +1988,7 @@
         }else if ( timelineSegment.selectedSegmentIndex == 1 ) {
             
             listMode = NO;
+            timelineControlButton.image = startImage;
             
             //Mentionsに切り替わった
             [TWGetTimeline mentions];
@@ -1998,6 +1996,7 @@
         }else if ( timelineSegment.selectedSegmentIndex == 2 ) {
             
             listMode = NO;
+            timelineControlButton.image = startImage;
             
             //Favoritesに切り替わった
             [TWGetTimeline favotites];
@@ -2306,10 +2305,15 @@
                     }
                     
                     appDelegate.sinceId = BLANK;
+                    appDelegate.listId = BLANK;
+                    appDelegate.startupUrlList = BLANK_ARRAY;
+                    appDelegate.listAll = BLANK_ARRAY;
                     
                     //タイムラインログを削除
-                    timelineArray = [NSMutableArray array];
+                    timelineArray = BLANK_M_ARRAY;
                     mentionsArray = BLANK_ARRAY;
+
+                    [allLists removeAllObjects];
                     
                     if ( buttonIndex == 2 ) {
                         
@@ -3013,7 +3017,15 @@
     listMode = YES;
     timelineControlButton.image = listImage;
     
-    timelineArray = [NSMutableArray array];
+    if ( [EmptyCheck string:appDelegate.listId] ) {
+        
+        timelineArray = [allLists objectForKey:appDelegate.listId];
+        
+    }else {
+    
+        timelineArray = [NSMutableArray array];
+    }
+    
     [timeline reloadData];
     
     ListViewController *dialog = [[ListViewController alloc] init];
