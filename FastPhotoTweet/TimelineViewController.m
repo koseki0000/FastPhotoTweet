@@ -617,6 +617,9 @@
 
     NSLog(@"loadList");
     
+    //Listタブ以外が選択されている場合は終了
+    if ( timelineSegment.selectedSegmentIndex != 3 ) return;
+    
     reloadButton.enabled = YES;
     
     NSArray *newTweet = [center.userInfo objectForKey:@"ResultData"];
