@@ -374,6 +374,8 @@
     tweetsArray = [TWNgTweet ngName:tweetsArray];
     tweetsArray = [TWNgTweet ngClient:tweetsArray];
     
+    tweets = tweetsArray;
+    
     //可変長で受け取った場合は可変長にして返す
     if ( isMutable ) tweets = [NSMutableArray arrayWithArray:tweetsArray];
     
