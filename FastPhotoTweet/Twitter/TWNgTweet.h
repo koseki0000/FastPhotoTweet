@@ -20,4 +20,6 @@
 + (NSArray *)ngName:(NSArray *)tweets;
 + (NSArray *)ngClient:(NSArray *)tweets;
 
++ (id)ngAll:(id)tweets;
+
 @end

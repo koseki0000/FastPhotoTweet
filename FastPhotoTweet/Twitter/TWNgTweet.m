@@ -351,4 +351,33 @@
     return [NSArray arrayWithArray:targets];
 }
 
++ (id)ngAll:(id)tweets {
+    
+    BOOL isMutable = NO;
+    
+    //型チェック
+    if ( ![tweets isKindOfClass:[NSArray class]] &&
+         ![tweets isKindOfClass:[NSMutableArray class]]) {
+        
+        //NSArray でも NSMutableArray でもない場合
+        NSLog(@"ngAll not array");
+        
+        return nil;
+    }
+    
+    //可変長であるかチェック
+    if ( [tweets isKindOfClass:[NSMutableArray class]] ) isMutable = YES;
+    
+    //NGを行う
+    NSArray *tweetsArray = [NSArray arrayWithArray:tweets];
+    tweetsArray = [TWNgTweet ngWord:tweetsArray];
+    tweetsArray = [TWNgTweet ngName:tweetsArray];
+    tweetsArray = [TWNgTweet ngClient:tweetsArray];
+    
+    //可変長で受け取った場合は可変長にして返す
+    if ( isMutable ) tweets = [NSMutableArray arrayWithArray:tweetsArray];
+    
+    return tweets;
+}
+
 @end
