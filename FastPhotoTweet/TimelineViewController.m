@@ -49,6 +49,9 @@
     
     NSLog(@"viewDidLoad");
     
+    //TimelineのTableViewの高さを設定する
+    [self setTimelineHeight];
+    
     //各種通知設定
     [self setNotifications];
 
@@ -223,6 +226,21 @@
                            selector:@selector(receiveOfflineNotification:)
                                name:@"Offline"
                              object:nil];
+}
+
+- (void)setTimelineHeight {
+    
+    //タイムラインの位置を計算する
+    int timelineY = TOOL_BAR_HEIGHT + SEGMENT_BAR_HEIGHT;
+    
+    //タイムラインの高さを計算する
+    int timelineHeight = SCREEN_HEIGHT - timelineY - TAB_BAR_HEIGHT;
+    
+    //タイムラインに位置と高さを設定する
+    timeline.frame = CGRectMake(0,
+                                timelineY,
+                                320,
+                                timelineHeight);
 }
 
 #pragma mark - TimelineMethod
@@ -2531,7 +2549,7 @@
     
     UIActionSheet *sheet = nil;
     
-    if (ids.count == 1 ) {
+    if ( ids.count == 1 ) {
         
         sheet = [[UIActionSheet alloc]
                  initWithTitle:@"ユーザー選択"
@@ -2540,7 +2558,7 @@
                  destructiveButtonTitle:nil
                  otherButtonTitles:[ids objectAtIndex:0], nil];
         
-    }else if (ids.count == 2 ) {
+    }else if ( ids.count == 2 ) {
         
         sheet = [[UIActionSheet alloc]
                                 initWithTitle:@"ユーザー選択"
@@ -2550,7 +2568,7 @@
                                 otherButtonTitles:[ids objectAtIndex:0],
                                 [ids objectAtIndex:1], nil];
         
-    }else if (ids.count == 3 ) {
+    }else if ( ids.count == 3 ) {
         
         sheet = [[UIActionSheet alloc]
                                 initWithTitle:@"ユーザー選択"
@@ -2561,7 +2579,7 @@
                                 [ids objectAtIndex:1],
                                 [ids objectAtIndex:2], nil];
         
-    }else if (ids.count == 4 ) {
+    }else if ( ids.count == 4 ) {
         
         sheet = [[UIActionSheet alloc]
                                 initWithTitle:@"ユーザー選択"
@@ -2573,7 +2591,7 @@
                                 [ids objectAtIndex:2],
                                 [ids objectAtIndex:3], nil];
         
-    }else if (ids.count == 5 ) {
+    }else if ( ids.count == 5 ) {
         
         sheet = [[UIActionSheet alloc]
                                 initWithTitle:@"ユーザー選択"
@@ -2586,7 +2604,7 @@
                                 [ids objectAtIndex:3],
                                 [ids objectAtIndex:4], nil];
         
-    }else if (ids.count >= 6 ) {
+    }else if ( ids.count >= 6 ) {
         
         sheet = [[UIActionSheet alloc]
                                 initWithTitle:@"ユーザー選択"
@@ -3108,6 +3126,16 @@
     [self setFixedSpace:nil];
     [self setTimelineSegment:nil];
     [super viewDidUnload];
+}
+
+- (BOOL)shouldAutorotate {
+    
+    return NO;
+}
+
+- (NSUInteger)supportedInterfaceOrientations {
+    
+    return UIInterfaceOrientationMaskPortrait;
 }
 
 - (void)dealloc {

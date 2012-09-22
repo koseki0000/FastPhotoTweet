@@ -145,6 +145,24 @@
 
 /* TableView必須メソッドここまで */
 
+- (void)viewDidUnload {
+    
+    [self setTopBar:nil];
+    [self setCloseButton:nil];
+    [self setTv:nil];
+    [super viewDidUnload];
+}
+
+- (BOOL)shouldAutorotate {
+    
+    return NO;
+}
+
+- (NSUInteger)supportedInterfaceOrientations {
+    
+    return UIInterfaceOrientationMaskPortrait;
+}
+
 - (void)dealloc {
     
     [bookMarkArray release];
@@ -153,14 +171,6 @@
     [closeButton release];
     [tv release];
     [super dealloc];
-}
-
-- (void)viewDidUnload {
-    
-    [self setTopBar:nil];
-    [self setCloseButton:nil];
-    [self setTv:nil];
-    [super viewDidUnload];
 }
 
 @end

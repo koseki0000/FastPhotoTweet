@@ -6,6 +6,7 @@
 //
 
 #import "AppDelegate.h"
+#import "MainTabBarController.h"
 #import "ViewController.h"
 #import "TimelineViewController.h"
 #import "ResizeImage.h"
@@ -107,7 +108,7 @@ void uncaughtExceptionHandler(NSException *e) {
     UIViewController *mainView = [[[ViewController alloc] initWithNibName:@"ViewController" bundle:nil] autorelease];
     UIViewController *timelineView = [[[TimelineViewController alloc] initWithNibName:@"TimelineViewController" bundle:nil] autorelease];
     
-    self.tabBarController = [[[UITabBarController alloc] init] autorelease];
+    self.tabBarController = [[[MainTabBarController alloc] init] autorelease];
     self.tabBarController.viewControllers = [NSArray arrayWithObjects:mainView, timelineView, nil];
     self.window.rootViewController = self.tabBarController;
     

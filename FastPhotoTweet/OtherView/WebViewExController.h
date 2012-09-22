@@ -37,6 +37,7 @@
     float totalbytes;
     float loadedbytes;
     
+    int retina4InchOffset;
     int actionSheetNo;
     int alertTextNo;
     
@@ -106,5 +107,6 @@
 - (void)showDownloadMenu:(NSString *)url;
 - (void)resetUserAgent;
 - (void)adBlock;
+- (void)setViewSize;
 
 @end

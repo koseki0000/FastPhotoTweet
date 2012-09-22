@@ -47,6 +47,18 @@
     [super viewDidUnload];
 }
 
+- (BOOL)shouldAutorotate {
+    
+    if ( [[UIDevice currentDevice] orientation] == UIDeviceOrientationPortrait ) return YES;
+    
+    return NO;
+}
+
+- (NSUInteger)supportedInterfaceOrientations {
+    
+    return UIInterfaceOrientationMaskPortrait;
+}
+
 - (void)dealloc {
     
     [bar release];

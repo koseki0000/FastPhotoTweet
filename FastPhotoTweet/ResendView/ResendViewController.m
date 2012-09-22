@@ -130,6 +130,16 @@
     [super viewDidUnload];
 }
 
+- (BOOL)shouldAutorotate {
+    
+    return NO;
+}
+
+- (NSUInteger)supportedInterfaceOrientations {
+    
+    return UIInterfaceOrientationMaskPortrait;
+}
+
 - (void)dealloc {
 
     //NSLog(@"dealloc ResendViewController");

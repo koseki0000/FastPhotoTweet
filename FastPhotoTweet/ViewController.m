@@ -59,6 +59,8 @@
     
     //NSLog(@"Tweet viewDidLoad");
     
+    [self setBottomBarPosition];
+    
     NSNotificationCenter *notificationCenter = [NSNotificationCenter defaultCenter];
     
     //アプリがアクティブになった場合の通知を受け取る設定
@@ -317,6 +319,20 @@
     }
 }
 
+- (void)setBottomBarPosition {
+    
+    //下部バーの位置を計算する
+    int bottomBarY = SCREEN_HEIGHT - TAB_BAR_HEIGHT - TOOL_BAR_HEIGHT;
+    
+    NSLog(@"bottomBarY: %d", bottomBarY);
+    
+    //下部バーに位置と高さを設定する
+    bottomBar.frame = CGRectMake(0,
+                                bottomBarY,
+                                320,
+                                TOOL_BAR_HEIGHT);
+}
+
 - (void)showInfomation {
     
     //NSLog(@"showInfomation");
@@ -353,7 +369,7 @@
             //NSLog(@"newVersion");
             
             [ShowAlert title:[NSString stringWithFormat:@"FastPhotoTweet %@", APP_VERSION] 
-                 message:@"・List機能を追加"];
+                 message:@"・Retina 4-inchに対応\n・iOS6.0に対応\n・ブラウザ表示中にバックグラウンドから復帰した際のメニューの「ペーストボードのURLを開く」が動いていなかった問題を修正"];
             
             information = [[[NSMutableDictionary alloc] initWithDictionary:[d dictionaryForKey:@"Information"]] autorelease];
             [information setValue:[NSNumber numberWithInt:1] forKey:APP_VERSION];
@@ -2344,6 +2360,18 @@
 - (void)viewDidDisappear:(BOOL)animated {
     
 	[super viewDidDisappear:animated];
+}
+
+- (BOOL)shouldAutorotate {
+    
+    NSLog(@"ViewController shouldAutorotate");
+    return NO;
+}
+
+- (NSUInteger)supportedInterfaceOrientations {
+    
+    NSLog(@"ViewController supportedInterfaceOrientations");
+    return UIInterfaceOrientationMaskPortrait;
 }
 
 - (void)dealloc {

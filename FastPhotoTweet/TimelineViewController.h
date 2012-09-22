@@ -98,6 +98,7 @@
 - (IBAction)changeSegment:(UISegmentedControl *)sender;
 
 - (void)setNotifications;
+- (void)setTimelineHeight;
 
 - (void)createTimeline;
 - (void)loadTimeline:(NSNotification *)center;

@@ -43,6 +43,14 @@
         appDelegate = (AppDelegate *)[[UIApplication sharedApplication] delegate];
         startupUrlList = appDelegate.startupUrlList;
         urlList = BLANK_ARRAY;
+        
+        retina4InchOffset = 0;
+        
+        if ( SCREEN_HEIGHT == 548 ) {
+            
+            NSLog(@"Retine 4inch");
+            retina4InchOffset = 88;
+        }
     }
     
     return self;
@@ -51,6 +59,10 @@
 - (void)viewDidLoad {
 
     [super viewDidLoad];
+    
+    [self setViewSize];
+    
+    NSLog(@"retina4InchOffset: %d", retina4InchOffset);
     
     pboard = [UIPasteboard generalPasteboard];
     
@@ -106,13 +118,6 @@
      
         [self selectOpenUrl];
     }
-    
-//    NSTimer *adBlockTimer = [NSTimer scheduledTimerWithTimeInterval:1.5f
-//                                                             target:self
-//                                                           selector:@selector(adBlock)
-//                                                           userInfo:nil
-//                                                            repeats:YES];
-//    [adBlockTimer fire];
 }
 
 - (void)selectOpenUrl {
@@ -638,7 +643,7 @@
     
     editing = NO;
 
-    [self shouldAutorotateToInterfaceOrientation:[[UIDevice currentDevice] orientation]];
+    [self setViewSize];
 }
 
 - (IBAction)leaveUrlField: (id)sender {
@@ -648,21 +653,21 @@
     
     editing = NO;
     
-    [self shouldAutorotateToInterfaceOrientation:[[UIDevice currentDevice] orientation]];
+    [self setViewSize];
 }
 
 - (IBAction)onSearchField: (id)sender {
     
     editing = YES;
     
-    [self shouldAutorotateToInterfaceOrientation:[[UIDevice currentDevice] orientation]];
+    [self setViewSize];
 }
 
 - (IBAction)leaveSearchField: (id)sender {
     
     editing = NO;
     
-    [self shouldAutorotateToInterfaceOrientation:[[UIDevice currentDevice] orientation]];
+    [self setViewSize];
 }
 
 - (IBAction)doubleTapUrlField:(id)sender {
@@ -1115,7 +1120,7 @@
                 
             }else if ( buttonIndex == 2 ) {
                 
-//                [self checkPasteBoardUrlOption];
+                [self selectOpenUrl];
             }
             
         }@catch ( NSException *e ) {}
@@ -1626,6 +1631,8 @@
 
 - (void)rotateView:(int)mode {
  
+    NSLog(@"rotateView: %d", mode);
+    
     [UIView beginAnimations:nil context:nil];
     [UIView setAnimationDuration:0.05];
     [UIView setAnimationDelay:0.0];
@@ -1637,9 +1644,9 @@
         
         if ( fullScreen ) {
             
-            topBar.frame = CGRectMake(0, -44, 320, 44);
-            wv.frame = CGRectMake(0, 0, 320, 460);
-            bottomBar.frame = CGRectMake(0, 460, 320, 44);
+            topBar.frame = CGRectMake(0, -44, SCREEN_WIDTH, TOOL_BAR_HEIGHT);
+            wv.frame = CGRectMake(0, 0, SCREEN_WIDTH, SCREEN_HEIGHT);
+            bottomBar.frame = CGRectMake(0, SCREEN_HEIGHT, SCREEN_WIDTH, TOOL_BAR_HEIGHT);
             
             if ( editing ) {
                 
@@ -1654,9 +1661,9 @@
             
         }else {
             
-            topBar.frame = CGRectMake(0, 0, 320, 44);
-            wv.frame = CGRectMake(0, 44, 320, 372);
-            bottomBar.frame = CGRectMake(0, 416, 320, 44);
+            topBar.frame = CGRectMake(0, 0, SCREEN_WIDTH, TOOL_BAR_HEIGHT);
+            wv.frame = CGRectMake(0, TOOL_BAR_HEIGHT, SCREEN_WIDTH, SCREEN_HEIGHT - TOOL_BAR_HEIGHT * 2);
+            bottomBar.frame = CGRectMake(0, SCREEN_HEIGHT - TOOL_BAR_HEIGHT, SCREEN_WIDTH, TOOL_BAR_HEIGHT);
             
             if ( editing ) {
                 
@@ -1674,37 +1681,37 @@
     }else {
         
         if ( fullScreen ) {
-            
-            topBar.frame = CGRectMake(0, -44, 480, 44);
-            wv.frame = CGRectMake(0, 0, 480, 300);
-            bottomBar.frame = CGRectMake(0, 300, 480, 44);
+
+            topBar.frame = CGRectMake(0, -44, SCREEN_HEIGHT, TOOL_BAR_HEIGHT);
+            wv.frame = CGRectMake(0, 0, SCREEN_HEIGHT, SCREEN_WIDTH);
+            bottomBar.frame = CGRectMake(0, SCREEN_WIDTH, SCREEN_HEIGHT, TOOL_BAR_HEIGHT);
             
             if ( editing ) {
                 
                 urlField.frame = CGRectMake(12, -44, 135, 31);
-                searchField.frame = CGRectMake(157, -44, 280, 31);
+                searchField.frame = CGRectMake(157, -44, 280 + retina4InchOffset, 31);
                 
             }else {
                 
-                urlField.frame = CGRectMake(12, -44, 280, 31);
+                urlField.frame = CGRectMake(12, -44, 280 + retina4InchOffset, 31);
                 searchField.frame = CGRectMake(302, -44, 135, 31);
             }
             
         }else {
-            
-            topBar.frame = CGRectMake(0, 0, 480, 44);
-            wv.frame = CGRectMake(0, 44, 480, 212);
-            bottomBar.frame = CGRectMake(0, 256, 480, 44);
+
+            topBar.frame = CGRectMake(0, 0, SCREEN_HEIGHT, TOOL_BAR_HEIGHT);
+            wv.frame = CGRectMake(0, TOOL_BAR_HEIGHT, SCREEN_HEIGHT, SCREEN_WIDTH - TOOL_BAR_HEIGHT * 2);
+            bottomBar.frame = CGRectMake(0, SCREEN_WIDTH - TOOL_BAR_HEIGHT, SCREEN_HEIGHT, TOOL_BAR_HEIGHT);
             
             if ( editing ) {
                 
                 urlField.frame = CGRectMake(12, 7, 135, 31);
-                searchField.frame = CGRectMake(157, 7, 280, 31);
+                searchField.frame = CGRectMake(157, 7, 280 + retina4InchOffset, 31);
                 
             }else {
                 
-                urlField.frame = CGRectMake(12, 7, 280, 31);
-                searchField.frame = CGRectMake(302, 7, 135, 31);
+                urlField.frame = CGRectMake(12, 7, 280 + retina4InchOffset, 31);
+                searchField.frame = CGRectMake(302 + retina4InchOffset, 7, 135, 31);
             }
         }
     }
@@ -1723,7 +1730,48 @@
         fullScreen = YES;
     }
     
-    [self shouldAutorotateToInterfaceOrientation:[[UIDevice currentDevice] orientation]];
+    [self setViewSize];
+}
+
+- (BOOL)shouldAutorotate {
+    
+    NSLog(@"shouldAutorotate");
+    NSLog(@"ORIENTATION: %d", ORIENTATION);
+    NSLog(@"UIDeviceOrientationPortrait: %d", UIDeviceOrientationPortrait);
+    
+    if ( ORIENTATION == UIDeviceOrientationUnknown ||
+         ORIENTATION == UIDeviceOrientationPortrait ||
+         ORIENTATION == UIDeviceOrientationLandscapeLeft ||
+         ORIENTATION == UIDeviceOrientationLandscapeRight ) {
+        
+        //画面回転に伴ったUIの変更や処理をここで行う
+        if ( ORIENTATION == UIDeviceOrientationUnknown ||
+             ORIENTATION == UIDeviceOrientationPortrait ) {
+        
+            //縦
+            [self rotateView:0];
+            
+        }else {
+            
+            //左右
+            [self rotateView:1];
+        }
+        
+        //画面回転を許可する
+        return YES;
+    }
+    
+    //画面回転を許可しない
+    return NO;
+}
+
+- (NSUInteger)supportedInterfaceOrientations {
+    
+    NSLog(@"supportedInterfaceOrientations");
+    
+    //Portrait, LandscapeLeft, LandscapeRight の場合画面回転を許可する
+    //※ステータスバーが回転する
+    return UIInterfaceOrientationMaskAllButUpsideDown;
 }
 
 - (BOOL)shouldAutorotateToInterfaceOrientation:(UIInterfaceOrientation)interfaceOrientation {
@@ -1762,6 +1810,18 @@
     
     [wv stringByEvaluatingJavaScriptFromString:
      @"var delads=document.getElementsByClassName(\"adlantis_sp_sticky_container\");for(i=0;i<delads.length;i++){delads[i].style.display=none}"];
+}
+
+- (void)setViewSize {
+    
+    if ( [[[UIDevice currentDevice] systemVersion] floatValue] < 6.0 ) {
+        
+        [self shouldAutorotateToInterfaceOrientation:ORIENTATION];
+        
+    }else {
+        
+        [self shouldAutorotate];
+    }
 }
 
 - (void)dealloc {

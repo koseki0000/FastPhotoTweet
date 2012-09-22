@@ -103,6 +103,7 @@
 
 - (void)loadSettings;
 - (void)setCallbackButtonTitle;
+- (void)setBottomBarPosition;
 - (void)showInfomation;
 - (void)showImagePicker;
 - (void)showActionMenu;
