@@ -360,8 +360,6 @@
          ![tweets isKindOfClass:[NSMutableArray class]]) {
         
         //NSArray でも NSMutableArray でもない場合
-        NSLog(@"ngAll not array");
-        
         return nil;
     }
     

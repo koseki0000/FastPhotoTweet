@@ -20,20 +20,27 @@
 //out: JSTタイムゾーン適用済み時刻
 + (NSString *)JSTDate:(NSString *)tweetData {
     
+    //時刻のトリム開始位置
     int from = 11;
     
     //,がある場合はTwitterSearchのパターン
+    //トリム開始位置を変更
     if ( [tweetData rangeOfString:@","].location != NSNotFound ) from = 17;
     
+    //時刻部分を抜き出す
     NSString *date = [tweetData substringWithRange:NSMakeRange(from, 8)];
     
+    //時刻フォーマットを指定
     NSDateFormatter *inputDateFormatter = [[NSDateFormatter alloc] init];
 	[inputDateFormatter setDateFormat:DATE_FORMAT];
 
+    //時刻を指定フォーマットに合わせる
 	NSDate *inputDate = [inputDateFormatter dateFromString:date];
 	
+    //JSTタイムゾーンを適用し、時刻部分を抜き出す
 	NSString *jstDate = [[[inputDate initWithTimeInterval:64800 sinceDate:inputDate] description] substringWithRange:NSMakeRange(11,8)];
     
+    //JSTタイムゾーン適用済み時刻をHH:mm:ss形式で返却
     return jstDate;
 }
 

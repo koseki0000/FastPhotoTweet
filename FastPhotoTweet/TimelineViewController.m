@@ -239,7 +239,7 @@
     //タイムラインに位置と高さを設定する
     timeline.frame = CGRectMake(0,
                                 timelineY,
-                                320,
+                                SCREEN_WIDTH,
                                 timelineHeight);
 }
 
@@ -254,6 +254,12 @@
     
     //アクティブアカウントを取得
     twAccount = [TWGetAccount currentAccount];
+    
+    if ( twAccount == nil ) {
+        
+        [ShowAlert error:@"Twitterアカウントが取得できません。iPhoneの設定より登録の後、ご使用ください。"];
+        return;
+    }
     
     if ( [allTimelines objectForKey:twAccount.username] == nil ) {
         
@@ -367,14 +373,8 @@
                     return;
                 }
                 
-                //NGClient判定を行う
-                newTweet = [TWNgTweet ngClient:newTweet];
-                
-                //NGName判定を行う
-                newTweet = [TWNgTweet ngName:newTweet];
-                
-                //NGWord判定を行う
-                newTweet = [TWNgTweet ngWord:newTweet];
+                //NG判定を行う
+                newTweet = [TWNgTweet ngAll:newTweet];
                 
                 if ( timelineArray.count != 0 && newTweet.count != 0 ) {
                 
@@ -472,18 +472,12 @@
         NSArray *newTweet = [center.userInfo objectForKey:@"UserTimeline"];
         
         //t.coを展開
-        newTweet = [TWEntities replaceTcoAll:[NSMutableArray arrayWithArray:newTweet]];
+        newTweet = [TWEntities replaceTcoAll:newTweet];
         
         NSLog(@"UserTimeline: %dTweet", newTweet.count);
         
-        //NGClient判定を行う
-        newTweet = [TWNgTweet ngClient:newTweet];
-        
-        //NGName判定を行う
-        newTweet = [TWNgTweet ngName:newTweet];
-        
-        //NGWord判定を行う
-        newTweet = [TWNgTweet ngWord:newTweet];
+        //NG判定を行う
+        newTweet = [TWNgTweet ngAll:newTweet];
         
         //InReplyToからの復帰用に保存しておく
         mentionsArray = newTweet;
@@ -528,16 +522,10 @@
         NSArray *newTweet = [center.userInfo objectForKey:@"Mentions"];
         
         //t.coを展開
-        newTweet = [TWEntities replaceTcoAll:[NSMutableArray arrayWithArray:newTweet]];
+        newTweet = [TWEntities replaceTcoAll:newTweet];
         
-        //NGClient判定を行う
-        newTweet = [TWNgTweet ngClient:newTweet];
-        
-        //NGName判定を行う
-        newTweet = [TWNgTweet ngName:newTweet];
-        
-        //NGWord判定を行う
-        newTweet = [TWNgTweet ngWord:newTweet];
+        //NG判定を行う
+        newTweet = [TWNgTweet ngAll:newTweet];
         
         //InReplyToからの復帰用に保存しておく
         mentionsArray = newTweet;
@@ -576,7 +564,7 @@
         NSArray *newTweet = [center.userInfo objectForKey:@"Favorites"];
 
         //t.coを展開
-        newTweet = [TWEntities replaceTcoAll:[NSMutableArray arrayWithArray:newTweet]];
+        newTweet = [TWEntities replaceTcoAll:newTweet];
         
         //InReplyToからの復帰用に保存しておく
         mentionsArray = newTweet;
@@ -643,16 +631,10 @@
     NSArray *newTweet = [center.userInfo objectForKey:@"ResultData"];
     
     //t.coを展開
-    newTweet = [TWEntities replaceTcoAll:[NSMutableArray arrayWithArray:newTweet]];
+    newTweet = [TWEntities replaceTcoAll:newTweet];
     
-    //NGClient判定を行う
-    newTweet = [TWNgTweet ngClient:newTweet];
-    
-    //NGName判定を行う
-    newTweet = [TWNgTweet ngName:newTweet];
-    
-    //NGWord判定を行う
-    newTweet = [TWNgTweet ngWord:newTweet];
+    //NG判定を行う
+    newTweet = [TWNgTweet ngAll:newTweet];
     
     currentList = [NSMutableArray arrayWithArray:newTweet];
     
@@ -1606,14 +1588,8 @@
                 
                 if ( [receiveData objectForKey:@"event"] == nil && [receiveData objectForKey:@"delete"] == nil ) {
                 
-                    //NGClient判定を行う
-                    newTweet = [TWNgTweet ngClient:newTweet];
-                    
-                    //NGName判定を行う
-                    newTweet = [TWNgTweet ngName:newTweet];
-                    
-                    //NGWord判定を行う
-                    newTweet = [TWNgTweet ngWord:newTweet];
+                    //NG判定を行う
+                    newTweet = [TWNgTweet ngAll:newTweet];
                     
                     //新着が無いので終了
                     if ( newTweet.count == 0 ) return;
@@ -1627,7 +1603,7 @@
                 }
                 
                 //t.coを展開
-                newTweet = [TWEntities replaceTcoAll:[NSMutableArray arrayWithArray:newTweet]];
+                newTweet = [TWEntities replaceTcoAll:newTweet];
                 
                 receiveData = [newTweet objectAtIndex:0];
                 
@@ -2361,9 +2337,9 @@
                 }else if ( buttonIndex == 3 ) {
                     
                     //NG情報を再適用
-                    timelineArray = [NSMutableArray arrayWithArray:[TWNgTweet ngWord:timelineArray]];
-                    timelineArray = [NSMutableArray arrayWithArray:[TWNgTweet ngName:timelineArray]];
-                    timelineArray = [NSMutableArray arrayWithArray:[TWNgTweet ngClient:timelineArray]];
+                    
+                    //NG判定を行う
+                    timelineArray = [TWNgTweet ngAll:timelineArray];
                     [allTimelines setObject:timelineArray forKey:twAccount.username];
                     
                 }else {

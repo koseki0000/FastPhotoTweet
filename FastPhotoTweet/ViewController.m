@@ -324,12 +324,10 @@
     //下部バーの位置を計算する
     int bottomBarY = SCREEN_HEIGHT - TAB_BAR_HEIGHT - TOOL_BAR_HEIGHT;
     
-    NSLog(@"bottomBarY: %d", bottomBarY);
-    
     //下部バーに位置と高さを設定する
     bottomBar.frame = CGRectMake(0,
                                 bottomBarY,
-                                320,
+                                SCREEN_WIDTH,
                                 TOOL_BAR_HEIGHT);
 }
 

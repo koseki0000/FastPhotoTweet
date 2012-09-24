@@ -193,8 +193,21 @@
 }
 
 //複数のTweetのt.coを全て展開する
-+ (NSMutableArray *)replaceTcoAll:(NSMutableArray *)tweets {
++ (id)replaceTcoAll:(id)tweets {
 
+    BOOL isMutable = NO;
+    
+    //型チェック
+    if ( ![tweets isKindOfClass:[NSArray class]] &&
+         ![tweets isKindOfClass:[NSMutableArray class]]) {
+        
+        //NSArray でも NSMutableArray でもない場合
+        return nil;
+    }
+    
+    //可変長であるかチェック
+    if ( [tweets isKindOfClass:[NSMutableArray class]] ) isMutable = YES;
+    
     NSMutableArray *replacedTweets = [NSMutableArray array];
     
     //t.coをすべて展開
@@ -213,7 +226,12 @@
     
     //NSLog(@"replaceTcoAll: %@", replacedTweets);
     
-    return replacedTweets;
+    tweets = replacedTweets;
+    
+    //固定長で受け取った場合は固定長にして返す
+    if ( !isMutable ) tweets = [NSArray arrayWithArray:tweets];
+    
+    return tweets;
 }
 
 @end

@@ -23,6 +23,6 @@
 + (void)favotites;
 + (void)twitterSearch:(NSString *)searchWord;
 
-+ (NSDictionary *)fixTwitterSearchResponse:(NSDictionary *)twitterSearchResponse;
++ (NSArray *)fixTwitterSearchResponse:(NSArray *)twitterSearchResponse;
 
 @end

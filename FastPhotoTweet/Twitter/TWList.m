@@ -142,7 +142,7 @@
                                                                          error:&jsonError];
                      
                      //t.coを全て展開する
-                     result = [TWEntities replaceTcoAll:[NSMutableArray arrayWithArray:result]];
+                     result = [TWEntities replaceTcoAll:result];
                      
                      //NSLog(@"ReceiveList: %@", result);
                      NSLog(@"ReceiveList count: %d", result.count);

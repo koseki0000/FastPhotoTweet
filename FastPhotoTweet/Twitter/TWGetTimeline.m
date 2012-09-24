@@ -183,6 +183,8 @@
                      
                      NSMutableArray *userTimeline = [NSMutableArray arrayWithArray:responseJSONData];
                      
+                     //NSLog(@"userTimeline: %@", userTimeline);
+                     
                      [result setObject:twAccount.username forKey:@"Account"];
                      
                      if ( userTimeline != nil && userTimeline.count != 0 ) {
@@ -439,13 +441,13 @@
                  NSDictionary *searchResult = [NSJSONSerialization JSONObjectWithData:responseData
                                                                                                options:NSJSONReadingMutableLeaves
                                                                                                  error:&jsonError];
-                 
+
+                 //NSLog(@"searchResult: %@", searchResult);
                  
                  //レスポンスを整形する
-                 searchResult = [TWGetTimeline fixTwitterSearchResponse:searchResult];
+                 NSArray *results = [TWGetTimeline fixTwitterSearchResponse:[searchResult objectForKey:@"results"]];
                  
                  //t.coを全て展開する
-                 NSMutableArray *results = [NSMutableArray arrayWithArray:[searchResult objectForKey:@"results"]];
                  results = [TWEntities replaceTcoAll:results];
                  searchResult = @{ @"results" : results };
                  
@@ -466,35 +468,42 @@
     //NSLog(@"Favorites request sended");
 }
 
-+ (NSDictionary *)fixTwitterSearchResponse:(NSDictionary *)twitterSearchResponse {
++ (NSArray *)fixTwitterSearchResponse:(NSArray *)twitterSearchResponse {
     
-    //NSLog(@"fixTwitterSearchResponse: %@", twitterSearchResponse);
-    
-    NSArray *results = [twitterSearchResponse objectForKey:@"results"];
-    
+    //差異修正済みTweetを格納する
     NSMutableArray *fixedResponse = [NSMutableArray array];
     
-    for ( id tweet in results ) {
+    //TwitterSearch形式のTweetを順に差異修正する
+    for ( id tweet in twitterSearchResponse ) {
         
+        //修正のため可変長に変換する
         NSMutableDictionary *fixedTweet = [NSMutableDictionary dictionaryWithDictionary:tweet];
         
+        //user以下を作成する
         NSMutableDictionary *user = [NSMutableDictionary dictionary];
         [user setObject:[fixedTweet objectForKey:@"from_user"] forKey:@"screen_name"];
         [user setObject:[fixedTweet objectForKey:@"profile_image_url"] forKey:@"profile_image_url"];
+//        [user setObject:[fixedTweet objectForKey:@"profile_image_url_https"] forKey:@"profile_image_url_https"];
+//        [user setObject:[fixedTweet objectForKey:@"from_user_id"] forKey:@"id"];
+        [user setObject:[fixedTweet objectForKey:@"from_user_id_str"] forKey:@"id_str"];
         
+        //sourceの文字参照を置換する
         NSMutableString *source = [fixedTweet objectForKey:@"source"];
         [source replaceOccurrencesOfString:@"&gt;"  withString:@">" options:0 range:NSMakeRange(0, [source length] )];
         [source replaceOccurrencesOfString:@"&lt;"  withString:@"<" options:0 range:NSMakeRange(0, [source length] )];
         [source replaceOccurrencesOfString:@"&amp;" withString:@"&" options:0 range:NSMakeRange(0, [source length] )];
-        [source replaceOccurrencesOfString:@"&quot;" withString:@"""" options:0 range:NSMakeRange(0, [source length] )];
+        [source replaceOccurrencesOfString:@"&quot;" withString:@"\"" options:0 range:NSMakeRange(0, [source length] )];
         
+        //Tweetにセット
         [fixedTweet setObject:user forKey:@"user"];
         [fixedTweet setObject:source forKey:@"source"];
         
+        //修正済みTweetを配列に追加
         [fixedResponse addObject:fixedTweet];
     }
     
-    return @{ @"results" : fixedResponse };
+    //固定長配列にして返す
+    return [NSArray arrayWithArray:fixedResponse];
 }
 
 @end
