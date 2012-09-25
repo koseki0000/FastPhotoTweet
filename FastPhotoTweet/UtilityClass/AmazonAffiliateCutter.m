@@ -17,7 +17,7 @@
     NSError *error = nil;
     NSString *template = nil;
     
-    NSRegularExpression *regexp = [NSRegularExpression regularExpressionWithPattern:@"(/|\\?tag=)[-_a-zA-Z0-9]+-22/?" 
+    NSRegularExpression *regexp = [NSRegularExpression regularExpressionWithPattern:@"(/|[\\?&]tag=)[-_a-zA-Z0-9]+-22/?" 
                                                                             options:0 
                                                                               error:&error];
     
@@ -35,7 +35,14 @@
             
         }else {
             
-            template = @"?tag=-22";
+            if ( [matchString hasPrefix:@"?"] ) {
+            
+                template = @"?tag=-22";
+                
+            }else {
+                
+                template = @"";
+            }
         }
     }
     

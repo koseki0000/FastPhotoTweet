@@ -124,6 +124,7 @@
 - (void)becomeActive:(NSNotification *)notification;
 
 - (void)getMyAccountIcon;
+- (void)timelineDidListChanged;
 - (void)showListSelectView;
 
 @end

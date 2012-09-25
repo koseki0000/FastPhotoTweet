@@ -1232,6 +1232,8 @@
     
     accessURL = [[request URL] absoluteString];
     
+    //NSLog(@"%@", [[request URL] absoluteString]);
+    
     //広告をブロック
     if ( [ADBlock check:accessURL] ) return NO;
     
@@ -1244,6 +1246,7 @@
         //スキャン済みURLが変わっていたらアクセスし直し
         if ( ![fullSizeImageUrl isEqualToString:accessURL] ) {
             
+            //NSLog(@"FullSizeImage ReAccess");
             [wv loadRequestWithString:fullSizeImageUrl];
             
             return NO;
@@ -1252,12 +1255,13 @@
     
     //Amazonのアフィリンクの場合無効化して再アクセス
     if ( [RegularExpression boolWithRegExp:accessURL
-                         regExpPattern:@"https?://(www\\.)?amazon\\.co\\.jp/((exec/obidos|o)/ASIN|dp)/[A-Z0-9]{10}(/|\\?tag=)[-_a-zA-Z0-9]+-22/?"] ) {
+                         regExpPattern:@"https?://(www\\.)?amazon\\.co\\.jp/((exec/obidos|o)/ASIN|dp|gp/product)/[A-Z0-9]{10}.*(/|[\\?&]tag=)[-_a-zA-Z0-9]+-22/?"] ) {
         
         NSString *affiliateCuttedUrl = [AmazonAffiliateCutter string:accessURL];
         
         if ( ![affiliateCuttedUrl isEqualToString:accessURL] ) {
             
+            //NSLog(@"Affiliate cutted access: %@", affiliateCuttedUrl);
             [wv loadRequestWithString:affiliateCuttedUrl];
             
             return NO;
@@ -1271,7 +1275,7 @@
         
     }else {
         
-        NSLog(@"not http(s) address");
+        //NSLog(@"not http(s) address");
         
         NSURL *URL = [NSURL URLWithString:accessURL];
         BOOL canOpen = [[UIApplication sharedApplication] canOpenURL:URL];

@@ -57,8 +57,6 @@
     
     [super viewDidLoad];
     
-    NSLog(@"%@", [RegularExpression twitterIds:@"hoge @hoge @hogeee hogehoge"]);
-    
     //NSLog(@"Tweet viewDidLoad");
     
     [self setBottomBarPosition];

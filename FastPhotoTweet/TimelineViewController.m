@@ -2001,7 +2001,7 @@
         }else if ( timelineSegment.selectedSegmentIndex == 3 ) {
             
             //リスト選択画面を表示
-            [self showListSelectView];
+            [self timelineDidListChanged];
         }
     }
 }
@@ -2950,7 +2950,7 @@
 
 - (void)becomeActive:(NSNotification *)notification {
     
-    if ( otherTweetsMode ) return;
+    if ( otherTweetsMode || listMode ) return;
     
     if ( [d boolForKey:@"BecomeActiveUSConnect"] && timelineSegment.selectedSegmentIndex == 0 ) {
      
@@ -3004,7 +3004,7 @@
     }
 }
 
-- (void)showListSelectView {
+- (void)timelineDidListChanged {
     
     //UserStream接続中の場合は切断する
     if ( userStream ) [self closeStream];
@@ -3019,11 +3019,19 @@
         timelineArray = [allLists objectForKey:appDelegate.listId];
         
     }else {
-    
+        
         timelineArray = [NSMutableArray array];
     }
     
     [timeline reloadData];
+    
+    if ( timelineArray.count == 0 ) {
+        
+        [self showListSelectView];
+    }
+}
+
+- (void)showListSelectView {
     
     ListViewController *dialog = [[ListViewController alloc] init];
     dialog.modalTransitionStyle = UIModalTransitionStyleCoverVertical;
