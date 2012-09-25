@@ -57,6 +57,8 @@
     
     [super viewDidLoad];
     
+    NSLog(@"%@", [RegularExpression twitterIds:@"hoge @hoge @hogeee hogehoge"]);
+    
     //NSLog(@"Tweet viewDidLoad");
     
     [self setBottomBarPosition];
@@ -455,7 +457,7 @@
             }
             
             //とは検索機能ONかつ条件にマッチ
-            if ( [d boolForKey:@"TohaSearch"] && [RegularExpression boolRegExp:text regExpPattern:@".+とは"] ) {
+            if ( [d boolForKey:@"TohaSearch"] && [RegularExpression boolWithRegExp:text regExpPattern:@".+とは"] ) {
             
                 [self tohaSearch:text];
                 
@@ -1923,7 +1925,7 @@
                     return;
                 }
                 
-                NSMutableString *title = [RegularExpression mStrRegExp:dataStr regExpPattern:@"<title>.+</title>"];
+                NSMutableString *title = [RegularExpression mStrWithRegExp:dataStr regExpPattern:@"<title>.+</title>"];
                 title = [ReplaceOrDelete deleteWordReturnMStr:title deleteWord:@"<title>"];
                 title = [ReplaceOrDelete deleteWordReturnMStr:title deleteWord:@"</title>"];
                 

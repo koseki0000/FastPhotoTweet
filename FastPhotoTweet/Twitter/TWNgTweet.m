@@ -132,7 +132,7 @@
             if ( regexp ) {
                 
                 //正規表現を使う場合
-                if ( [RegularExpression boolRegExp:text regExpPattern:word] ) match = YES;
+                if ( [RegularExpression boolWithRegExp:text regExpPattern:word] ) match = YES;
                 
             }else {
 

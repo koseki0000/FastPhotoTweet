@@ -594,7 +594,7 @@
                                                                      encoding:NSShiftJISStringEncoding
                                                                         error:nil];
                 
-                NSString *suggestion = [RegularExpression strRegExp:xmlString
+                NSString *suggestion = [RegularExpression strWithRegExp:xmlString
                                                       regExpPattern:@"<suggestion data=\".{1,50}\"/><num_queries"];
                 
                 if ( ![EmptyCheck check:suggestion] ) {
@@ -721,7 +721,7 @@
             
             NSString *postText = BLANK;
             
-            if ( [RegularExpression boolRegExp:urlField.text regExpPattern:@"(https?://)?shindanmaker.com/[0-9]+"] ) {
+            if ( [RegularExpression boolWithRegExp:urlField.text regExpPattern:@"(https?://)?shindanmaker.com/[0-9]+"] ) {
                 
                 NSLog(@"Shindanmaker Post");
                 
@@ -735,7 +735,7 @@
                 postText = [ReplaceOrDelete deleteWordReturnStr:postText deleteWord:@"\n"];
                 postText = [ReplaceOrDelete replaceWordReturnStr:postText replaceWord:@"\t" replacedWord:@" "];
                 postText = [ReplaceOrDelete replaceWordReturnStr:postText replaceWord:@"  " replacedWord:@" "];
-                postText = [RegularExpression strRegExp:postText regExpPattern:@"this.select...>.{1,140}?<.textarea>"];
+                postText = [RegularExpression strWithRegExp:postText regExpPattern:@"this.select...>.{1,140}?<.textarea>"];
                 postText = [ReplaceOrDelete deleteWordReturnStr:postText deleteWord:@"this.select()\">"];
                 postText = [ReplaceOrDelete deleteWordReturnStr:postText deleteWord:@"</textarea>"];
                 
@@ -1251,7 +1251,7 @@
     }
     
     //Amazonのアフィリンクの場合無効化して再アクセス
-    if ( [RegularExpression boolRegExp:accessURL
+    if ( [RegularExpression boolWithRegExp:accessURL
                          regExpPattern:@"https?://(www\\.)?amazon\\.co\\.jp/((exec/obidos|o)/ASIN|dp)/[A-Z0-9]{10}(/|\\?tag=)[-_a-zA-Z0-9]+-22/?"] ) {
         
         NSString *affiliateCuttedUrl = [AmazonAffiliateCutter string:accessURL];
@@ -1264,7 +1264,7 @@
         }
     }
     
-    if ( [RegularExpression boolRegExp:accessURL regExpPattern:@"about:blank|https?://.*"] ) {
+    if ( [RegularExpression boolWithRegExp:accessURL regExpPattern:@"about:blank|https?://.*"] ) {
         
         //そのままアクセス出来そうなURL
         //NSLog(@"http(s) address");

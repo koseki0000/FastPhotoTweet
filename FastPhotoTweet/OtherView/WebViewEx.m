@@ -286,7 +286,7 @@
     
     URL = [NSURL URLWithString:URLString];
     
-    if ( [RegularExpression boolRegExp:URLString regExpPattern:@"about:blank|https?://.*"] ) {
+    if ( [RegularExpression boolWithRegExp:URLString regExpPattern:@"about:blank|https?://.*"] ) {
         
         //そのままアクセス出来そうなURL
         //NSLog(@"http(s) address");

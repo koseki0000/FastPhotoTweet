@@ -84,7 +84,7 @@
     NSLog(@"getList: %@", listId);
     
     //リストIDが不正な場合は終了
-    if ( ![RegularExpression boolRegExp:listId regExpPattern:@"[0-9]+"] ) return;
+    if ( ![RegularExpression boolWithRegExp:listId regExpPattern:@"[0-9]+"] ) return;
     
     //Tweet可能な状態か判別
     if ( [TWTweetComposeViewController canSendTweet] ) {

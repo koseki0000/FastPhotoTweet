@@ -9,7 +9,7 @@
 
 @implementation RegularExpression
 
-+ (BOOL)boolRegExp:(NSString *)matchString regExpPattern:(NSString *)regExpPattern {
++ (BOOL)boolWithRegExp:(NSString *)matchString regExpPattern:(NSString *)regExpPattern {
 
     BOOL result = NO;
     
@@ -22,24 +22,24 @@
                                                      options:0 
                                                        range:NSMakeRange(0, matchString.length)];
     
-    if (!error) {
+    if ( !error ) {
         
-        if (match.numberOfRanges != 0) {
+        if ( match.numberOfRanges != 0 ) {
             
+            //正規表現にマッチ
             result = YES;
         }
         
     }else {
         
+        //正規表現でエラー
         [RegularExpression regExpError];
     }
     
     return result;
 }
 
-+ (NSString *)strRegExp:(NSString *)matchString regExpPattern:(NSString *)regExpPattern {
-    
-    //NSLog(@"matchString: %@ regExpPattern: %@", matchString, regExpPattern);
++ (NSString *)strWithRegExp:(NSString *)matchString regExpPattern:(NSString *)regExpPattern {
     
     NSString *result = [NSString string];
     
@@ -67,8 +67,9 @@
     return result;
 }
 
-+ (NSMutableString *)mStrRegExp:(NSString *)matchString regExpPattern:(NSString *)regExpPattern {
++ (NSMutableString *)mStrWithRegExp:(NSString *)matchString regExpPattern:(NSString *)regExpPattern {
     
+    //マッチした文字列を格納する
     NSMutableString *result = [NSMutableString string];
     
     NSError *error = nil;
@@ -80,26 +81,27 @@
                                                      options:0 
                                                        range:NSMakeRange(0, matchString.length)];
     
-    if (!error) {
+    if ( !error ) {
         
-        if (match.numberOfRanges != 0) {
+        if ( match.numberOfRanges != 0 ) {
             
+            //正規表現でマッチした文字列を可変長にする
             result = [NSMutableString stringWithString:[matchString substringWithRange:match.range]];
         }
         
     }else {
         
+        //正規表現でエラー
         [RegularExpression regExpError];
     }
     
     return result;
 }
 
-+ (NSArray *)arrayRegExp:(NSString *)matchString regExpPattern:(NSString *)regExpPattern {
++ (NSArray *)arrayWithRegExp:(NSString *)matchString regExpPattern:(NSString *)regExpPattern {
     
-    NSArray *resultArray = [[[NSArray alloc] init] autorelease];
-    NSMutableArray *tmpArray = [[[NSMutableArray alloc] initWithArray:resultArray] autorelease];
-    NSString *tmp = @"";
+    //マッチした文字列を格納する
+    NSMutableArray *resultArray = [NSMutableArray array];
     NSError *error = nil;
     
     NSRegularExpression *regexp = [NSRegularExpression regularExpressionWithPattern:regExpPattern 
@@ -113,27 +115,26 @@
     
     if ( !error ) {
         
-        for (NSTextCheckingResult *result in match) {
+        for ( NSTextCheckingResult *result in match ) {
             
-            tmp = [matchString substringWithRange:result.range];
-            [tmpArray addObject:tmp];
+            [resultArray addObject:[matchString substringWithRange:result.range]];
         }
         
     }else {
         
+        //正規表現でエラー
         [RegularExpression regExpError];
         return [NSArray array];
     }
     
-    resultArray = tmpArray;
-    
-    return resultArray;
+    //固定長にして返す
+    return [NSArray arrayWithArray:resultArray];
 }
 
-+ (NSMutableArray *)mArrayRegExp:(NSString *)matchString regExpPattern:(NSString *)regExpPattern {
++ (NSMutableArray *)mArrayWithRegExp:(NSString *)matchString regExpPattern:(NSString *)regExpPattern {
     
+    //マッチした文字列を格納する
     NSMutableArray *resultArray = [NSMutableArray array];
-    NSString *tmp = @"";
     NSError *error = nil;
     
     NSRegularExpression *regexp = [NSRegularExpression regularExpressionWithPattern:regExpPattern 
@@ -145,18 +146,17 @@
                                        range:NSMakeRange(0, 
                                                          matchString.length)];
     
-    if (!error) {
+    if ( !error ) {
         
-        for (NSTextCheckingResult *result in match) {
+        for ( NSTextCheckingResult *result in match ) {
             
-            tmp = [matchString substringWithRange:result.range];
-            [resultArray addObject:tmp];
+            [resultArray addObject:[matchString substringWithRange:result.range]];
         }
         
     }else {
         
+        //正規表現でエラー
         [RegularExpression regExpError];
-        
         return [NSMutableArray array];
     }
     
@@ -165,12 +165,22 @@
 
 + (NSMutableArray *)urls:(id)string {
     
+    //stringが空の場合終了
     if ( string == nil ) return [NSMutableArray array];
     
+    //NSStringでもNSMutableStringでもない場合は終了
+    if ( ![string isKindOfClass:[NSString class]] &&
+         ![string isKindOfClass:[NSMutableString class]] ) return [NSMutableArray array];
+    
     NSError *error = nil;
+    
+    //NSMutableString型にする
     NSString *searchString = [NSString stringWithString:string];
+    
+    //URLを格納する
     NSMutableArray *urlList = [NSMutableArray array];
 
+    //URLを判定する
     NSDataDetector *linkDetector = [NSDataDetector dataDetectorWithTypes:NSTextCheckingTypeLink 
                                                                    error:&error];
     
@@ -180,6 +190,7 @@
     
     for ( NSTextCheckingResult *match in matches ) {
         
+        //マッチしたURLを配列に追加
         [urlList addObject:match.URL.absoluteString];
     }
     
@@ -188,9 +199,18 @@
 
 + (NSMutableArray *)twitterIds:(id)searchString {
     
+    //stringが空の場合終了
+    if ( searchString == nil ) return [NSMutableArray array];
+    
+    //NSStringでもNSMutableStringでもない場合は終了
+    if ( ![searchString isKindOfClass:[NSString class]] &&
+         ![searchString isKindOfClass:[NSMutableString class]] ) return [NSMutableArray array];
+    
+    //NSStringにする
     NSString *string = [NSString stringWithString:searchString];
     
-    return [RegularExpression mArrayRegExp:string regExpPattern:@"@[a-zA-Z0-9_]{1,15}"];
+    //マッチしたTwitterIDを配列化して返す
+    return [RegularExpression mArrayWithRegExp:string regExpPattern:@"@[a-zA-Z0-9_]{1,15}"];
 }
 
 + (void)regExpError {

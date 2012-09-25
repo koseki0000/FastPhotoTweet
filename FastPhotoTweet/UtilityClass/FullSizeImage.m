@@ -89,7 +89,7 @@
               ![urlString hasPrefix:@"http://twitpic.com/faces"] && ![urlString hasPrefix:@"http://twitpic.com/upload"] && 
               ![urlString hasPrefix:@"http://twitpic.com/ad_"] && ![urlString hasSuffix:@".do"] &&
               ![urlString isEqualToString:@"http://twitpic.com/"] &&
-              ![RegularExpression boolRegExp:urlString regExpPattern:@"http://twitpic.com/[0-9a-zA-Z]+/full$"] ) {
+              ![RegularExpression boolWithRegExp:urlString regExpPattern:@"http://twitpic.com/[0-9a-zA-Z]+/full$"] ) {
         
         urlString = [NSString stringWithFormat:@"http://twitpic.com/show/full/%@", [urlString lastPathComponent]];
         
@@ -103,7 +103,7 @@
         
 		urlString = [results objectForKey:@"url"];
         
-    }else if ( [RegularExpression boolRegExp:urlString regExpPattern:@"https?://(mobile\\.)?twitter\\.com/[_a-zA-Z0-9]{1,15}/status/[0-9]+/photo/1"] ) {
+    }else if ( [RegularExpression boolWithRegExp:urlString regExpPattern:@"https?://(mobile\\.)?twitter\\.com/[_a-zA-Z0-9]{1,15}/status/[0-9]+/photo/1"] ) {
         
         NSString *originalUrl = urlString;
         
@@ -111,7 +111,7 @@
         
         if ( sourceCode == nil ) return urlString;
         
-        urlString = [RegularExpression strRegExp:sourceCode
+        urlString = [RegularExpression strWithRegExp:sourceCode
                                    regExpPattern:@"https?://p(bs)?\\.twimg\\.com/(media/)?[-_\\.a-zA-Z0-9]+(:large)?"];
         
         if ( ![urlString hasSuffix:@":large"] ) {
@@ -121,13 +121,13 @@
         
         if ( [urlString isEqualToString:@":large"] ) urlString = originalUrl;
         
-    }else if ( [RegularExpression boolRegExp:urlString regExpPattern:@"https?://via.me/-[a-zA-Z0-9]+"] ) {
+    }else if ( [RegularExpression boolWithRegExp:urlString regExpPattern:@"https?://via.me/-[a-zA-Z0-9]+"] ) {
         
         NSString *sourceCode = [FullSizeImage getSourceCode:urlString];
         
         if ( sourceCode == nil ) return urlString;
     
-        urlString = [RegularExpression strRegExp:sourceCode 
+        urlString = [RegularExpression strWithRegExp:sourceCode 
                                    regExpPattern:@"https?://(s[0-9]\\.amazonaws\\.com/com\\.clixtr\\.picbounce|img\\.viame-cdn\\.com)/photos/[-a-zA-Z0-9]+/[a-z]600x600\\.(jpe?g|png)"];
     }
     

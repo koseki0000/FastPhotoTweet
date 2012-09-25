@@ -9,11 +9,11 @@
 
 @interface RegularExpression : NSObject
 
-+ (BOOL)boolRegExp:(NSString *)matchString regExpPattern:(NSString *)regExpPattern;
-+ (NSString *)strRegExp:(NSString *)matchString regExpPattern:(NSString *)regExpPattern;
-+ (NSMutableString *)mStrRegExp:(NSString *)matchString regExpPattern:(NSString *)regExpPattern;
-+ (NSArray *)arrayRegExp:(NSString *)matchString regExpPattern:(NSString *)regExpPattern;
-+ (NSMutableArray *)mArrayRegExp:(NSString *)matchString regExpPattern:(NSString *)regExpPattern;
++ (BOOL)boolWithRegExp:(NSString *)matchString regExpPattern:(NSString *)regExpPattern;
++ (NSString *)strWithRegExp:(NSString *)matchString regExpPattern:(NSString *)regExpPattern;
++ (NSMutableString *)mStrWithRegExp:(NSString *)matchString regExpPattern:(NSString *)regExpPattern;
++ (NSArray *)arrayWithRegExp:(NSString *)matchString regExpPattern:(NSString *)regExpPattern;
++ (NSMutableArray *)mArrayWithRegExp:(NSString *)matchString regExpPattern:(NSString *)regExpPattern;
 
 + (NSMutableArray *)urls:(id)string;
 + (NSMutableArray *)twitterIds:(id)searchString;
