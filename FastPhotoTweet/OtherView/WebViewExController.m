@@ -1739,18 +1739,17 @@
 
 - (BOOL)shouldAutorotate {
     
-    NSLog(@"shouldAutorotate");
-    NSLog(@"ORIENTATION: %d", ORIENTATION);
-    NSLog(@"UIDeviceOrientationPortrait: %d", UIDeviceOrientationPortrait);
+//    NSLog(@"shouldAutorotate");
+//    NSLog(@"ORIENTATION: %d", ORIENTATION);
     
-    if ( ORIENTATION == UIDeviceOrientationUnknown ||
-         ORIENTATION == UIDeviceOrientationPortrait ||
-         ORIENTATION == UIDeviceOrientationLandscapeLeft ||
-         ORIENTATION == UIDeviceOrientationLandscapeRight ) {
+    if ( ORIENTATION == ( UIDeviceOrientationUnknown |
+                          UIDeviceOrientationPortrait |
+                          UIDeviceOrientationLandscapeLeft |
+                          UIDeviceOrientationLandscapeRight )) {
         
         //画面回転に伴ったUIの変更や処理をここで行う
-        if ( ORIENTATION == UIDeviceOrientationUnknown ||
-             ORIENTATION == UIDeviceOrientationPortrait ) {
+        if ( ORIENTATION == ( UIDeviceOrientationUnknown |
+                              UIDeviceOrientationPortrait )) {
         
             //縦
             [self rotateView:0];
@@ -1771,10 +1770,9 @@
 
 - (NSUInteger)supportedInterfaceOrientations {
     
-    NSLog(@"supportedInterfaceOrientations");
+//    NSLog(@"supportedInterfaceOrientations");
     
     //Portrait, LandscapeLeft, LandscapeRight の場合画面回転を許可する
-    //※ステータスバーが回転する
     return UIInterfaceOrientationMaskAllButUpsideDown;
 }
 
@@ -1786,8 +1784,7 @@
         
         return YES;
         
-    }else if ( interfaceOrientation == UIInterfaceOrientationLandscapeLeft || 
-               interfaceOrientation == UIInterfaceOrientationLandscapeRight ) {
+    }else if ( interfaceOrientation == (UIInterfaceOrientationLandscapeLeft | UIInterfaceOrientationLandscapeRight )) {
         
         [self rotateView:1];
                 
@@ -1809,11 +1806,11 @@
 //    [wv stringByEvaluatingJavaScriptFromString:@"var delads=document.getElementsByTagName(\\'div\\');for(i=0;i<delads.length;i++){if(delads[i].className==\\'adlantis_sp_sticky_container\\'){delads[i].style.display=none}}"];
     
     
-    [wv stringByEvaluatingJavaScriptFromString:
-     @"var delads=document.getElementsByClassName(\"_naver_ad_area\");for(i=0;i<delads.length;i++){delads[i].style.display=none}"];
-    
-    [wv stringByEvaluatingJavaScriptFromString:
-     @"var delads=document.getElementsByClassName(\"adlantis_sp_sticky_container\");for(i=0;i<delads.length;i++){delads[i].style.display=none}"];
+//    [wv stringByEvaluatingJavaScriptFromString:
+//     @"var delads=document.getElementsByClassName(\"_naver_ad_area\");for(i=0;i<delads.length;i++){delads[i].style.display=none}"];
+//    
+//    [wv stringByEvaluatingJavaScriptFromString:
+//     @"var delads=document.getElementsByClassName(\"adlantis_sp_sticky_container\");for(i=0;i<delads.length;i++){delads[i].style.display=none}"];
 }
 
 - (void)setViewSize {
