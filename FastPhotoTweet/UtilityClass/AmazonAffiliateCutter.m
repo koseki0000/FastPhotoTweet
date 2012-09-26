@@ -41,7 +41,7 @@
                 
             }else {
                 
-                template = @"";
+                template = @"&tag=-22";
             }
         }
     }
