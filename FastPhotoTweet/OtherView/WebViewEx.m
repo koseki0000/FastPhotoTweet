@@ -277,7 +277,7 @@
 //NSStringからloadRequest or URLScheme
 - (void)loadRequestWithString:(NSString *)URLString {
     
-    //NSLog(@"loadRequestWithString");
+    NSLog(@"loadRequestWithString: %@", URLString);
     
     if ( ![EmptyCheck string:URLString] ) {
         

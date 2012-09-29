@@ -8,11 +8,10 @@
 #import <Foundation/Foundation.h>
 #import <Twitter/Twitter.h>
 #import <Accounts/Accounts.h>
-#import "AppDelegate.h"
-#import "JSON.h"
 #import "TWGetAccount.h"
-#import "TWEntities.h"
-#import "UtilityClass.h"
+#import "ActivityIndicator.h"
+#import "ShowAlert.h"
+#import "EncodeImage.h"
 
 @interface TWIconUpload : NSObject
 

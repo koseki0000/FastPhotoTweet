@@ -109,7 +109,6 @@
 - (void)showActionMenu;
 - (void)callback;
 - (void)countText;
-- (void)tohaSearch:(NSString *)text;
 - (void)uploadImage:(UIImage *)image;
 - (void)uploadNowPlayingImage:(UIImage *)image uploadType:(int)uploadType;
 - (void)postDone:(NSNotification *)center;
