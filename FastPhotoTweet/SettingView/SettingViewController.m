@@ -12,7 +12,7 @@
 //セクション0の項目数 (画像関連設定)
 #define SECTION_0 9
 //セクション1の項目数 (投稿関連設定)
-#define SECTION_1 11
+#define SECTION_1 12
 //セクション2の項目数 (その他の設定)
 #define SECTION_2 5
 //セクション2の項目数 (タイムライン設定)
@@ -40,22 +40,23 @@
 #define NAME_13 @"曲名とアルバム名が同じな場合サブ書式を使用"
 #define NAME_14 @"サブ書式を編集"
 #define NAME_15 @"NowPlaying時にアートワークを投稿"
-#define NAME_16 @"Webページ投稿書式変更"
-#define NAME_17 @"Webページ投稿書式セット後カーソル位置"
-#define NAME_18 @"引用投稿書式変更"
-#define NAME_19 @"引用投稿書式セット後カーソル位置"
+#define NAME_16 @"とは検索機能を使用"
+#define NAME_17 @"Webページ投稿書式変更"
+#define NAME_18 @"Webページ投稿書式セット後カーソル位置"
+#define NAME_19 @"引用投稿書式変更"
+#define NAME_20 @"引用投稿書式セット後カーソル位置"
 //その他の設定
-#define NAME_20 @"アプリがアクティブになった際入力可能状態にする"
-#define NAME_21 @"ブラウザの検索ワードを毎回リセット"
-#define NAME_22 @"ブラウザを開く時ペーストボード内のURLを開く"
-#define NAME_23 @"ブラウザユーザーエージェント"
-#define NAME_24 @"ブラウザを閉じる時にユーザーエージェントを戻す"
+#define NAME_21 @"アプリがアクティブになった際入力可能状態にする"
+#define NAME_22 @"ブラウザの検索ワードを毎回リセット"
+#define NAME_23 @"ブラウザを開く時ペーストボード内のURLを開く"
+#define NAME_24 @"ブラウザユーザーエージェント"
+#define NAME_25 @"ブラウザを閉じる時にユーザーエージェントを戻す"
 //タイムライン設定
-#define NAME_25 @"バックグラウンドに移行時UserStreamを切断"
-#define NAME_26 @"バックグラウンドから復帰時UserStreamに接続"
-#define NAME_27 @"通常の更新後にUserStreamに接続"
-#define NAME_28 @"NG設定を開く"
-#define NAME_29 @"自分のTweetもNGを行う"
+#define NAME_26 @"バックグラウンドに移行時UserStreamを切断"
+#define NAME_27 @"バックグラウンドから復帰時UserStreamに接続"
+#define NAME_28 @"通常の更新後にUserStreamに接続"
+#define NAME_29 @"NG設定を開く"
+#define NAME_30 @"自分のTweetもNGを行う"
 
 //ライセンス
 #define NAME_LICENSE @"ライセンス"
@@ -87,10 +88,10 @@
                                                         NAME_4,  NAME_5,  NAME_6,  NAME_7, 
                                                         NAME_8,  NAME_9,  NAME_10, NAME_11, 
                                                         NAME_12, NAME_13, NAME_14, NAME_15, 
-                                                        NAME_16, NAME_17, NAME_18, NAME_19,
+                                                        NAME_16, NAME_17, NAME_18, NAME_19, 
                                                         NAME_20, NAME_21, NAME_22, NAME_23,
                                                         NAME_24, NAME_25, NAME_26, NAME_27, 
-                                                        NAME_28, NAME_29, NAME_LICENSE, nil];
+                                                        NAME_28, NAME_29, NAME_30, NAME_LICENSE, nil];
         
         [settingArray retain];
     }
@@ -359,11 +360,23 @@
             result = @"OFF";
         }
     
-    //Webページ投稿書式変更
+    //とは検索
     }else if ( settingState == 16 ) {
         
-    //Webページ投稿書式セット後カーソル位置
+        if ( [d boolForKey:@"TohaSearch"] ) {
+            
+            result = @"ON";
+            
+        }else {
+            
+            result = @"OFF";
+        }
+    
+    //Webページ投稿書式変更
     }else if ( settingState == 17 ) {
+    
+    //Webページ投稿書式セット後カーソル位置
+    }else if ( settingState == 18 ) {
         
         if ( [d boolForKey:@"WebPagePostCursorPosition"] ) {
             
@@ -374,9 +387,9 @@
             result = @"末尾";
         }
     
-    }else if ( settingState == 18 ) {
+//  }else if ( settingState == 19 ) {
         
-    }else if ( settingState == 19 ) {
+    }else if ( settingState == 20 ) {
         
         if ( [d boolForKey:@"QuoteCursorPosition"] ) {
             
@@ -388,7 +401,7 @@
         }
         
     //アプリがアクティブになった際入力可能状態にする
-    }else if ( settingState == 20 ) {
+    }else if ( settingState == 21 ) {
         
         if ( [d boolForKey:@"ShowKeyboard"] ) {
             
@@ -399,7 +412,7 @@
             result = @"OFF";
         }
     
-    }else if ( settingState == 21 ) {
+    }else if ( settingState == 22 ) {
         
         if ( [d boolForKey:@"ClearBrowserSearchField"] ) {
             
@@ -410,7 +423,7 @@
             result = @"OFF";
         }
     
-    }else if ( settingState == 22 ) {
+    }else if ( settingState == 23 ) {
         
         if ( [d boolForKey:@"OpenPasteBoardURL"] ) {
             
@@ -421,7 +434,7 @@
             result = @"OFF";
         }
     
-    }else if ( settingState == 23 ) {
+    }else if ( settingState == 24 ) {
 
         if ( [[d objectForKey:@"UserAgent"] isEqualToString:@"FireFox"] ) {
             
@@ -436,7 +449,7 @@
             result = @"iPhone";
         }
     
-    }else if ( settingState == 24 ) {
+    }else if ( settingState == 25 ) {
         
         if ( [[d objectForKey:@"UserAgentReset"] isEqualToString:@"FireFox"] ) {
             
@@ -455,7 +468,7 @@
             result = @"OFF";
         }
         
-    }else if ( settingState == 25 ) {
+    }else if ( settingState == 26 ) {
         
         if ( [d boolForKey:@"EnterBackgroundUSDisConnect"] ) {
             
@@ -466,7 +479,7 @@
             result = @"OFF";
         }
         
-    }else if ( settingState == 26 ) {
+    }else if ( settingState == 27 ) {
         
         if ( [d boolForKey:@"BecomeActiveUSConnect"] ) {
             
@@ -477,7 +490,7 @@
             result = @"OFF";
         }
         
-    }else if ( settingState == 27 ) {
+    }else if ( settingState == 28 ) {
         
         if ( [d boolForKey:@"ReloadAfterUSConnect"] ) {
             
@@ -490,7 +503,7 @@
         
 //    }else if ( settingState == 29 ) {
         
-    }else if ( settingState == 29 ) {
+    }else if ( settingState == 30 ) {
 
         if ( [d boolForKey:@"MyTweetNG"] ) {
             
@@ -828,6 +841,18 @@
         
         }else if ( indexPath.row == 7 ) {
             
+            //とは検索
+            sheet = [[UIActionSheet alloc]
+                     initWithTitle:NAME_16
+                     delegate:self
+                     cancelButtonTitle:@"Cancel"
+                     destructiveButtonTitle:nil
+                     otherButtonTitles:@"ON", @"OFF", nil];
+            [sheet autorelease];
+            [sheet showInView:self.view];
+        
+        }else if ( indexPath.row == 8 ) {
+            
             //Webページ投稿書式変更
             alertTextNo = 2;
             
@@ -844,7 +869,7 @@
                 [d setObject:alertMessage forKey:@"WebPagePostFormat"];
             }
             
-            alert = [[UIAlertView alloc] initWithTitle:NAME_16
+            alert = [[UIAlertView alloc] initWithTitle:NAME_17
                                                message:message
                                               delegate:self 
                                      cancelButtonTitle:@"キャンセル" 
@@ -864,11 +889,11 @@
             
             return;
         
-        }else if ( indexPath.row == 8 ) {
+        }else if ( indexPath.row == 9 ) {
             
             //Webページ投稿書式セット後カーソル位置
             sheet = [[UIActionSheet alloc]
-                     initWithTitle:NAME_17
+                     initWithTitle:NAME_18
                      delegate:self
                      cancelButtonTitle:@"Cancel"
                      destructiveButtonTitle:nil
@@ -876,7 +901,7 @@
             [sheet autorelease];
             [sheet showInView:self.view];
         
-        }else if ( indexPath.row == 9 ) {
+        }else if ( indexPath.row == 10 ) {
             
             //引用投稿書式変更
             alertTextNo = 3;
@@ -894,7 +919,7 @@
                 [d setObject:alertMessage forKey:@"QuoteFormat"];
             }
             
-            alert = [[UIAlertView alloc] initWithTitle:NAME_18
+            alert = [[UIAlertView alloc] initWithTitle:NAME_19
                                                message:message
                                               delegate:self 
                                      cancelButtonTitle:@"キャンセル" 
@@ -914,11 +939,11 @@
             
             return;
             
-        }else if ( indexPath.row == 10 ) {
+        }else if ( indexPath.row == 11 ) {
             
             //引用投稿書式セット後カーソル位置
             sheet = [[UIActionSheet alloc]
-                     initWithTitle:NAME_19
+                     initWithTitle:NAME_20
                      delegate:self
                      cancelButtonTitle:@"Cancel"
                      destructiveButtonTitle:nil
@@ -935,7 +960,7 @@
             
             //アプリがアクティブになった際入力可能状態にする
             sheet = [[UIActionSheet alloc]
-                     initWithTitle:NAME_20
+                     initWithTitle:NAME_21
                      delegate:self
                      cancelButtonTitle:@"Cancel"
                      destructiveButtonTitle:nil
@@ -947,7 +972,7 @@
             
             //ブラウザの検索ワードを毎回リセット
             sheet = [[UIActionSheet alloc]
-                     initWithTitle:NAME_21
+                     initWithTitle:NAME_22
                      delegate:self
                      cancelButtonTitle:@"Cancel"
                      destructiveButtonTitle:nil
@@ -959,7 +984,7 @@
             
             //ブラウザを開く時ペーストボード内のURLを開く
             sheet = [[UIActionSheet alloc]
-                     initWithTitle:NAME_22
+                     initWithTitle:NAME_23
                      delegate:self
                      cancelButtonTitle:@"Cancel"
                      destructiveButtonTitle:nil
@@ -971,7 +996,7 @@
             
             //ブラウザユーザーエージェント
             sheet = [[UIActionSheet alloc]
-                     initWithTitle:NAME_23
+                     initWithTitle:NAME_24
                      delegate:self
                      cancelButtonTitle:@"Cancel"
                      destructiveButtonTitle:nil
@@ -982,7 +1007,7 @@
         }else if ( indexPath.row == 4 ) {
             
             sheet = [[UIActionSheet alloc]
-                     initWithTitle:NAME_24
+                     initWithTitle:NAME_25
                      delegate:self
                      cancelButtonTitle:@"Cancel"
                      destructiveButtonTitle:nil
@@ -999,7 +1024,7 @@
             
             //バックグラウンドに移行時UserStreamを切断
             sheet = [[UIActionSheet alloc]
-                     initWithTitle:NAME_25
+                     initWithTitle:NAME_26
                      delegate:self
                      cancelButtonTitle:@"Cancel"
                      destructiveButtonTitle:nil
@@ -1011,7 +1036,7 @@
             
             //バックグラウンドから復帰時UserStreamに接続
             sheet = [[UIActionSheet alloc]
-                     initWithTitle:NAME_26
+                     initWithTitle:NAME_27
                      delegate:self
                      cancelButtonTitle:@"Cancel"
                      destructiveButtonTitle:nil
@@ -1023,7 +1048,7 @@
         
             //通常の更新後にUserStreamに接続
             sheet = [[UIActionSheet alloc]
-                     initWithTitle:NAME_27
+                     initWithTitle:NAME_28
                      delegate:self
                      cancelButtonTitle:@"Cancel"
                      destructiveButtonTitle:nil
@@ -1042,7 +1067,7 @@
             
             //自分のTweetもNGを行う
             sheet = [[UIActionSheet alloc]
-                     initWithTitle:NAME_29
+                     initWithTitle:NAME_30
                      delegate:self
                      cancelButtonTitle:@"Cancel"
                      destructiveButtonTitle:nil
@@ -1350,19 +1375,26 @@
         }else if ( buttonIndex == 1 ) {
             [d setBool:NO forKey:@"NowPlayingArtWork"];
         }
+    
+    }else if ( actionSheetNo == 16 ) {
+        if ( buttonIndex == 0 ) {
+            [d setBool:YES forKey:@"TohaSearch"];
+        }else if ( buttonIndex == 1 ) {
+            [d setBool:NO forKey:@"TohaSearch"];
+        }
+    
+//  }else if ( actionSheetNo == 17 ) {
         
-//  }else if ( actionSheetNo == 16 ) {
-        
-    }else if ( actionSheetNo == 17 ) {
+    }else if ( actionSheetNo == 18 ) {
         if ( buttonIndex == 0 ) {
             [d setBool:YES forKey:@"WebPagePostCursorPosition"];
         }else if ( buttonIndex == 1 ) {
             [d setBool:NO forKey:@"WebPagePostCursorPosition"];
         }
         
-//  }else if ( actionSheetNo == 18 ) {
+//  }else if ( actionSheetNo == 19 ) {
         
-    }else if ( actionSheetNo == 19 ) {
+    }else if ( actionSheetNo == 20 ) {
         
         if ( buttonIndex == 0 ) {
             [d setBool:YES forKey:@"QuoteCursorPosition"];
@@ -1370,21 +1402,21 @@
             [d setBool:NO forKey:@"QuoteCursorPosition"];
         }
         
-    }else if ( actionSheetNo == 20 ) {
+    }else if ( actionSheetNo == 21 ) {
         if ( buttonIndex == 0 ) {
             [d setBool:YES forKey:@"ShowKeyboard"];
         }else if ( buttonIndex == 1 ) {
             [d setBool:NO forKey:@"ShowKeyboard"];
         }
     
-    }else if ( actionSheetNo == 21 ) {
+    }else if ( actionSheetNo == 22 ) {
         if ( buttonIndex == 0 ) {
             [d setBool:YES forKey:@"ClearBrowserSearchField"];
         }else if ( buttonIndex == 1 ) {
             [d setBool:NO forKey:@"ClearBrowserSearchField"];
         }
         
-    }else if ( actionSheetNo == 22 ) {
+    }else if ( actionSheetNo == 23 ) {
         if ( buttonIndex == 0 ) {
             
             [d setBool:YES forKey:@"OpenPasteBoardURL"];
@@ -1399,7 +1431,7 @@
             [d setBool:NO forKey:@"OpenPasteBoardURL"];
         }
         
-    }else if ( actionSheetNo == 23 ) {
+    }else if ( actionSheetNo == 24 ) {
         if ( buttonIndex == 0 ) {
             [d setObject:@"FireFox" forKey:@"UserAgent"];
         }else if ( buttonIndex == 1 ) {
@@ -1408,7 +1440,7 @@
             [d setObject:@"iPhone" forKey:@"UserAgent"];
         }
     
-    }else if ( actionSheetNo == 24 ) {
+    }else if ( actionSheetNo == 25 ) {
         if ( buttonIndex == 0 ) {
             [d setObject:@"OFF" forKey:@"UserAgentReset"];
         }else if ( buttonIndex == 1 ) {
@@ -1419,21 +1451,21 @@
             [d setObject:@"iPhone" forKey:@"UserAgentReset"];
         }
     
-    }else if ( actionSheetNo == 25 ) {
+    }else if ( actionSheetNo == 26 ) {
         if ( buttonIndex == 0 ) {
             [d setBool:YES forKey:@"EnterBackgroundUSDisConnect"];
         }else if ( buttonIndex == 1 ) {
             [d setBool:NO forKey:@"EnterBackgroundUSDisConnect"];
         }
         
-    }else if ( actionSheetNo == 26 ) {
+    }else if ( actionSheetNo == 27 ) {
         if ( buttonIndex == 0 ) {
             [d setBool:YES forKey:@"BecomeActiveUSConnect"];
         }else if ( buttonIndex == 1 ) {
             [d setBool:NO forKey:@"BecomeActiveUSConnect"];
         }
         
-    }else if ( actionSheetNo == 27 ) {
+    }else if ( actionSheetNo == 28 ) {
         if ( buttonIndex == 0 ) {
             [d setBool:YES forKey:@"ReloadAfterUSConnect"];
         }else if ( buttonIndex == 1 ) {
@@ -1442,7 +1474,7 @@
         
 //    }else if ( actionSheetNo == 29 ) {
     
-    }else if ( actionSheetNo == 29 ) {
+    }else if ( actionSheetNo == 30 ) {
         if ( buttonIndex == 0 ) {
             [d setBool:YES forKey:@"MyTweetNG"];
         }else if ( buttonIndex == 1 ) {

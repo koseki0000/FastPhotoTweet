@@ -10,7 +10,7 @@
 #define APP_VERSION [[[NSBundle mainBundle] infoDictionary] objectForKey:@"CFBundleShortVersionString"]
 
 #define TOP_BAR [NSArray arrayWithObjects:trashButton, flexibleSpace, idButton, flexibleSpace, resendButton, flexibleSpace, imageSettingButton, flexibleSpace, postButton, nil]
-#define BOTTOM_BAR [NSArray arrayWithObjects:settingButton, flexibleSpace, nowPlayingButton, flexibleSpace, actionButton, nil]
+#define BOTTOM_BAR [NSArray arrayWithObjects:settingButton, flexibleSpace, browserButton, flexibleSpace, nowPlayingButton, flexibleSpace, actionButton, nil]
 
 @implementation ViewController
 @synthesize resendButton;
@@ -367,7 +367,7 @@
             //NSLog(@"newVersion");
             
             [ShowAlert title:[NSString stringWithFormat:@"FastPhotoTweet %@", APP_VERSION] 
-                 message:@"・ブラウザ関連の仕様変更\n・その他修正"];
+                 message:@"・Retina 4-inchに対応\n・iOS6.0に対応\n・ブラウザ表示中にバックグラウンドから復帰した際のメニューの「ペーストボードのURLを開く」が動いていなかった問題を修正"];
             
             information = [[[NSMutableDictionary alloc] initWithDictionary:[d dictionaryForKey:@"Information"]] autorelease];
             [information setValue:[NSNumber numberWithInt:1] forKey:APP_VERSION];
@@ -454,6 +454,15 @@
                 }
             }
             
+            //とは検索機能ONかつ条件にマッチ
+            if ( [d boolForKey:@"TohaSearch"] && [RegularExpression boolWithRegExp:text regExpPattern:@".+とは"] ) {
+            
+                [self tohaSearch:text];
+                
+                //とは検索機能時はコールバックしないためreturn
+                return;
+            }
+            
             [self callback];
         }
     }
@@ -497,9 +506,26 @@
 
 - (IBAction)pushBrowserButton:(id)sender {
     
-    NSLog(@"Tweet openBrowser");
+    NSString *useragent = IPHONE_USERAGENT;
     
-    [appDelegate openBrowser];
+    if ( [[d objectForKey:@"UserAgent"] isEqualToString:@"FireFox"] ) {
+        
+        useragent = FIREFOX_USERAGENT;
+        
+    }else if ( [[d objectForKey:@"UserAgent"] isEqualToString:@"iPad"] ) {
+        
+        useragent = IPAD_USERAFENT;
+    }
+    
+    NSDictionary *dictionary = [[NSDictionary alloc] initWithObjectsAndKeys:useragent, @"UserAgent", nil];
+    [[NSUserDefaults standardUserDefaults] registerDefaults:dictionary];
+    [dictionary release];
+    
+    webBrowserMode = YES;
+    
+    WebViewExController *dialog = [[[WebViewExController alloc] init] autorelease];
+    dialog.modalTransitionStyle = UIModalTransitionStyleCoverVertical;
+    [self presentModalViewController:dialog animated:YES];
 }
 
 - (IBAction)pushSettingButton:(id)sender {
@@ -758,6 +784,13 @@
     }
     
     [self countText];
+}
+
+- (void)tohaSearch:(NSString *)text {
+    
+    appDelegate.startupUrlList = [NSArray arrayWithObject:[CreateSearchURL google:[text substringWithRange:NSMakeRange(0, text.length - 2)]]];
+    
+    [self pushBrowserButton:nil];
 }
 
 #pragma mark - ImagePicker
@@ -1079,8 +1112,19 @@
                     [self pushBrowserButton:nil];
                 }
             }
-        
+            
         }else if ( buttonIndex == 5 ) {
+
+            if ( !appDelegate.browserOpenMode ) {
+                
+                //NSLog(@"Open Browser");
+                
+                appDelegate.startupUrlList = [NSArray arrayWithObject:[d objectForKey:@"HomePageURL"]];
+                
+                [self pushBrowserButton:nil];
+            }
+            
+        }else if ( buttonIndex == 6 ) {
             
             @autoreleasepool {
                 
@@ -1353,8 +1397,8 @@
                             cancelButtonTitle:@"Cancel"
                             destructiveButtonTitle:nil
                             otherButtonTitles:@"Tweet", @"FastTweet", @"PhotoTweet",
-                            @"NowPlaying", @"FastGoogle", @"FastPagePost", nil];
-    
+                            @"NowPlaying", @"FastGoogle", @"Browser",
+                            @"FastPagePost", nil];
 	[sheet autorelease];
 	[sheet showInView:appDelegate.tabBarController.self.view];
 }
@@ -2115,8 +2159,6 @@
     
     [super viewDidAppear:animated];
     
-    NSLog(@"Tweet viewDidAppear");
-    
     @try {
         
         //タブ切り替え時の動作
@@ -2160,7 +2202,15 @@
             return;
         }
         
-        [appDelegate becomeView];
+        if ( appDelegate.pcUaMode ) {
+            
+            appDelegate.pcUaMode = NO;
+            
+            //開き直す
+            [self pushBrowserButton:nil];
+            
+            return;
+        }
         
         if ( [EmptyCheck check:appDelegate.postText] ) {
             
@@ -2193,6 +2243,13 @@
             }
             
             appDelegate.postTextType = BLANK;
+        }
+        
+        if ( webBrowserMode ) {
+            
+            webBrowserMode = NO;
+            
+            return;
         }
         
         if ( changeAccount || [d boolForKey:@"ChangeAccount"] ) {
@@ -2288,12 +2345,6 @@
 - (void)viewWillAppear:(BOOL)animated {
     
     [super viewWillAppear:animated];
-    
-    NSLog(@"SCREEN_WIDTH: %d", SCREEN_WIDTH);
-    NSLog(@"SCREEN_HEIGHT: %d", SCREEN_HEIGHT);
-    NSLog(@"STATUS_BAR_HEIGHT: %d", STATUS_BAR_HEIGHT);
-    
-    appDelegate.lastTab = 0;
     
     //NSLog(@"viewWillAppear");
     [self setIconPreviewImage];

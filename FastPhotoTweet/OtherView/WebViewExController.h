@@ -47,7 +47,6 @@
     BOOL editing;
     BOOL downloading;
     BOOL loading;
-    BOOL uaChanged;
 }
 
 @property (retain, nonatomic) IBOutlet WebViewEx *wv;
@@ -58,6 +57,7 @@
 @property (retain, nonatomic) IBOutlet UIBarButtonItem *searchButton;
 
 @property (retain, nonatomic) IBOutlet UIToolbar *bottomBar;
+@property (retain, nonatomic) IBOutlet UIBarButtonItem *composeButton;
 @property (retain, nonatomic) IBOutlet UIBarButtonItem *closeButton;
 @property (retain, nonatomic) IBOutlet UIBarButtonItem *reloadButton;
 @property (retain, nonatomic) IBOutlet UIBarButtonItem *backButton;
@@ -65,7 +65,6 @@
 @property (retain, nonatomic) IBOutlet UIBarButtonItem *menuButton;
 @property (retain, nonatomic) IBOutlet UIBarButtonItem *bookmarkButton;
 @property (retain, nonatomic) IBOutlet UIBarButtonItem *flexibleSpace;
-@property (retain, nonatomic) IBOutlet UIBarButtonItem *minimizeButton;
 
 @property (retain, nonatomic) IBOutlet UILabel *bytesLabel;
 @property (retain, nonatomic) IBOutlet UIProgressView *progressBar;
@@ -76,6 +75,7 @@
 - (IBAction)pushReloadButton:(id)sender;
 - (IBAction)pushBackButton:(id)sender;
 - (IBAction)pushForwardButton:(id)sender;
+- (IBAction)pushComposeButton:(id)sender;
 - (IBAction)pushMenuButton:(id)sender;
 - (IBAction)pushDownloadCancelButton:(id)sender;
 - (IBAction)pushBookmarkButton:(id)sender;
@@ -108,9 +108,5 @@
 - (void)resetUserAgent;
 - (void)adBlock;
 - (void)setViewSize;
-
-- (void)removeWebView;
-- (void)createWebView;
-- (void)removeAllSubviews;
 
 @end

@@ -12,7 +12,7 @@
 #import "WebViewExController.h"
 
 #define TOP_BAR [NSArray arrayWithObjects:urlField, searchField, searchButton, nil]
-#define BOTTOM_BAR [NSArray arrayWithObjects:closeButton, flexibleSpace, minimizeButton, flexibleSpace, reloadButton, flexibleSpace, backButton, flexibleSpace, forwardButton, flexibleSpace, bookmarkButton, flexibleSpace, menuButton, nil]
+#define BOTTOM_BAR [NSArray arrayWithObjects:closeButton, flexibleSpace, reloadButton, flexibleSpace, backButton, flexibleSpace, forwardButton, flexibleSpace, composeButton, flexibleSpace, bookmarkButton, flexibleSpace, menuButton, nil]
 #define EXTENSIONS [NSArray arrayWithObjects:@"zip", @"mp4", @"mov", @"m4a", @"rar", @"dmg", @"deb", nil]
 
 @implementation WebViewExController
@@ -25,7 +25,7 @@
 @synthesize reloadButton;
 @synthesize backButton;
 @synthesize forwardButton;
-@synthesize minimizeButton;
+@synthesize composeButton;
 @synthesize menuButton;
 @synthesize flexibleSpace;
 @synthesize bookmarkButton;
@@ -40,15 +40,15 @@
     
     if ( self ) {
         
-        self.title = NSLocalizedString(@"Browser", @"Browser");
-        self.tabBarItem.image = [UIImage imageNamed:@"browser.png"];
-        
         appDelegate = (AppDelegate *)[[UIApplication sharedApplication] delegate];
+        startupUrlList = appDelegate.startupUrlList;
+        urlList = BLANK_ARRAY;
+        
         retina4InchOffset = 0;
         
         if ( SCREEN_HEIGHT == 548 ) {
             
-            NSLog(@"Retina 4inch");
+            NSLog(@"Retine 4inch");
             retina4InchOffset = 88;
         }
     }
@@ -72,15 +72,11 @@
     reloadButtonImage = [UIImage imageNamed:@"reload.png"];
     stopButtonImage = [UIImage imageNamed:@"stop.png"];
     
-    //ツールバーにボタンをセット
-    [bottomBar setItems:BOTTOM_BAR animated:NO];
-    
     openBookmark = NO;
     fullScreen = NO;
     editing = NO;
     downloading = NO;
     loading = NO;
-    uaChanged = NO;
     
     //アプリがアクティブになった場合の通知を受け取る設定
     NSNotificationCenter *notificationCenter = [NSNotificationCenter defaultCenter];
@@ -90,105 +86,18 @@
                                name:UIApplicationDidBecomeActiveNotification
                              object:nil];
     
-    //タブ切り替え通知を受け取る設定
-    [notificationCenter addObserver:self
-                           selector:@selector(orientationNotification:)
-                               name:@"Orientation"
-                             object:nil];
-    
     d = [NSUserDefaults standardUserDefaults];
 
-    searchField.clearsOnBeginEditing = [d boolForKey:@"ClearBrowserSearchField"];
+    [d boolForKey:@"ClearBrowserSearchField"] ? ( searchField.clearsOnBeginEditing = YES ) : ( searchField.clearsOnBeginEditing = NO );
     
     accessURL = BLANK;
     
     [self setSearchEngine];
-}
-
-- (void)selectOpenUrl {
-    
-    NSLog(@"selectOpenUrl");
-    
-//    NSLog(@"startupUrlList: %@", startupUrlList);
-//    NSLog(@"pboard: %@", [RegularExpression urls:pboard.string]);
-    
-    if ( appDelegate.lastTab == 0 && [d boolForKey:@"OpenPasteBoardURL"] ) {
-        
-        NSLog(@"OpenPasteBoardURL");
-        
-        //ペーストボードURL展開設定が有効な場合
-        //ペーストボードのURLを取得
-        startupUrlList = [NSArray arrayWithArray:[RegularExpression urls:pboard.string]];
-        
-        if ( startupUrlList.count == 0 ||
-            [[startupUrlList objectAtIndex:0] isEqualToString:[d objectForKey:@"LastOpendPasteBoardURL"]] ) {
-         
-            NSLog(@"duplicate URL or nil");
-            [wv loadRequestWithString:[d objectForKey:@"HomePageURL"]];
-            
-            return;
-        }
-        
-        if ( startupUrlList.count != 0 ) [d setObject:[startupUrlList objectAtIndex:0] forKey:@"LastOpendPasteBoardURL"];
-    }
-    
-    [self selectUrl];
-}
-
-- (void)removeWebView {
-    
-    NSLog(@"removeWebView");
-    
-    if ( wv.loading ) [wv stopLoading];
-    wv.delegate = nil;
-    [wv removeFromSuperview];
-    wv = nil;
-    uaChanged = NO;
-    urlField.text = BLANK;
-    searchField.text = BLANK;
-}
-
-- (void)createWebView {
-    
-    NSLog(@"createWebView");
-    
-    wv = [[WebViewEx alloc] init];
-    wv.delegate = self;
-    wv.scalesPageToFit = YES;
-    [self.view addSubview:wv];
-    
-    UITapGestureRecognizer *doubleTapGesture = [[UITapGestureRecognizer alloc]
-												initWithTarget:self
-                                                action:@selector(fullScreenGesture:)];
-	doubleTapGesture.numberOfTouchesRequired = 2;
-	[wv addGestureRecognizer:doubleTapGesture];
-    
-    if ( ORIENTATION == UIDeviceOrientationLandscapeLeft ||
-         ORIENTATION == UIDeviceOrientationLandscapeRight ) {
-        
-        [self rotateView:1];
-        
-    }else {
-        
-        [self rotateView:0];
-    }
-}
-
-- (void)viewWillAppear:(BOOL)animated {
-    
-    [super viewWillAppear:animated];
-    
-    NSLog(@"Browser viewWillAppear");
-    
-    if ( wv == nil ) [self createWebView];
-    
-    appDelegate.browserOpenMode = YES;
-    [appDelegate.tabBarController enableOrientation];
     
     //ツールバーにボタンをセット
     [bottomBar setItems:BOTTOM_BAR animated:NO];
     
-    [appDelegate.tabBarController setBarHidden:YES];
+    appDelegate.browserOpenMode = YES;
     
     //URLSchemeダウンロード判定
     if ( [EmptyCheck check:appDelegate.urlSchemeDownloadUrl] ) {
@@ -197,6 +106,180 @@
         
         return;
     }
+    
+    if ( [EmptyCheck string:appDelegate.reOpenUrl] &&
+        appDelegate.tabBarController.selectedIndex != 1 ) {
+        
+        [wv loadRequestWithString:appDelegate.reOpenUrl];
+        
+        appDelegate.reOpenUrl = BLANK;
+        
+    }else {
+     
+        [self selectOpenUrl];
+    }
+}
+
+- (void)selectOpenUrl {
+    
+    //NSLog(@"startupUrlList: %@", startupUrlList);
+    //NSLog(@"pboard: %@", [RegularExpression urls:pboard.string]);
+    
+    if ( appDelegate.tabBarController.selectedIndex == 1 ) {
+        
+        //NSLog(@"タイムラインから開いている場合はスタートアップURLを優先");
+        
+        [self selectUrl];
+        
+    }else {
+        
+        //NSLog(@"タイムラインから開かれていない場合");
+        
+        if ( [d boolForKey:@"OpenPasteBoardURL"] ) {
+            
+            //NSLog(@"ペーストボードからURLを開く設定が有効な場合: %@", [d objectForKey:@"LastOpendPasteBoardURL"]);
+            
+            //ペーストボードのURLを取得
+            urlList = [RegularExpression urls:pboard.string];
+            
+            if ( startupUrlList.count == 1 && urlList.count == 0 ) {
+                
+                //NSLog(@"ペーストボードにURLが存在しない場合");
+                
+                [wv loadRequestWithString:[startupUrlList objectAtIndex:0]];
+                
+            }else if ( startupUrlList.count == 0 && urlList.count == 1 ) {
+                
+                //NSLog(@"スタートアップURLがなく、ペーストボードにURLが1つ存在する場合");
+                
+                if ( [[urlList objectAtIndex:0] isEqualToString:[d objectForKey:@"LastOpendPasteBoardURL"]] ) {
+                
+                    [wv loadRequestWithString:[d objectForKey:@"HomePageURL"]];
+                    
+                }else {
+                    
+                    [wv loadRequestWithString:[urlList objectAtIndex:0]];
+                    [d setObject:[urlList objectAtIndex:0] forKey:@"LastOpendPasteBoardURL"];
+                }
+                
+            }else if ( startupUrlList.count == 1 && urlList.count == 1 ) {
+                
+                //NSLog(@"ペーストボードにURLが1つ存在する場合");
+                
+                if ( [[startupUrlList objectAtIndex:0] isEqualToString:[d objectForKey:@"HomePageURL"]] ) {
+                    
+                    //NSLog(@"スタートアップURLがホームページだった場合はペーストボードのURLを優先して判定");
+                    
+                    if ( [[urlList objectAtIndex:0] isEqualToString:[d objectForKey:@"LastOpendPasteBoardURL"]] ) {
+                        
+                        //NSLog(@"直前にペーストボードから開いたURLだった場合はスタートアップURLを開く");
+                        
+                        [wv loadRequestWithString:[startupUrlList objectAtIndex:0]];
+                        
+                    }else {
+                        
+                        //NSLog(@"直前にペーストボードから開いたURLではない場合開く");
+                        
+                        [wv loadRequestWithString:[urlList objectAtIndex:0]];
+                        [d setObject:[urlList objectAtIndex:0] forKey:@"LastOpendPasteBoardURL"];
+                    }
+                    
+                }else {
+                    
+                    //NSLog(@"スタートアップURLがホームページのURLではなかった場合選択して表示");
+                    
+                    actionSheetNo = 15;
+                    
+                    UIActionSheet *sheet = [[UIActionSheet alloc]
+                                            initWithTitle:@"URL展開選択"
+                                            delegate:self
+                                            cancelButtonTitle:@"Cancel"
+                                            destructiveButtonTitle:nil
+                                            otherButtonTitles:@"アプリ指定URLを開く", @"ペーストボードから開く", nil];
+                    [sheet showInView:self.view];
+                }
+                
+            }else if ( startupUrlList.count == 1 && urlList.count > 1 ) {
+                
+                //NSLog(@"ペーストボードにURLが複数個ある場合");
+                
+                if ( [[startupUrlList objectAtIndex:0] isEqualToString:[d objectForKey:@"HomePageURL"]] ) {
+                    
+                    //NSLog(@"スタートアップURLがホームページだった場合はペーストボードのURLを優先して判定");
+                    
+                    startupUrlList = urlList;
+                    [self selectUrl];
+                    
+                }else {
+                    
+                    //NSLog(@"スタートアップURLがホームページではなかった場合、確認を表示");
+                    actionSheetNo = 15;
+                    
+                    UIActionSheet *sheet = [[UIActionSheet alloc]
+                                            initWithTitle:@"URL展開選択"
+                                            delegate:self
+                                            cancelButtonTitle:@"Cancel"
+                                            destructiveButtonTitle:nil
+                                            otherButtonTitles:@"アプリ指定URLを開く", @"ペーストボードから開く", nil];
+                    [sheet showInView:self.view];
+                }
+                
+            }else if ( startupUrlList.count > 1 && urlList.count == 0 ) {
+                
+                //NSLog(@"スタートアップURLが複数個あり、ペーストボードにURLがない場合");
+                
+                //URLを選択して表示
+                [self selectUrl];
+                
+            }else if ( startupUrlList.count > 1 && urlList.count != 0 ) {
+                
+                //NSLog(@"スタートアップURLとペーストボードにURLが複数個ある場合");
+                
+                actionSheetNo = 15;
+                
+                UIActionSheet *sheet = [[UIActionSheet alloc]
+                                        initWithTitle:@"URL展開選択"
+                                        delegate:self
+                                        cancelButtonTitle:@"Cancel"
+                                        destructiveButtonTitle:nil
+                                        otherButtonTitles:@"アプリ指定URLを開く", @"ペーストボードから開く", nil];
+                [sheet showInView:self.view];
+                
+            }else {
+                
+                //NSLog(@"その他の場合");
+                
+                [wv loadRequestWithString:[d objectForKey:@"HomePageURL"]];
+            }
+            
+        }else {
+            
+            //NSLog(@"ペーストボードからURLを開く設定が無効な場合");
+            
+            if ( startupUrlList.count == 1 ) {
+                
+                //NSLog(@"URLが1つの場合は開く");
+                [wv loadRequestWithString:[startupUrlList objectAtIndex:0]];
+                
+            }else if ( startupUrlList.count > 1 ) {
+                
+                //NSLog(@"URLが複数個の場合は選択して開く");
+                [self selectUrl];
+                
+            }else {
+                
+                //NSLog(@"その他の場合はホームページを開く");
+                [wv loadRequestWithString:[d objectForKey:@"HomePageURL"]];
+            }
+        }
+    }
+}
+
+- (void)viewWillAppear:(BOOL)animated {
+    
+    [super viewWillAppear:animated];
+    
+    //NSLog(@"viewWillAppear");
     
     if ( openBookmark ) {
         
@@ -208,47 +291,12 @@
             [wv loadRequestWithString:appDelegate.bookmarkUrl];
             appDelegate.bookmarkUrl = BLANK;
         }
-        
-        return;
     }
-    
-    if ( ![EmptyCheck string:urlField.text] &&
-         ![EmptyCheck string:appDelegate.reOpenUrl] &&
-         [[RegularExpression urls:pboard.string] count] == 0 &&
-           appDelegate.startupUrlList.count == 0 ) {
-        
-        NSLog(@"LoadHomePage");
-        [wv loadRequestWithString:[d objectForKey:@"HomePageURL"]];
-        
-        return;
-    }
-    
-    if ( [EmptyCheck string:appDelegate.reOpenUrl] ) {
-     
-        uaChanged = YES;
-        appDelegate.startupUrlList = @[appDelegate.reOpenUrl];
-    }
-    
-    urlList = BLANK_ARRAY;
-    startupUrlList = appDelegate.startupUrlList;
-    [self selectOpenUrl];
-    appDelegate.reOpenUrl = BLANK;
 }
 
 - (void)selectUrl {
     
-    NSLog(@"selectUrl");
-    
-    if (startupUrlList.count == 0 ) {
-    
-        NSLog(@"selectUrl zero");
-        
-        if ( ![EmptyCheck string:urlField.text] ) {
-            
-            [wv loadRequestWithString:[d objectForKey:@"HomePageURL"]];
-        }
-        
-    }else if (startupUrlList.count == 1 ) {
+    if (startupUrlList.count == 1 ) {
         
         [wv loadRequestWithString:[startupUrlList objectAtIndex:0]];
         
@@ -346,8 +394,7 @@
         return;
     }
     
-    if ( !showActionSheet &&
-         appDelegate.tabBarController.selectedIndex == 2 ) {
+    if ( !showActionSheet) {
      
         showActionSheet = YES;
         
@@ -358,31 +405,9 @@
                                 delegate:self
                                 cancelButtonTitle:@"Cancel"
                                 destructiveButtonTitle:nil
-                                otherButtonTitles:@"FastGoogle", @"ペーストボードのURLを開く", nil];
+                                otherButtonTitles:@"Tweet", @"FastGoogle", @"ペーストボードのURLを開く", nil];
         
         [sheet showInView:self.view];
-    }
-}
-
-- (void)orientationNotification:(NSNotification *)notification {
-    
-    NSLog(@"orientationNotification");
-
-    if ( ORIENTATION == UIDeviceOrientationPortrait ||
-         ORIENTATION == UIDeviceOrientationLandscapeLeft ||
-         ORIENTATION == UIDeviceOrientationLandscapeRight ) {
-        
-        //画面回転に伴ったUIの変更や処理をここで行う
-        if ( ORIENTATION == UIDeviceOrientationPortrait ) {
-            
-            //縦
-            [self rotateView:0];
-            
-        }else {
-            
-            //左右
-            [self rotateView:1];
-        }
     }
 }
 
@@ -407,9 +432,32 @@
     [sheet showInView:self.view];
 }
 
-- (IBAction)pushCloseButton:(id)sender {
+- (IBAction)pushComposeButton:(id)sender {
+ 
+    if ( downloading ) {
+        
+        actionSheetNo = 12;
+        
+        UIActionSheet *sheet = [[UIActionSheet alloc]
+                                initWithTitle:@"ファイルダウンロード中です。\nダウンロードは継続されますが、閉じた場合はキャンセルが出来なくなります。"
+                                delegate:self
+                                cancelButtonTitle:@"Cancel"
+                                destructiveButtonTitle:nil
+                                otherButtonTitles:@"ブラウザを閉じる", nil];
+        [sheet showInView:self.view];    
+        
+    }else {
     
-    NSLog(@"pushCloseButton");
+        [self resetUserAgent];
+        
+        appDelegate.startupUrlList = BLANK_ARRAY;
+        appDelegate.reOpenUrl = accessURL;
+    
+        [self dismissModalViewControllerAnimated:YES];
+    }
+}
+
+- (IBAction)pushCloseButton:(id)sender {
     
     if ( downloading ) {
         
@@ -427,28 +475,10 @@
      
         [self resetUserAgent];
         
-        if ( uaChanged ||
-             sender == closeButton ) {
-            
-            [self removeWebView];
-        }
-        
         appDelegate.startupUrlList = BLANK_ARRAY;
+        appDelegate.reOpenUrl = BLANK;
         
-        dispatch_async(dispatch_get_main_queue(), ^ {
-            
-            if ( [appDelegate.postTextType isEqualToString:@"WebPage"] ||
-                 [appDelegate.postTextType isEqualToString:@"Quote"] ) {
-
-                appDelegate.lastTab = 0;
-            }
-            
-            NSLog(@"lastTab: %d", appDelegate.lastTab);
-            
-            appDelegate.tabBarController.selectedIndex = appDelegate.lastTab;
-            [appDelegate.tabBarController disableOrientation];
-            [appDelegate.tabBarController setBarHidden:NO];
-        });
+        [self dismissModalViewControllerAnimated:YES];
     }
 }
 
@@ -581,9 +611,10 @@
                     //UIの更新
                     searchField.text = suggestion;
                     searchField.placeholder = @"Wikipedia";
-                    [d setObject:@"Wikipedia" forKey:@"SearchEngine"];
-                    [self enterSearchField:nil];
                 });
+
+                [d setObject:@"Wikipedia" forKey:@"SearchEngine"];
+                [self enterSearchField:nil];
             });
             
             [ActivityIndicator off];
@@ -738,10 +769,12 @@
                                                     replacedWord:[[wv.request URL] absoluteString]];
             }
             
+            appDelegate.tabBarController.selectedIndex = 0;
+            
             appDelegate.postTextType = @"WebPage";
             appDelegate.postText = postText;
-
-            [self pushCloseButton:nil];
+            
+            [self pushComposeButton:nil];
             
         }else if ( buttonIndex == 1 ) {
             
@@ -906,15 +939,9 @@
         //PC版UAで開き直す
         }else if ( buttonIndex == 8 ) {
             
-            if ( wv.loading ) [wv stopLoading];
-            wv.delegate = nil;
-            [wv removeFromSuperview];
-            wv = nil;
-            appDelegate.reOpenUrl = accessURL;
             appDelegate.pcUaMode = YES;
-            accessURL = BLANK;
             [d setObject:@"FireFox" forKey:@"UserAgent"];
-            [self pushCloseButton:nil];
+            [self pushComposeButton:nil];
         }
         
     }else if ( actionSheetNo == 2 || actionSheetNo == 3 || actionSheetNo == 4 || actionSheetNo == 5 || actionSheetNo == 6 ) {
@@ -928,7 +955,6 @@
             
             //選択されたURLを開く
             [wv loadRequestWithString:[startupUrlList objectAtIndex:buttonIndex]];
-            startupUrlList = BLANK_ARRAY;
         }
         
     }else if ( actionSheetNo == 7 ) {
@@ -940,14 +966,14 @@
             if ( ![EmptyCheck check:wv.selectString] ) return;
             
             appDelegate.postText = wv.selectString;
-            [self pushCloseButton:nil];
+            [self pushComposeButton:nil];
         
         }else if ( buttonIndex == 1 ) {
         
             if ( ![EmptyCheck check:wv.selectString] ) return;
             
             appDelegate.postText = [NSString stringWithFormat:@">>%@", wv.selectString];
-            [self pushCloseButton:nil];
+            [self pushComposeButton:nil];
         
         }else if ( buttonIndex == 2 ) {
         
@@ -979,7 +1005,7 @@
             
             appDelegate.postText = postText;
             
-            [self pushCloseButton:nil];
+            [self pushComposeButton:nil];
         
         }else {
             
@@ -1054,9 +1080,19 @@
         if ( buttonIndex == 0 ) {
             
             [self resetUserAgent];
-            [self pushCloseButton:nil];
+            
+            [self dismissModalViewControllerAnimated:YES];
         }
         
+    }else if ( actionSheetNo == 12 ) {
+        
+        if ( buttonIndex == 0 ) {
+            
+            [self resetUserAgent];
+            
+            [self dismissModalViewControllerAnimated:YES];
+        }
+    
     }else if ( actionSheetNo == 13 ) {
         
         [ActivityIndicator off];
@@ -1073,6 +1109,12 @@
         @try {
             
             if ( buttonIndex == 0 ) {
+                
+                appDelegate.postText = pboard.string;
+                
+                [self pushComposeButton:nil];
+                
+            }else if ( buttonIndex == 1 ) {
                 
                 [wv loadRequestWithString:[CreateSearchURL google:pboard.string]];
                 
@@ -1582,33 +1624,19 @@
     [self setFlexibleSpace:nil];
     [self setUrlField:nil];
     [self setSearchField:nil];
-//    [self setComposeButton:nil];
+    [self setComposeButton:nil];
     [self setWv:nil];
     [self setBytesLabel:nil];
     [self setProgressBar:nil];
     [self setDownloadCancelButton:nil];
     [self setBookmarkButton:nil];
-    [self setMinimizeButton:nil];
     [super viewDidUnload];
-}
-
-- (void)viewDidAppear:(BOOL)animated {
-    
-    [super viewDidAppear:animated];
 }
 
 - (void)rotateView:(int)mode {
  
-    int offset = 0;
-    if ( SCREEN_HEIGHT == 480 ) offset = 20;
-    
     NSLog(@"rotateView: %d", mode);
     
-//    NSLog(@"SCREEN_WIDTH: %d", SCREEN_WIDTH);
-//    NSLog(@"SCREEN_HEIGHT: %d", SCREEN_HEIGHT);
-//    NSLog(@"STATUS_BAR_HEIGHT: %d", STATUS_BAR_HEIGHT);
-    
-    closeButton.enabled = NO;
     [UIView beginAnimations:nil context:nil];
     [UIView setAnimationDuration:0.05];
     [UIView setAnimationDelay:0.0];
@@ -1620,9 +1648,9 @@
         
         if ( fullScreen ) {
             
-            topBar.frame = CGRectMake(0, -44 + offset, SCREEN_WIDTH, TOOL_BAR_HEIGHT);
-            wv.frame = CGRectMake(0, 0 + offset, SCREEN_WIDTH, SCREEN_HEIGHT - offset);
-            bottomBar.frame = CGRectMake(0, SCREEN_HEIGHT + offset, SCREEN_WIDTH, TOOL_BAR_HEIGHT);
+            topBar.frame = CGRectMake(0, -44, SCREEN_WIDTH, TOOL_BAR_HEIGHT);
+            wv.frame = CGRectMake(0, 0, SCREEN_WIDTH, SCREEN_HEIGHT);
+            bottomBar.frame = CGRectMake(0, SCREEN_HEIGHT, SCREEN_WIDTH, TOOL_BAR_HEIGHT);
             
             if ( editing ) {
                 
@@ -1637,9 +1665,9 @@
             
         }else {
             
-            topBar.frame = CGRectMake(0, 0 + offset, SCREEN_WIDTH, TOOL_BAR_HEIGHT);
-            wv.frame = CGRectMake(0, TOOL_BAR_HEIGHT + offset, SCREEN_WIDTH, SCREEN_HEIGHT - offset - TOOL_BAR_HEIGHT * 2);
-            bottomBar.frame = CGRectMake(0, SCREEN_HEIGHT - offset - TOOL_BAR_HEIGHT + offset, SCREEN_WIDTH, TOOL_BAR_HEIGHT);
+            topBar.frame = CGRectMake(0, 0, SCREEN_WIDTH, TOOL_BAR_HEIGHT);
+            wv.frame = CGRectMake(0, TOOL_BAR_HEIGHT, SCREEN_WIDTH, SCREEN_HEIGHT - TOOL_BAR_HEIGHT * 2);
+            bottomBar.frame = CGRectMake(0, SCREEN_HEIGHT - TOOL_BAR_HEIGHT, SCREEN_WIDTH, TOOL_BAR_HEIGHT);
             
             if ( editing ) {
                 
@@ -1693,13 +1721,10 @@
     }
     
     [UIView commitAnimations];
-    closeButton.enabled = YES;
 }
 
 - (IBAction)fullScreenGesture:(id)sender {
-    
-    NSLog(@"fullScreenGesture");
-    
+        
     if ( fullScreen ) {
      
         fullScreen = NO;
@@ -1717,13 +1742,15 @@
 //    NSLog(@"shouldAutorotate");
 //    NSLog(@"ORIENTATION: %d", ORIENTATION);
     
-    if ( ORIENTATION == UIDeviceOrientationPortrait ||
-         ORIENTATION == UIDeviceOrientationLandscapeLeft ||
-         ORIENTATION == UIDeviceOrientationLandscapeRight ) {
+    if ( ORIENTATION == ( UIDeviceOrientationUnknown |
+                          UIDeviceOrientationPortrait |
+                          UIDeviceOrientationLandscapeLeft |
+                          UIDeviceOrientationLandscapeRight )) {
         
         //画面回転に伴ったUIの変更や処理をここで行う
-        if ( ORIENTATION == UIDeviceOrientationPortrait ) {
-            
+        if ( ORIENTATION == ( UIDeviceOrientationUnknown |
+                              UIDeviceOrientationPortrait )) {
+        
             //縦
             [self rotateView:0];
             
@@ -1732,7 +1759,7 @@
             //左右
             [self rotateView:1];
         }
-    
+        
         //画面回転を許可する
         return YES;
     }
@@ -1751,56 +1778,50 @@
 
 - (BOOL)shouldAutorotateToInterfaceOrientation:(UIInterfaceOrientation)interfaceOrientation {
     
-    if ( interfaceOrientation == UIDeviceOrientationPortrait ) {
-        
-        NSLog(@"WebViewEx AutorotatePortrait");
+    if ( interfaceOrientation == UIInterfaceOrientationPortrait ) {
         
         [self rotateView:0];
         
         return YES;
         
-    }else if ( interfaceOrientation == UIDeviceOrientationLandscapeLeft ||
-               interfaceOrientation == UIDeviceOrientationLandscapeRight ) {
-        
-        NSLog(@"WebViewEx AutorotateLandscape");
+    }else if ( interfaceOrientation == (UIInterfaceOrientationLandscapeLeft | UIInterfaceOrientationLandscapeRight )) {
         
         [self rotateView:1];
                 
         return YES;
+        
+    }else if ( interfaceOrientation == UIInterfaceOrientationPortraitUpsideDown ) {
+        
+        return NO;
     }
     
-    return NO;
+    return YES;
 }
 
 - (void)adBlock {
     
     NSLog(@"adBlock");
-
-    [wv stringByEvaluatingJavaScriptFromString:
-     @"var delads=document.getElementsByClassName(\"_naver_ad_area\");for(i=0;i<delads.length;i++){delads[i].style.display=none}"];
     
-    [wv stringByEvaluatingJavaScriptFromString:
-     @"var delads=document.getElementsByClassName(\"adlantis_sp_sticky_container\");for(i=0;i<delads.length;i++){delads[i].style.display=none}"];
+//    [wv stringByEvaluatingJavaScriptFromString:@"var delads=document.getElementsByTagName(\\'div\\');for(i=0;i<delads.length;i++){if(delads[i].className==\\'_naver_ad_area\\'){delads[i].style.display=none}}"];
+//    [wv stringByEvaluatingJavaScriptFromString:@"var delads=document.getElementsByTagName(\\'div\\');for(i=0;i<delads.length;i++){if(delads[i].className==\\'adlantis_sp_sticky_container\\'){delads[i].style.display=none}}"];
+    
+    
+//    [wv stringByEvaluatingJavaScriptFromString:
+//     @"var delads=document.getElementsByClassName(\"_naver_ad_area\");for(i=0;i<delads.length;i++){delads[i].style.display=none}"];
+//    
+//    [wv stringByEvaluatingJavaScriptFromString:
+//     @"var delads=document.getElementsByClassName(\"adlantis_sp_sticky_container\");for(i=0;i<delads.length;i++){delads[i].style.display=none}"];
 }
 
 - (void)setViewSize {
     
-    if ( ORIENTATION == UIDeviceOrientationLandscapeLeft ||
-         ORIENTATION == UIDeviceOrientationLandscapeRight ) {
+    if ( [[[UIDevice currentDevice] systemVersion] floatValue] < 6.0 ) {
         
-        [self rotateView:1];
+        [self shouldAutorotateToInterfaceOrientation:ORIENTATION];
         
     }else {
         
-        [self rotateView:0];
-    }
-}
-
-- (void)removeAllSubviews {
-    
-    while ( self.view.subviews.count ) {
-        UIView *child = self.view.subviews.lastObject;
-        [child removeFromSuperview];
+        [self shouldAutorotate];
     }
 }
 
@@ -1809,12 +1830,9 @@
     appDelegate.browserOpenMode = NO;
     appDelegate.urlSchemeDownloadUrl = BLANK;
     
-    if ( wv != nil ) {
-     
-        if ( wv.loading ) [wv stopLoading];
-        wv.delegate = nil;
-        [wv removeFromSuperview];
-    }
+    if ( wv.loading ) [wv stopLoading];
+    wv.delegate = nil;
+    [wv removeFromSuperview];
     
     [ActivityIndicator visible:NO];
 }

@@ -7,16 +7,6 @@
 
 #import <UIKit/UIKit.h>
 
-@interface MainTabBarController : UITabBarController {
-    
-    BOOL hiddenTabBar;
-    BOOL orientation;
-}
-
-- (void)setBarHidden:(BOOL)hidden;
-- (void)endHidden;
-
-- (void)enableOrientation;
-- (void)disableOrientation;
+@interface MainTabBarController : UITabBarController
 
 @end

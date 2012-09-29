@@ -1268,8 +1268,6 @@
 
 - (void)scrollTimelineForNewTweet {
     
-    NSLog(@"scrollTimelineForNewTweet START");
-    
     //Tweetがない場合はスクロールしない
     if ( timelineArray.count == 0 ) return;
     
@@ -1296,8 +1294,6 @@
     }
     
     if ( find ) {
-        
-        NSLog(@"SCROLL!");
         
         //スクロールする
         NSIndexPath *indexPath = [NSIndexPath indexPathForRow:index inSection:0];
@@ -2030,7 +2026,7 @@
                 if ( buttonIndex == 0 ) {
                     
                     
-                    appDelegate.startupUrlList = [NSArray arrayWithArray:[RegularExpression urls:text]];
+                    appDelegate.startupUrlList = [RegularExpression urls:text];
 
                     NSLog(@"startupUrlList[%d]: %@", appDelegate.startupUrlList.count, appDelegate.startupUrlList);
                     
@@ -2493,7 +2489,7 @@
                     dispatch_async(dispatch_get_main_queue(), ^ {
                         
                         //Tweet内のURL
-                        tweetInUrls = [NSArray arrayWithArray:[RegularExpression urls:text]];
+                        tweetInUrls = [RegularExpression urls:text];
                         [self copyTweetInUrl:tweetInUrls];
                     });
                 }
@@ -2774,9 +2770,28 @@
 
 - (void)openBrowser {
     
-    NSLog(@"Timeline openBrowser");
+    NSString *useragent = IPHONE_USERAGENT;
     
-    [appDelegate openBrowser];
+    if ( [[d objectForKey:@"UserAgent"] isEqualToString:@"FireFox"] ) {
+        
+        useragent = FIREFOX_USERAGENT;
+        
+    }else if ( [[d objectForKey:@"UserAgent"] isEqualToString:@"iPad"] ) {
+        
+        useragent = IPAD_USERAFENT;
+    }
+    
+    NSDictionary *dictionary = [[NSDictionary alloc] initWithObjectsAndKeys:useragent, @"UserAgent", nil];
+    [[NSUserDefaults standardUserDefaults] registerDefaults:dictionary];
+    
+    webBrowserMode = YES;
+    
+    dispatch_async(dispatch_get_main_queue(), ^ {
+        
+        WebViewExController *dialog = [[WebViewExController alloc] init];
+        dialog.modalTransitionStyle = UIModalTransitionStyleCoverVertical;
+        [appDelegate.tabBarController.self presentModalViewController:dialog animated:YES];
+    });
 }
 
 #pragma mark - UITextField
@@ -3027,9 +3042,21 @@
     
     [super viewDidAppear:animated];
     
-    NSLog(@"Timeline viewDidAppear");
+    NSLog(@"viewDidAppear");
     
-    [appDelegate becomeView];
+    if ( webBrowserMode ) {
+        
+        webBrowserMode = NO;
+        
+        if ( appDelegate.pcUaMode ) {
+            
+            appDelegate.pcUaMode = NO;
+            
+            [self openBrowser];
+            
+            return;
+        }
+    }
     
     if ( listMode && [EmptyCheck string:appDelegate.listId] ) {
         
@@ -3054,13 +3081,6 @@
     [super viewWillAppear:animated];
     
     NSLog(@"viewWillAppear");
-    
-    NSLog(@"SCREEN_WIDTH: %d", SCREEN_WIDTH);
-    NSLog(@"SCREEN_HEIGHT: %d", SCREEN_HEIGHT);
-    NSLog(@"STATUS_BAR_HEIGHT: %d", STATUS_BAR_HEIGHT);
-    
-    
-    appDelegate.lastTab = 1;
     
     ACAccount *account = [TWGetAccount currentAccount];
     

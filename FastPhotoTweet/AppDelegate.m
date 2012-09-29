@@ -6,9 +6,9 @@
 //
 
 #import "AppDelegate.h"
+#import "MainTabBarController.h"
 #import "ViewController.h"
 #import "TimelineViewController.h"
-#import "WebViewExController.h"
 #import "ResizeImage.h"
 
 void uncaughtExceptionHandler(NSException *e) {
@@ -55,12 +55,9 @@ void uncaughtExceptionHandler(NSException *e) {
 @synthesize postData;
 @synthesize resendNumber;
 @synthesize launchMode;
-@synthesize lastTab;
 @synthesize resendMode;
 @synthesize browserOpenMode;
 @synthesize pcUaMode;
-
-#pragma mark - Initialize
 
 - (BOOL)application:(UIApplication *)application didFinishLaunchingWithOptions:(NSDictionary *)launchOptions {
     
@@ -87,7 +84,6 @@ void uncaughtExceptionHandler(NSException *e) {
     [postError retain];
     
     resendNumber = 0;
-
     resendMode = NO;
     browserOpenMode = NO;
     pcUaMode = NO;
@@ -111,14 +107,13 @@ void uncaughtExceptionHandler(NSException *e) {
     
     UIViewController *mainView = [[[ViewController alloc] initWithNibName:@"ViewController" bundle:nil] autorelease];
     UIViewController *timelineView = [[[TimelineViewController alloc] initWithNibName:@"TimelineViewController" bundle:nil] autorelease];
-    WebViewExController *webViewController = [[[WebViewExController alloc] initWithNibName:@"WebViewExController" bundle:nil] autorelease];
     
     self.tabBarController = [[[MainTabBarController alloc] init] autorelease];
-    self.tabBarController.viewControllers = @[mainView, timelineView, webViewController];
+    self.tabBarController.viewControllers = [NSArray arrayWithObjects:mainView, timelineView, nil];
     self.window.rootViewController = self.tabBarController;
     
     [self.window makeKeyAndVisible];
-
+    
     return YES;
 }
 
@@ -139,8 +134,6 @@ void uncaughtExceptionHandler(NSException *e) {
     
     return YES;
 }
-
-#pragma mark - Check
 
 - (BOOL)ios5Check {
     
@@ -167,48 +160,6 @@ void uncaughtExceptionHandler(NSException *e) {
     
     return isDir;
 }
-
-#pragma mark - Browser
-
-- (void)openBrowser {
-    
-    NSString *useragent = IPHONE_USERAGENT;
-    
-    if ( [[D objectForKey:@"UserAgent"] isEqualToString:@"FireFox"] ) {
-        
-        useragent = FIREFOX_USERAGENT;
-        
-    }else if ( [[D objectForKey:@"UserAgent"] isEqualToString:@"iPad"] ) {
-        
-        useragent = IPAD_USERAFENT;
-    }
-    
-    NSDictionary *dictionary = [[NSDictionary alloc] initWithObjectsAndKeys:useragent, @"UserAgent", nil];
-    [[NSUserDefaults standardUserDefaults] registerDefaults:dictionary];
-    [dictionary release];
-    
-    browserOpenMode = YES;
-    
-    dispatch_async(dispatch_get_main_queue(), ^ {
-        
-        _tabBarController.selectedIndex = 2;
-    });
-}
-
-- (void)becomeView {
-    
-    if ( browserOpenMode ) browserOpenMode = NO;
-    
-    if ( pcUaMode ) {
-        
-        pcUaMode = NO;
-        
-        //開き直す
-        [self openBrowser];
-    }
-}
-
-#pragma mark - UIApplication
 
 - (void)applicationWillResignActive:(UIApplication *)application {
     
@@ -240,8 +191,6 @@ void uncaughtExceptionHandler(NSException *e) {
         [application endBackgroundTask:backgroundTask];
     }];
 }
-
-#pragma mark - Memory
 
 - (void)dealloc {
     
