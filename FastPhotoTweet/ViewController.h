@@ -59,7 +59,9 @@
 @property (retain, nonatomic) IBOutlet UITextView *postText;
 @property (retain, nonatomic) IBOutlet UILabel *callbackLabel;
 @property (retain, nonatomic) IBOutlet UILabel *postCharLabel;
+@property (retain, nonatomic) IBOutlet UILabel *pboardURLLabel;
 @property (retain, nonatomic) IBOutlet UISwitch *callbackSwitch;
+@property (retain, nonatomic) IBOutlet UISwitch *pboardURLSwitch;
 @property (retain, nonatomic) IBOutlet UIImageView *imagePreview;
 @property (retain, nonatomic) IBOutlet UIToolbar *topBar;
 @property (retain, nonatomic) IBOutlet UIToolbar *bottomBar;
@@ -93,6 +95,7 @@
 - (IBAction)pushActionButton:(id)sender;
 
 - (IBAction)callbackSwitchDidChage:(id)sender;
+- (IBAction)pboardSwitchDidChage:(id)sender;
 
 - (IBAction)svTapGesture:(UITapGestureRecognizer *)sender;
 - (IBAction)svSwipeGesture:(UISwipeGestureRecognizer *)sender;
@@ -110,16 +113,16 @@
 - (void)callback;
 - (void)countText;
 - (void)tohaSearch:(NSString *)text;
-- (void)uploadImage:(UIImage *)image;
-- (void)uploadNowPlayingImage:(UIImage *)image uploadType:(int)uploadType;
+- (oneway void)uploadImage:(UIImage *)image;
+- (oneway void)uploadNowPlayingImage:(UIImage *)image uploadType:(int)uploadType;
 - (void)postDone:(NSNotification *)center;
 - (NSString *)nowPlaying;
 - (void)setIconPreviewImage;
 
 - (void)nowPlayingNotification;
-- (void)postNotification:(int)pBoardType;
-- (void)fastPostNotification:(int)pBoardType;
-- (void)photoPostNotification:(int)pBoardType;
+- (void)tweetNotification:(int)pBoardType;
+- (void)fasttweetNotification:(int)pBoardType;
+- (void)phototweetNotification:(int)pBoardType;
 - (void)webPageShareNotification:(int)pBoardType;
 
 - (void)saveArtworkUrl:(NSString *)url;

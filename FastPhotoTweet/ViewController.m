@@ -19,7 +19,9 @@
 @synthesize postText;
 @synthesize callbackLabel;
 @synthesize postCharLabel;
+@synthesize pboardURLLabel;
 @synthesize callbackSwitch;
+@synthesize pboardURLSwitch;
 @synthesize imagePreview;
 @synthesize topBar;
 @synthesize trashButton;
@@ -73,6 +75,11 @@
     [notificationCenter addObserver:self 
                            selector:@selector(postDone:) 
                                name:@"PostDone" 
+                             object:nil];
+    
+    [notificationCenter addObserver:self
+                           selector:@selector(pboardNotification:)
+                               name:@"pboardNotification"
                              object:nil];
     
     //各種初期値をセット
@@ -194,7 +201,18 @@
         //オフ
         callbackSwitch.on = NO;
     }
+    
+    if ( [d boolForKey:@"PasteBoardCheck"] ) {
         
+        //オン
+        pboardURLSwitch.on = YES;
+        
+    }else {
+        
+        //オフ
+        pboardURLSwitch.on = NO;
+    }
+    
     if ( ![EmptyCheck check:[d objectForKey:@"CallBackScheme"]] ) {
         
         //スキームが保存されていない場合FPTを設定
@@ -367,7 +385,7 @@
             //NSLog(@"newVersion");
             
             [ShowAlert title:[NSString stringWithFormat:@"FastPhotoTweet %@", APP_VERSION] 
-                 message:@"・Retina 4-inchに対応\n・iOS6.0に対応\n・ブラウザ表示中にバックグラウンドから復帰した際のメニューの「ペーストボードのURLを開く」が動いていなかった問題を修正"];
+                 message:@"・ペーストボード監視機能の有効範囲を全画面に拡大"];
             
             information = [[[NSMutableDictionary alloc] initWithDictionary:[d dictionaryForKey:@"Information"]] autorelease];
             [information setValue:[NSNumber numberWithInt:1] forKey:APP_VERSION];
@@ -645,6 +663,21 @@
     }
 }
 
+- (IBAction)pboardSwitchDidChage:(id)sender {
+    
+    //スイッチの状態を保存
+    if ( pboardURLSwitch.on ) {
+        
+        [d setBool:YES forKey:@"PasteBoardCheck"];
+        if ( appDelegate.pBoardWatchTimer.isValid == NO ) [appDelegate startPasteBoardTimer];
+        
+    }else {
+        
+        [d setBool:NO forKey:@"PasteBoardCheck"];
+        if ( appDelegate.pBoardWatchTimer.isValid == YES ) [appDelegate stopPasteBoardTimer];
+    }
+}
+
 #pragma mark - GestureRecognizer
 
 - (IBAction)svTapGesture:(id)sender {
@@ -657,11 +690,13 @@
 
 - (IBAction)svSwipeGesture:(UISwipeGestureRecognizer *)sender {
     
+    NSLog(@"svSwipeGesture");
     self.tabBarController.selectedIndex = 1;
 }
 
 - (IBAction)imagePreviewSwipeGesture:(UISwipeGestureRecognizer *)sender {
     
+    NSLog(@"imagePreviewSwipeGesture");
     self.tabBarController.selectedIndex = 1;
 }
 
@@ -745,6 +780,12 @@
         return;
     }
     
+    if ( appDelegate.pboardURLOpenTweet ) {
+     
+        appDelegate.pboardURLOpenTweet = NO;
+        return;
+    }
+    
     if ( [EmptyCheck check:appDelegate.urlSchemeDownloadUrl] ) {
         
         appDelegate.startupUrlList = [NSArray arrayWithObject:@"about:blank"];
@@ -784,6 +825,18 @@
     }
     
     [self countText];
+}
+
+- (void)pboardNotification:(NSNotification *)notification {
+    
+    NSLog(@"Tweet pboardNotification: %@", notification.userInfo);
+    
+    //Tweetタブを開いていない場合は終了
+    if ( appDelegate.tabBarController.selectedIndex != 0 ||
+         appDelegate.browserOpenMode ) return;
+    
+    appDelegate.startupUrlList = [NSArray arrayWithObject:[notification.userInfo objectForKey:@"pboardURL"]];
+    [self pushBrowserButton:nil];
 }
 
 - (void)tohaSearch:(NSString *)text {
@@ -1087,15 +1140,15 @@
         
         if ( buttonIndex == 0 ) {
 
-            [self postNotification:pBoardType];
+            [self tweetNotification:pBoardType];
         
         }else if ( buttonIndex == 1 ) {
             
-            [self fastPostNotification:pBoardType];
+            [self fasttweetNotification:pBoardType];
             
         }else if ( buttonIndex == 2 ) {
             
-            [self photoPostNotification:pBoardType];
+            [self phototweetNotification:pBoardType];
             
         }else if ( buttonIndex == 3 ) {
             
@@ -1441,7 +1494,7 @@
     }
 }
 
-- (void)uploadImage:(UIImage *)image {
+- (oneway void)uploadImage:(UIImage *)image {
     
     //処理中を表すビューを表示
     [grayView onAndSetSize:postText.frame.origin.x   y:postText.frame.origin.y
@@ -1760,7 +1813,7 @@
     if ( !find ) iconPreview.image = nil;
 }
 
-- (void)uploadNowPlayingImage:(UIImage *)image uploadType:(int)uploadType {
+- (oneway void)uploadNowPlayingImage:(UIImage *)image uploadType:(int)uploadType {
     
     //NSLog(@"uploadType: %d", uploadType);
     
@@ -2044,7 +2097,7 @@
     [self countText];
 }
 
-- (void)postNotification:(int)pBoardType {
+- (void)tweetNotification:(int)pBoardType {
     
     if ( pBoardType == 0 ) {
         
@@ -2066,7 +2119,7 @@
     [postText becomeFirstResponder];
 }
 
-- (void)fastPostNotification:(int)pBoardType {
+- (void)fasttweetNotification:(int)pBoardType {
     
     @try {
         
@@ -2124,7 +2177,7 @@
     }@catch ( NSException *e ) {}
 }
 
-- (void)photoPostNotification:(int)pBoardType {
+- (void)phototweetNotification:(int)pBoardType {
     
     if ( pBoardType == 1 ) {
         
@@ -2339,6 +2392,8 @@
     [self setCallbackSelectButton:nil];
     [self setActionButton:nil];
     [self setIconPreview:nil];
+    [self setPboardURLLabel:nil];
+    [self setPboardURLSwitch:nil];
     [super viewDidUnload];
 }
 
@@ -2362,13 +2417,13 @@
 
 - (BOOL)shouldAutorotate {
     
-    NSLog(@"ViewController shouldAutorotate");
+    //NSLog(@"ViewController shouldAutorotate");
     return NO;
 }
 
 - (NSUInteger)supportedInterfaceOrientations {
     
-    NSLog(@"ViewController supportedInterfaceOrientations");
+    //NSLog(@"ViewController supportedInterfaceOrientations");
     return UIInterfaceOrientationMaskPortrait;
 }
 
@@ -2401,6 +2456,8 @@
     [callbackSelectButton release];
     [actionButton release];
     [iconPreview release];
+    [pboardURLLabel release];
+    [pboardURLSwitch release];
     [super dealloc];
 }
 

@@ -226,6 +226,11 @@
                            selector:@selector(receiveOfflineNotification:)
                                name:@"Offline"
                              object:nil];
+    
+    [notificationCenter addObserver:self
+                           selector:@selector(pboardNotification:)
+                               name:@"pboardNotification"
+                             object:nil];
 }
 
 - (void)setTimelineHeight {
@@ -2527,12 +2532,30 @@
     
     if ( ids.count == 1 ) {
         
-        sheet = [[UIActionSheet alloc]
-                 initWithTitle:@"ユーザー選択"
-                 delegate:self
-                 cancelButtonTitle:@"Cancel"
-                 destructiveButtonTitle:nil
-                 otherButtonTitles:[ids objectAtIndex:0], nil];
+        selectAccount = [ids objectAtIndex:0];
+        
+        if ( [selectAccount hasPrefix:@"@"] ) {
+            
+            //@から始まっている場合取り除く
+            selectAccount = [selectAccount substringFromIndex:1];
+        }
+        
+        //前後の空白文字を取り除く
+        selectAccount = [DeleteWhiteSpace string:selectAccount];
+        
+        alertSearchUserName = selectAccount;
+        
+        UIActionSheet *oneUserSheet = [[UIActionSheet alloc]
+                                initWithTitle:selectAccount
+                                delegate:self
+                                cancelButtonTitle:@"Cancel"
+                                destructiveButtonTitle:nil
+                                otherButtonTitles:@"外部サービスやユーザー情報を開く", @"フォロー関連", nil];
+        
+        oneUserSheet.tag = 4;
+        [oneUserSheet showInView:appDelegate.tabBarController.self.view];
+        
+        return;
         
     }else if ( ids.count == 2 ) {
         
@@ -2956,6 +2979,20 @@
      
         if ( !userStream ) [self pushReloadButton:nil];
     }
+    
+    appDelegate.pboardURLOpenTimeline = NO;
+}
+
+- (void)pboardNotification:(NSNotification *)notification {
+    
+    NSLog(@"Timeline pboardNotification: %@", notification.userInfo);
+    
+    //Timelineタブを開いていない場合は終了
+    if ( appDelegate.tabBarController.selectedIndex != 1 ||
+         appDelegate.browserOpenMode ) return;
+    
+    appDelegate.startupUrlList = [NSArray arrayWithObject:[notification.userInfo objectForKey:@"pboardURL"]];
+    [self openBrowser];
 }
 
 #pragma mark - View
@@ -3042,7 +3079,7 @@
     
     [super viewDidAppear:animated];
     
-    NSLog(@"viewDidAppear");
+    //NSLog(@"viewDidAppear");
     
     if ( webBrowserMode ) {
         
@@ -3080,7 +3117,7 @@
     
     [super viewWillAppear:animated];
     
-    NSLog(@"viewWillAppear");
+    //NSLog(@"viewWillAppear");
     
     ACAccount *account = [TWGetAccount currentAccount];
     

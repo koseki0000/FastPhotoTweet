@@ -6,10 +6,8 @@
 //
 
 #import "AppDelegate.h"
-#import "MainTabBarController.h"
 #import "ViewController.h"
 #import "TimelineViewController.h"
-#import "ResizeImage.h"
 
 void uncaughtExceptionHandler(NSException *e) {
     
@@ -23,7 +21,6 @@ void uncaughtExceptionHandler(NSException *e) {
     [formatter setDateFormat:@"YYYY-MM-dd_hh-mm-ss"];
     
     NSString *convertedDate = [formatter stringFromDate:now];
-    [formatter release];
     
     NSMutableString *fileName = [NSMutableString stringWithFormat:@"%@.txt", convertedDate];
     NSString *dataPath = [LOGS_DIRECTORY stringByAppendingPathComponent:fileName];
@@ -58,12 +55,18 @@ void uncaughtExceptionHandler(NSException *e) {
 @synthesize resendMode;
 @synthesize browserOpenMode;
 @synthesize pcUaMode;
+@synthesize pboardURLOpenTweet;
+@synthesize pboardURLOpenTimeline;
+@synthesize pboardURLOpenBrowser;
+@synthesize pBoardWatchTimer;
+
+#pragma mark - Initialize
 
 - (BOOL)application:(UIApplication *)application didFinishLaunchingWithOptions:(NSDictionary *)launchOptions {
     
     //NSLog(@"FinishLaunching: %@", launchOptions);
     
-    NSSetUncaughtExceptionHandler(&uncaughtExceptionHandler);
+    //NSSetUncaughtExceptionHandler(&uncaughtExceptionHandler);
     
     if ( [D objectForKey:@"HomePageURL"] == nil || [[D objectForKey:@"HomePageURL"] isEqualToString:BLANK] ) {
         
@@ -71,6 +74,7 @@ void uncaughtExceptionHandler(NSException *e) {
     }
     
     //各種初期化
+    pboard = [UIPasteboard generalPasteboard];
     postText = BLANK;
     postTextType = BLANK;
     bookmarkUrl = BLANK;
@@ -81,21 +85,20 @@ void uncaughtExceptionHandler(NSException *e) {
     listId = BLANK;
     
     postError = [NSMutableArray array];
-    [postError retain];
     
     resendNumber = 0;
     resendMode = NO;
     browserOpenMode = NO;
     pcUaMode = NO;
-
+    pboardURLOpenTweet = NO;
+    pboardURLOpenTimeline = NO;
+    pboardURLOpenBrowser = NO;
+    
     startupUrlList = [NSArray arrayWithObject:[D objectForKey:@"HomePageURL"]];
-    [startupUrlList retain];
     
     listAll = BLANK_ARRAY;
-    [listAll retain];
     
     postData = [NSMutableDictionary dictionary];
-    [postData retain];
     
     if ( launchOptions == NULL ) {
         launchMode = 0;
@@ -103,24 +106,44 @@ void uncaughtExceptionHandler(NSException *e) {
         launchMode = 1;
     }
     
-    self.window = [[[UIWindow alloc] initWithFrame:[[UIScreen mainScreen] bounds]] autorelease];
+    self.window = [[UIWindow alloc] initWithFrame:[[UIScreen mainScreen] bounds]];
     
-    UIViewController *mainView = [[[ViewController alloc] initWithNibName:@"ViewController" bundle:nil] autorelease];
-    UIViewController *timelineView = [[[TimelineViewController alloc] initWithNibName:@"TimelineViewController" bundle:nil] autorelease];
+    UIViewController *mainView = [[ViewController alloc] initWithNibName:@"ViewController" bundle:nil];
+    UIViewController *timelineView = [[TimelineViewController alloc] initWithNibName:@"TimelineViewController" bundle:nil];
     
-    self.tabBarController = [[[MainTabBarController alloc] init] autorelease];
+    self.tabBarController = [[MainTabBarController alloc] init];
     self.tabBarController.viewControllers = [NSArray arrayWithObjects:mainView, timelineView, nil];
     self.window.rootViewController = self.tabBarController;
     
     [self.window makeKeyAndVisible];
     
+    if ( [D boolForKey:@"PasteBoardCheck"] ) [self startPasteBoardTimer];
+    
     return YES;
 }
 
+#pragma mark - LocalNotification
+
 - (void)application:(UIApplication *)application didReceiveLocalNotification:(UILocalNotification *)notification {
     
-    //NSLog(@"Notification");
+    NSLog(@"Notification: %@", notification.userInfo);
+    
+    if ( notification.userInfo != nil ) {
+    
+        pboardURLOpenTweet = YES;
+        pboardURLOpenTimeline = YES;
+        pboardURLOpenBrowser = YES;
+        
+        NSNotification *pboardNotification =
+        [NSNotification notificationWithName:@"pboardNotification"
+                                      object:self
+                                    userInfo:notification.userInfo];
+        
+        [[NSNotificationCenter defaultCenter] postNotification:pboardNotification];
+    }
 }
+
+#pragma mark - URL Scheme
 
 - (BOOL)application:(UIApplication *)application handleOpenURL:(NSURL *)schemeURL {
 
@@ -129,11 +152,12 @@ void uncaughtExceptionHandler(NSException *e) {
     if ( [schemeURL.absoluteString hasPrefix:@"fhttp"] || [schemeURL.absoluteString hasPrefix:@"fhttps"]) {
         
         urlSchemeDownloadUrl = [schemeURL.absoluteString substringFromIndex:1];
-        [urlSchemeDownloadUrl retain];
     }
     
     return YES;
 }
+
+#pragma mark - System
 
 - (BOOL)ios5Check {
     
@@ -160,6 +184,82 @@ void uncaughtExceptionHandler(NSException *e) {
     
     return isDir;
 }
+
+#pragma mark - PasteBoard
+
+- (void)startPasteBoardTimer {
+    
+    NSLog(@"startPasteBoardTimer");
+    
+    @try {
+        
+        lastCheckPasteBoardURL = pboard.string;
+        
+    }@catch ( NSException *e ) {
+        
+        [pboard setString:BLANK];
+        lastCheckPasteBoardURL = BLANK;
+    }
+    
+    pBoardUrls = BLANK_ARRAY;
+    
+    pBoardWatchTimer = [NSTimer scheduledTimerWithTimeInterval:1.0f
+                                                        target:self
+                                                      selector:@selector(checkPasteBoard)
+                                                      userInfo:nil
+                                                       repeats:YES];
+    [pBoardWatchTimer fire];
+}
+
+- (void)stopPasteBoardTimer {
+    
+    NSLog(@"stopPasteBoardTimer");
+    
+    [pBoardWatchTimer invalidate];
+}
+
+- (void)checkPasteBoard {
+    
+    @try {
+        
+        //NSLog(@"checkPasteBoard");
+        
+        NSString *pBoardString = pboard.string;
+        
+//        NSLog(@"pBoardString: %@", pBoardString);
+//        NSLog(@"lastCheckPasteBoardURL: %@", lastCheckPasteBoardURL);
+        
+        if ( ![EmptyCheck string:pBoardString] ) {
+            
+            pBoardString = pboard.URL.absoluteString;
+        }
+        
+        //文字列がない場合は終了
+        if ( ![EmptyCheck string:pBoardString] ) return;
+        
+        //ペーストボードの内容が変化チェック
+        if ( ![pBoardString isEqualToString:lastCheckPasteBoardURL] ) {
+            
+            //URLがあるか確認
+            pBoardUrls = [NSArray arrayWithArray:[RegularExpression urls:pBoardString]];
+            
+            if ( pBoardUrls.count == 0 ) return;
+            
+            lastCheckPasteBoardURL = [pBoardUrls objectAtIndex:0];
+            
+            //通知を行う
+            UILocalNotification *localPush = [[UILocalNotification alloc] init];
+            localPush.timeZone = [NSTimeZone defaultTimeZone];
+            localPush.fireDate = [NSDate dateWithTimeIntervalSinceNow:0];
+            localPush.alertBody = lastCheckPasteBoardURL;
+            localPush.userInfo = @{ @"pboardURL" : [pBoardUrls objectAtIndex:0] };
+            [[UIApplication sharedApplication] scheduleLocalNotification:localPush];
+        }
+        
+    }@catch ( NSException *e ) { }
+}
+
+#pragma mark - Application
 
 - (void)applicationWillResignActive:(UIApplication *)application {
     
@@ -192,17 +292,11 @@ void uncaughtExceptionHandler(NSException *e) {
     }];
 }
 
-- (void)dealloc {
-    
-    [postError release];
-    [urlSchemeDownloadUrl release];
-    [startupUrlList release];
-    [listAll release];
+#pragma mark - View
 
-    [_window release];
-    [_tabBarController release];
-    
-    [super dealloc];
+- (void)dealloc {
+
+    if ( pBoardWatchTimer.isValid ) [self stopPasteBoardTimer];
 }
 
 @end

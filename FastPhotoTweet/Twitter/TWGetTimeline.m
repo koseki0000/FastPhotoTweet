@@ -107,7 +107,7 @@
          });
      }];
     
-    //NSLog(@"HomeTimeline request sended");
+    NSLog(@"HomeTimeline request sended");
 }
 
 + (void)userTimeline:(NSString *)screenName {

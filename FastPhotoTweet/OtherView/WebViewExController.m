@@ -12,7 +12,7 @@
 #import "WebViewExController.h"
 
 #define TOP_BAR [NSArray arrayWithObjects:urlField, searchField, searchButton, nil]
-#define BOTTOM_BAR [NSArray arrayWithObjects:closeButton, flexibleSpace, reloadButton, flexibleSpace, backButton, flexibleSpace, forwardButton, flexibleSpace, composeButton, flexibleSpace, bookmarkButton, flexibleSpace, menuButton, nil]
+#define BOTTOM_BAR [NSArray arrayWithObjects:closeButton, flexibleSpace, composeButton, flexibleSpace, reloadButton, flexibleSpace, backButton, flexibleSpace, forwardButton, flexibleSpace, bookmarkButton, flexibleSpace, menuButton, nil]
 #define EXTENSIONS [NSArray arrayWithObjects:@"zip", @"mp4", @"mov", @"m4a", @"rar", @"dmg", @"deb", nil]
 
 @implementation WebViewExController
@@ -84,6 +84,11 @@
     [notificationCenter addObserver:self
                            selector:@selector(becomeActive:)
                                name:UIApplicationDidBecomeActiveNotification
+                             object:nil];
+    
+    [notificationCenter addObserver:self
+                           selector:@selector(pboardNotification:)
+                               name:@"pboardNotification"
                              object:nil];
     
     d = [NSUserDefaults standardUserDefaults];
@@ -377,6 +382,18 @@
     }
 }
 
+- (void)pboardNotification:(NSNotification *)notification {
+    
+    NSLog(@"Browser pboardNotification: %@", notification.userInfo);
+    
+    //ブラウザを開いていない場合は終了
+    if ( !appDelegate.browserOpenMode ) return;
+    
+    //NSLog(@"Browser pboardNotification: %@", notification.userInfo);
+    
+    [wv loadRequestWithString:[notification.userInfo objectForKey:@"pboardURL"]];
+}
+
 - (void)becomeActive:(NSNotification *)notification {
     
     if ( [d boolForKey:@"applicationWillResignActiveBrowser"] ) {
@@ -394,7 +411,13 @@
         return;
     }
     
-    if ( !showActionSheet) {
+    if ( appDelegate.pboardURLOpenBrowser ) {
+     
+        appDelegate.pboardURLOpenBrowser = NO;
+        return;
+    }
+    
+    if ( !showActionSheet ) {
      
         showActionSheet = YES;
         
@@ -452,7 +475,7 @@
         
         appDelegate.startupUrlList = BLANK_ARRAY;
         appDelegate.reOpenUrl = accessURL;
-    
+        
         [self dismissModalViewControllerAnimated:YES];
     }
 }
@@ -611,13 +634,12 @@
                     //UIの更新
                     searchField.text = suggestion;
                     searchField.placeholder = @"Wikipedia";
+                    [d setObject:@"Wikipedia" forKey:@"SearchEngine"];
+                    [self enterSearchField:nil];
+                    [ActivityIndicator off];
                 });
-
-                [d setObject:@"Wikipedia" forKey:@"SearchEngine"];
-                [self enterSearchField:nil];
             });
             
-            [ActivityIndicator off];
             dispatch_release(syncQueue);
         });
     }
@@ -1742,14 +1764,14 @@
 //    NSLog(@"shouldAutorotate");
 //    NSLog(@"ORIENTATION: %d", ORIENTATION);
     
-    if ( ORIENTATION == ( UIDeviceOrientationUnknown |
-                          UIDeviceOrientationPortrait |
-                          UIDeviceOrientationLandscapeLeft |
-                          UIDeviceOrientationLandscapeRight )) {
+    if ( ORIENTATION == UIDeviceOrientationUnknown ||
+         ORIENTATION == UIDeviceOrientationPortrait ||
+         ORIENTATION == UIDeviceOrientationLandscapeLeft ||
+         ORIENTATION == UIDeviceOrientationLandscapeRight ) {
         
         //画面回転に伴ったUIの変更や処理をここで行う
-        if ( ORIENTATION == ( UIDeviceOrientationUnknown |
-                              UIDeviceOrientationPortrait )) {
+        if ( ORIENTATION == UIDeviceOrientationUnknown ||
+             ORIENTATION == UIDeviceOrientationPortrait ) {
         
             //縦
             [self rotateView:0];
@@ -1784,7 +1806,8 @@
         
         return YES;
         
-    }else if ( interfaceOrientation == (UIInterfaceOrientationLandscapeLeft | UIInterfaceOrientationLandscapeRight )) {
+    }else if ( interfaceOrientation == UIInterfaceOrientationLandscapeLeft ||
+               interfaceOrientation == UIInterfaceOrientationLandscapeRight ) {
         
         [self rotateView:1];
                 
@@ -1817,11 +1840,25 @@
     
     if ( [[[UIDevice currentDevice] systemVersion] floatValue] < 6.0 ) {
         
+        NSLog(@"setViewSize iOS5");
         [self shouldAutorotateToInterfaceOrientation:ORIENTATION];
         
     }else {
         
-        [self shouldAutorotate];
+        NSLog(@"setViewSize iOS6");
+        
+        //画面回転に伴ったUIの変更や処理をここで行う
+        if ( ORIENTATION == UIDeviceOrientationLandscapeRight ||
+             ORIENTATION == UIDeviceOrientationLandscapeLeft ) {
+            
+            //左右
+            [self rotateView:1];
+            
+        }else {
+            
+            //縦
+            [self rotateView:0];
+        }
     }
 }
 

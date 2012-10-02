@@ -94,6 +94,8 @@
 
 - (void)selectOpenUrl;
 - (void)selectUrl;
+
+- (void)pboardNotification:(NSNotification *)notification;
 - (void)becomeActive:(NSNotification *)notification;
 - (void)setSearchEngine;
 - (void)updateWebBrowser;

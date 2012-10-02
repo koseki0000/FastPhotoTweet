@@ -7,6 +7,7 @@
 
 #import <UIKit/UIKit.h>
 #import <sys/utsname.h>
+#import "MainTabBarController.h"
 
 #define IMGUR_API_KEY   @"6de089e68b55d6e390d246c4bf932901"
 #define TWITPIC_API_KEY @"95cf146048caad3267f95219b379e61c"
@@ -40,11 +41,17 @@ void uncaughtExceptionHandler(NSException *exception);
 
 @interface AppDelegate : UIResponder <UIApplicationDelegate, UITabBarControllerDelegate> {
     
+    NSString *lastCheckPasteBoardURL;
+    NSArray *pBoardUrls;
+    
+    UIPasteboard *pboard;
     UIBackgroundTaskIdentifier backgroundTask;
+    
+    BOOL pBoardWatch;
 }
 
 @property (strong, nonatomic) UIWindow *window;
-@property (strong, nonatomic) UITabBarController *tabBarController;
+@property (strong, nonatomic) MainTabBarController *tabBarController;
 
 @property (nonatomic, retain) NSString *postText;
 @property (nonatomic, retain) NSString *postTextType;
@@ -58,13 +65,21 @@ void uncaughtExceptionHandler(NSException *exception);
 @property (nonatomic, retain) NSArray *listAll;
 @property (nonatomic, retain) NSMutableArray *postError;
 @property (nonatomic, retain) NSMutableDictionary *postData;
+@property (nonatomic, retain) NSTimer *pBoardWatchTimer;
 @property int resendNumber;
 @property int launchMode;
 @property BOOL resendMode;
 @property BOOL browserOpenMode;
 @property BOOL pcUaMode;
+@property BOOL pboardURLOpenTweet;
+@property BOOL pboardURLOpenTimeline;
+@property BOOL pboardURLOpenBrowser;
 
 - (BOOL)ios5Check;
 - (BOOL)iconExist:(NSString *)searchName;
+
+- (void)startPasteBoardTimer;
+- (void)stopPasteBoardTimer;
+- (void)checkPasteBoard;
 
 @end
