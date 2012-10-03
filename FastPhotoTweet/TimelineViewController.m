@@ -2869,14 +2869,14 @@
     
     NSLog(@"pickerDone");
     
-    [self performSelectorInBackground:@selector(hidePicker) withObject:nil];
-    
     int account = [eventPicker selectedRowInComponent:0];
     int function = [eventPicker selectedRowInComponent:1];
     NSString *tweetId = [selectTweet objectForKey:@"id_str"];
     
 //    NSLog(@"account: %d", account);
 //    NSLog(@"function: %d", function);
+    
+    [self performSelectorInBackground:@selector(hidePicker) withObject:nil];
     
     if ( function == 0 ) {
         
@@ -2899,8 +2899,6 @@
         
         [TWEvent favoriteReTweet:tweetId accountIndex:account];
     }
-    
-    //[self hidePicker];
 }
 
 - (void)pickerCancel {
@@ -2919,6 +2917,7 @@
     [UIView animateWithDuration:0.4f
                           delay:0.0f
                         options:UIViewAnimationOptionTransitionNone
+     
                      animations:^{
                          
                          pickerBase.frame = CGRectMake(0,
@@ -2929,9 +2928,15 @@
                          pickerBase.alpha = 0;
                          pickerBar.alpha = 0;
                          eventPicker.alpha = 0;
-                         
                      }
-                     completion:nil
+     
+                     completion:^( BOOL finished ){
+                         
+                         NSLog(@"remove pickers");
+                         [eventPicker removeFromSuperview];
+                         [pickerBar removeFromSuperview];
+                         [pickerBase removeFromSuperview];
+                     }
      ];
 }
 
