@@ -19,15 +19,16 @@
     ACAccount *twAccount;
 }
 
-+ (void)favorite:(NSString *)tweetId;
-+ (void)reTweet:(NSString *)tweetId;
-+ (void)favoriteReTweet:(NSString *)tweetId;
++ (void)favorite:(NSString *)tweetId accountIndex:(int)accountIndex;
++ (void)reTweet:(NSString *)tweetId accountIndex:(int)accountIndex;
++ (void)favoriteReTweet:(NSString *)tweetId accountIndex:(int)accountIndex;
 + (void)getProfile:(NSString *)screenName;
 + (void)getTweet:(NSString *)tweetId;
 
-+ (void)unFavorite:(NSString *)tweetId;
++ (void)unFavorite:(NSString *)tweetId accountIndex:(int)accountIndex;
 + (void)destroy:(NSString *)tweetId;
 
 + (ACAccount *)canAction;
++ (ACAccount *)canActionWithAccount:(int)num;
 
 @end

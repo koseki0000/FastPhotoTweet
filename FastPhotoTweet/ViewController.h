@@ -79,7 +79,6 @@
 @property (retain, nonatomic) IBOutlet UISwipeGestureRecognizer *rigthSwipe;
 @property (retain, nonatomic) IBOutlet UISwipeGestureRecognizer *leftSwipe;
 @property (retain, nonatomic) IBOutlet UIButton *inputFunctionButton;
-@property (retain, nonatomic) IBOutlet UIButton *callbackSelectButton;
 @property (retain, nonatomic) IBOutlet UIImageView *iconPreview;
 
 - (IBAction)pushPostButton:(id)sender;
@@ -91,7 +90,6 @@
 - (IBAction)pushNowPlayingButton:(id)sender;
 - (IBAction)pushBrowserButton:(id)sender;
 - (IBAction)pushInputFunctionButton:(id)sender;
-- (IBAction)pushCallbackSelectButton:(id)sender;
 - (IBAction)pushActionButton:(id)sender;
 
 - (IBAction)callbackSwitchDidChage:(id)sender;
@@ -105,7 +103,6 @@
 - (IBAction)swipeToMoveCursorLeft:(UISwipeGestureRecognizer *)sender;
 
 - (void)loadSettings;
-- (void)setCallbackButtonTitle;
 - (void)setBottomBarPosition;
 - (void)showInfomation;
 - (void)showImagePicker;

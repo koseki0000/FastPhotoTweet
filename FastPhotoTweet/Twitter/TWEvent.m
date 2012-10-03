@@ -9,11 +9,11 @@
 
 @implementation TWEvent
 
-+ (void)favorite:(NSString *)tweetId {
++ (void)favorite:(NSString *)tweetId accountIndex:(int)accountIndex {
     
     NSLog(@"Add Favorite");
     
-    ACAccount *twAccount = [TWEvent canAction];
+    ACAccount *twAccount = [TWEvent canActionWithAccount:accountIndex];
     
     if ( twAccount != nil ) {
         
@@ -39,11 +39,11 @@
     }
 }
 
-+ (void)reTweet:(NSString *)tweetId {
++ (void)reTweet:(NSString *)tweetId accountIndex:(int)accountIndex {
     
     NSLog(@"ReTweet");
     
-    ACAccount *twAccount = [TWEvent canAction];
+    ACAccount *twAccount = [TWEvent canActionWithAccount:accountIndex];
     
     if ( twAccount != nil ) {
         
@@ -69,17 +69,17 @@
     }
 }
 
-+ (void)favoriteReTweet:(NSString *)tweetId {
++ (void)favoriteReTweet:(NSString *)tweetId accountIndex:(int)accountIndex {
     
-    [TWEvent favorite:tweetId];
-    [TWEvent reTweet:tweetId];
+    [TWEvent favorite:tweetId accountIndex:accountIndex];
+    [TWEvent reTweet:tweetId accountIndex:accountIndex];
 }
 
-+ (void)unFavorite:(NSString *)tweetId {
++ (void)unFavorite:(NSString *)tweetId accountIndex:(int)accountIndex {
     
     NSLog(@"UnFavorite");
     
-    ACAccount *twAccount = [TWEvent canAction];
+    ACAccount *twAccount = [TWEvent canActionWithAccount:accountIndex];
     
     if ( twAccount != nil ) {
         
@@ -293,7 +293,19 @@
     
     ACAccount *twAccount = [TWGetAccount currentAccount];
     
-    if ( [TWTweetComposeViewController canSendTweet] && [TWGetAccount currentAccount] != nil ) {
+    if ( [TWTweetComposeViewController canSendTweet] && twAccount != nil ) {
+        
+        return twAccount;
+    }
+    
+    return nil;
+}
+
++ (ACAccount *)canActionWithAccount:(int)num {
+    
+    ACAccount *twAccount = [TWGetAccount selectAccount:num];
+    
+    if ( [TWTweetComposeViewController canSendTweet] && twAccount != nil ) {
         
         return twAccount;
     }

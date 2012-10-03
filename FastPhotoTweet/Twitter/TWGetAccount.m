@@ -63,4 +63,15 @@
     return twitterAccounts.count;
 }
 
++ (NSArray *)accounts {
+    
+    ACAccountStore *accountStore = [[[ACAccountStore alloc] init] autorelease];
+    ACAccountType *accountType = [accountStore accountTypeWithAccountTypeIdentifier:ACAccountTypeIdentifierTwitter];
+    NSArray *twitterAccounts = [accountStore accountsWithAccountType:accountType];
+    
+    //NSLog(@"twitterAccounts: %@", twitterAccounts);
+    
+    return twitterAccounts;
+}
+
 @end

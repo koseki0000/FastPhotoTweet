@@ -13,6 +13,7 @@
 
 #define TOP_BAR [NSArray arrayWithObjects:actionButton, flexibleSpace, timelineControlButton, flexibleSpace, fixedSpace, flexibleSpace , reloadButton, flexibleSpace, postButton, nil]
 #define OTHER_TWEETS_BAR [NSArray arrayWithObjects:flexibleSpace, closeOtherTweetsButton, nil]
+#define PICKER_BAR_ITEM [NSArray arrayWithObjects:pickerBarCancelButton, flexibleSpace, pickerBarDoneButton, nil]
 
 @implementation TimelineViewController
 @synthesize topBar;
@@ -90,6 +91,7 @@
     userStream = NO;
     openStreamAfter = NO;
     userStreamFirstResponse = NO;
+    pickerVisible = NO;
 
     timelineScroll = 0;
     
@@ -1234,6 +1236,9 @@
     //セルの選択状態を解除
 	[tableView deselectRowAtIndexPath:indexPath animated:YES];
     
+    //ピッカー表示中は何もしない
+    if ( pickerVisible ) return;
+    
     selectRow = indexPath.row;
     selectTweet = [timelineArray objectAtIndex:indexPath.row];
     
@@ -1245,7 +1250,7 @@
                                 cancelButtonTitle:@"Cancel"
                                 destructiveButtonTitle:nil
                                 otherButtonTitles:@"URLを開く", @"Reply", @"Favorite／UnFavorite", @"ReTweet",
-                                @"Fav+RT", @"ハッシュタグをNG", @"クライアントをNG", @"InReplyTo", @"Tweetをコピー",
+                                @"Fav+RT", @"IDとFav,RTを選択", @"ハッシュタグをNG", @"クライアントをNG", @"InReplyTo", @"Tweetをコピー",
                                 @"Tweetを削除", @"Tweetを編集", @"ユーザーメニュー", nil];
         
         sheet.tag = 0;
@@ -1387,6 +1392,9 @@
 #pragma mark - IBAction
 
 - (IBAction)pushPostButton:(UIBarButtonItem *)sender {
+   
+    //ピッカー表示中の場合は隠す
+    if ( pickerVisible ) [self hidePicker];
     
     appDelegate.tabChangeFunction = @"Post";
     self.tabBarController.selectedIndex = 0;
@@ -1395,6 +1403,9 @@
 - (IBAction)pushReloadButton:(UIBarButtonItem *)sender {
     
     NSLog(@"pushReloadButton");
+    
+    //ピッカー表示中の場合は隠す
+    if ( pickerVisible ) [self hidePicker];
     
     //インターネット接続を確認
     if ( ![InternetConnection enable] ) return;
@@ -1439,6 +1450,9 @@
     
     if ( listMode ) {
         
+        //ピッカー表示中の場合は隠す
+        if ( pickerVisible ) [self hidePicker];
+        
         //Listモード中はList再選択を行う
         [self showListSelectView];
         
@@ -1459,6 +1473,9 @@
 
 - (IBAction)pushActionButton:(UIBarButtonItem *)sender {
 
+    //ピッカー表示中の場合は隠す
+    if ( pickerVisible ) [self hidePicker];
+    
     if ( sender != nil ) {
         
         
@@ -1484,6 +1501,9 @@
 }
 
 - (IBAction)pushCloseOtherTweetsButton:(UIBarButtonItem *)sender {
+    
+    //ピッカー表示中の場合は隠す
+    if ( pickerVisible ) [self hidePicker];
     
     listMode = NO;
     otherTweetsMode = NO;
@@ -1884,6 +1904,9 @@
     
     NSLog(@"swipeTimelineRight");
 
+    //ピッカー表示中の場合は隠す
+    if ( pickerVisible ) [self hidePicker];
+    
     //InReplyTto表示中は何もしない
     if ( otherTweetsMode ) return;
     
@@ -1913,6 +1936,9 @@
     
     NSLog(@"swipeTimelineLeft");
     
+    //ピッカー表示中の場合は隠す
+    if ( pickerVisible ) [self hidePicker];
+    
     //InReplyTto表示中は何もしない
     if ( otherTweetsMode ) return;
     
@@ -1937,6 +1963,9 @@
 
 - (IBAction)longPressTimeline:(UILongPressGestureRecognizer *)sender {
     
+    //ピッカー表示中の場合は隠す
+    if ( pickerVisible ) [self hidePicker];
+    
     if ( longPressControl == 0 ) {
         
         longPressControl = 1;
@@ -1960,6 +1989,9 @@
 - (IBAction)changeSegment:(UISegmentedControl *)sender {
     
     NSLog(@"changeSegment");
+    
+    //ピッカー表示中の場合は隠す
+    if ( pickerVisible ) [self hidePicker];
     
     //InReplyTo表示中なら閉じる
     if ( otherTweetsMode ) {
@@ -2072,22 +2104,29 @@
                     
                     if ( favorited ) {
                         
-                        [TWEvent unFavorite:tweetId];
+                        [TWEvent unFavorite:tweetId accountIndex:[d integerForKey:@"UseAccount"]];
                         
                     }else {
                         
-                        [TWEvent favorite:tweetId];
+                        [TWEvent favorite:tweetId accountIndex:[d integerForKey:@"UseAccount"]];
                     }
                     
                 }else if ( buttonIndex == 3 ) {
                     
-                    [TWEvent reTweet:tweetId];
+                    [TWEvent reTweet:tweetId accountIndex:[d integerForKey:@"UseAccount"]];
                     
                 }else if ( buttonIndex == 4 ) {
                     
-                    [TWEvent favoriteReTweet:tweetId];
+                    [TWEvent favoriteReTweet:tweetId accountIndex:[d integerForKey:@"UseAccount"]];
                 
-                }else if ( buttonIndex == 5 ) {
+                }else if ( buttonIndex == 5) {
+                    
+                    dispatch_sync(dispatch_get_main_queue(), ^{
+                        
+                        [self performSelector:@selector(showPickerView) withObject:nil afterDelay:0.2];
+                    });                    
+                    
+                }else if ( buttonIndex == 6 ) {
                     
                     NSString *hashTag = [RegularExpression strWithRegExp:[selectTweet objectForKey:@"text"] regExpPattern:@"((?:\\A|\\z|[\x0009-\x000D\x0020\xC2\x85\u00A0\u1680\u180E\u2000-\u200A\u2028\u2029\u202F\u205F\u3000]|[\\[\\]［］()（）{}｛｝‘’“”\"\'｟｠⸨⸩「」｢｣『』〚〛⟦⟧〔〕❲❳〘〙⟬⟭〈〉〈〉⟨⟩《》⟪⟫<>＜＞«»‹›【】〖〗]|。|、|\\.|!))(#|＃)([a-z0-9_\u00C0-\u00D6\u00D8-\u00F6\u00F8-\u00FF\u0400-\u04FF\u0500-\u0527\u1100-\u11FF\u3130-\u3185\uA960-\uA97F\uAC00-\uD7AF\uD7B0-\uD7FF\u30A1-\u30FA\uFF66-\uFF9D\uFF10-\uFF19\uFF21-\uFF3A\uFF41-\uFF5A\u3041-\u3096\u3400-\u4DBF\u4E00-\u9FFF\u020000-\u02A6DF\u02A700-\u02B73F\u02B740-\u02B81F\u02F800-\u02FA1F\u30FC\u3005]*[a-z_\u00C0-\u00D6\u00D8-\u00F6\u00F8-\u00FF\u0400-\u04FF\u0500-\u0527\u1100-\u11FF\u3130-\u3185\uA960-\uA97F\uAC00-\uD7AF\uD7B0-\uD7FF\u30A1-\u30FA\uFF66-\uFF9D\uFF10-\uFF19\uFF21-\uFF3A\uFF41-\uFF5A\u3041-\u3096\u3400-\u4DBF\u4E00-\u9FFF\u020000-\u02A6DF\u02A700-\u02B73F\u02B740-\u02B81F\u02F800-\u02FA1F\u30FC\u3005][a-z0-9_\u00C0-\u00D6\u00D8-\u00F6\u00F8-\u00FF\u0400-\u04FF\u0500-\u0527\u1100-\u11FF\u3130-\u3185\uA960-\uA97F\uAC00-\uD7AF\uD7B0-\uD7FF\u30A1-\u30FA\uFF66-\uFF9D\uFF10-\uFF19\uFF21-\uFF3A\uFF41-\uFF5A\u3041-\u3096\u3400-\u4DBF\u4E00-\u9FFF\u020000-\u02A6DF\u02A700-\u02B73F\u02B740-\u02B81F\u02F800-\u02FA1F\u30FC\u3005]*)(?=(?:\\A|\\z|[\x0009-\x000D\x0020\xC2\x85\u00A0\u1680\u180E\u2000-\u200A\u2028\u2029\u202F\u205F\u3000]|[\\[\\]［］()（）{}｛｝‘’“”\"\'｟｠⸨⸩「」｢｣『』〚〛⟦⟧〔〕❲❳〘〙⟬⟭〈〉〈〉⟨⟩《》⟪⟫<>＜＞«»‹›【】〖〗]|。|、|\\.|!))"];
                     
@@ -2125,7 +2164,7 @@
                         });
                     }
                 
-                }else if ( buttonIndex == 6 ) {
+                }else if ( buttonIndex == 7 ) {
                     
                     NSMutableDictionary *addDic = [NSMutableDictionary dictionary];
                     
@@ -2155,7 +2194,7 @@
                         [timeline reloadData];
                     });
                     
-                }else if ( buttonIndex == 7 ) {
+                }else if ( buttonIndex == 8 ) {
                     
                     [inReplyTo removeAllObjects];
                     
@@ -2178,7 +2217,7 @@
                         });
                     }
                 
-                }else if ( buttonIndex == 8 ) {
+                }else if ( buttonIndex == 9 ) {
                     
                     dispatch_async(dispatch_get_main_queue(), ^ {
                         
@@ -2193,7 +2232,7 @@
                         [sheet showInView:appDelegate.tabBarController.self.view];
                     });
                     
-                }else if ( buttonIndex == 9 ) {
+                }else if ( buttonIndex == 10 ) {
                     
                     if ( [[[selectTweet objectForKey:@"user"] objectForKey:@"screen_name"] isEqualToString:twAccount.username] ) {
                         
@@ -2207,7 +2246,7 @@
                         });
                     }
                     
-                }else if ( buttonIndex == 10 ) {
+                }else if ( buttonIndex == 11 ) {
                     
                     if ( [[[selectTweet objectForKey:@"user"] objectForKey:@"screen_name"] isEqualToString:twAccount.username] ) {
                         
@@ -2248,7 +2287,7 @@
                         });
                     }
                     
-                }else if ( buttonIndex == 11 ) {
+                }else if ( buttonIndex == 12 ) {
                     
                     NSMutableArray *ids = [RegularExpression twitterIds:[selectTweet objectForKey:@"text"]];
                     [ids insertObject:[NSString stringWithFormat:@"@%@", [[selectTweet objectForKey:@"user"] objectForKey:@"screen_name"]] atIndex:0];
@@ -2749,6 +2788,191 @@
     appDelegate.startupUrlList = [NSArray arrayWithObject:serviceUrl];
     
     [self openBrowser];
+}
+
+#pragma mark - UIPickerView
+
+- (void)showPickerView {
+    
+    NSLog(@"showPickerView");
+    
+    //表示フラグ
+    pickerVisible = YES;
+    appDelegate.tabBarController.tabBar.userInteractionEnabled = NO;
+    
+    pickerBase = [[UIView alloc] initWithFrame:CGRectMake(0,
+                                                          SCREEN_HEIGHT,
+                                                          SCREEN_WIDTH,
+                                                          TOOL_BAR_HEIGHT + PICKER_HEIGHT)];
+    pickerBase.backgroundColor = [UIColor clearColor];
+    [appDelegate.tabBarController.self.view addSubview:pickerBase];
+    
+    pickerBar = [[UIToolbar alloc] initWithFrame:CGRectMake(0,
+                                                            0,
+                                                            SCREEN_WIDTH,
+                                                            TOOL_BAR_HEIGHT)];
+    pickerBar.tintColor = topBar.tintColor;
+    
+    pickerBarDoneButton = [[UIBarButtonItem alloc]
+                  initWithBarButtonSystemItem:UIBarButtonSystemItemDone
+                  target:self
+                  action:@selector(pickerDone)];
+    
+    pickerBarCancelButton = [[UIBarButtonItem alloc]
+                           initWithBarButtonSystemItem:UIBarButtonSystemItemCancel
+                           target:self
+                           action:@selector(pickerCancel)];
+    
+    [pickerBar setItems:PICKER_BAR_ITEM animated:NO];
+    [pickerBase addSubview:pickerBar];
+    
+    eventPicker = [[UIPickerView alloc] initWithFrame:CGRectMake(0,
+                                                                 TOOL_BAR_HEIGHT,
+                                                                 SCREEN_WIDTH,
+                                                                 PICKER_HEIGHT)];
+    eventPicker.delegate = self;
+    eventPicker.dataSource = self;
+    eventPicker.showsSelectionIndicator = YES;
+    [pickerBase addSubview:eventPicker];
+    
+    //アカウント初期値
+    [eventPicker selectRow:[d integerForKey:@"UseAccount"] inComponent:0 animated:NO];
+    
+    //イベント初期値
+    [eventPicker selectRow:0 inComponent:1 animated:NO];
+    
+    pickerBase.alpha = 0;
+    pickerBar.alpha = 0;
+    eventPicker.alpha = 0;
+    
+    //アニメーションさせつつ画面に表示
+    [UIView animateWithDuration:0.3f
+                          delay:0.0f
+                        options:UIViewAnimationOptionTransitionNone
+                     animations:^{
+                         
+                         pickerBase.frame = CGRectMake(0,
+                                                       STATUS_BAR_HEIGHT + SCREEN_HEIGHT - TAB_BAR_HEIGHT - PICKER_HEIGHT - TOOL_BAR_HEIGHT,
+                                                       SCREEN_WIDTH,
+                                                       TOOL_BAR_HEIGHT + PICKER_HEIGHT);
+                         
+                         pickerBase.alpha = 1;
+                         pickerBar.alpha = 1;
+                         eventPicker.alpha = 1;
+                         
+                     }
+                     completion:nil
+     ];
+}
+
+- (void)pickerDone {
+    
+    NSLog(@"pickerDone");
+    
+    [self performSelectorInBackground:@selector(hidePicker) withObject:nil];
+    
+    int account = [eventPicker selectedRowInComponent:0];
+    int function = [eventPicker selectedRowInComponent:1];
+    NSString *tweetId = [selectTweet objectForKey:@"id_str"];
+    
+//    NSLog(@"account: %d", account);
+//    NSLog(@"function: %d", function);
+    
+    if ( function == 0 ) {
+        
+        BOOL favorited = [[selectTweet objectForKey:@"favorited"] boolValue];
+        
+        if ( favorited ) {
+            
+            [TWEvent unFavorite:tweetId accountIndex:account];
+            
+        }else {
+            
+            [TWEvent favorite:tweetId accountIndex:account];
+        }
+        
+    }else if ( function == 1 ) {
+        
+        [TWEvent reTweet:tweetId accountIndex:account];
+        
+    }else if ( function == 2 ) {
+        
+        [TWEvent favoriteReTweet:tweetId accountIndex:account];
+    }
+    
+    //[self hidePicker];
+}
+
+- (void)pickerCancel {
+    
+    NSLog(@"pickerCancel");
+    
+    [self hidePicker];
+}
+
+- (void)hidePicker {
+    
+    pickerVisible = NO;
+    appDelegate.tabBarController.tabBar.userInteractionEnabled = YES;
+    
+    //アニメーションさせつつ画面から消す
+    [UIView animateWithDuration:0.4f
+                          delay:0.0f
+                        options:UIViewAnimationOptionTransitionNone
+                     animations:^{
+                         
+                         pickerBase.frame = CGRectMake(0,
+                                                       SCREEN_HEIGHT,
+                                                       SCREEN_WIDTH,
+                                                       TOOL_BAR_HEIGHT + PICKER_HEIGHT);
+                         
+                         pickerBase.alpha = 0;
+                         pickerBar.alpha = 0;
+                         eventPicker.alpha = 0;
+                         
+                     }
+                     completion:nil
+     ];
+}
+
+-(NSInteger)numberOfComponentsInPickerView:(UIPickerView *)pickerView {
+
+    //列数を返す
+    return 2;
+}
+
+- (NSInteger)pickerView:(UIPickerView *)pickerView
+numberOfRowsInComponent:(NSInteger)component {
+
+    //行数を返す
+    if ( component == 0 ) {
+        
+        return [TWGetAccount getCount];
+        
+    }else{
+        
+        return 3;
+    }
+}
+
+
+- (NSString *)pickerView:(UIPickerView *)pickerView
+           titleForRow:(NSInteger)row
+          forComponent:(NSInteger)component {
+    
+    //表示する内容を返す
+    NSString * result = BLANK;
+    
+    if ( component == 0 ) {
+        
+        result = [[[TWGetAccount accounts] objectAtIndex:row] username];
+        
+    }else {
+        
+        result = [@[@"Fav／UnFav", @"ReTweet", @"Fav+RT"] objectAtIndex:row];
+    }
+    
+    return result;
 }
 
 #pragma mark - UIAlertView

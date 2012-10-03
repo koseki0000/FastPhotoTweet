@@ -31,7 +31,6 @@
 @synthesize rigthSwipe;
 @synthesize leftSwipe;
 @synthesize inputFunctionButton;
-@synthesize callbackSelectButton;
 @synthesize iconPreview;
 @synthesize browserButton;
 @synthesize actionButton;
@@ -120,7 +119,6 @@
     
     //保存されている情報をロード
     [self loadSettings];
-    [self setCallbackButtonTitle];
     
     //インターネット接続のチェック
     [InternetConnection enable];
@@ -191,17 +189,6 @@
         //NSLog(@"UUID: %@", [d objectForKey:@"UUID"]);
     }
     
-    if ( [d boolForKey:@"CallBack"] ) {
-        
-        //オン
-        callbackSwitch.on = YES;
-        
-    }else {
-        
-        //オフ
-        callbackSwitch.on = NO;
-    }
-    
     if ( [d boolForKey:@"PasteBoardCheck"] ) {
         
         //オン
@@ -267,76 +254,6 @@
     [d synchronize];
 }
 
-- (void)setCallbackButtonTitle {
-    
-    NSString *scheme = [d objectForKey:@"CallBackScheme"];
-    
-    if ( [scheme isEqualToString:@"FPT"] ) {
-    
-        [callbackSelectButton setTitle:@"FastPhotoTweet" forState:UIControlStateNormal];
-        
-    }else if ( [scheme isEqualToString:@"twitter://"] ) {
-        
-        [callbackSelectButton setTitle:@"Twitter for iPhone" forState:UIControlStateNormal];
-        
-    }else if ( [scheme isEqualToString:@"tweetbot://"] ) {
-        
-        [callbackSelectButton setTitle:@"Tweetbot" forState:UIControlStateNormal];
-        
-    }else if ( [scheme isEqualToString:@"echofon://?"] ) {
-        
-        [callbackSelectButton setTitle:@"Echofon" forState:UIControlStateNormal];
-        
-    }else if ( [scheme isEqualToString:@"echofonpro://?"] ) {
-        
-        [callbackSelectButton setTitle:@"Echofon Pro" forState:UIControlStateNormal];
-        
-    }else if ( [scheme isEqualToString:@"soicha://"] ) {
-        
-        [callbackSelectButton setTitle:@"SOICHA" forState:UIControlStateNormal];
-        
-    }else if ( [scheme isEqualToString:@"tweetings://"] ) {
-        
-        [callbackSelectButton setTitle:@"Tweetings" forState:UIControlStateNormal];
-        
-    }else if ( [scheme isEqualToString:@"osfoora://"] ) {
-        
-        [callbackSelectButton setTitle:@"Osfoora" forState:UIControlStateNormal];
-        
-    }else if ( [scheme isEqualToString:@"twittelator://"] ) {
-        
-        [callbackSelectButton setTitle:@"Twittelator" forState:UIControlStateNormal];
-        
-    }else if ( [scheme isEqualToString:@"tweetlist://"] ) {
-        
-        [callbackSelectButton setTitle:@"TweetList!" forState:UIControlStateNormal];
-        
-    }else if ( [scheme isEqualToString:@"tweetatok://"] ) {
-        
-        [callbackSelectButton setTitle:@"Tweet ATOK" forState:UIControlStateNormal];
-        
-    }else if ( [scheme isEqualToString:@"tweetlogix://"] ) {
-        
-        [callbackSelectButton setTitle:@"Tweetlogix" forState:UIControlStateNormal];
-        
-    }else if ( [scheme isEqualToString:@"hootsuite://"] ) {
-        
-        [callbackSelectButton setTitle:@"HootSuite" forState:UIControlStateNormal];
-        
-    }else if ( [scheme isEqualToString:@"simplytweet://"] ) {
-        
-        [callbackSelectButton setTitle:@"SimplyTweet" forState:UIControlStateNormal];
-        
-    }else if ( [scheme isEqualToString:@"reeder://"] ) {
-        
-        [callbackSelectButton setTitle:@"Reeder" forState:UIControlStateNormal];
-        
-    }else {
-        
-        [callbackSelectButton setTitle:@"未選択" forState:UIControlStateNormal];
-    }
-}
-
 - (void)setBottomBarPosition {
     
     //下部バーの位置を計算する
@@ -385,7 +302,7 @@
             //NSLog(@"newVersion");
             
             [ShowAlert title:[NSString stringWithFormat:@"FastPhotoTweet %@", APP_VERSION] 
-                 message:@"・ペーストボード監視機能の有効範囲を全画面に拡大"];
+                 message:@"・Timelineメニューに｢IDとfav,RTを選択｣を追加\n・ペーストボード監視機能の不具合を修正\n・その他細かな修正"];
             
             information = [[[NSMutableDictionary alloc] initWithDictionary:[d dictionaryForKey:@"Information"]] autorelease];
             [information setValue:[NSNumber numberWithInt:1] forKey:APP_VERSION];
@@ -566,25 +483,6 @@
     [self presentModalViewController:dialog animated:YES];
 }
 
-- (IBAction)pushCallbackSelectButton:(id)sender {
-    
-    actionSheetNo = 8;
-    
-    UIActionSheet *sheet = [[UIActionSheet alloc]
-                            initWithTitle:@"アプリ選択"
-                            delegate:self
-                            cancelButtonTitle:@"Cancel"
-                            destructiveButtonTitle:nil
-                            otherButtonTitles:@"FastPhotoTweet", @"Twitter for iPhone",
-                            @"Tweetbot", @"Echofon", @"Echofon Pro",
-                            @"SOICHA", @"Tweetings", @"Osfoora",
-                            @"Twittelator", @"TweetList!", @"Tweet ATOK",
-                            @"Tweetlogix",  @"HootSuite", @"SimplyTweet",
-                            @"Reeder", nil];
-	[sheet autorelease];
-	[sheet showInView:appDelegate.tabBarController.self.view];
-}
-
 - (IBAction)pushImageSettingButton:(id)sender {
     
     //NSLog(@"pushImageSettingButton");
@@ -669,12 +567,10 @@
     if ( pboardURLSwitch.on ) {
         
         [d setBool:YES forKey:@"PasteBoardCheck"];
-        if ( appDelegate.pBoardWatchTimer.isValid == NO ) [appDelegate startPasteBoardTimer];
         
     }else {
         
         [d setBool:NO forKey:@"PasteBoardCheck"];
-        if ( appDelegate.pBoardWatchTimer.isValid == YES ) [appDelegate stopPasteBoardTimer];
     }
 }
 
@@ -1296,40 +1192,6 @@
         
     }else if ( actionSheetNo == 8 ) {
         
-        if ( buttonIndex == 0 ) {
-            [d setObject:@"FPT" forKey:@"CallBackScheme"];
-        }else if ( buttonIndex == 1 ) {    
-            [d setObject:@"twitter://" forKey:@"CallBackScheme"];
-        }else if ( buttonIndex == 2 ) {
-            [d setObject:@"tweetbot://" forKey:@"CallBackScheme"];
-        }else if ( buttonIndex == 3 ) {
-            [d setObject:@"echofon://?" forKey:@"CallBackScheme"];        
-        }else if ( buttonIndex == 4 ) {
-            [d setObject:@"echofonpro://?" forKey:@"CallBackScheme"];
-        }else if ( buttonIndex == 5 ) {
-            [d setObject:@"soicha://" forKey:@"CallBackScheme"];
-        }else if ( buttonIndex == 6 ) {
-            [d setObject:@"tweetings://" forKey:@"CallBackScheme"];
-        }else if ( buttonIndex == 7 ) {
-            [d setObject:@"osfoora://" forKey:@"CallBackScheme"];
-        }else if ( buttonIndex == 8 ) {
-            [d setObject:@"twittelator://" forKey:@"CallBackScheme"];
-        }else if ( buttonIndex == 9 ) {
-            [d setObject:@"tweetlist://" forKey:@"CallBackScheme"];
-        }else if ( buttonIndex == 10 ) {
-            [d setObject:@"tweetatok://" forKey:@"CallBackScheme"];
-        }else if ( buttonIndex == 11 ) {
-            [d setObject:@"tweetlogix://" forKey:@"CallBackScheme"];
-        }else if ( buttonIndex == 12 ) {
-            [d setObject:@"hootsuite://" forKey:@"CallBackScheme"];
-        }else if ( buttonIndex == 13 ) {
-            [d setObject:@"simplytweet://" forKey:@"CallBackScheme"];
-        }else if ( buttonIndex == 14 ) {
-            [d setObject:@"reeder://" forKey:@"CallBackScheme"];
-        }
-        
-        [self setCallbackButtonTitle];
-    
     }else if ( actionSheetNo == 9 ) {
         
         if ( buttonIndex == 0 ) {
@@ -2389,7 +2251,6 @@
     [self setNowPlayingButton:nil];
     [self setBrowserButton:nil];
     [self setInputFunctionButton:nil];
-    [self setCallbackSelectButton:nil];
     [self setActionButton:nil];
     [self setIconPreview:nil];
     [self setPboardURLLabel:nil];
@@ -2453,7 +2314,6 @@
     [nowPlayingButton release];
     [browserButton release];
     [inputFunctionButton release];
-    [callbackSelectButton release];
     [actionButton release];
     [iconPreview release];
     [pboardURLLabel release];

@@ -20,7 +20,7 @@
 #import "JSON.h"
 #import "WebViewExController.h"
 
-@interface TimelineViewController : UIViewController <UIActionSheetDelegate, UITextFieldDelegate> {
+@interface TimelineViewController : UIViewController <UIActionSheetDelegate, UITextFieldDelegate, UIPickerViewDelegate, UIPickerViewDataSource> {
     
     AppDelegate *appDelegate;
     
@@ -55,6 +55,12 @@
     UIAlertView *alertSearch;
     UITextField *alertSearchText;
     
+    UIView *pickerBase;
+    UIToolbar *pickerBar;
+    UIPickerView *eventPicker;
+    UIBarButtonItem *pickerBarDoneButton;
+    UIBarButtonItem *pickerBarCancelButton;
+    
     ACAccount *twAccount;
     
     BOOL userStream;
@@ -66,6 +72,7 @@
     BOOL userStreamBuffer;
     BOOL alertSearchType;
     BOOL listMode;
+    BOOL pickerVisible;
     
     int selectRow;
     int longPressControl;
@@ -126,5 +133,10 @@
 - (void)getMyAccountIcon;
 - (void)timelineDidListChanged;
 - (void)showListSelectView;
+
+- (void)showPickerView;
+- (void)pickerDone;
+- (void)pickerCancel;
+- (void)hidePicker;
 
 @end

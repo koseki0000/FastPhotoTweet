@@ -16,9 +16,11 @@
 
 #define SCREEN_HEIGHT (int)[UIScreen mainScreen].applicationFrame.size.height
 #define SCREEN_WIDTH (int)[UIScreen mainScreen].applicationFrame.size.width
+#define STATUS_BAR_HEIGHT 20
 #define TOOL_BAR_HEIGHT 44
 #define SEGMENT_BAR_HEIGHT 30
 #define TAB_BAR_HEIGHT 49
+#define PICKER_HEIGHT 216
 
 #define BLANK @""
 #define BLANK_ARRAY [NSArray array]

@@ -93,7 +93,7 @@
     
     d = [NSUserDefaults standardUserDefaults];
 
-    [d boolForKey:@"ClearBrowserSearchField"] ? ( searchField.clearsOnBeginEditing = YES ) : ( searchField.clearsOnBeginEditing = NO );
+    searchField.clearsOnBeginEditing = [d boolForKey:@"ClearBrowserSearchField"];
     
     accessURL = BLANK;
     
@@ -193,15 +193,22 @@
                     
                     //NSLog(@"スタートアップURLがホームページのURLではなかった場合選択して表示");
                     
-                    actionSheetNo = 15;
-                    
-                    UIActionSheet *sheet = [[UIActionSheet alloc]
-                                            initWithTitle:@"URL展開選択"
-                                            delegate:self
-                                            cancelButtonTitle:@"Cancel"
-                                            destructiveButtonTitle:nil
-                                            otherButtonTitles:@"アプリ指定URLを開く", @"ペーストボードから開く", nil];
-                    [sheet showInView:self.view];
+                    if ( [[startupUrlList objectAtIndex:0] isEqualToString:[urlList objectAtIndex:0]] ) {
+                        
+                        [wv loadRequestWithString:[startupUrlList objectAtIndex:0]];
+                        
+                    }else {
+                        
+                        actionSheetNo = 15;
+                        
+                        UIActionSheet *sheet = [[UIActionSheet alloc]
+                                                initWithTitle:@"URL展開選択"
+                                                delegate:self
+                                                cancelButtonTitle:@"Cancel"
+                                                destructiveButtonTitle:nil
+                                                otherButtonTitles:@"アプリ指定URLを開く", @"ペーストボードから開く", nil];
+                        [sheet showInView:self.view];
+                    }
                 }
                 
             }else if ( startupUrlList.count == 1 && urlList.count > 1 ) {

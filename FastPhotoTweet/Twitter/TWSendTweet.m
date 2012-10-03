@@ -142,6 +142,8 @@
                      //NSLog(@"ResultText: %@", [result objectForKey:@"text"]);
                      //NSLog(@"Result: %@", result);
                      
+                     result = [[TWEntities replaceTcoAll:@[result]] objectAtIndex:0];
+                     
                      BOOL media = NO;
                      NSString *entities = [[result objectForKey:@"entities"] objectForKey:@"media"];
                      

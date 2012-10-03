@@ -12,7 +12,7 @@
 //セクション0の項目数 (画像関連設定)
 #define SECTION_0 9
 //セクション1の項目数 (投稿関連設定)
-#define SECTION_1 12
+#define SECTION_1 13
 //セクション2の項目数 (その他の設定)
 #define SECTION_2 5
 //セクション2の項目数 (タイムライン設定)
@@ -45,18 +45,20 @@
 #define NAME_18 @"Webページ投稿書式セット後カーソル位置"
 #define NAME_19 @"引用投稿書式変更"
 #define NAME_20 @"引用投稿書式セット後カーソル位置"
+#define NAME_21 @"投稿後アプリ切替"
+
 //その他の設定
-#define NAME_21 @"アプリがアクティブになった際入力可能状態にする"
-#define NAME_22 @"ブラウザの検索ワードを毎回リセット"
-#define NAME_23 @"ブラウザを開く時ペーストボード内のURLを開く"
-#define NAME_24 @"ブラウザユーザーエージェント"
-#define NAME_25 @"ブラウザを閉じる時にユーザーエージェントを戻す"
+#define NAME_22 @"アプリがアクティブになった際入力可能状態にする"
+#define NAME_23 @"ブラウザの検索ワードを毎回リセット"
+#define NAME_24 @"ブラウザを開く時ペーストボード内のURLを開く"
+#define NAME_25 @"ブラウザユーザーエージェント"
+#define NAME_26 @"ブラウザを閉じる時にユーザーエージェントを戻す"
 //タイムライン設定
-#define NAME_26 @"バックグラウンドに移行時UserStreamを切断"
-#define NAME_27 @"バックグラウンドから復帰時UserStreamに接続"
-#define NAME_28 @"通常の更新後にUserStreamに接続"
-#define NAME_29 @"NG設定を開く"
-#define NAME_30 @"自分のTweetもNGを行う"
+#define NAME_27 @"バックグラウンドに移行時UserStreamを切断"
+#define NAME_28 @"バックグラウンドから復帰時UserStreamに接続"
+#define NAME_29 @"通常の更新後にUserStreamに接続"
+#define NAME_30 @"NG設定を開く"
+#define NAME_31 @"自分のTweetもNGを行う"
 
 //ライセンス
 #define NAME_LICENSE @"ライセンス"
@@ -91,7 +93,7 @@
                                                         NAME_16, NAME_17, NAME_18, NAME_19, 
                                                         NAME_20, NAME_21, NAME_22, NAME_23,
                                                         NAME_24, NAME_25, NAME_26, NAME_27, 
-                                                        NAME_28, NAME_29, NAME_30, NAME_LICENSE, nil];
+                                                        NAME_28, NAME_29, NAME_30, NAME_31, NAME_LICENSE, nil];
         
         [settingArray retain];
     }
@@ -400,8 +402,78 @@
             result = @"末尾";
         }
         
-    //アプリがアクティブになった際入力可能状態にする
+    //投稿後アプリ切替
     }else if ( settingState == 21 ) {
+        
+        NSString *scheme = [d objectForKey:@"CallBackScheme"];
+        
+        if ( [scheme isEqualToString:@"FPT"] ) {
+            
+            result = @"FastPhotoTweet";
+            
+        }else if ( [scheme isEqualToString:@"twitter://"] ) {
+            
+            result = @"Twitter for iPhone";
+            
+        }else if ( [scheme isEqualToString:@"tweetbot://"] ) {
+            
+            result = @"Tweetbot";
+            
+        }else if ( [scheme isEqualToString:@"echofon://?"] ) {
+            
+            result = @"Echofon";
+            
+        }else if ( [scheme isEqualToString:@"echofonpro://?"] ) {
+            
+            result = @"Echofon Pro";
+            
+        }else if ( [scheme isEqualToString:@"soicha://"] ) {
+            
+            result = @"SOICHA";
+            
+        }else if ( [scheme isEqualToString:@"tweetings://"] ) {
+            
+            result = @"Tweetings";
+            
+        }else if ( [scheme isEqualToString:@"osfoora://"] ) {
+            
+            result = @"Osfoora";
+            
+        }else if ( [scheme isEqualToString:@"twittelator://"] ) {
+            
+            result = @"Twittelator";
+            
+        }else if ( [scheme isEqualToString:@"tweetlist://"] ) {
+            
+            result = @"TweetList!";
+            
+        }else if ( [scheme isEqualToString:@"tweetatok://"] ) {
+            
+            result = @"Tweet ATOK";
+            
+        }else if ( [scheme isEqualToString:@"tweetlogix://"] ) {
+            
+            result = @"Tweetlogix";
+            
+        }else if ( [scheme isEqualToString:@"hootsuite://"] ) {
+            
+            result = @"HootSuite";
+            
+        }else if ( [scheme isEqualToString:@"simplytweet://"] ) {
+            
+            result = @"SimplyTweet";
+            
+        }else if ( [scheme isEqualToString:@"reeder://"] ) {
+            
+            result = @"Reeder";
+            
+        }else {
+            
+            result = @"未選択";
+        }
+        
+    //アプリがアクティブになった際入力可能状態にする
+    }else if ( settingState == 22 ) {
         
         if ( [d boolForKey:@"ShowKeyboard"] ) {
             
@@ -412,7 +484,7 @@
             result = @"OFF";
         }
     
-    }else if ( settingState == 22 ) {
+    }else if ( settingState == 23 ) {
         
         if ( [d boolForKey:@"ClearBrowserSearchField"] ) {
             
@@ -423,7 +495,7 @@
             result = @"OFF";
         }
     
-    }else if ( settingState == 23 ) {
+    }else if ( settingState == 24 ) {
         
         if ( [d boolForKey:@"OpenPasteBoardURL"] ) {
             
@@ -434,7 +506,7 @@
             result = @"OFF";
         }
     
-    }else if ( settingState == 24 ) {
+    }else if ( settingState == 25 ) {
 
         if ( [[d objectForKey:@"UserAgent"] isEqualToString:@"FireFox"] ) {
             
@@ -449,7 +521,7 @@
             result = @"iPhone";
         }
     
-    }else if ( settingState == 25 ) {
+    }else if ( settingState == 26 ) {
         
         if ( [[d objectForKey:@"UserAgentReset"] isEqualToString:@"FireFox"] ) {
             
@@ -468,7 +540,7 @@
             result = @"OFF";
         }
         
-    }else if ( settingState == 26 ) {
+    }else if ( settingState == 27 ) {
         
         if ( [d boolForKey:@"EnterBackgroundUSDisConnect"] ) {
             
@@ -479,7 +551,7 @@
             result = @"OFF";
         }
         
-    }else if ( settingState == 27 ) {
+    }else if ( settingState == 28 ) {
         
         if ( [d boolForKey:@"BecomeActiveUSConnect"] ) {
             
@@ -490,7 +562,7 @@
             result = @"OFF";
         }
         
-    }else if ( settingState == 28 ) {
+    }else if ( settingState == 29 ) {
         
         if ( [d boolForKey:@"ReloadAfterUSConnect"] ) {
             
@@ -501,9 +573,9 @@
             result = @"OFF";
         }
         
-//    }else if ( settingState == 29 ) {
+//    }else if ( settingState == 30 ) {
         
-    }else if ( settingState == 30 ) {
+    }else if ( settingState == 31 ) {
 
         if ( [d boolForKey:@"MyTweetNG"] ) {
             
@@ -950,6 +1022,22 @@
                      otherButtonTitles:@"先頭", @"末尾", nil];
             [sheet autorelease];
             [sheet showInView:self.view];
+            
+        }else if ( indexPath.row == 12 ) {
+            
+            sheet = [[UIActionSheet alloc]
+                     initWithTitle:NAME_21
+                     delegate:self
+                     cancelButtonTitle:@"Cancel"
+                     destructiveButtonTitle:nil
+                     otherButtonTitles:@"FastPhotoTweet", @"Twitter for iPhone",
+                     @"Tweetbot", @"Echofon", @"Echofon Pro",
+                     @"SOICHA", @"Tweetings", @"Osfoora",
+                     @"Twittelator", @"TweetList!", @"Tweet ATOK",
+                     @"Tweetlogix",  @"HootSuite", @"SimplyTweet",
+                     @"Reeder", nil];
+            [sheet autorelease];
+            [sheet showInView:self.view];
         }
         
     }else if ( indexPath.section == 2 ) {
@@ -960,7 +1048,7 @@
             
             //アプリがアクティブになった際入力可能状態にする
             sheet = [[UIActionSheet alloc]
-                     initWithTitle:NAME_21
+                     initWithTitle:NAME_22
                      delegate:self
                      cancelButtonTitle:@"Cancel"
                      destructiveButtonTitle:nil
@@ -972,7 +1060,7 @@
             
             //ブラウザの検索ワードを毎回リセット
             sheet = [[UIActionSheet alloc]
-                     initWithTitle:NAME_22
+                     initWithTitle:NAME_23
                      delegate:self
                      cancelButtonTitle:@"Cancel"
                      destructiveButtonTitle:nil
@@ -984,7 +1072,7 @@
             
             //ブラウザを開く時ペーストボード内のURLを開く
             sheet = [[UIActionSheet alloc]
-                     initWithTitle:NAME_23
+                     initWithTitle:NAME_24
                      delegate:self
                      cancelButtonTitle:@"Cancel"
                      destructiveButtonTitle:nil
@@ -996,7 +1084,7 @@
             
             //ブラウザユーザーエージェント
             sheet = [[UIActionSheet alloc]
-                     initWithTitle:NAME_24
+                     initWithTitle:NAME_25
                      delegate:self
                      cancelButtonTitle:@"Cancel"
                      destructiveButtonTitle:nil
@@ -1007,7 +1095,7 @@
         }else if ( indexPath.row == 4 ) {
             
             sheet = [[UIActionSheet alloc]
-                     initWithTitle:NAME_25
+                     initWithTitle:NAME_26
                      delegate:self
                      cancelButtonTitle:@"Cancel"
                      destructiveButtonTitle:nil
@@ -1024,7 +1112,7 @@
             
             //バックグラウンドに移行時UserStreamを切断
             sheet = [[UIActionSheet alloc]
-                     initWithTitle:NAME_26
+                     initWithTitle:NAME_27
                      delegate:self
                      cancelButtonTitle:@"Cancel"
                      destructiveButtonTitle:nil
@@ -1036,7 +1124,7 @@
             
             //バックグラウンドから復帰時UserStreamに接続
             sheet = [[UIActionSheet alloc]
-                     initWithTitle:NAME_27
+                     initWithTitle:NAME_28
                      delegate:self
                      cancelButtonTitle:@"Cancel"
                      destructiveButtonTitle:nil
@@ -1048,7 +1136,7 @@
         
             //通常の更新後にUserStreamに接続
             sheet = [[UIActionSheet alloc]
-                     initWithTitle:NAME_28
+                     initWithTitle:NAME_29
                      delegate:self
                      cancelButtonTitle:@"Cancel"
                      destructiveButtonTitle:nil
@@ -1067,7 +1155,7 @@
             
             //自分のTweetもNGを行う
             sheet = [[UIActionSheet alloc]
-                     initWithTitle:NAME_30
+                     initWithTitle:NAME_31
                      delegate:self
                      cancelButtonTitle:@"Cancel"
                      destructiveButtonTitle:nil
@@ -1403,20 +1491,54 @@
         }
         
     }else if ( actionSheetNo == 21 ) {
+        
+        if ( buttonIndex == 0 ) {
+            [d setObject:@"FPT" forKey:@"CallBackScheme"];
+        }else if ( buttonIndex == 1 ) {
+            [d setObject:@"twitter://" forKey:@"CallBackScheme"];
+        }else if ( buttonIndex == 2 ) {
+            [d setObject:@"tweetbot://" forKey:@"CallBackScheme"];
+        }else if ( buttonIndex == 3 ) {
+            [d setObject:@"echofon://?" forKey:@"CallBackScheme"];
+        }else if ( buttonIndex == 4 ) {
+            [d setObject:@"echofonpro://?" forKey:@"CallBackScheme"];
+        }else if ( buttonIndex == 5 ) {
+            [d setObject:@"soicha://" forKey:@"CallBackScheme"];
+        }else if ( buttonIndex == 6 ) {
+            [d setObject:@"tweetings://" forKey:@"CallBackScheme"];
+        }else if ( buttonIndex == 7 ) {
+            [d setObject:@"osfoora://" forKey:@"CallBackScheme"];
+        }else if ( buttonIndex == 8 ) {
+            [d setObject:@"twittelator://" forKey:@"CallBackScheme"];
+        }else if ( buttonIndex == 9 ) {
+            [d setObject:@"tweetlist://" forKey:@"CallBackScheme"];
+        }else if ( buttonIndex == 10 ) {
+            [d setObject:@"tweetatok://" forKey:@"CallBackScheme"];
+        }else if ( buttonIndex == 11 ) {
+            [d setObject:@"tweetlogix://" forKey:@"CallBackScheme"];
+        }else if ( buttonIndex == 12 ) {
+            [d setObject:@"hootsuite://" forKey:@"CallBackScheme"];
+        }else if ( buttonIndex == 13 ) {
+            [d setObject:@"simplytweet://" forKey:@"CallBackScheme"];
+        }else if ( buttonIndex == 14 ) {
+            [d setObject:@"reeder://" forKey:@"CallBackScheme"];
+        }
+        
+    }else if ( actionSheetNo == 22 ) {
         if ( buttonIndex == 0 ) {
             [d setBool:YES forKey:@"ShowKeyboard"];
         }else if ( buttonIndex == 1 ) {
             [d setBool:NO forKey:@"ShowKeyboard"];
         }
     
-    }else if ( actionSheetNo == 22 ) {
+    }else if ( actionSheetNo == 23 ) {
         if ( buttonIndex == 0 ) {
             [d setBool:YES forKey:@"ClearBrowserSearchField"];
         }else if ( buttonIndex == 1 ) {
             [d setBool:NO forKey:@"ClearBrowserSearchField"];
         }
         
-    }else if ( actionSheetNo == 23 ) {
+    }else if ( actionSheetNo == 24 ) {
         if ( buttonIndex == 0 ) {
             
             [d setBool:YES forKey:@"OpenPasteBoardURL"];
@@ -1431,7 +1553,7 @@
             [d setBool:NO forKey:@"OpenPasteBoardURL"];
         }
         
-    }else if ( actionSheetNo == 24 ) {
+    }else if ( actionSheetNo == 25 ) {
         if ( buttonIndex == 0 ) {
             [d setObject:@"FireFox" forKey:@"UserAgent"];
         }else if ( buttonIndex == 1 ) {
@@ -1440,7 +1562,8 @@
             [d setObject:@"iPhone" forKey:@"UserAgent"];
         }
     
-    }else if ( actionSheetNo == 25 ) {
+    }else if ( actionSheetNo == 26 ) {
+        
         if ( buttonIndex == 0 ) {
             [d setObject:@"OFF" forKey:@"UserAgentReset"];
         }else if ( buttonIndex == 1 ) {
@@ -1451,30 +1574,30 @@
             [d setObject:@"iPhone" forKey:@"UserAgentReset"];
         }
     
-    }else if ( actionSheetNo == 26 ) {
+    }else if ( actionSheetNo == 27 ) {
         if ( buttonIndex == 0 ) {
             [d setBool:YES forKey:@"EnterBackgroundUSDisConnect"];
         }else if ( buttonIndex == 1 ) {
             [d setBool:NO forKey:@"EnterBackgroundUSDisConnect"];
         }
         
-    }else if ( actionSheetNo == 27 ) {
+    }else if ( actionSheetNo == 28 ) {
         if ( buttonIndex == 0 ) {
             [d setBool:YES forKey:@"BecomeActiveUSConnect"];
         }else if ( buttonIndex == 1 ) {
             [d setBool:NO forKey:@"BecomeActiveUSConnect"];
         }
         
-    }else if ( actionSheetNo == 28 ) {
+    }else if ( actionSheetNo == 29 ) {
         if ( buttonIndex == 0 ) {
             [d setBool:YES forKey:@"ReloadAfterUSConnect"];
         }else if ( buttonIndex == 1 ) {
             [d setBool:NO forKey:@"ReloadAfterUSConnect"];
         }
         
-//    }else if ( actionSheetNo == 29 ) {
+//    }else if ( actionSheetNo == 30 ) {
     
-    }else if ( actionSheetNo == 30 ) {
+    }else if ( actionSheetNo == 31 ) {
         if ( buttonIndex == 0 ) {
             [d setBool:YES forKey:@"MyTweetNG"];
         }else if ( buttonIndex == 1 ) {

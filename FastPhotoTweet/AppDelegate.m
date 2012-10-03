@@ -117,8 +117,6 @@ void uncaughtExceptionHandler(NSException *e) {
     
     [self.window makeKeyAndVisible];
     
-    if ( [D boolForKey:@"PasteBoardCheck"] ) [self startPasteBoardTimer];
-    
     return YES;
 }
 
@@ -222,7 +220,7 @@ void uncaughtExceptionHandler(NSException *e) {
     
     @try {
         
-        //NSLog(@"checkPasteBoard");
+        NSLog(@"checkPasteBoard");
         
         NSString *pBoardString = pboard.string;
         
@@ -245,7 +243,7 @@ void uncaughtExceptionHandler(NSException *e) {
             
             if ( pBoardUrls.count == 0 ) return;
             
-            lastCheckPasteBoardURL = [pBoardUrls objectAtIndex:0];
+            lastCheckPasteBoardURL = pBoardString;
             
             //通知を行う
             UILocalNotification *localPush = [[UILocalNotification alloc] init];
@@ -263,12 +261,17 @@ void uncaughtExceptionHandler(NSException *e) {
 
 - (void)applicationWillResignActive:(UIApplication *)application {
     
+    //NSLog(@"applicationWillResignActive");
+    
     [D setBool:YES forKey:@"applicationWillResignActive"];
     [D setBool:YES forKey:@"applicationWillResignActiveBrowser"];
 }
 
 - (void)applicationWillEnterForeground:(UIApplication *)application {
-    //NSLog(@"applicationWillEnterForeground");
+    
+    NSLog(@"applicationWillEnterForeground");
+    
+    if ( pBoardWatchTimer.isValid ) [self stopPasteBoardTimer];
 }
 
 - (void)applicationDidBecomeActive:(UIApplication *)application {
@@ -283,8 +286,12 @@ void uncaughtExceptionHandler(NSException *e) {
 
 - (void)applicationDidEnterBackground:(UIApplication *)application {
     
+    NSLog(@"applicationDidEnterBackground");
+    
     [D removeObjectForKey:@"applicationWillResignActive"];
     [D removeObjectForKey:@"applicationWillResignActiveBrowser"];
+    
+    if ( [D boolForKey:@"PasteBoardCheck"] && !pBoardWatchTimer.isValid ) [self startPasteBoardTimer];
 
 	backgroundTask = [application beginBackgroundTaskWithExpirationHandler: ^{
         

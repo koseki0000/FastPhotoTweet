@@ -13,5 +13,6 @@
 + (ACAccount *)currentAccount;
 + (ACAccount *)selectAccount:(int)num;
 + (int)getCount;
++ (NSArray *)accounts;
 
 @end
