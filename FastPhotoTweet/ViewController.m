@@ -189,16 +189,8 @@
         //NSLog(@"UUID: %@", [d objectForKey:@"UUID"]);
     }
     
-    if ( [d boolForKey:@"PasteBoardCheck"] ) {
-        
-        //オン
-        pboardURLSwitch.on = YES;
-        
-    }else {
-        
-        //オフ
-        pboardURLSwitch.on = NO;
-    }
+    pboardURLSwitch.on = [d boolForKey:@"PasteBoardCheck"];
+    callbackSwitch.on = [d boolForKey:@"CallBack"];
     
     if ( ![EmptyCheck check:[d objectForKey:@"CallBackScheme"]] ) {
         
