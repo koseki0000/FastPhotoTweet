@@ -706,9 +706,12 @@
     [urlField resignFirstResponder];
     
     actionSheetNo = 16;
+    NSString *copyURL = [[wv.request URL] absoluteString];
+    
+    if ( ![EmptyCheck string:copyURL] ) copyURL = loadStartURL;
     
     UIActionSheet *sheet = [[UIActionSheet alloc]
-                            initWithTitle:[NSString stringWithFormat:@"%@\n%@", wv.pageTitle, wv.url]
+                            initWithTitle:[NSString stringWithFormat:@"%@\n%@", wv.pageTitle, copyURL]
                             delegate:self
                             cancelButtonTitle:@"Cancel"
                             destructiveButtonTitle:nil
@@ -793,9 +796,13 @@
                                                      replaceWord:@"[title]"
                                                     replacedWord:wv.pageTitle];
                 
+                NSString *postURL = [[wv.request URL] absoluteString];
+                
+                if ( ![EmptyCheck string:postURL] ) postURL = loadStartURL;
+                
                 postText = [ReplaceOrDelete replaceWordReturnStr:postText
                                                      replaceWord:@"[url]"
-                                                    replacedWord:[[wv.request URL] absoluteString]];
+                                                    replacedWord:postURL];
             }
             
             appDelegate.tabBarController.selectedIndex = 0;
@@ -1175,17 +1182,21 @@
         
     }else if ( actionSheetNo == 16 ) {
         
+        NSString *copyURL = [[wv.request URL] absoluteString];
+        
+        if ( ![EmptyCheck string:copyURL] ) copyURL = loadStartURL;
+        
         if ( buttonIndex == 0 ) {
             
             [pboard setString:wv.pageTitle];
             
         }else if ( buttonIndex == 1 ) {
             
-            [pboard setString:wv.url];
+            [pboard setString:copyURL];
             
         }else if ( buttonIndex == 2 ) {
             
-            [pboard setString:[NSString stringWithFormat:@"\"%@\" %@", wv.pageTitle, wv.url]];
+            [pboard setString:[NSString stringWithFormat:@"\"%@\" %@", wv.pageTitle, copyURL]];
         }
     }
 }
@@ -1364,6 +1375,8 @@
 }
 
 - (void)webViewDidStartLoad:(UIWebView *)webView {
+    
+    loadStartURL = wv.request.URL.absoluteString;
 }
 
 - (void)webView:(UIWebView *)webView didFailLoadWithError:(NSError *)error {

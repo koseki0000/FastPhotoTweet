@@ -27,6 +27,7 @@
     
     NSUserDefaults *d;
     NSString *accessURL;
+    NSString *loadStartURL;
     NSString *saveFileName;
     NSString *downloadUrl;
     NSURLConnection *asyncConnection;

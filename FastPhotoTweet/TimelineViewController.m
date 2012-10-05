@@ -2123,7 +2123,7 @@
                     
                     dispatch_sync(dispatch_get_main_queue(), ^{
                         
-                        [self performSelector:@selector(showPickerView) withObject:nil afterDelay:0.2];
+                        [self performSelector:@selector(showPickerView) withObject:nil afterDelay:0.1];
                     });                    
                     
                 }else if ( buttonIndex == 6 ) {

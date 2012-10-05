@@ -11,25 +11,7 @@
 
 + (NSMutableArray *)checkArray:(NSMutableArray *)array {
     
-    for ( int i = 0; i < array.count; i++ ) {
-        
-        NSString *currentString = [array objectAtIndex:i];
-        
-        int index = 0;
-        for ( NSString *temp in array ) {
-            
-            if ( [temp isEqualToString:currentString] && index != i ) {
-                
-                [array removeObjectAtIndex:i];
-                i--;
-                break;
-            }
-            
-            index++;
-        }
-    }
-    
-    return array;
+    return [NSMutableArray arrayWithArray:[[[[NSSet alloc] initWithArray:array] autorelease] allObjects]];
 }
 
 + (NSMutableArray *)checkArrayInNumber:(NSMutableArray *)array {

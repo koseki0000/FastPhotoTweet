@@ -66,7 +66,7 @@ void uncaughtExceptionHandler(NSException *e) {
     
     //NSLog(@"FinishLaunching: %@", launchOptions);
     
-    //NSSetUncaughtExceptionHandler(&uncaughtExceptionHandler);
+    NSSetUncaughtExceptionHandler(&uncaughtExceptionHandler);
     
     if ( [D objectForKey:@"HomePageURL"] == nil || [[D objectForKey:@"HomePageURL"] isEqualToString:BLANK] ) {
         
@@ -220,7 +220,7 @@ void uncaughtExceptionHandler(NSException *e) {
     
     @try {
         
-        NSLog(@"checkPasteBoard");
+        //NSLog(@"checkPasteBoard");
         
         NSString *pBoardString = pboard.string;
         
