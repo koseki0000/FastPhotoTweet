@@ -23,3 +23,4 @@
 #import "CreateSearchURL.h"
 #import "ArrayDuplicate.h"
 #import "InternetConnection.h"
+#import "NSArrayAdditions.h"

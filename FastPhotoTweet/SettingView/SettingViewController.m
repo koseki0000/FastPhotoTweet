@@ -16,7 +16,7 @@
 //セクション2の項目数 (その他の設定)
 #define SECTION_2 5
 //セクション2の項目数 (タイムライン設定)
-#define SECTION_3 5
+#define SECTION_3 6
 
 //セクション3の項目数 (ライセンス)
 #define SECTION_4 1
@@ -59,6 +59,7 @@
 #define NAME_29 @"通常の更新後にUserStreamに接続"
 #define NAME_30 @"NG設定を開く"
 #define NAME_31 @"自分のTweetもNGを行う"
+#define NAME_32 @"アイコンの角を丸める"
 
 //ライセンス
 #define NAME_LICENSE @"ライセンス"
@@ -79,11 +80,13 @@
 
         //NSLog(@"SettingView init");
         
+        appDelegate = (AppDelegate *)[[UIApplication sharedApplication] delegate];
         d = [NSUserDefaults standardUserDefaults];
         actionSheetNo = 0;
         alertTextNo = 0;
         
-        [d removeObjectForKey:@"TwitPicLinkMode"];
+        appDelegate.twitpicLinkMode = NO;
+        appDelegate.addTwitpicAccountName = BLANK;
         
         //設定項目名を持った可変長配列を生成
         settingArray = [NSMutableArray arrayWithObjects:NAME_0,  NAME_1,  NAME_2,  NAME_3, 
@@ -93,7 +96,8 @@
                                                         NAME_16, NAME_17, NAME_18, NAME_19, 
                                                         NAME_20, NAME_21, NAME_22, NAME_23,
                                                         NAME_24, NAME_25, NAME_26, NAME_27, 
-                                                        NAME_28, NAME_29, NAME_30, NAME_31, NAME_LICENSE, nil];
+                                                        NAME_28, NAME_29, NAME_30, NAME_31,
+                                                        NAME_32, NAME_LICENSE, nil];
         
         [settingArray retain];
     }
@@ -104,9 +108,6 @@
 - (void)viewDidLoad {
 
     [super viewDidLoad];
-    
-    [d removeObjectForKey:@"AddTwitpicAccountName"];
-    [d removeObjectForKey:@"TwitPicLinkMode"];
 }
 
 - (void)viewDidAppear:(BOOL)animated {
@@ -122,13 +123,13 @@
         [d setObject:@"Twitter" forKey:@"PhotoService"];
     }
     
-    if ( [d boolForKey:@"TwitPicLinkMode"] ) {
+    if ( appDelegate.twitpicLinkMode ) {
         
         //NSLog(@"TwitPic Link");
         
-        if ( [EmptyCheck check:[d objectForKey:@"AddTwitpicAccountName"]] ) {
+        if ( [EmptyCheck check:appDelegate.addTwitpicAccountName] ) {
             
-            [d removeObjectForKey:@"TwitPicLinkMode"];
+            appDelegate.twitpicLinkMode = NO;
             
             //仮登録された情報の名前を生成
             NSString *searchAccountName = [NSString stringWithFormat:@"OAuthAccount_%d", [d integerForKey:@"AccountCount"]];
@@ -149,7 +150,7 @@
             [dic removeObjectForKey:searchAccountName];
             
             //アカウント情報を登録
-            [dic setObject:accountData forKey:[d objectForKey:@"AddTwitpicAccountName"]];
+            [dic setObject:accountData forKey:appDelegate.addTwitpicAccountName];
             
             //設定に反映
             NSDictionary *saveDic = [[NSDictionary alloc] initWithDictionary:dic];
@@ -157,9 +158,9 @@
             [saveDic release];
             [dic release];
             
-            [d setBool:YES forKey:@"ChangeAccount"];
             [d setObject:@"Twitpic" forKey:@"PhotoService"];
-            [d removeObjectForKey:@"AddTwitpicAccountName"];
+            appDelegate.addTwitpicAccountName = BLANK;
+            appDelegate.needChangeAccount = YES;
             
             //NSLog(@"OAuthAccount: %@", [d dictionaryForKey:@"OAuthAccount"]);
             
@@ -317,11 +318,11 @@
         
         if ( [d boolForKey:@"NowPlayingEdit"] ) {
             
-            result = @"ON";
+            result = @"OFF";
             
         }else {
             
-            result = @"OFF";
+            result = @"ON";
         }
         
     //カスタム書式を編集
@@ -578,6 +579,17 @@
     }else if ( settingState == 31 ) {
 
         if ( [d boolForKey:@"MyTweetNG"] ) {
+            
+            result = @"ON";
+            
+        }else {
+            
+            result = @"OFF";
+        }
+        
+    }else if ( settingState == 32 ) {
+        
+        if ( [d integerForKey:@"IconCornerRounding"] == 1 ) {
             
             result = @"ON";
             
@@ -1162,6 +1174,18 @@
                      otherButtonTitles:@"ON", @"OFF", nil];
             [sheet autorelease];
             [sheet showInView:self.view];
+        
+        }else if ( indexPath.row == 5 ) {
+            
+            //アイコンの角を丸める
+            sheet = [[UIActionSheet alloc]
+                     initWithTitle:NAME_32
+                     delegate:self
+                     cancelButtonTitle:@"Cancel"
+                     destructiveButtonTitle:nil
+                     otherButtonTitles:@"OFF", @"ON", nil];
+            [sheet autorelease];
+            [sheet showInView:self.view];
         }
         
     }else if ( indexPath.section == 4 ) {
@@ -1317,7 +1341,7 @@
                 
                 [ShowAlert error:[NSString stringWithFormat:@"現在使用中のアカウント %@ のTwitpicアカウントが見つかりません。アカウントを登録してください。", twAccount.username]];
                 
-                [d setObject:twAccount.username forKey:@"AddTwitpicAccountName"];
+                appDelegate.addTwitpicAccountName = twAccount.username;
                 
                 OAuthSetupViewController *dialog = [[[OAuthSetupViewController alloc] init] autorelease];
                 dialog.modalTransitionStyle = UIModalTransitionStyleCoverVertical;
@@ -1603,6 +1627,16 @@
         }else if ( buttonIndex == 1 ) {
             [d setBool:NO forKey:@"MyTweetNG"];
         }
+    
+    }else if ( actionSheetNo == 32 ) {
+        
+        if ( buttonIndex == 0 ) {
+            [d setInteger:2 forKey:@"IconCornerRounding"];
+        }else if ( buttonIndex == 1 ) {
+            [d setInteger:1 forKey:@"IconCornerRounding"];
+        }
+        
+        [ShowAlert title:@"設定変更完了" message:@"設定を有効にするにはアプリケーションを再起動してください。"];
         
     }else if ( actionSheetNo == 100 ) {
         if ( buttonIndex == 0 ) {

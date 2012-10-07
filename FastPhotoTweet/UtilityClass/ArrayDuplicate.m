@@ -9,11 +9,6 @@
 
 @implementation ArrayDuplicate
 
-+ (NSMutableArray *)checkArray:(NSMutableArray *)array {
-    
-    return [NSMutableArray arrayWithArray:[[[[NSSet alloc] initWithArray:array] autorelease] allObjects]];
-}
-
 + (NSMutableArray *)checkArrayInNumber:(NSMutableArray *)array {
     
     for ( int i = 0; i < array.count; i++ ) {

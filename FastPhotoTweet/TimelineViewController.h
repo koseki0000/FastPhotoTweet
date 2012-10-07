@@ -104,8 +104,8 @@
 
 - (IBAction)changeSegment:(UISegmentedControl *)sender;
 
-- (void)setNotifications;
-- (void)setTimelineHeight;
+- (oneway void)setNotifications;
+- (oneway void)setTimelineHeight;
 
 - (void)createTimeline;
 - (void)loadTimeline:(NSNotification *)center;
@@ -121,8 +121,15 @@
 - (void)scrollTimelineToTop:(BOOL)animation;
 - (void)refreshTimelineCell:(NSNumber *)index;
 - (void)copyTweetInUrl:(NSArray *)urlList;
+
 - (void)openStream;
 - (void)closeStream;
+- (void)userStreamDelete:(NSDictionary *)receiveData;
+- (void)userStreamMyAddFavEvent:(NSDictionary *)receiveData;
+- (void)userStreamMyRemoveFavEvent:(NSDictionary *)receiveData;
+- (void)userStreamReceiveFavEvent:(NSDictionary *)receiveData;
+- (void)userStreamReceiveTweet:(NSDictionary *)receiveData newTweet:(NSArray *)newTweet;
+
 - (void)showTwitterAccountSelectActionSheet:(NSArray *)ids;
 - (void)openTwitterService:(NSString *)username serviceType:(int)serviceType;
 
@@ -130,7 +137,7 @@
 - (void)enterBackground:(NSNotification *)notification;
 - (void)becomeActive:(NSNotification *)notification;
 
-- (void)getMyAccountIcon;
+- (oneway void)getMyAccountIcon;
 - (void)timelineDidListChanged;
 - (void)showListSelectView;
 

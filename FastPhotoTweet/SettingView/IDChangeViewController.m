@@ -26,8 +26,9 @@
         ACAccountType *accountType = [accountStore accountTypeWithAccountTypeIdentifier:ACAccountTypeIdentifierTwitter];
         NSArray *twitterAccounts = [accountStore accountsWithAccountType:accountType];
         d = [NSUserDefaults standardUserDefaults];
+        appDelegate = (AppDelegate *)[[UIApplication sharedApplication] delegate];
         
-        if ( [d boolForKey:@"TwitPicLinkMode"] ) {
+        if ( appDelegate.twitpicLinkMode ) {
             
             twitpicLinkMode = YES;
             
@@ -61,7 +62,7 @@
     
     [super viewDidLoad];
     
-    if ( [d boolForKey:@"TwitPicLinkMode"] ) {
+    if ( appDelegate.twitpicLinkMode ) {
         
         [topBar setRightBarButtonItem:nil animated:NO];
     }
@@ -74,7 +75,7 @@
     //NSLog(@"IDChangeView close");
     
     twitpicLinkMode = NO;
-    [d removeObjectForKey:@"TwitPicLinkMode"];
+    appDelegate.twitpicLinkMode = NO;
     
     //閉じる
     [self dismissModalViewControllerAnimated:YES];
@@ -153,9 +154,9 @@
         [saveDic release];
         [dic release];
         
-        [d setBool:YES forKey:@"ChangeAccount"];
         [d setObject:@"Twitpic" forKey:@"PhotoService"];
-        [d removeObjectForKey:@"TwitPicLinkMode"];
+        appDelegate.needChangeAccount = YES;
+        appDelegate.twitpicLinkMode = NO;
         
         //NSLog(@"OAuthAccount: %@", [d dictionaryForKey:@"OAuthAccount"]);
     }

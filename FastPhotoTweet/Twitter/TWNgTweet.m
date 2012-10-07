@@ -43,9 +43,11 @@
     
     //NG指定ユーザー
     NSArray *users = [NSArray array];
+    #pragma unused(users)
     
     //NG除外ユーザー
     NSArray *exclusionUsers = [NSArray array];
+    #pragma unused(exclusionUsers)
     
     //正規表現
     BOOL regexp = NO;

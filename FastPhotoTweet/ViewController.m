@@ -106,8 +106,8 @@
     postText.layer.borderWidth = 2;
 	postText.layer.borderColor = [[UIColor blackColor] CGColor];
     
-    [d removeObjectForKey:@"applicationWillResignActive"];
-    [d removeObjectForKey:@"applicationWillResignActiveBrowser"];
+    //画像プレビュー時用マスク
+    clearView = nil;
     
     //処理中を表すビューを生成
     grayView = [[GrayView alloc] init];
@@ -242,6 +242,11 @@
         [d setObject:[NSDictionary dictionary] forKey:@"ArtworkUrl"];
     }
     
+    if ( [d integerForKey:@"IconCornerRounding"] == 0 ) {
+        
+        [d setInteger:1 forKey:@"IconCornerRounding"];
+    }
+    
     //設定を即反映
     [d synchronize];
 }
@@ -294,7 +299,7 @@
             //NSLog(@"newVersion");
             
             [ShowAlert title:[NSString stringWithFormat:@"FastPhotoTweet %@", APP_VERSION] 
-                 message:@"・Timelineメニューに｢IDとfav,RTを選択｣を追加\n・ペーストボード監視機能の不具合を修正\n・その他細かな修正"];
+                 message:@"・Tweet画面の画像プレビュータップ時のメニューに良い感じにぬるっと動く「画像を表示」を追加\n・設定に｢アイコンの角を丸める｣を追加(iPhone 4以前はOFF推奨)\n・その他多数の処理高速化"];
             
             information = [[[NSMutableDictionary alloc] initWithDictionary:[d dictionaryForKey:@"Information"]] autorelease];
             [information setValue:[NSNumber numberWithInt:1] forKey:APP_VERSION];
@@ -576,6 +581,44 @@
     [sv setContentOffset:CGPointMake(0, 0) animated:YES];
 }
 
+- (void)imagePreviewTapGesture:(UITapGestureRecognizer *)sender {
+    
+    //NSLog(@"imagePreviewTapGesture");
+    
+    [postText resignFirstResponder];
+    [sv setContentOffset:CGPointMake(0, 0) animated:YES];
+    
+    if ( imagePreview.image != nil ) {
+        
+        if ( nowPlayingMode ) {
+            
+            actionSheetNo = 11;
+            
+            UIActionSheet *sheet = [[UIActionSheet alloc]
+                                    initWithTitle:@"機能選択"
+                                    delegate:self
+                                    cancelButtonTitle:@"Cancel"
+                                    destructiveButtonTitle:nil
+                                    otherButtonTitles:@"アートワークURLを再設定", @"画像をアップロード", @"画像を破棄", @"画像を再選択", nil];
+            [sheet autorelease];
+            [sheet showInView:appDelegate.tabBarController.self.view];
+            
+        }else {
+            
+            actionSheetNo = 7;
+            
+            UIActionSheet *sheet = [[UIActionSheet alloc]
+                                    initWithTitle:@"機能選択"
+                                    delegate:self
+                                    cancelButtonTitle:@"Cancel"
+                                    destructiveButtonTitle:nil
+                                    otherButtonTitles:@"画像をアップロード", @"画像を破棄", @"画像を再選択", @"画像を表示", nil];
+            [sheet autorelease];
+            [sheet showInView:appDelegate.tabBarController.self.view];
+        }
+    }
+}
+
 - (IBAction)svSwipeGesture:(UISwipeGestureRecognizer *)sender {
     
     NSLog(@"svSwipeGesture");
@@ -605,6 +648,35 @@
         int location = postText.selectedRange.location - 1;
         [postText setSelectedRange:NSMakeRange( location, 0 )];
     }
+}
+
+- (void)tapClearView:(UITapGestureRecognizer *)sender {
+    
+    //NSLog(@"tapClearView");
+    
+    [UIView animateWithDuration:0.3f
+                          delay:0.0f
+                        options:UIViewAnimationOptionTransitionNone
+                     animations:^{
+     
+                         self.view.frame = viewRect;
+                         sv.frame = svRect;
+                         imagePreview.frame = imagePreviewRect;
+                     }
+     
+                     completion:^( BOOL finished ){
+                         
+                         appDelegate.tabBarController.tabBar.userInteractionEnabled = YES;
+                         
+                         if ( clearView != nil ) {
+                          
+                             [clearView removeFromSuperview];
+                             clearView = nil;
+                         }
+                         
+                         showImageMode = NO;
+                     }
+     ];
 }
 
 #pragma mark - Notification
@@ -660,11 +732,13 @@
     //アプリケーションがアクティブになった際に呼ばれる
     //NSLog(@"becomeActive");
     
+    if ( showImageMode ) [self tapClearView:nil];
+    
     if ( appDelegate.browserOpenMode ) return;
     
-    if ( [d boolForKey:@"applicationWillResignActive"] ) {
+    if ( appDelegate.willResignActive ) {
         
-        [d removeObjectForKey:@"applicationWillResignActive"];
+        appDelegate.willResignActive = NO;
         return;
     }
     
@@ -792,6 +866,12 @@
         return;
     }
     
+    //モーダルビューを閉じる
+    if ( !repeatedPost ) {
+        
+        [picPicker dismissModalViewControllerAnimated:YES];
+    }
+    
     //画像ソースがカメラの場合保存
     if ( [d integerForKey:@"ImageSource"] == 1 || cameraMode ) {
         
@@ -799,8 +879,8 @@
     }
     
     //画像が選択された場合
-    if ( [[d objectForKey:@"PhotoService"] isEqualToString:@"img.ur"] || 
-         [[d objectForKey:@"PhotoService"] isEqualToString:@"Twitpic"] ) {
+    if ( [[d objectForKey:@"PhotoService"] isEqualToString:@"img.ur"] ||
+        [[d objectForKey:@"PhotoService"] isEqualToString:@"Twitpic"] ) {
         
         //画像アップロード開始
         [self uploadImage:image];
@@ -808,12 +888,6 @@
     
     //画像を設定
     imagePreview.image = image;
-    
-    //モーダルビューを閉じる
-    if ( !repeatedPost ) {
-        
-        [picPicker dismissModalViewControllerAnimated:YES];
-    }
     
     //Post入力状態にする
     [postText becomeFirstResponder];
@@ -960,6 +1034,7 @@
     
     //NSDictionary *result = [request.responseString JSONValue];
     //NSLog(@"resultDic: %@", result);
+    //NSLog(@"request.userInfo: %@", request.userInfo);
     
     //処理中表示をオフ
     [grayView off];
@@ -974,42 +1049,6 @@
                             otherButtonTitles:@"再投稿", @"破棄", nil];
     [sheet autorelease];
     [sheet showInView:appDelegate.tabBarController.self.view];
-}
-
-- (void)imagePreviewTapGesture:(UITapGestureRecognizer *)sender {
-    
-    [postText resignFirstResponder];
-    [sv setContentOffset:CGPointMake(0, 0) animated:YES];
-    
-    if ( imagePreview.image != nil ) {
-        
-        if ( nowPlayingMode ) {
-         
-            actionSheetNo = 11;
-            
-            UIActionSheet *sheet = [[UIActionSheet alloc]
-                                    initWithTitle:@"機能選択"
-                                    delegate:self
-                                    cancelButtonTitle:@"Cancel"
-                                    destructiveButtonTitle:nil
-                                    otherButtonTitles:@"アートワークURLを再設定", @"画像をアップロード", @"画像を破棄", @"画像を再選択", nil];
-            [sheet autorelease];
-            [sheet showInView:appDelegate.tabBarController.self.view];
-            
-        }else {
-            
-            actionSheetNo = 7;
-            
-            UIActionSheet *sheet = [[UIActionSheet alloc]
-                                    initWithTitle:@"機能選択"
-                                    delegate:self
-                                    cancelButtonTitle:@"Cancel"
-                                    destructiveButtonTitle:nil
-                                    otherButtonTitles:@"画像をアップロード", @"画像を破棄", @"画像を再選択", nil];
-            [sheet autorelease];
-            [sheet showInView:appDelegate.tabBarController.self.view];
-        }
-    }
 }
 
 #pragma mark - ActionSheet
@@ -1180,6 +1219,62 @@
         }else if ( buttonIndex == 2 ) {
             
             [self pushImageSettingButton:nil];
+            
+        }else if ( buttonIndex == 3 ) {
+            
+            showImageMode = YES;
+            appDelegate.tabBarController.tabBar.userInteractionEnabled = NO;
+            
+            clearView = [[[UIView alloc] initWithFrame:CGRectMake(0, 0, SCREEN_WIDTH, SCREEN_HEIGHT)] autorelease];
+            clearView.backgroundColor = [UIColor clearColor];
+            
+            UITapGestureRecognizer *tapClearView = [[[UITapGestureRecognizer alloc] initWithTarget:self action:@selector(tapClearView:)] autorelease];
+            [clearView addGestureRecognizer:tapClearView];
+            [self.view addSubview:clearView];
+            
+            viewRect = self.view.frame;
+            svRect = sv.frame;
+            imagePreviewRect = imagePreview.frame;
+            
+            [UIView animateWithDuration:0.4f
+                                  delay:0.0f
+                                options:UIViewAnimationOptionTransitionNone
+             
+                             animations:^{
+                                 
+                                 self.view.frame = CGRectMake(0 - (SCREEN_WIDTH - SCREEN_WIDTH / 8),
+                                                              0,
+                                                              SCREEN_WIDTH,
+                                                              SCREEN_HEIGHT);
+                                 
+                                 sv.frame = CGRectMake(0,
+                                                       0,
+                                                       SCREEN_WIDTH * 2,
+                                                       SCREEN_HEIGHT - TOOL_BAR_HEIGHT * 2);
+                             }
+             
+                             completion:^( BOOL finished ){
+                                 
+                                 [UIView animateWithDuration:0.2f
+                                                       delay:0.0f
+                                                     options:UIViewAnimationOptionTransitionNone
+                                  
+                                                  animations:^{
+                                                      
+                                                      imagePreview.frame = CGRectMake(SCREEN_WIDTH,
+                                                                                      TOOL_BAR_HEIGHT,
+                                                                                      SCREEN_WIDTH - (SCREEN_WIDTH / 8),
+                                                                                      SCREEN_HEIGHT - TAB_BAR_HEIGHT - (TOOL_BAR_HEIGHT * 2));
+                                                      
+//                                                      NSLog(@"self.view.frame: %@", NSStringFromCGRect(self.view.frame));
+//                                                      NSLog(@"sv.frame: %@", NSStringFromCGRect(sv.frame));
+//                                                      NSLog(@"imagePreview.frame: %@", NSStringFromCGRect(imagePreview.frame));
+                                                  }
+                                  
+                                                  completion:nil
+                                  ];
+                             }
+             ];
         }
         
     }else if ( actionSheetNo == 8 ) {
@@ -2159,13 +2254,13 @@
             return;
         }
         
-        if ( changeAccount || [d boolForKey:@"ChangeAccount"] ) {
+        if ( changeAccount || appDelegate.needChangeAccount ) {
             
             //NSLog(@"ChangeAccount");
             
             appDelegate.sinceId = BLANK;
             
-            [d removeObjectForKey:@"ChangeAccount"];
+            appDelegate.needChangeAccount = NO;
             changeAccount = NO;
             
             //アカウント設定を更新

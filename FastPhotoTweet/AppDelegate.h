@@ -19,7 +19,7 @@
 #define STATUS_BAR_HEIGHT 20
 #define TOOL_BAR_HEIGHT 44
 #define SEGMENT_BAR_HEIGHT 30
-#define TAB_BAR_HEIGHT 49
+#define TAB_BAR_HEIGHT 48
 #define PICKER_HEIGHT 216
 
 #define BLANK @""
@@ -63,6 +63,7 @@ void uncaughtExceptionHandler(NSException *exception);
 @property (nonatomic, retain) NSString *sinceId;
 @property (nonatomic, retain) NSString *reOpenUrl;
 @property (nonatomic, retain) NSString *listId;
+@property (nonatomic, retain) NSString *addTwitpicAccountName;
 @property (nonatomic, retain) NSArray *startupUrlList;
 @property (nonatomic, retain) NSArray *listAll;
 @property (nonatomic, retain) NSMutableArray *postError;
@@ -76,6 +77,11 @@ void uncaughtExceptionHandler(NSException *exception);
 @property BOOL pboardURLOpenTweet;
 @property BOOL pboardURLOpenTimeline;
 @property BOOL pboardURLOpenBrowser;
+
+@property BOOL willResignActive;
+@property BOOL willResignActiveBrowser;
+@property BOOL twitpicLinkMode;
+@property BOOL needChangeAccount;
 
 - (BOOL)ios5Check;
 - (BOOL)iconExist:(NSString *)searchName;

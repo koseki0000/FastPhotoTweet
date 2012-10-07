@@ -20,6 +20,12 @@
     self = [super initWithNibName:nibNameOrNil bundle:nibBundleOrNil];
     
     if ( self ) {
+        
+        wv.frame = CGRectMake(0,
+                              TOOL_BAR_HEIGHT,
+                              SCREEN_WIDTH,
+                              SCREEN_HEIGHT - TOOL_BAR_HEIGHT);
+        
     }
     
     return self;
@@ -169,8 +175,9 @@
         
 		[responseBody release];
 		[accessToken release];
-		        
-        [d setBool:YES forKey:@"TwitPicLinkMode"];
+        
+        AppDelegate *appDelegate = (AppDelegate *)[[UIApplication sharedApplication] delegate];
+        appDelegate.twitpicLinkMode = YES;
         
         [grayView off];
         

@@ -10,8 +10,11 @@
 #import "TableViewCell.h"
 #import "TableViewCellController.h"
 #import "ShowAlert.h"
+#import "AppDelegate.h"
 
 @interface IDChangeViewController : UIViewController {
+    
+    AppDelegate *appDelegate;
     
     NSUserDefaults *d;
     NSMutableArray *accountList;

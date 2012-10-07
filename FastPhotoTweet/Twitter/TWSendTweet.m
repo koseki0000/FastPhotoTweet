@@ -11,7 +11,7 @@
 
 @implementation TWSendTweet
 
-+ (void)post:(NSArray *)postData {
++ (oneway void)post:(NSArray *)postData {
     
     NSAutoreleasePool *pool = [[NSAutoreleasePool alloc] init];
     

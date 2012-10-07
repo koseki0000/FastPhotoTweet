@@ -46,6 +46,7 @@ void uncaughtExceptionHandler(NSException *e) {
 @synthesize sinceId;
 @synthesize reOpenUrl;
 @synthesize listId;
+@synthesize addTwitpicAccountName;
 @synthesize startupUrlList;
 @synthesize listAll;
 @synthesize postError;
@@ -59,6 +60,10 @@ void uncaughtExceptionHandler(NSException *e) {
 @synthesize pboardURLOpenTimeline;
 @synthesize pboardURLOpenBrowser;
 @synthesize pBoardWatchTimer;
+@synthesize willResignActive;
+@synthesize willResignActiveBrowser;
+@synthesize twitpicLinkMode;
+@synthesize needChangeAccount;
 
 #pragma mark - Initialize
 
@@ -83,6 +88,7 @@ void uncaughtExceptionHandler(NSException *e) {
     sinceId = BLANK;
     reOpenUrl = BLANK;
     listId = BLANK;
+    addTwitpicAccountName = BLANK;
     
     postError = [NSMutableArray array];
     
@@ -93,6 +99,11 @@ void uncaughtExceptionHandler(NSException *e) {
     pboardURLOpenTweet = NO;
     pboardURLOpenTimeline = NO;
     pboardURLOpenBrowser = NO;
+    
+    willResignActive = NO;
+    willResignActiveBrowser = NO;
+    twitpicLinkMode = NO;
+    needChangeAccount = NO;
     
     startupUrlList = [NSArray arrayWithObject:[D objectForKey:@"HomePageURL"]];
     
@@ -263,13 +274,13 @@ void uncaughtExceptionHandler(NSException *e) {
     
     //NSLog(@"applicationWillResignActive");
     
-    [D setBool:YES forKey:@"applicationWillResignActive"];
-    [D setBool:YES forKey:@"applicationWillResignActiveBrowser"];
+    willResignActive = YES;
+    willResignActiveBrowser = YES;
 }
 
 - (void)applicationWillEnterForeground:(UIApplication *)application {
     
-    NSLog(@"applicationWillEnterForeground");
+    //NSLog(@"applicationWillEnterForeground");
     
     if ( pBoardWatchTimer.isValid ) [self stopPasteBoardTimer];
 }
@@ -286,10 +297,10 @@ void uncaughtExceptionHandler(NSException *e) {
 
 - (void)applicationDidEnterBackground:(UIApplication *)application {
     
-    NSLog(@"applicationDidEnterBackground");
+    //NSLog(@"applicationDidEnterBackground");
     
-    [D removeObjectForKey:@"applicationWillResignActive"];
-    [D removeObjectForKey:@"applicationWillResignActiveBrowser"];
+    willResignActive = NO;
+    willResignActiveBrowser = NO;
     
     if ( [D boolForKey:@"PasteBoardCheck"] && !pBoardWatchTimer.isValid ) [self startPasteBoardTimer];
 

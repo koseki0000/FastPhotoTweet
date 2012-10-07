@@ -14,9 +14,11 @@
 #import "LicenseViewController.h"
 #import "NGSettingViewController.h"
 #import "TWGetAccount.h"
+#import "AppDelegate.h"
 
 @interface SettingViewController : UIViewController <UIActionSheetDelegate, UITextFieldDelegate> {
     
+    AppDelegate *appDelegate;
     GrayView *grayView;
     
     NSUserDefaults *d;

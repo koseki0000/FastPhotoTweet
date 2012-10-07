@@ -16,6 +16,6 @@
 
 @interface TWSendTweet : NSObject
 
-+ (void)post:(NSArray *)postData;
++ (oneway void)post:(NSArray *)postData;
 
 @end

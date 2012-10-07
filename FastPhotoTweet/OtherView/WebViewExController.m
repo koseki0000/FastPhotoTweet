@@ -403,9 +403,9 @@
 
 - (void)becomeActive:(NSNotification *)notification {
     
-    if ( [d boolForKey:@"applicationWillResignActiveBrowser"] ) {
+    if ( appDelegate.willResignActiveBrowser ) {
         
-        [d removeObjectForKey:@"applicationWillResignActiveBrowser"];
+        appDelegate.willResignActiveBrowser = NO;
         
         return;
     }
@@ -708,7 +708,24 @@
     actionSheetNo = 16;
     NSString *copyURL = [[wv.request URL] absoluteString];
     
-    if ( ![EmptyCheck string:copyURL] ) copyURL = loadStartURL;
+    if ( ![EmptyCheck string:copyURL] ) {
+
+        if ( ![EmptyCheck string:loadStartURL] ) {
+            
+            if ( ![EmptyCheck string:[startupUrlList objectAtIndex:0]] ) {
+             
+                copyURL = [urlList objectAtIndex:0];
+                
+            }else {
+                
+                copyURL = [startupUrlList objectAtIndex:0];
+            }
+            
+        }else {
+            
+            copyURL = loadStartURL;
+        }
+    }
     
     UIActionSheet *sheet = [[UIActionSheet alloc]
                             initWithTitle:[NSString stringWithFormat:@"%@\n%@", wv.pageTitle, copyURL]
@@ -796,13 +813,30 @@
                                                      replaceWord:@"[title]"
                                                     replacedWord:wv.pageTitle];
                 
-                NSString *postURL = [[wv.request URL] absoluteString];
+                NSString *copyURL = [[wv.request URL] absoluteString];
                 
-                if ( ![EmptyCheck string:postURL] ) postURL = loadStartURL;
+                if ( ![EmptyCheck string:copyURL] ) {
+                    
+                    if ( ![EmptyCheck string:loadStartURL] ) {
+                        
+                        if ( ![EmptyCheck string:[startupUrlList objectAtIndex:0]] ) {
+                            
+                            copyURL = [urlList objectAtIndex:0];
+                            
+                        }else {
+                            
+                            copyURL = [startupUrlList objectAtIndex:0];
+                        }
+                        
+                    }else {
+                        
+                        copyURL = loadStartURL;
+                    }
+                }
                 
                 postText = [ReplaceOrDelete replaceWordReturnStr:postText
                                                      replaceWord:@"[url]"
-                                                    replacedWord:postURL];
+                                                    replacedWord:copyURL];
             }
             
             appDelegate.tabBarController.selectedIndex = 0;
@@ -1027,13 +1061,34 @@
                 [d setObject:postText forKey:@"QuoteFormat"];
             }
             
+            NSString *copyURL = [[wv.request URL] absoluteString];
+            
+            if ( ![EmptyCheck string:copyURL] ) {
+                
+                if ( ![EmptyCheck string:loadStartURL] ) {
+                    
+                    if ( ![EmptyCheck string:[startupUrlList objectAtIndex:0]] ) {
+                        
+                        copyURL = [urlList objectAtIndex:0];
+                        
+                    }else {
+                        
+                        copyURL = [startupUrlList objectAtIndex:0];
+                    }
+                    
+                }else {
+                    
+                    copyURL = loadStartURL;
+                }
+            }
+            
             postText = [ReplaceOrDelete replaceWordReturnStr:postText 
                                                  replaceWord:@"[title]" 
                                                 replacedWord:wv.pageTitle];
             
             postText = [ReplaceOrDelete replaceWordReturnStr:postText 
                                                  replaceWord:@"[url]" 
-                                                replacedWord:[[wv.request URL] absoluteString]];
+                                                replacedWord:copyURL];
             
             postText = [ReplaceOrDelete replaceWordReturnStr:postText 
                                                  replaceWord:@"[quote]" 
@@ -1270,7 +1325,10 @@
 - (BOOL)webView:(UIWebView *)webView shouldStartLoadWithRequest:(NSURLRequest *)request 
  navigationType:(UIWebViewNavigationType)navigationType {
     
-    accessURL = [[request URL] absoluteString];
+    if ( [EmptyCheck string:request.URL.absoluteString] ) {
+        
+        accessURL = request.URL.absoluteString;
+    }
     
     //NSLog(@"%@", [[request URL] absoluteString]);
     
@@ -1351,7 +1409,7 @@
         
         //NSLog(@"%@", [[request URL] absoluteString]);
         
-        urlField.text = [ProtocolCutter url:[[request URL] absoluteString]];
+        urlField.text = [ProtocolCutter url:request.URL.absoluteString];
     }
     
     [ActivityIndicator on];
@@ -1362,10 +1420,8 @@
 
 - (void)webViewDidFinishLoad:(UIWebView *)webView {
     
-    //NSLog(@"webViewDidFinishLoad: %@", [[webView.request URL] absoluteString]);
-    
-    accessURL = [[webView.request URL] absoluteString];
-    urlField.text = [ProtocolCutter url:[[webView.request URL] absoluteString]];
+    accessURL = webView.request.URL.absoluteString;
+    urlField.text = [ProtocolCutter url:webView.request.URL.absoluteString];
     
     loading = NO;
     [ActivityIndicator off];
@@ -1376,7 +1432,12 @@
 
 - (void)webViewDidStartLoad:(UIWebView *)webView {
     
-    loadStartURL = wv.request.URL.absoluteString;
+    if ( [EmptyCheck string:webView.request.URL.absoluteString] ) {
+        
+        accessURL = webView.request.URL.absoluteString;
+    }
+    
+    loadStartURL = webView.request.URL.absoluteString;
 }
 
 - (void)webView:(UIWebView *)webView didFailLoadWithError:(NSError *)error {

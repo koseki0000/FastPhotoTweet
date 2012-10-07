@@ -35,11 +35,16 @@
     NSUserDefaults *d;
     NSString *inReplyToId;
     
+    UIView *clearView;
     UIButton *inputFunctionButton;
     UIPasteboard *pboard;
     UIImage *errorImage;
     
     ACAccount *twAccount;
+    
+    CGRect viewRect;
+    CGRect svRect;
+    CGRect imagePreviewRect;
     
     BOOL changeAccount;
     BOOL cameraMode;
@@ -51,6 +56,7 @@
     BOOL showImagePicker;
     BOOL nowPlayingMode;
     BOOL iconUploadMode;
+    BOOL showImageMode;
     
     int actionSheetNo;
 }
@@ -115,6 +121,7 @@
 - (void)postDone:(NSNotification *)center;
 - (NSString *)nowPlaying;
 - (void)setIconPreviewImage;
+- (void)tapClearView:(UITapGestureRecognizer *)sender;
 
 - (void)nowPlayingNotification;
 - (void)tweetNotification:(int)pBoardType;

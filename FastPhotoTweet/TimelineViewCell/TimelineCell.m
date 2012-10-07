@@ -13,7 +13,7 @@
 @synthesize iconView;
 
 - (void)drawRect:(CGRect)rect {
-    
+
     CGContextRef context = UIGraphicsGetCurrentContext();
     
 //    AppDelegate *appDelegate = (AppDelegate *)[[UIApplication sharedApplication] delegate];

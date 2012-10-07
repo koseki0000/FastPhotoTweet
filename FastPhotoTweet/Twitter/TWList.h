@@ -15,7 +15,7 @@
 
 @interface TWList : NSObject
 
-+ (void)getListAll;
-+ (void)getList:(NSString *)listId;
++ (oneway void)getListAll;
++ (oneway void)getList:(NSString *)listId;
 
 @end

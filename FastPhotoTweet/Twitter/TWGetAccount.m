@@ -16,22 +16,17 @@
     ACAccountStore *accountStore = [[[ACAccountStore alloc] init] autorelease];
     ACAccountType *accountType = [accountStore accountTypeWithAccountTypeIdentifier:ACAccountTypeIdentifierTwitter];
     NSArray *twitterAccounts = [accountStore accountsWithAccountType:accountType];
-    ACAccount *twAccount = [[[ACAccount alloc] init] autorelease];
     
     if ( twitterAccounts.count > 0 ) {
         
         //NSLog(@"Account Success");
         
-        twAccount = [twitterAccounts objectAtIndex:[d integerForKey:@"UseAccount"]];
-        
-    }else {
-        
-        return nil;
+        return [twitterAccounts objectAtIndex:[d integerForKey:@"UseAccount"]];
     }
     
     //NSLog(@"%@", twAccount.username);
     
-    return twAccount;
+    return nil;
 }
 
 + (ACAccount *)selectAccount:(int)num {

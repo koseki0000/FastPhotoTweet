@@ -11,7 +11,7 @@
 
 @implementation TWList
 
-+ (void)getListAll {
++ (oneway void)getListAll {
     
     //Tweet可能な状態か判別
     if ( [TWTweetComposeViewController canSendTweet] ) {
@@ -79,7 +79,7 @@
     }
 }
 
-+ (void)getList:(NSString *)listId {
++ (oneway void)getList:(NSString *)listId {
     
     NSLog(@"getList: %@", listId);
     

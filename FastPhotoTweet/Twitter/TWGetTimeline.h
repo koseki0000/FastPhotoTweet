@@ -17,11 +17,11 @@
 
 @interface TWGetTimeline : NSObject
 
-+ (void)homeTimeline;
-+ (void)userTimeline:(NSString *)screenName;
-+ (void)mentions;
-+ (void)favotites;
-+ (void)twitterSearch:(NSString *)searchWord;
++ (oneway void)homeTimeline;
++ (oneway void)userTimeline:(NSString *)screenName;
++ (oneway void)mentions;
++ (oneway void)favotites;
++ (oneway void)twitterSearch:(NSString *)searchWord;
 
 + (NSArray *)fixTwitterSearchResponse:(NSArray *)twitterSearchResponse;
 
