@@ -7,7 +7,7 @@
 
 #import "ADBlock.h"
 
-#define BLOCK_PATTERN @".+\\.adlantis\\.jp|xid\\.i-mobile\\.co\\.jp|i\\.adimg\\.net|ad\\.yieldmanager\\.com|adserver\\.twitpic\\.com|googleads\\.g\\.doubleclick\\.net|j\\.amoad\\.com"
+#define BLOCK_PATTERN @".+\\.adlantis\\.jp|(xid|spadpc[0-9])\\.i-mobile\\.co\\.jp|i\\.adimg\\.net|ad\\.yieldmanager\\.com|adserver\\.twitpic\\.com|googleads\\.g\\.doubleclick\\.net|j\\.amoad\\.com|vsc\\.send\\.microad\\.jp|ad\\.pitta\\.ne\\.jp"
 
 @implementation ADBlock
 
@@ -28,7 +28,7 @@
         
         if ( match.numberOfRanges != 0 ) {
             
-            NSLog(@"Blocked: %@", url);
+            //NSLog(@"Blocked: %@", url);
             result = YES;
         }
     }

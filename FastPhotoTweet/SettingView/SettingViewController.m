@@ -116,13 +116,6 @@
     
     //NSLog(@"viewDidAppear");
     
-    if ( [[d objectForKey:@"OAuthRequestTokenKey"] isEqualToString:BLANK] || 
-         [[d objectForKey:@"OAuthRequestTokenSecret"] isEqualToString:BLANK] ||
-         [d integerForKey:@"AccountCount"] == 0 ) {
-        
-        [d setObject:@"Twitter" forKey:@"PhotoService"];
-    }
-    
     if ( appDelegate.twitpicLinkMode ) {
         
         //NSLog(@"TwitPic Link");

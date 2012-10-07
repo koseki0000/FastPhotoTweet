@@ -63,6 +63,7 @@
     
     //Timeline取得結果通知を作成
     NSMutableDictionary *result = [NSMutableDictionary dictionary];
+    [result setObject:@"Timeline" forKey:@"Type"];
     NSNotification *notification =[NSNotification notificationWithName:@"GetTimeline" 
                                                                     object:self 
                                                                   userInfo:result];
@@ -162,6 +163,7 @@
     
     //Timeline取得結果通知を作成
     NSMutableDictionary *result = [NSMutableDictionary dictionary];
+    [result setObject:@"UserTimeline" forKey:@"Type"];
     NSNotification *notification =[NSNotification notificationWithName:@"GetUserTimeline"
                                                                 object:self
                                                               userInfo:result];
@@ -279,6 +281,7 @@
     
     //Mentions取得結果通知を作成
     NSMutableDictionary *result = [NSMutableDictionary dictionary];
+    [result setObject:@"Mentions" forKey:@"Type"];
     NSNotification *notification =[NSNotification notificationWithName:@"GetMentions" 
                                                                 object:self 
                                                               userInfo:result];
@@ -351,6 +354,7 @@
     
     //Mentions取得結果通知を作成
     NSMutableDictionary *result = [NSMutableDictionary dictionary];
+    [result setObject:@"Favorites" forKey:@"Type"];
     NSNotification *notification =[NSNotification notificationWithName:@"GetFavorites" 
                                                                 object:self 
                                                               userInfo:result];
@@ -426,6 +430,7 @@
     
     //Mentions取得結果通知を作成
     NSMutableDictionary *result = [NSMutableDictionary dictionary];
+    [result setObject:@"Search" forKey:@"Type"];
     NSNotification *notification =[NSNotification notificationWithName:@"GetSearch"
                                                                 object:self
                                                               userInfo:result];
@@ -483,8 +488,6 @@
         NSMutableDictionary *user = [NSMutableDictionary dictionary];
         [user setObject:[fixedTweet objectForKey:@"from_user"] forKey:@"screen_name"];
         [user setObject:[fixedTweet objectForKey:@"profile_image_url"] forKey:@"profile_image_url"];
-//        [user setObject:[fixedTweet objectForKey:@"profile_image_url_https"] forKey:@"profile_image_url_https"];
-//        [user setObject:[fixedTweet objectForKey:@"from_user_id"] forKey:@"id"];
         [user setObject:[fixedTweet objectForKey:@"from_user_id_str"] forKey:@"id_str"];
         
         //sourceの文字参照を置換する

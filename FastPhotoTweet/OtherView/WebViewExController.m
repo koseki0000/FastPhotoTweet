@@ -1330,10 +1330,10 @@
         accessURL = request.URL.absoluteString;
     }
     
-    //NSLog(@"%@", [[request URL] absoluteString]);
-    
     //広告をブロック
     if ( [ADBlock check:accessURL] ) return NO;
+    
+    //NSLog(@"%@", [[request URL] absoluteString]);
     
     //フルサイズ取得が有効
     if ( [d boolForKey:@"FullSizeImage"] ) {

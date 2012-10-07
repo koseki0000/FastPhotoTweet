@@ -141,13 +141,11 @@
                                                                        options:NSJSONReadingMutableLeaves
                                                                          error:&jsonError];
                      
-                     //t.coを全て展開する
-                     result = [TWEntities replaceTcoAll:result];
-                     
                      //NSLog(@"ReceiveList: %@", result);
                      NSLog(@"ReceiveList count: %d", result.count);
                      
-                     NSDictionary *resultData = @{ @"ResultData" : result };
+                     NSDictionary *resultData = @{ @"ResultData" : result ,
+                                                   @"Type" : @"List" };
                      
                      NSNotification *notification =[NSNotification notificationWithName:@"ReceiveList"
                                                                                  object:self

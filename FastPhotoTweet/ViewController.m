@@ -299,7 +299,7 @@
             //NSLog(@"newVersion");
             
             [ShowAlert title:[NSString stringWithFormat:@"FastPhotoTweet %@", APP_VERSION] 
-                 message:@"・Tweet画面の画像プレビュータップ時のメニューに良い感じにぬるっと動く「画像を表示」を追加\n・設定に｢アイコンの角を丸める｣を追加(iPhone 4以前はOFF推奨)\n・その他多数の処理高速化"];
+                 message:@"・｢TwitterSearch(Stream)｣を追加\n・公式RTの表示形式を夜フクロウリスペクトに変更\n・画像フルサイズ取得がimg.lyに対応\n・ブラウザの広告ブロック対象を追加\n・その他多数の不具合修正と処理高速化"];
             
             information = [[[NSMutableDictionary alloc] initWithDictionary:[d dictionaryForKey:@"Information"]] autorelease];
             [information setValue:[NSNumber numberWithInt:1] forKey:APP_VERSION];

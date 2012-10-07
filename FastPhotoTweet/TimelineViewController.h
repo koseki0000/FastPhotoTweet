@@ -73,6 +73,7 @@
     BOOL alertSearchType;
     BOOL listMode;
     BOOL pickerVisible;
+    BOOL searchStream;
     
     int selectRow;
     int longPressControl;
@@ -129,6 +130,10 @@
 - (void)userStreamMyRemoveFavEvent:(NSDictionary *)receiveData;
 - (void)userStreamReceiveFavEvent:(NSDictionary *)receiveData;
 - (void)userStreamReceiveTweet:(NSDictionary *)receiveData newTweet:(NSArray *)newTweet;
+
+- (void)openSearchStream:(NSString *)searchWord;
+- (void)closeSearchStream;
+- (void)searchStreamReceiveTweet:(NSDictionary *)receiveData;
 
 - (void)showTwitterAccountSelectActionSheet:(NSArray *)ids;
 - (void)openTwitterService:(NSString *)username serviceType:(int)serviceType;

@@ -306,12 +306,16 @@
     
     //タイムライン取得
     [TWGetTimeline performSelectorInBackground:@selector(homeTimeline) withObject:nil];
-    //[TWGetTimeline homeTimeline];
 }
 
 - (void)loadTimeline:(NSNotification *)center {
     
     NSLog(@"loadTimeline[%d], userStream[%d]", timelineArray.count, userStream);
+    
+    //Timelineタブ以外が選択されている場合は終了
+    if ( timelineSegment.selectedSegmentIndex != 0 ) return;
+    
+    if ( ![[center.userInfo objectForKey:@"Type"] isEqualToString:@"Timeline"] ) return;
     
     dispatch_queue_t globalQueue = dispatch_get_global_queue( DISPATCH_QUEUE_PRIORITY_DEFAULT, 0 );
     dispatch_async( globalQueue, ^{
@@ -465,6 +469,8 @@
     
     NSLog(@"loadUserTimeline");
     
+    if ( ![[center.userInfo objectForKey:@"Type"] isEqualToString:@"UserTimeline"] ) return;
+    
     //レスポンスが空の場合は何もしない
     if ( [[center.userInfo objectForKey:@"UserTimeline"] count] == 0 ) return;
     
@@ -514,6 +520,8 @@
     
     NSLog(@"loadMentions");
     
+    if ( ![[center.userInfo objectForKey:@"Type"] isEqualToString:@"Mentions"] ) return;
+    
     //Mentionsタブ以外が選択されている場合は終了
     if ( timelineSegment.selectedSegmentIndex != 1 ) return;
     
@@ -556,6 +564,8 @@
     
     NSLog(@"loadFavorites");
     
+    if ( ![[center.userInfo objectForKey:@"Type"] isEqualToString:@"Favorites"] ) return;
+    
     //Favoritesタブ以外が選択されている場合は終了
     if ( timelineSegment.selectedSegmentIndex != 2 ) return;
     
@@ -596,6 +606,8 @@
 
     NSLog(@"loadSearch");
     
+    if ( ![[center.userInfo objectForKey:@"Type"] isEqualToString:@"Search"] ) return;
+    
     //UserStream接続中の場合は切断する
     if ( userStream ) [self closeStream];
     
@@ -630,6 +642,8 @@
 - (void)loadList:(NSNotification *)center {
 
     NSLog(@"loadList");
+    
+    if ( ![[center.userInfo objectForKey:@"Type"] isEqualToString:@"List"] ) return;
     
     //Listタブ以外が選択されている場合は終了
     if ( timelineSegment.selectedSegmentIndex != 3 ) return;
@@ -1265,7 +1279,8 @@
 - (void)scrollTimelineForNewTweet {
     
     //Tweetがない場合はスクロールしない
-    if ( timelineArray.count == 0 ) return;
+    if ( timelineArray == nil ||
+         timelineArray.count == 0 ) return;
     
     //アカウントが空の場合は取得
     if ( twAccount == nil ) twAccount = [TWGetAccount currentAccount];
@@ -1291,6 +1306,9 @@
     
     if ( find ) {
         
+        if ( timelineArray.count < index ||
+            [timelineArray objectAtIndex:index] == nil ) return;
+        
         //スクロールする
         [timeline scrollToRowAtIndexPath:[NSIndexPath indexPathForRow:index inSection:0] atScrollPosition:UITableViewScrollPositionBottom animated:YES];
     }
@@ -1299,7 +1317,8 @@
 - (void)scrollTimelineToTop:(BOOL)animation {
     
     //Tweetがない場合はスクロールしない
-    if ( timelineArray.count == 0 ) return;
+    if ( timelineArray == nil ||
+         timelineArray.count == 0 ) return;
     
     //一番上にスクロールする
     [timeline scrollToRowAtIndexPath:[NSIndexPath indexPathForRow:0 inSection:0] atScrollPosition:UITableViewScrollPositionBottom animated:animation];
@@ -1454,7 +1473,7 @@
         timelineControlButton.enabled = NO;
         userStreamFirstResponse = NO;
         [self openStream];
-        
+    
     }else {
         
         //UserStream接続済み
@@ -1484,7 +1503,7 @@
                             delegate:self
                             cancelButtonTitle:@"Cancel"
                             destructiveButtonTitle:nil
-                            otherButtonTitles:@"Twilog", @"TwilogSearch", @"favstar", @"Twitpic", @"UserTimeline", @"TwitterSearch", nil];
+                            otherButtonTitles:@"Twilog", @"TwilogSearch", @"favstar", @"Twitpic", @"UserTimeline", @"TwitterSearch", @"TwitterSearch(Stream)", nil];
     
     sheet.tag = 1;
     
@@ -1495,6 +1514,13 @@
     
     //ピッカー表示中の場合は隠す
     if ( pickerVisible ) [self hidePicker];
+    
+    if ( searchStream ) {
+        
+        [self closeSearchStream];
+        [self performSelector:@selector(changeSegment:) withObject:nil afterDelay:0.1];
+        return;
+    }
     
     listMode = NO;
     otherTweetsMode = NO;
@@ -1743,6 +1769,93 @@
     [self getIconWithTweetArray:[NSMutableArray arrayWithArray:newTweet]];
 }
 
+#pragma mark - SearchStream
+
+- (void)openSearchStream:(NSString *)searchWord {
+    
+    NSLog(@"openSearchStream: %@", searchWord);
+    
+    dispatch_queue_t globalQueue = dispatch_get_global_queue( DISPATCH_QUEUE_PRIORITY_DEFAULT, 0 );
+    dispatch_async( globalQueue, ^{
+        dispatch_queue_t syncQueue = dispatch_queue_create( "info.ktysne.fastphototweet", NULL );
+        dispatch_sync( syncQueue, ^{
+            
+            [topBar setItems:OTHER_TWEETS_BAR animated:YES];
+            
+            //アクティブアカウント
+            twAccount = [TWGetAccount currentAccount];
+            
+            //UserStreamに接続したアカウントを記憶
+            userStreamAccount = twAccount.username;
+            
+            //リクエストパラメータを作成
+            NSMutableDictionary *params = [[NSMutableDictionary alloc] init];
+            [params setObject:searchWord forKey:@"track"];
+            
+            //UserStream接続リクエストの作成
+            TWRequest *request = [[TWRequest alloc] initWithURL:[NSURL URLWithString:@"https://stream.twitter.com/1.1/statuses/filter.json"]
+                                                     parameters:params
+                                                  requestMethod:TWRequestMethodPOST];
+            
+            
+            //アカウントの設定
+            [request setAccount:twAccount];
+            
+            //接続開始
+            connection = [NSURLConnection connectionWithRequest:request.signedURLRequest delegate:self];
+            [connection start];
+            
+            // 終わるまでループさせる
+            while ( searchStream ) {
+                
+                //NSLog(@"RunLoop");
+                [[NSRunLoop currentRunLoop] runMode:NSDefaultRunLoopMode beforeDate:[NSDate dateWithTimeIntervalSinceNow:0.1]];
+            }
+        });
+        
+        dispatch_release(syncQueue);
+    });
+}
+
+- (void)closeSearchStream {
+    
+    NSLog(@"closeSearchStream");
+    
+    searchStream = NO;
+    userStreamFirstResponse = NO;
+    timelineControlButton.enabled = YES;
+    timelineControlButton.image = startImage;
+    [connection cancel];
+    
+    [topBar setItems:TOP_BAR animated:YES];
+    
+    twAccount = [TWGetAccount currentAccount];
+    timelineArray = [allTimelines objectForKey:twAccount.username];
+    [timeline reloadData];
+}
+
+- (void)searchStreamReceiveTweet:(NSDictionary *)receiveData {
+    
+    //NSLog(@"SearchStream: %@", receiveData);
+    
+    @try {
+        
+        //重複する場合は無視
+        if ( timelineArray.count != 0 ) {
+            
+            if ( [[receiveData objectForKey:@"id_str"] isEqualToString:[[timelineArray objectAtIndex:0] objectForKey:@"id_str"]] ) return;
+        }
+        
+        //タイムラインに追加
+        [timelineArray insertObject:receiveData atIndex:0];
+        [timeline insertRowsAtIndexPaths:@[[NSIndexPath indexPathForRow:0 inSection:0]] withRowAnimation:UITableViewRowAnimationTop];
+        
+        //アイコン保存
+        [self getIconWithTweetArray:[NSMutableArray arrayWithArray:@[receiveData]]];
+        
+    }@catch ( NSException *e ) {}
+}
+
 #pragma mark - NSURLConnectionDataDelegate
 
 - (void)connection:(NSURLConnection *)connection didReceiveData:(NSData *)data {
@@ -1777,6 +1890,17 @@
                 
                 //接続初回のようなデータは無視
                 if ( receiveData.count == 1 && [receiveData objectForKey:@"friends"] != nil ) return;
+                
+                if ( searchStream ) {
+                
+                    dispatch_async(dispatch_get_main_queue(), ^ {
+                        
+                        //SearchStreamの場合
+                        [self searchStreamReceiveTweet:[[TWEntities replaceTcoAll:@[receiveData]] objectAtIndex:0]];
+                    });
+                    
+                    return;
+                }
                 
                 if ( receiveData.count == 1 && [receiveData objectForKey:@"delete"] != nil ) {
                     
@@ -1880,6 +2004,7 @@
     }else {
         
         [self closeStream];
+        [self closeSearchStream];
     }
     
     timelineControlButton.enabled = YES;
@@ -1890,6 +2015,7 @@
     NSLog(@"connectionDidFinishLoading:");
     
     [self closeStream];
+    [self closeSearchStream];
     [self pushReloadButton:nil];
 }
 
@@ -1901,6 +2027,7 @@
     NSLog(@"TimelineCount: %d", timelineArray.count);
     
     [self closeStream];
+    [self closeSearchStream];
     [self pushReloadButton:nil];
 }
 
@@ -1998,6 +2125,8 @@
     
     //ピッカー表示中の場合は隠す
     if ( pickerVisible ) [self hidePicker];
+    
+    if ( searchStream ) [self closeSearchStream];
     
     //InReplyTo表示中なら閉じる
     if ( otherTweetsMode ) {
@@ -2786,6 +2915,43 @@
         
         return;
         
+    }else if ( serviceType == 6 ) {
+        
+        dispatch_async(dispatch_get_main_queue(), ^ {
+            
+            //UserStreamを切断
+            if ( username ) [self closeStream];
+            
+            twAccount = [TWGetAccount currentAccount];
+            [allTimelines setObject:timelineArray forKey:twAccount.username];
+            
+            timelineArray = [NSMutableArray array];
+            [timeline reloadData];
+            
+            searchStream =YES;
+            
+            alertSearch = [[UIAlertView alloc] initWithTitle:@"Twitter Search(Stream)"
+                                                     message:@"\n"
+                                                    delegate:self
+                                           cancelButtonTitle:@"キャンセル"
+                                           otherButtonTitles:@"確定", nil];
+            
+            alertSearch.tag = 3;
+            
+            alertSearchText = [[UITextField alloc] initWithFrame:CGRectMake(12, 40, 260, 25)];
+            [alertSearchText setBackgroundColor:[UIColor whiteColor]];
+            alertSearchText.contentVerticalAlignment = UIControlContentVerticalAlignmentCenter;
+            alertSearchText.delegate = self;
+            alertSearchText.text = BLANK;
+            alertSearchText.tag = 3;
+            
+            [alertSearch addSubview:alertSearchText];
+            [alertSearch show];
+            [alertSearchText becomeFirstResponder];
+        });
+        
+        return;
+        
     }else {
         
         return;
@@ -2800,7 +2966,7 @@
 
 - (void)showPickerView {
     
-    NSLog(@"showPickerView");
+    //NSLog(@"showPickerView");
     
     //表示フラグ
     pickerVisible = YES;
@@ -2873,7 +3039,7 @@
 
 - (void)pickerDone {
     
-    NSLog(@"pickerDone");
+    //NSLog(@"pickerDone");
     
     int account = [eventPicker selectedRowInComponent:0];
     int function = [eventPicker selectedRowInComponent:1];
@@ -2909,7 +3075,7 @@
 
 - (void)pickerCancel {
     
-    NSLog(@"pickerCancel");
+    //NSLog(@"pickerCancel");
     
     [self hidePicker];
 }
@@ -2938,7 +3104,7 @@
      
                      completion:^( BOOL finished ){
                          
-                         NSLog(@"remove pickers");
+                         //NSLog(@"remove pickers");
                          [eventPicker removeFromSuperview];
                          [pickerBar removeFromSuperview];
                          [pickerBase removeFromSuperview];
@@ -3021,6 +3187,10 @@ numberOfRowsInComponent:(NSInteger)component {
         
         [TWGetTimeline twitterSearch:[CreateSearchURL encodeWord:alertSearchText.text
                                                         encoding:kCFStringEncodingUTF8]];
+        
+    }else if ( alertView.tag == 3 ) {
+        
+        [self openSearchStream:alertSearchText.text];
     }
 }
 
@@ -3078,6 +3248,10 @@ numberOfRowsInComponent:(NSInteger)component {
     }else if ( sender.tag == 2 ) {
         
         [TWGetTimeline twitterSearch:[CreateSearchURL encodeWord:alertSearchText.text encoding:kCFStringEncodingUTF8]];
+        
+    }else if ( sender.tag == 3 ) {
+        
+        [self openSearchStream:alertSearchText.text];
     }
     
     //キーボードを閉じる
@@ -3193,7 +3367,8 @@ numberOfRowsInComponent:(NSInteger)component {
     NSLog(@"receiveOfflineNotification");
     
     reloadButton.enabled = YES;
-    [self closeStream];
+    if ( userStream ) [self closeStream];
+    if ( searchStream ) [self closeSearchStream];
 }
 
 - (void)enterBackground:(NSNotification *)notification {
@@ -3201,6 +3376,7 @@ numberOfRowsInComponent:(NSInteger)component {
     if ( [d boolForKey:@"EnterBackgroundUSDisConnect"] ) {
      
         if ( userStream ) [self closeStream];
+        if ( searchStream ) [self closeSearchStream];
     }
 }
 
@@ -3210,7 +3386,7 @@ numberOfRowsInComponent:(NSInteger)component {
     
     if ( [d boolForKey:@"BecomeActiveUSConnect"] && timelineSegment.selectedSegmentIndex == 0 ) {
      
-        if ( !userStream ) [self pushReloadButton:nil];
+        if ( !userStream && !searchStream ) [self pushReloadButton:nil];
     }
     
     appDelegate.pboardURLOpenTimeline = NO;
@@ -3234,7 +3410,7 @@ numberOfRowsInComponent:(NSInteger)component {
     
     accountIconView.image = nil;
     
-    if ( icons.count == 0 ) {
+    if ( icons == nil || icons.count == 0 ) {
         
         //アイコンが1つもない場合は自分のアイコンがないので保存を行う
         [TWEvent getProfile:twAccount.username];

@@ -17,7 +17,7 @@
     //NSLog(@"originalUrl: %@", urlString);
     
     if ( [urlString hasPrefix:@"http://twitvid.com/"] || [urlString hasPrefix:@"http://www.twitvid.com/"] ) {
-        
+         
         NSMutableString *mString = [NSMutableString stringWithString:urlString];
         [mString replaceOccurrencesOfString:@"www." 
                                  withString:BLANK 
@@ -129,6 +129,36 @@
     
         urlString = [RegularExpression strWithRegExp:sourceCode 
                                    regExpPattern:@"https?://(s[0-9]\\.amazonaws\\.com/com\\.clixtr\\.picbounce|img\\.viame-cdn\\.com)/photos/[-a-zA-Z0-9]+/[a-z]600x600\\.(jpe?g|png)"];
+    
+    }else if ( [RegularExpression boolWithRegExp:urlString regExpPattern:@"https?://img.ly/[a-zA-Z0-9]+"] ) {
+        
+        NSString *sourceCode = [FullSizeImage getSourceCode:urlString];
+        
+        if ( sourceCode == nil ) return urlString;
+        
+        NSString *target = [RegularExpression strWithRegExp:sourceCode
+                                              regExpPattern:@"href=\"/images/[0-9]+/full\">Show Full View"];
+        
+        NSMutableString *tempString = [NSMutableString stringWithString:target];
+        
+        [tempString replaceOccurrencesOfString:@"href=\""
+                                    withString:@""
+                                       options:0
+                                         range:NSMakeRange(0, tempString.length)];
+
+        [tempString replaceOccurrencesOfString:@"\">Show Full View"
+                                    withString:@""
+                                       options:0
+                                         range:NSMakeRange(0, tempString.length)];
+        
+        target = [NSString stringWithFormat:@"http://img.ly%@", tempString];
+        
+        sourceCode = [FullSizeImage getSourceCode:target];
+        
+        if ( sourceCode == nil ) return urlString;
+        
+        urlString = [RegularExpression strWithRegExp:sourceCode
+                                       regExpPattern:@"https?://s[0-9]\\.amazonaws\\.com/imgly_production/[0-9]+/original\\.(je?pg|png)"];
     }
     
     //NSLog(@"fullUrl: %@", urlString);

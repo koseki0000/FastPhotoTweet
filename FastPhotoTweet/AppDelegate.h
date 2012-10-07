@@ -25,8 +25,8 @@
 #define BLANK @""
 #define BLANK_ARRAY [NSArray array]
 #define BLANK_M_ARRAY [NSMutableArray array]
-#define BLANC_DIC [NSDictionary dictionary]
-#define BLANC_M_DIC [NSMutableDictionary dictionary]
+#define BLANK_DIC [NSDictionary dictionary]
+#define BLANK_M_DIC [NSMutableDictionary dictionary]
 #define D [NSUserDefaults standardUserDefaults]
 
 #define ORIENTATION [[UIDevice currentDevice] orientation]
