@@ -112,12 +112,13 @@
         return;
     }
     
-    if ( [EmptyCheck string:appDelegate.reOpenUrl] &&
-        appDelegate.tabBarController.selectedIndex != 1 ) {
+    if ( appDelegate.pcUaMode ||
+        [EmptyCheck string:appDelegate.reOpenUrl] ) {
         
         [wv loadRequestWithString:appDelegate.reOpenUrl];
         
         appDelegate.reOpenUrl = BLANK;
+        appDelegate.pcUaMode = NO;
         
     }else {
      

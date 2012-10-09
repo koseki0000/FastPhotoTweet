@@ -12,7 +12,7 @@
 
 @implementation TWGetTimeline
 
-+ (void)homeTimeline {
++ (oneway void)homeTimeline {
     
     //アカウントの取得
     ACAccount *twAccount = [TWGetAccount currentAccount];
@@ -84,6 +84,8 @@
 
                  [result setObject:twAccount.username forKey:@"Account"];
                  
+                 //NSLog(@"timeline: %@", timeline);
+                 
                  if ( timeline != nil ) {
                  
                      //t.coを全て展開する
@@ -111,7 +113,7 @@
     NSLog(@"HomeTimeline request sended");
 }
 
-+ (void)userTimeline:(NSString *)screenName {
++ (oneway void)userTimeline:(NSString *)screenName {
     
     if ( [screenName hasPrefix:@"@"] ) {
         
@@ -240,7 +242,7 @@
     //NSLog(@"UserTimeline request sended");
 }
 
-+ (void)mentions {
++ (oneway void)mentions {
     
     //アカウントの取得
     ACAccount *twAccount = [TWGetAccount currentAccount];
@@ -313,7 +315,7 @@
     //NSLog(@"Mentions request sended");
 }
 
-+ (void)favotites {
++ (oneway void)favotites {
     
     //アカウントの取得
     ACAccount *twAccount = [TWGetAccount currentAccount];
@@ -386,7 +388,7 @@
     //NSLog(@"Favorites request sended");
 }
 
-+ (void)twitterSearch:(NSString *)searchWord {
++ (oneway void)twitterSearch:(NSString *)searchWord {
     
     //アカウントの取得
     ACAccount *twAccount = [TWGetAccount currentAccount];

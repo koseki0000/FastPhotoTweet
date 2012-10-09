@@ -299,7 +299,7 @@
             //NSLog(@"newVersion");
             
             [ShowAlert title:[NSString stringWithFormat:@"FastPhotoTweet %@", APP_VERSION] 
-                 message:@"・｢TwitterSearch(Stream)｣を追加\n・公式RTの表示形式を夜フクロウリスペクトに変更\n・画像フルサイズ取得がimg.lyに対応\n・ブラウザの広告ブロック対象を追加\n・その他多数の不具合修正と処理高速化"];
+                 message:@"・Timelineにプルダウン更新を追加\n・ブラウザの不具合を修正"];
             
             information = [[[NSMutableDictionary alloc] initWithDictionary:[d dictionaryForKey:@"Information"]] autorelease];
             [information setValue:[NSNumber numberWithInt:1] forKey:APP_VERSION];

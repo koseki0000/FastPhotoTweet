@@ -19,11 +19,15 @@
     
     if ( [tweet objectForKey:@"event"] == nil || [[tweet objectForKey:@"retweeted_status"] objectForKey:@"id"] ) {
         
+        if ( [tweet objectForKey:@"text"] == nil ) return @"";
+        
         //通常のTweet, 公式RTなど
         text = [NSMutableString stringWithString:[tweet objectForKey:@"text"]];
         
     }else {
     
+        if ( [[tweet objectForKey:@"target_object"] objectForKey:@"text"] == nil ) return @"";
+        
         //イベント系
         text = [NSMutableString stringWithString:[[tweet objectForKey:@"target_object"] objectForKey:@"text"]];
     }

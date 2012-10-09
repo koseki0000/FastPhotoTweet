@@ -20,6 +20,10 @@
 #import "JSON.h"
 #import "WebViewExController.h"
 
+#import <Three20UI/Three20UI.h>
+#import <Three20Style/Three20Style.h>
+#import "Three20UICommon/TTGlobalUICommon.h"
+
 @interface TimelineViewController : UIViewController <UIActionSheetDelegate, UITextFieldDelegate, UIPickerViewDelegate, UIPickerViewDataSource> {
     
     AppDelegate *appDelegate;
@@ -78,6 +82,11 @@
     int selectRow;
     int longPressControl;
     int timelineScroll;
+    
+    //PulllDownRefresh
+    TTTableHeaderDragRefreshView *headerView;
+    UIView *activityTable;
+    BOOL isLoading;
 }
 
 @property (retain, nonatomic) IBOutlet UIToolbar *topBar;
@@ -107,6 +116,7 @@
 
 - (oneway void)setNotifications;
 - (oneway void)setTimelineHeight;
+- (void)createPullDownRefreshHeader;
 
 - (void)createTimeline;
 - (void)loadTimeline:(NSNotification *)center;

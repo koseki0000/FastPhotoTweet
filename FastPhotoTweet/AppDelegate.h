@@ -21,6 +21,8 @@
 #define SEGMENT_BAR_HEIGHT 30
 #define TAB_BAR_HEIGHT 48
 #define PICKER_HEIGHT 216
+#define HEADER_HEIGHT 60
+#define REFRESH_DERAY -65
 
 #define BLANK @""
 #define BLANK_ARRAY [NSArray array]

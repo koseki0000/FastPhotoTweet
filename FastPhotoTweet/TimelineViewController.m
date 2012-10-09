@@ -56,6 +56,8 @@
     //各種通知設定
     [self setNotifications];
 
+    [self createPullDownRefreshHeader];
+    
     //各種初期化
     appDelegate = (AppDelegate *)[[UIApplication sharedApplication] delegate];
     d = [NSUserDefaults standardUserDefaults];
@@ -251,6 +253,113 @@
                                 timelineHeight);
 }
 
+- (void)createPullDownRefreshHeader {
+    
+    CGRect headerRect = CGRectMake(0,
+                                   -timeline.bounds.size.height,
+                                   timeline.bounds.size.width,
+                                   timeline.bounds.size.height);
+    headerView = [[TTTableHeaderDragRefreshView alloc] initWithFrame:headerRect];
+    headerView.autoresizingMask = UIViewAutoresizingFlexibleWidth;
+    headerView.backgroundColor = TTSTYLEVAR(tableRefreshHeaderBackgroundColor);
+    [headerView setStatus:TTTableHeaderDragRefreshPullToReload];
+    [timeline addSubview:headerView];
+    [headerView setUpdateDate:nil];
+    
+    CGRect activityRect = CGRectMake(0,
+                                     44,
+                                     self.view.frame.size.width,
+                                     self.view.bounds.size.height);
+    activityTable = [[UIView alloc] initWithFrame:activityRect];
+    activityTable.backgroundColor = [UIColor whiteColor];
+    
+    TTActivityLabel *label = [[TTActivityLabel alloc] initWithStyle:TTActivityLabelStyleGray];
+    [activityTable addSubview:label];
+    CGRect frame = activityTable.bounds;
+    frame.origin.y -= 44;
+    label.frame = frame;
+}
+
+#pragma mark - UIScrollViewDelegate
+
+- (void)scrollViewDidScroll:(UIScrollView *)scrollView {
+    
+    //NSLog(@"scrollViewDidScroll");
+    
+    if ( scrollView.dragging && !isLoading ) {
+        
+        if ( scrollView.contentOffset.y > REFRESH_DERAY &&
+            scrollView.contentOffset.y < 0.0f ) {
+            
+            [headerView setStatus:TTTableHeaderDragRefreshPullToReload];
+            
+        }else if ( scrollView.contentOffset.y < REFRESH_DERAY ) {
+            
+            [headerView setStatus:TTTableHeaderDragRefreshReleaseToReload];
+        }
+    }
+    
+    if ( isLoading ) {
+        
+        if ( scrollView.contentOffset.y >= 0 ) {
+            
+            timeline.contentInset = UIEdgeInsetsZero;
+            
+        }else if ( scrollView.contentOffset.y < 0 ) {
+            
+            timeline.contentInset = UIEdgeInsetsMake(HEADER_HEIGHT, 0, 0, 0);
+        }
+    }
+}
+
+- (void)scrollViewDidEndDragging:(UIScrollView *)scrollView willDecelerate:(BOOL)decelerate {
+    
+    //NSLog(@"scrollViewDidEndDragging");
+    
+    if ( scrollView.contentOffset.y <= REFRESH_DERAY &&
+        !isLoading ) {
+        
+        [self startLoad];
+    }
+}
+
+#pragma mark - PullDownRefresh
+
+- (void)startLoad {
+    
+    NSLog(@"startLoad");
+    
+    [headerView setStatus:TTTableHeaderDragRefreshLoading];
+    isLoading = YES;
+    
+    [UIView beginAnimations:nil context:NULL];
+    [UIView setAnimationDuration:ttkDefaultFastTransitionDuration];
+    
+    if ( timeline.contentOffset.y < 0 ) {
+        
+        timeline.contentInset = UIEdgeInsetsMake(HEADER_HEIGHT, 0, 0, 0);
+    }
+    
+    [UIView commitAnimations];
+    
+    [self pushReloadButton:nil];
+}
+
+- (void)finishLoad {
+    
+    NSLog(@"finishLoad");
+    
+    [headerView setStatus:TTTableHeaderDragRefreshPullToReload];
+    
+    [UIView beginAnimations:nil context:NULL];
+    [UIView setAnimationDuration:ttkDefaultTransitionDuration];
+    timeline.contentInset = UIEdgeInsetsZero;
+    [UIView commitAnimations];
+    
+    [headerView setCurrentDate];
+    isLoading = NO;
+}
+
 #pragma mark - TimelineMethod
 
 - (void)createTimeline {
@@ -321,6 +430,11 @@
     dispatch_async( globalQueue, ^{
         dispatch_queue_t syncQueue = dispatch_queue_create( "info.ktysne.fastphototweet", NULL );
         dispatch_sync( syncQueue, ^{
+            
+            dispatch_async(dispatch_get_main_queue(), ^ {
+                
+                [self finishLoad];
+            });
             
             twAccount = [TWGetAccount currentAccount];
             
@@ -477,6 +591,8 @@
     //UserStream接続中の場合は切断する
     if ( userStream ) [self closeStream];
     
+    [self finishLoad];
+    
     reloadButton.enabled = YES;
     timelineControlButton.enabled = NO;
     
@@ -528,6 +644,8 @@
     //UserStream接続中の場合は切断する
     if ( userStream ) [self closeStream];
     
+    [self finishLoad];
+    
     reloadButton.enabled = YES;
     timelineControlButton.enabled = NO;
     
@@ -572,6 +690,8 @@
     //UserStream接続中の場合は切断する
     if ( userStream ) [self closeStream];
     
+    [self finishLoad];
+    
     timelineControlButton.enabled = NO;
     reloadButton.enabled = YES;
     
@@ -611,6 +731,8 @@
     //UserStream接続中の場合は切断する
     if ( userStream ) [self closeStream];
     
+    [self finishLoad];
+    
     reloadButton.enabled = YES;
     timelineControlButton.enabled = NO;
     
@@ -647,6 +769,8 @@
     
     //Listタブ以外が選択されている場合は終了
     if ( timelineSegment.selectedSegmentIndex != 3 ) return;
+    
+    [self finishLoad];
     
     reloadButton.enabled = YES;
     
@@ -1578,7 +1702,12 @@
     userStreamFirstResponse = NO;
     timelineControlButton.enabled = YES;
     timelineControlButton.image = startImage;
-    [connection cancel];
+    
+    if ( connection != nil ) {
+    
+        [connection cancel];
+        connection = nil;
+    }
 }
 
 - (void)userStreamDelete:(NSDictionary *)receiveData {
@@ -1825,7 +1954,12 @@
     userStreamFirstResponse = NO;
     timelineControlButton.enabled = YES;
     timelineControlButton.image = startImage;
-    [connection cancel];
+    
+    if ( connection != nil ) {
+        
+        [connection cancel];
+        connection = nil;
+    }
     
     [topBar setItems:TOP_BAR animated:YES];
     
@@ -1876,6 +2010,9 @@
 //                NSLog(@"receiveData[%d]: %@", receiveData.count, receiveData);
 //                NSLog(@"receiveDataCount: %d", receiveData.count);
 //                NSLog(@"event: %@", [receiveData objectForKey:@"event"]);
+                
+                //エラーは無視
+                if ( error ) return;
                 
                 if ( !userStreamFirstResponse ) {
 
@@ -1937,9 +2074,6 @@
                 newTweet = [TWEntities replaceTcoAll:newTweet];
                 
                 receiveData = [newTweet objectAtIndex:0];
-                
-                //エラーは無視
-                if ( error ) return;
                 
                 if ( receiveData.count != 1 && [receiveData objectForKey:@"delete"] == nil ) {
                     
