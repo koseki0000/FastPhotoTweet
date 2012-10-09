@@ -65,22 +65,25 @@
     pboard = [UIPasteboard generalPasteboard];
 
     twAccount = [TWGetAccount currentAccount];
-    timelineArray = [NSMutableArray array];
-    timelineAppend = [NSMutableArray array];
-    inReplyTo = [NSMutableArray array];
-    reqedUser = [NSMutableArray array];
-    iconUrls = [NSMutableArray array];
-    currentList = [NSMutableArray array];
-    icons = [NSMutableDictionary dictionary];
-    allTimelines = [NSMutableDictionary dictionary];
+    timelineArray = BLANK_M_ARRAY;
+    timelineAppend = BLANK_M_ARRAY;
+    inReplyTo = BLANK_M_ARRAY;
+    reqedUser = BLANK_M_ARRAY;
+    iconUrls = BLANK_M_ARRAY;
+    currentList = BLANK_M_ARRAY;
+    searchStreamTemp = BLANK_M_ARRAY;
+    icons = BLANK_M_DIC;
+    allTimelines = BLANK_M_DIC;
     mentionsArray = BLANK_ARRAY;
-    sinceIds = [NSMutableDictionary dictionary];
-    allLists = [NSMutableDictionary dictionary];
-    selectTweet = [NSDictionary dictionary];
+    sinceIds = BLANK_M_DIC;
+    allLists = BLANK_M_DIC;
+    selectTweet = BLANK_DIC;
     userStreamAccount = BLANK;
     timelineTopTweetId = BLANK;
     selectAccount = BLANK;
     alertSearchUserName = BLANK;
+    
+    searchStreamTimer = nil;
     
     startImage = [UIImage imageNamed:@"ForwardIcon.png"];
     stopImage = [UIImage imageNamed:@"stop.png"];
@@ -136,7 +139,7 @@
     //各アカウントのタイムラインを生成
     for ( account in twitterAccounts ) {
     
-        [allTimelines setObject:[NSMutableArray array] forKey:account.username];
+        [allTimelines setObject:BLANK_M_ARRAY forKey:account.username];
         [sinceIds setObject:BLANK forKey:account.username];
     }
     
@@ -329,6 +332,15 @@
     
     NSLog(@"startLoad");
     
+    if ( reloadButton.isEnabled ) {
+        
+        [self pushReloadButton:nil];
+        
+    }else {
+        
+        return;
+    }
+    
     [headerView setStatus:TTTableHeaderDragRefreshLoading];
     isLoading = YES;
     
@@ -341,8 +353,6 @@
     }
     
     [UIView commitAnimations];
-    
-    [self pushReloadButton:nil];
 }
 
 - (void)finishLoad {
@@ -381,7 +391,7 @@
     if ( [allTimelines objectForKey:twAccount.username] == nil ) {
         
         //アクティブアカウントのタイムラインが無い場合は作成する
-        [allTimelines setObject:[NSMutableArray array] forKey:twAccount.username];
+        [allTimelines setObject:BLANK_M_ARRAY forKey:twAccount.username];
     }
     
     //アクティブアカウントのタイムラインを反映
@@ -851,7 +861,7 @@
                 if ( [EmptyCheck string:screenName] && [EmptyCheck string:biggerUrl] && 
                      [EmptyCheck string:fileName]   && [EmptyCheck string:searchName] ) {
                     
-                    NSMutableDictionary *tempDic = [NSMutableDictionary dictionary];
+                    NSMutableDictionary *tempDic = BLANK_M_DIC;
                     //ユーザー名を設定
                     [tempDic setObject:screenName forKey:@"screen_name"];
                     //アイコンURLを設定
@@ -1139,7 +1149,7 @@
                         
                         [topBar setItems:OTHER_TWEETS_BAR animated:YES];
                         
-                        timelineArray = [NSMutableArray array];
+                        timelineArray = BLANK_M_ARRAY;
                         [timeline reloadData];
                         
                         [NSThread sleepForTimeInterval:0.1f];
@@ -1163,7 +1173,7 @@
     }else {
         
         BOOL find = NO;
-        NSDictionary *findTweet = [NSDictionary dictionary];
+        NSDictionary *findTweet = BLANK_DIC;
         
         for ( NSDictionary *searchTweet in timelineArray ) {
             
@@ -1811,9 +1821,9 @@
 
 - (void)userStreamReceiveFavEvent:(NSDictionary *)receiveData {
     
-    NSMutableDictionary *favDic = [NSMutableDictionary dictionary];
+    NSMutableDictionary *favDic = BLANK_M_DIC;
     //user
-    NSMutableDictionary *user = [NSMutableDictionary dictionary];
+    NSMutableDictionary *user = BLANK_M_DIC;
     
     //ふぁぼられた人
     NSString *favUser = [[receiveData objectForKey:@"target"] objectForKey:@"screen_name"];
@@ -1854,7 +1864,7 @@
     
     if ( [icons objectForKey:favUser] == nil ) {
         
-        NSMutableDictionary *tempDic = [NSMutableDictionary dictionary];
+        NSMutableDictionary *tempDic = BLANK_M_DIC;
         [tempDic setObject:[[favDic objectForKey:@"user"] objectForKey:@"screen_name"] forKey:@"screen_name"];
         [tempDic setObject:[TWIconBigger normal:[[favDic objectForKey:@"user"] objectForKey:@"profile_image_url"]] forKey:@"profile_image_url"];
         
@@ -1934,6 +1944,9 @@
             connection = [NSURLConnection connectionWithRequest:request.signedURLRequest delegate:self];
             [connection start];
             
+            [searchStreamTemp removeAllObjects];
+            [self startSearchStreamTimer];
+            
             // 終わるまでループさせる
             while ( searchStream ) {
                 
@@ -1954,6 +1967,8 @@
     userStreamFirstResponse = NO;
     timelineControlButton.enabled = YES;
     timelineControlButton.image = startImage;
+    
+    [self stopSearchStreamTimer];
     
     if ( connection != nil ) {
         
@@ -1980,14 +1995,53 @@
             if ( [[receiveData objectForKey:@"id_str"] isEqualToString:[[timelineArray objectAtIndex:0] objectForKey:@"id_str"]] ) return;
         }
         
-        //タイムラインに追加
-        [timelineArray insertObject:receiveData atIndex:0];
-        [timeline insertRowsAtIndexPaths:@[[NSIndexPath indexPathForRow:0 inSection:0]] withRowAnimation:UITableViewRowAnimationTop];
-        
-        //アイコン保存
-        [self getIconWithTweetArray:[NSMutableArray arrayWithArray:@[receiveData]]];
+        [searchStreamTemp addObject:receiveData];
         
     }@catch ( NSException *e ) {}
+}
+
+- (void)startSearchStreamTimer {
+    
+    NSLog(@"startSearchStreamTimer");
+    
+    searchStreamTimer = [NSTimer scheduledTimerWithTimeInterval:0.1f
+                                                         target:self
+                                                       selector:@selector(checkSearchStreamTemp)
+                                                       userInfo:nil
+                                                        repeats:YES];
+    [searchStreamTimer fire];
+}
+
+- (void)stopSearchStreamTimer {
+    
+    NSLog(@"stopSearchStreamTimer");
+    
+    [searchStreamTemp removeAllObjects];
+    [searchStreamTimer invalidate];
+}
+
+- (void)checkSearchStreamTemp {
+
+    //NSLog(@"checkSearchStreamTemp");
+    
+    dispatch_async(dispatch_get_main_queue(), ^ {
+        
+        if ( searchStreamTemp.count != 0 ) {
+            
+            NSDictionary *newTweet = [searchStreamTemp objectAtIndex:0];
+            [searchStreamTemp removeObjectAtIndex:0];
+            
+            if ( newTweet != nil ) {
+                
+                //タイムラインに追加
+                [timelineArray insertObject:newTweet atIndex:0];
+                [timeline insertRowsAtIndexPaths:@[[NSIndexPath indexPathForRow:0 inSection:0]] withRowAnimation:UITableViewRowAnimationTop];
+                
+                //アイコン保存
+                [self getIconWithTweetArray:[NSMutableArray arrayWithArray:@[newTweet]]];
+            }
+        }
+    });
 }
 
 #pragma mark - NSURLConnectionDataDelegate
@@ -2402,7 +2456,7 @@
                     
                     if ( [EmptyCheck string:hashTag] ) {
                         
-                        NSMutableDictionary *addDic = [NSMutableDictionary dictionary];
+                        NSMutableDictionary *addDic = BLANK_M_DIC;
                         
                         //NGワード設定を読み込む
                         NSMutableArray *ngWordArray = [NSMutableArray arrayWithArray:[d objectForKey:@"NGWord"]];
@@ -2436,7 +2490,7 @@
                 
                 }else if ( buttonIndex == 7 ) {
                     
-                    NSMutableDictionary *addDic = [NSMutableDictionary dictionary];
+                    NSMutableDictionary *addDic = BLANK_M_DIC;
                     
                     NSString *clientName = [TWParser client:[selectTweet objectForKey:@"source"]];
                     
@@ -2591,7 +2645,7 @@
                     
                     //タイムラインからログを削除
                     [timelineArray removeAllObjects];
-                    timelineArray = [NSMutableArray array];
+                    timelineArray = BLANK_M_ARRAY;
                     
                     //SinceIDを削除
                     [sinceIds setObject:BLANK forKey:twAccount.username];
@@ -2610,7 +2664,7 @@
                     //各アカウントのログを削除
                     for ( account in twitterAccounts ) {
                         
-                        [allTimelines setObject:[NSMutableArray array] forKey:account.username];
+                        [allTimelines setObject:BLANK_M_ARRAY forKey:account.username];
                         [sinceIds setObject:BLANK forKey:account.username];
                     }
                     
@@ -3059,7 +3113,7 @@
             twAccount = [TWGetAccount currentAccount];
             [allTimelines setObject:timelineArray forKey:twAccount.username];
             
-            timelineArray = [NSMutableArray array];
+            timelineArray = BLANK_M_ARRAY;
             [timeline reloadData];
             
             searchStream =YES;
@@ -3404,7 +3458,7 @@ numberOfRowsInComponent:(NSInteger)component {
     if ( [[notification.userInfo objectForKey:@"Result"] isEqualToString:@"Success"] ) {
     
         NSDictionary *result = [notification.userInfo objectForKey:@"Profile"];
-        NSMutableDictionary *tempDic = [NSMutableDictionary dictionary];
+        NSMutableDictionary *tempDic = BLANK_M_DIC;
         
         NSString *screenName = [result objectForKey:@"screen_name"];
         NSString *biggerUrl = [TWIconBigger normal:[result objectForKey:@"profile_image_url"]];
@@ -3600,7 +3654,7 @@ numberOfRowsInComponent:(NSInteger)component {
         
     }else {
         
-        timelineArray = [NSMutableArray array];
+        timelineArray = BLANK_M_ARRAY;
     }
     
     [timeline reloadData];
@@ -3648,7 +3702,7 @@ numberOfRowsInComponent:(NSInteger)component {
             
         }else {
             
-            timelineArray = [NSMutableArray array];
+            timelineArray = BLANK_M_ARRAY;
         }
         
         [timeline reloadData];

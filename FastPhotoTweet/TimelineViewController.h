@@ -36,6 +36,7 @@
     NSMutableArray *reqedUser;
     NSMutableArray *iconUrls;
     NSMutableArray *currentList;
+    NSMutableArray *searchStreamTemp;
     NSMutableDictionary *allTimelines;
     NSMutableDictionary *sinceIds;
     NSMutableDictionary *icons;
@@ -50,6 +51,7 @@
     NSString *timelineTopTweetId;
     NSString *selectAccount;
     NSString *alertSearchUserName;
+    NSTimer *searchStreamTimer;
     
     UIPasteboard *pboard;
     UIImage *startImage;
@@ -117,6 +119,8 @@
 - (oneway void)setNotifications;
 - (oneway void)setTimelineHeight;
 - (void)createPullDownRefreshHeader;
+- (void)startLoad;
+- (void)finishLoad;
 
 - (void)createTimeline;
 - (void)loadTimeline:(NSNotification *)center;
@@ -140,10 +144,13 @@
 - (void)userStreamMyRemoveFavEvent:(NSDictionary *)receiveData;
 - (void)userStreamReceiveFavEvent:(NSDictionary *)receiveData;
 - (void)userStreamReceiveTweet:(NSDictionary *)receiveData newTweet:(NSArray *)newTweet;
-
 - (void)openSearchStream:(NSString *)searchWord;
 - (void)closeSearchStream;
 - (void)searchStreamReceiveTweet:(NSDictionary *)receiveData;
+- (void)startSearchStreamTimer;
+- (void)stopSearchStreamTimer;
+- (void)checkSearchStreamTemp;
+
 
 - (void)showTwitterAccountSelectActionSheet:(NSArray *)ids;
 - (void)openTwitterService:(NSString *)username serviceType:(int)serviceType;
