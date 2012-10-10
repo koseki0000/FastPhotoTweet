@@ -166,10 +166,14 @@
 - (void)dealloc {
     
     [bookMarkArray release];
-    
+    bookMarkArray = nil;
     [topBar release];
+    topBar = nil;
     [closeButton release];
+    closeButton = nil;
     [tv release];
+    tv = nil;
+    
     [super dealloc];
 }
 

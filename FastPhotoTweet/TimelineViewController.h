@@ -24,7 +24,7 @@
 #import <Three20Style/Three20Style.h>
 #import "Three20UICommon/TTGlobalUICommon.h"
 
-@interface TimelineViewController : UIViewController <UIActionSheetDelegate, UITextFieldDelegate, UIPickerViewDelegate, UIPickerViewDataSource> {
+@interface TimelineViewController : UIViewController <UIActionSheetDelegate, UITextFieldDelegate, UIPickerViewDelegate, UIPickerViewDataSource, UITableViewDelegate, UITableViewDataSource> {
     
     AppDelegate *appDelegate;
     
@@ -134,8 +134,10 @@
 - (void)getInReplyToChain:(NSDictionary *)tweetData;
 - (void)scrollTimelineForNewTweet;
 - (void)scrollTimelineToTop:(BOOL)animation;
+- (void)reCreateTimeline;
 - (void)refreshTimelineCell:(NSNumber *)index;
 - (void)copyTweetInUrl:(NSArray *)urlList;
+- (void)checkTimelineCount;
 
 - (void)openStream;
 - (void)closeStream;
@@ -151,7 +153,6 @@
 - (void)stopSearchStreamTimer;
 - (void)checkSearchStreamTemp;
 
-
 - (void)showTwitterAccountSelectActionSheet:(NSArray *)ids;
 - (void)openTwitterService:(NSString *)username serviceType:(int)serviceType;
 
@@ -162,6 +163,8 @@
 - (oneway void)getMyAccountIcon;
 - (void)timelineDidListChanged;
 - (void)showListSelectView;
+- (void)setTimelineBarItems;
+- (void)setOtherTweetsBarItems;
 
 - (void)showPickerView;
 - (void)pickerDone;

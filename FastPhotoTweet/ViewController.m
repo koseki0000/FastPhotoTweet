@@ -299,7 +299,7 @@
             //NSLog(@"newVersion");
             
             [ShowAlert title:[NSString stringWithFormat:@"FastPhotoTweet %@", APP_VERSION] 
-                 message:@"・Timelineにプルダウン更新を追加\n・ブラウザの不具合を修正"];
+                 message:@"・メモリ管理を大幅に改善\n・ブラウザの不具合を修正"];
             
             information = [[[NSMutableDictionary alloc] initWithDictionary:[d dictionaryForKey:@"Information"]] autorelease];
             [information setValue:[NSNumber numberWithInt:1] forKey:APP_VERSION];
@@ -2378,33 +2378,58 @@
 - (void)dealloc {
     
     [twAccount release];
-    
+    twAccount = nil;
     [postText release];
+    postText = nil;
     [callbackLabel release];
+    callbackLabel = nil;
     [callbackSwitch release];
+    callbackSwitch = nil;
     [postCharLabel release];
+    postCharLabel = nil;
     [imagePreview release];
+    imagePreview = nil;
     [imageSettingButton release];
+    imageSettingButton = nil;
     [sv release];
-    
+    sv = nil;
     [topBar release];
+    topBar = nil;
     [trashButton release];
+    trashButton = nil;
     [postButton release];
+    postButton = nil;
     [flexibleSpace release];
+    flexibleSpace = nil;
     [settingButton release];
+    settingButton = nil;
     [bottomBar release];
+    bottomBar = nil;
     [idButton release];
+    idButton = nil;
     [tapGesture release];
+    tapGesture = nil;
     [resendButton release];
+    resendButton = nil;
     [rigthSwipe release];
+    rigthSwipe = nil;
     [leftSwipe release];
+    leftSwipe = nil;
     [nowPlayingButton release];
+    nowPlayingButton = nil;
     [browserButton release];
+    browserButton = nil;
     [inputFunctionButton release];
+    inputFunctionButton = nil;
     [actionButton release];
+    actionButton = nil;
     [iconPreview release];
+    iconPreview = nil;
     [pboardURLLabel release];
+    pboardURLLabel = nil;
     [pboardURLSwitch release];
+    pboardURLSwitch = nil;
+    
     [super dealloc];
 }
 

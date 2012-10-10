@@ -145,9 +145,14 @@
     //NSLog(@"dealloc ResendViewController");
     
     [bar release];
+    bar = nil;
     [closeButton release];
+    closeButton = nil;
     [trashButton release];
+    trashButton = nil;
     [resendTable release];
+    resendTable = nil;
+    
     [super dealloc];
 }
 

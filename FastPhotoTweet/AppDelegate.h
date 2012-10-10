@@ -70,7 +70,7 @@ void uncaughtExceptionHandler(NSException *exception);
 @property (nonatomic, retain) NSArray *listAll;
 @property (nonatomic, retain) NSMutableArray *postError;
 @property (nonatomic, retain) NSMutableDictionary *postData;
-@property (nonatomic, retain) NSTimer *pBoardWatchTimer;
+@property (nonatomic, weak) NSTimer *pBoardWatchTimer;
 @property int resendNumber;
 @property int launchMode;
 @property BOOL resendMode;

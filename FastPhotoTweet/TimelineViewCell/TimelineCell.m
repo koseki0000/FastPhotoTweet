@@ -16,15 +16,13 @@
 
     CGContextRef context = UIGraphicsGetCurrentContext();
     
-//    AppDelegate *appDelegate = (AppDelegate *)[[UIApplication sharedApplication] delegate];
-    
     //セル背景描画
     CGGradientRef gradient;
     CGColorSpaceRef colorSpace;
     size_t location = 2;
     CGFloat locations[2] = { 0.0, 1.0 };
-    CGFloat components[8] = { 1.0, 1.0, 1.0, 1.0,  // Start color
-                              0.92, 0.92, 0.92, 1.0 }; // End color
+    CGFloat components[8] = { 1.0, 1.0, 1.0, 1.0,
+                              0.92, 0.92, 0.92, 1.0 };
     colorSpace = CGColorSpaceCreateDeviceRGB();
     gradient = CGGradientCreateWithColorComponents( colorSpace, components,
                                                     locations, location );
@@ -35,27 +33,19 @@
     
     CGColorSpaceRelease(colorSpace);
     CGGradientRelease(gradient);
-    
-    //アイコン描画
-//    CGImageRef image = CGImageRetain(appDelegate.testImage.CGImage);
-//    
-//    size_t width = CGImageGetWidth(image);
-//    size_t height = CGImageGetHeight(image);
-//    
-//    CGRect imageRect = CGRectMake(2, 4, width, height);
-//    
-//    CGAffineTransform affine = CGAffineTransformIdentity;
-//    affine.d = -1.0f;
-//    affine.ty = height + 8;
-//    CGContextConcatCTM(context, affine);
-//	CGContextDrawImage(context, imageRect, image);
 }
 
 - (void)dealloc {
 
+    //NSLog(@"TimelineCell dealloc");
+    
     [infoLabel release];
+    infoLabel = nil;
 	[textLabel release];
+    textLabel = nil;
     [iconView release];
+    iconView = nil;
+    
     [super dealloc];
 }
 

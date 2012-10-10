@@ -198,7 +198,7 @@
 
 //複数のTweetのt.coを全て展開する
 + (id)replaceTcoAll:(id)tweets {
-
+    
     BOOL isMutable = NO;
     
     //型チェック

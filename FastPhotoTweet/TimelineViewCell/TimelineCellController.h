@@ -8,10 +8,7 @@
 #import <UIKit/UIKit.h>
 #import "TimelineCell.h"
 
-@interface TimelineCellController : UIViewController {
-    
-	IBOutlet TimelineCell *cell;
-}
+@interface TimelineCellController : UIViewController
 
 @property (nonatomic, retain) TimelineCell *cell;
 

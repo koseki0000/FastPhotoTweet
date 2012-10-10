@@ -315,6 +315,9 @@ void uncaughtExceptionHandler(NSException *e) {
 - (void)dealloc {
 
     if ( pBoardWatchTimer.isValid ) [self stopPasteBoardTimer];
+    
+    self.tabBarController = nil;
+    self.window = nil;
 }
 
 @end

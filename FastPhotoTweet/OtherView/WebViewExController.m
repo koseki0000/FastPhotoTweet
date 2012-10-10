@@ -1711,32 +1711,6 @@
     }
 }
 
-- (void)viewDidUnload {
-    
-    //NSLog(@"WebViewExController viewDidUnload");
-    
-    appDelegate.browserOpenMode = NO;
-    
-    [self setTopBar:nil];
-    [self setBottomBar:nil];
-    [self setSearchButton:nil];
-    [self setCloseButton:nil];
-    [self setReloadButton:nil];
-    [self setBackButton:nil];
-    [self setForwardButton:nil];
-    [self setMenuButton:nil];
-    [self setFlexibleSpace:nil];
-    [self setUrlField:nil];
-    [self setSearchField:nil];
-    [self setComposeButton:nil];
-    [self setWv:nil];
-    [self setBytesLabel:nil];
-    [self setProgressBar:nil];
-    [self setDownloadCancelButton:nil];
-    [self setBookmarkButton:nil];
-    [super viewDidUnload];
-}
-
 - (void)rotateView:(int)mode {
  
     NSLog(@"rotateView: %d", mode);
@@ -1944,6 +1918,34 @@
     }
 }
 
+- (void)viewDidUnload {
+    
+    //NSLog(@"WebViewExController viewDidUnload");
+    
+    appDelegate.browserOpenMode = NO;
+    appDelegate.urlSchemeDownloadUrl = BLANK;
+    
+    [self setTopBar:nil];
+    [self setBottomBar:nil];
+    [self setSearchButton:nil];
+    [self setCloseButton:nil];
+    [self setReloadButton:nil];
+    [self setBackButton:nil];
+    [self setForwardButton:nil];
+    [self setMenuButton:nil];
+    [self setFlexibleSpace:nil];
+    [self setUrlField:nil];
+    [self setSearchField:nil];
+    [self setComposeButton:nil];
+    [self setWv:nil];
+    [self setBytesLabel:nil];
+    [self setProgressBar:nil];
+    [self setDownloadCancelButton:nil];
+    [self setBookmarkButton:nil];
+    
+    [super viewDidUnload];
+}
+
 - (void)dealloc {
     
     appDelegate.browserOpenMode = NO;
@@ -1952,6 +1954,24 @@
     if ( wv.loading ) [wv stopLoading];
     wv.delegate = nil;
     [wv removeFromSuperview];
+    
+    [self setTopBar:nil];
+    [self setBottomBar:nil];
+    [self setSearchButton:nil];
+    [self setCloseButton:nil];
+    [self setReloadButton:nil];
+    [self setBackButton:nil];
+    [self setForwardButton:nil];
+    [self setMenuButton:nil];
+    [self setFlexibleSpace:nil];
+    [self setUrlField:nil];
+    [self setSearchField:nil];
+    [self setComposeButton:nil];
+    [self setWv:nil];
+    [self setBytesLabel:nil];
+    [self setProgressBar:nil];
+    [self setDownloadCancelButton:nil];
+    [self setBookmarkButton:nil];
     
     [ActivityIndicator visible:NO];
 }

@@ -50,26 +50,23 @@
     BOOL loading;
 }
 
-@property (retain, nonatomic) IBOutlet WebViewEx *wv;
-
-@property (retain, nonatomic) IBOutlet UIToolbar *topBar;
-@property (retain, nonatomic) IBOutlet UITextField *urlField;
-@property (retain, nonatomic) IBOutlet UITextField *searchField;
-@property (retain, nonatomic) IBOutlet UIBarButtonItem *searchButton;
-
-@property (retain, nonatomic) IBOutlet UIToolbar *bottomBar;
-@property (retain, nonatomic) IBOutlet UIBarButtonItem *composeButton;
-@property (retain, nonatomic) IBOutlet UIBarButtonItem *closeButton;
-@property (retain, nonatomic) IBOutlet UIBarButtonItem *reloadButton;
-@property (retain, nonatomic) IBOutlet UIBarButtonItem *backButton;
-@property (retain, nonatomic) IBOutlet UIBarButtonItem *forwardButton;
-@property (retain, nonatomic) IBOutlet UIBarButtonItem *menuButton;
-@property (retain, nonatomic) IBOutlet UIBarButtonItem *bookmarkButton;
-@property (retain, nonatomic) IBOutlet UIBarButtonItem *flexibleSpace;
-
-@property (retain, nonatomic) IBOutlet UILabel *bytesLabel;
-@property (retain, nonatomic) IBOutlet UIProgressView *progressBar;
-@property (retain, nonatomic) IBOutlet UIButton *downloadCancelButton;
+@property (weak, nonatomic) IBOutlet WebViewEx *wv;
+@property (weak, nonatomic) IBOutlet UIToolbar *topBar;
+@property (weak, nonatomic) IBOutlet UITextField *urlField;
+@property (weak, nonatomic) IBOutlet UITextField *searchField;
+@property (weak, nonatomic) IBOutlet UIBarButtonItem *searchButton;
+@property (weak, nonatomic) IBOutlet UIToolbar *bottomBar;
+@property (weak, nonatomic) IBOutlet UIBarButtonItem *composeButton;
+@property (weak, nonatomic) IBOutlet UIBarButtonItem *closeButton;
+@property (weak, nonatomic) IBOutlet UIBarButtonItem *reloadButton;
+@property (weak, nonatomic) IBOutlet UIBarButtonItem *backButton;
+@property (weak, nonatomic) IBOutlet UIBarButtonItem *forwardButton;
+@property (weak, nonatomic) IBOutlet UIBarButtonItem *menuButton;
+@property (weak, nonatomic) IBOutlet UIBarButtonItem *bookmarkButton;
+@property (weak, nonatomic) IBOutlet UIBarButtonItem *flexibleSpace;
+@property (weak, nonatomic) IBOutlet UILabel *bytesLabel;
+@property (weak, nonatomic) IBOutlet UIProgressView *progressBar;
+@property (weak, nonatomic) IBOutlet UIButton *downloadCancelButton;
 
 - (IBAction)pushSearchButton:(id)sender;
 - (IBAction)pushCloseButton:(id)sender;

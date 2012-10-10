@@ -6,16 +6,11 @@
 //
 
 #import <UIKit/UIKit.h>
-#import "AppDelegate.h"
 
-@interface TimelineCell : UITableViewCell {
-    
-	IBOutlet UILabel *infoLabel;
-	IBOutlet UILabel *textLabel;
-}
+@interface TimelineCell : UITableViewCell
 
-@property (retain, nonatomic) UILabel *infoLabel;
-@property (retain, nonatomic) UILabel *textLabel;
+@property (retain, nonatomic) IBOutlet UILabel *infoLabel;
+@property (retain, nonatomic) IBOutlet UILabel *textLabel;
 @property (retain, nonatomic) IBOutlet UIImageView *iconView;
 
 @end

@@ -119,6 +119,9 @@
 
 - (void)dealloc {
     
+    [self setTopBar:nil];
+    [self setCloseButton:nil];
+    [self setListTable:nil];
 }
 
 @end

@@ -12,7 +12,11 @@
 
 - (void)dealloc {
 
+    //NSLog(@"TimelineCellController dealloc");
+    
     [cell release];
+    cell = nil;
+    
 	[super dealloc];
 }
 
