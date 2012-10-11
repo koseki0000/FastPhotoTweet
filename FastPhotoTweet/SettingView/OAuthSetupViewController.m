@@ -181,7 +181,14 @@
         
         [grayView off];
         
-		[self dismissModalViewControllerAnimated:YES];
+		if ( [appDelegate.firmwareVersion hasPrefix:@"6"] ) {
+            
+            [self dismissViewControllerAnimated:YES completion:nil];
+            
+        }else {
+            
+            [self dismissModalViewControllerAnimated:YES];
+        }
 		
 	}else {
         
@@ -337,7 +344,16 @@
         
     [ActivityIndicator visible:NO];
     
-    [self dismissModalViewControllerAnimated:YES];
+    AppDelegate *appDelegate = (AppDelegate *)[[UIApplication sharedApplication] delegate];
+    
+    if ( [appDelegate.firmwareVersion hasPrefix:@"6"] ) {
+        
+        [self dismissViewControllerAnimated:YES completion:nil];
+        
+    }else {
+        
+        [self dismissModalViewControllerAnimated:YES];
+    }
 }
 
 - (IBAction)pushDoneButton:(id)sender {

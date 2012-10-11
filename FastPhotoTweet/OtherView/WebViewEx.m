@@ -398,7 +398,7 @@
 
 - (void)dealloc {
     
-    //NSLog(@"WebViewEx dealloc");
+    NSLog(@"WebViewEx dealloc");
     
     //メモリキャッシュの削除
     NSURLCache *cache = [NSURLCache sharedURLCache];

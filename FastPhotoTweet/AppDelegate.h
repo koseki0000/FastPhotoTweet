@@ -66,6 +66,8 @@ void uncaughtExceptionHandler(NSException *exception);
 @property (nonatomic, retain) NSString *reOpenUrl;
 @property (nonatomic, retain) NSString *listId;
 @property (nonatomic, retain) NSString *addTwitpicAccountName;
+@property (nonatomic, retain) NSString *platformName;
+@property (nonatomic, retain) NSString *firmwareVersion;
 @property (nonatomic, retain) NSArray *startupUrlList;
 @property (nonatomic, retain) NSArray *listAll;
 @property (nonatomic, retain) NSMutableArray *postError;
@@ -73,6 +75,7 @@ void uncaughtExceptionHandler(NSException *exception);
 @property (nonatomic, weak) NSTimer *pBoardWatchTimer;
 @property int resendNumber;
 @property int launchMode;
+@property float reloadInterval;
 @property BOOL resendMode;
 @property BOOL browserOpenMode;
 @property BOOL pcUaMode;
@@ -87,6 +90,7 @@ void uncaughtExceptionHandler(NSException *exception);
 
 - (BOOL)ios5Check;
 - (BOOL)iconExist:(NSString *)searchName;
+- (NSString *)getPlatformName;
 
 - (void)startPasteBoardTimer;
 - (void)stopPasteBoardTimer;

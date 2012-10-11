@@ -240,8 +240,17 @@
 
 - (IBAction)pushCloseButton:(UIBarButtonItem *)sender {
     
+    AppDelegate *appDelegate = (AppDelegate *)[[UIApplication sharedApplication] delegate];
+    
     //閉じる
-    [self dismissModalViewControllerAnimated:YES];
+    if ( [appDelegate.firmwareVersion hasPrefix:@"6"] ) {
+        
+        [self dismissViewControllerAnimated:YES completion:nil];
+        
+    }else {
+        
+        [self dismissModalViewControllerAnimated:YES];
+    }
 }
 
 - (IBAction)upView:(id)sender {

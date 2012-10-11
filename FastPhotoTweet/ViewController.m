@@ -299,7 +299,7 @@
             //NSLog(@"newVersion");
             
             [ShowAlert title:[NSString stringWithFormat:@"FastPhotoTweet %@", APP_VERSION] 
-                 message:@"・メモリ管理を大幅に改善\n・ブラウザの不具合を修正"];
+                 message:@"・Timelineのプルダウン更新の引っ掛かりを改善\n・メモリ管理の改善\n・iOS6で起こる問題を修正"];
             
             information = [[[NSMutableDictionary alloc] initWithDictionary:[d dictionaryForKey:@"Information"]] autorelease];
             [information setValue:[NSNumber numberWithInt:1] forKey:APP_VERSION];
@@ -861,7 +861,14 @@
         image = [ResizeImage aspectResizeSetMaxSize:image maxSize:256];
         [TWIconUpload image:image];
         
-        [picPicker dismissModalViewControllerAnimated:YES];
+        if ( [appDelegate.firmwareVersion hasPrefix:@"6"] ) {
+            
+            [picPicker dismissViewControllerAnimated:YES completion:nil];
+            
+        }else {
+            
+            [picPicker dismissModalViewControllerAnimated:YES];
+        }
         
         return;
     }
@@ -869,7 +876,14 @@
     //モーダルビューを閉じる
     if ( !repeatedPost ) {
         
-        [picPicker dismissModalViewControllerAnimated:YES];
+        if ( [appDelegate.firmwareVersion hasPrefix:@"6"] ) {
+            
+            [picPicker dismissViewControllerAnimated:YES completion:nil];
+            
+        }else {
+            
+            [picPicker dismissModalViewControllerAnimated:YES];
+        }
     }
     
     //画像ソースがカメラの場合保存
@@ -902,7 +916,15 @@
     showImagePicker = NO;
     repeatedPost = NO;
     iconUploadMode = NO;
-    [picPicker dismissModalViewControllerAnimated:YES];
+    
+    if ( [appDelegate.firmwareVersion hasPrefix:@"6"] ) {
+        
+        [picPicker dismissViewControllerAnimated:YES completion:nil];
+        
+    }else {
+        
+        [picPicker dismissModalViewControllerAnimated:YES];
+    }
 }
 
 - (void)savingImageIsFinished:(UIImage *)image
@@ -1445,77 +1467,80 @@
 
 - (oneway void)uploadImage:(UIImage *)image {
     
-    //処理中を表すビューを表示
-    [grayView onAndSetSize:postText.frame.origin.x   y:postText.frame.origin.y
-                         w:postText.frame.size.width h:postText.frame.size.height];
-    
-    //画像をリサイズするか判定
-    if ( [d boolForKey:@"ResizeImage"] ) {
+    @autoreleasepool {
         
-        //リサイズを行う
-        image = [ResizeImage aspectResize:image];
-    }
-    
-    //UIImageをNSDataに変換
-    NSData *imageData = [EncodeImage image:image];
-    
-    //リクエストURLを指定
-    NSURL *URL = nil;
-    
-    if ( [[d objectForKey:@"PhotoService"] isEqualToString:@"img.ur"] ) {
+        //処理中を表すビューを表示
+        [grayView onAndSetSize:postText.frame.origin.x   y:postText.frame.origin.y
+                             w:postText.frame.size.width h:postText.frame.size.height];
         
-        URL = [NSURL URLWithString:@"http://api.imgur.com/2/upload.json"];
-        
-    }else if ( [[d objectForKey:@"PhotoService"] isEqualToString:@"Twitpic"] ) {
-        
-        URL = [NSURL URLWithString:@"http://api.twitpic.com/1/upload.json"];
-    }
-    
-    ASIFormDataRequest *request = [[[ASIFormDataRequest alloc] initWithURL:URL] autorelease];
-    
-    if ( [[d objectForKey:@"PhotoService"] isEqualToString:@"img.ur"] ) {
-        
-        //NSLog(@"img.ur upload");
-        
-        [request addPostValue:IMGUR_API_KEY forKey:@"key"];
-        [request addData:imageData forKey:@"image"];
-        
-    }else if ( [[d objectForKey:@"PhotoService"] isEqualToString:@"Twitpic"] ) {
-        
-        //NSLog(@"Twitpic upload");
-        
-        twAccount = [TWGetAccount currentAccount];
-        
-        NSDictionary *dic = [d dictionaryForKey:@"OAuthAccount"];
-        
-        if ( [EmptyCheck check:[dic objectForKey:twAccount.username]] ) {
+        //画像をリサイズするか判定
+        if ( [d boolForKey:@"ResizeImage"] ) {
             
-            NSString *key = [UUIDEncryptor decryption:[[dic objectForKey:twAccount.username] objectAtIndex:0]];
-            NSString *secret = [UUIDEncryptor decryption:[[dic objectForKey:twAccount.username] objectAtIndex:1]];
+            //リサイズを行う
+            image = [ResizeImage aspectResize:image];
+        }
+        
+        //UIImageをNSDataに変換
+        NSData *imageData = [EncodeImage image:image];
+        
+        //リクエストURLを指定
+        NSURL *URL = nil;
+        
+        if ( [[d objectForKey:@"PhotoService"] isEqualToString:@"img.ur"] ) {
             
-            [request addPostValue:TWITPIC_API_KEY forKey:@"key"];
-            [request addPostValue:OAUTH_KEY forKey:@"consumer_token"];
-            [request addPostValue:OAUTH_SECRET forKey:@"consumer_secret"];
-            [request addPostValue:key forKey:@"oauth_token"];
-            [request addPostValue:secret forKey:@"oauth_secret"];
-            [request addPostValue:postText.text forKey:@"message"];
-            [request addData:imageData forKey:@"media"];
+            URL = [NSURL URLWithString:@"http://api.imgur.com/2/upload.json"];
             
-        }else {
+        }else if ( [[d objectForKey:@"PhotoService"] isEqualToString:@"Twitpic"] ) {
             
-            //Twitpic投稿が不可な場合はimg.urに投稿
-            request.url = [NSURL URLWithString:@"http://api.imgur.com/2/upload.json"];
+            URL = [NSURL URLWithString:@"http://api.twitpic.com/1/upload.json"];
+        }
+        
+        ASIFormDataRequest *request = [[[ASIFormDataRequest alloc] initWithURL:URL] autorelease];
+        
+        if ( [[d objectForKey:@"PhotoService"] isEqualToString:@"img.ur"] ) {
             
-            [d setObject:@"img.ur" forKey:@"PhotoService"];
+            //NSLog(@"img.ur upload");
+            
             [request addPostValue:IMGUR_API_KEY forKey:@"key"];
             [request addData:imageData forKey:@"image"];
             
-            [ShowAlert error:[NSString stringWithFormat:@"%@のTwitpicアカウントが見つからなかったためimg.urに投稿しました。", twAccount.username]];
+        }else if ( [[d objectForKey:@"PhotoService"] isEqualToString:@"Twitpic"] ) {
+            
+            //NSLog(@"Twitpic upload");
+            
+            twAccount = [TWGetAccount currentAccount];
+            
+            NSDictionary *dic = [d dictionaryForKey:@"OAuthAccount"];
+            
+            if ( [EmptyCheck check:[dic objectForKey:twAccount.username]] ) {
+                
+                NSString *key = [UUIDEncryptor decryption:[[dic objectForKey:twAccount.username] objectAtIndex:0]];
+                NSString *secret = [UUIDEncryptor decryption:[[dic objectForKey:twAccount.username] objectAtIndex:1]];
+                
+                [request addPostValue:TWITPIC_API_KEY forKey:@"key"];
+                [request addPostValue:OAUTH_KEY forKey:@"consumer_token"];
+                [request addPostValue:OAUTH_SECRET forKey:@"consumer_secret"];
+                [request addPostValue:key forKey:@"oauth_token"];
+                [request addPostValue:secret forKey:@"oauth_secret"];
+                [request addPostValue:postText.text forKey:@"message"];
+                [request addData:imageData forKey:@"media"];
+                
+            }else {
+                
+                //Twitpic投稿が不可な場合はimg.urに投稿
+                request.url = [NSURL URLWithString:@"http://api.imgur.com/2/upload.json"];
+                
+                [d setObject:@"img.ur" forKey:@"PhotoService"];
+                [request addPostValue:IMGUR_API_KEY forKey:@"key"];
+                [request addData:imageData forKey:@"image"];
+                
+                [ShowAlert error:[NSString stringWithFormat:@"%@のTwitpicアカウントが見つからなかったためimg.urに投稿しました。", twAccount.username]];
+            }
         }
+        
+        [request setDelegate:self];
+        [request start];
     }
-    
-    [request setDelegate:self];
-    [request start];
 }
 
 - (void)callback {
@@ -1764,79 +1789,82 @@
 
 - (oneway void)uploadNowPlayingImage:(UIImage *)image uploadType:(int)uploadType {
     
-    //NSLog(@"uploadType: %d", uploadType);
-    
-    //処理中を表すビューを表示
-    [grayView onAndSetSize:postText.frame.origin.x   y:postText.frame.origin.y
-                         w:postText.frame.size.width h:postText.frame.size.height];
-    
-    //画像をリサイズするか判定
-    if ( [d boolForKey:@"ResizeImage"] ) {
+    @autoreleasepool {
         
-        //リサイズを行う
-        image = [ResizeImage aspectResize:image];
-    }
-    
-    //UIImageをNSDataに変換
-    NSData *imageData = [EncodeImage image:image];
-    
-    //リクエストURLを指定
-    NSURL *URL = nil;
-    
-    if ( uploadType == 2 ) {
+        //NSLog(@"uploadType: %d", uploadType);
         
-        URL = [NSURL URLWithString:@"http://api.imgur.com/2/upload.json"];
+        //処理中を表すビューを表示
+        [grayView onAndSetSize:postText.frame.origin.x   y:postText.frame.origin.y
+                             w:postText.frame.size.width h:postText.frame.size.height];
         
-    }else if ( uploadType == 3 ) {
-        
-        URL = [NSURL URLWithString:@"http://api.twitpic.com/1/upload.json"];
-    }
-    
-    ASIFormDataRequest *request = [[[ASIFormDataRequest alloc] initWithURL:URL] autorelease];
-    
-    if ( uploadType == 2 ) {
-        
-        //NSLog(@"img.ur upload");
-        
-        [request addPostValue:IMGUR_API_KEY forKey:@"key"];
-        [request addData:imageData forKey:@"image"];
-        
-    }else if ( uploadType == 3 ) {
-        
-        //NSLog(@"Twitpic upload");
-        
-        twAccount = [TWGetAccount currentAccount];
-        
-        NSDictionary *dic = [d dictionaryForKey:@"OAuthAccount"];
-        
-        if ( [EmptyCheck check:[dic objectForKey:twAccount.username]] ) {
+        //画像をリサイズするか判定
+        if ( [d boolForKey:@"ResizeImage"] ) {
             
-            NSString *key = [UUIDEncryptor decryption:[[dic objectForKey:twAccount.username] objectAtIndex:0]];
-            NSString *secret = [UUIDEncryptor decryption:[[dic objectForKey:twAccount.username] objectAtIndex:1]];
+            //リサイズを行う
+            image = [ResizeImage aspectResize:image];
+        }
+        
+        //UIImageをNSDataに変換
+        NSData *imageData = [EncodeImage image:image];
+        
+        //リクエストURLを指定
+        NSURL *URL = nil;
+        
+        if ( uploadType == 2 ) {
             
-            [request addPostValue:TWITPIC_API_KEY forKey:@"key"];
-            [request addPostValue:OAUTH_KEY forKey:@"consumer_token"];
-            [request addPostValue:OAUTH_SECRET forKey:@"consumer_secret"];
-            [request addPostValue:key forKey:@"oauth_token"];
-            [request addPostValue:secret forKey:@"oauth_secret"];
-            [request addPostValue:postText.text forKey:@"message"];
-            [request addData:imageData forKey:@"media"];
+            URL = [NSURL URLWithString:@"http://api.imgur.com/2/upload.json"];
             
-        }else {
+        }else if ( uploadType == 3 ) {
             
-            //Twitpic投稿が不可な場合はimg.urに投稿
-            request.url = [NSURL URLWithString:@"http://api.imgur.com/2/upload.json"];
+            URL = [NSURL URLWithString:@"http://api.twitpic.com/1/upload.json"];
+        }
+        
+        ASIFormDataRequest *request = [[[ASIFormDataRequest alloc] initWithURL:URL] autorelease];
+        
+        if ( uploadType == 2 ) {
             
-            [d setObject:@"img.ur" forKey:@"PhotoService"];
+            //NSLog(@"img.ur upload");
+            
             [request addPostValue:IMGUR_API_KEY forKey:@"key"];
             [request addData:imageData forKey:@"image"];
             
-            [ShowAlert error:[NSString stringWithFormat:@"%@のTwitpicアカウントが見つからなかったためimg.urに投稿しました。", twAccount.username]];
+        }else if ( uploadType == 3 ) {
+            
+            //NSLog(@"Twitpic upload");
+            
+            twAccount = [TWGetAccount currentAccount];
+            
+            NSDictionary *dic = [d dictionaryForKey:@"OAuthAccount"];
+            
+            if ( [EmptyCheck check:[dic objectForKey:twAccount.username]] ) {
+                
+                NSString *key = [UUIDEncryptor decryption:[[dic objectForKey:twAccount.username] objectAtIndex:0]];
+                NSString *secret = [UUIDEncryptor decryption:[[dic objectForKey:twAccount.username] objectAtIndex:1]];
+                
+                [request addPostValue:TWITPIC_API_KEY forKey:@"key"];
+                [request addPostValue:OAUTH_KEY forKey:@"consumer_token"];
+                [request addPostValue:OAUTH_SECRET forKey:@"consumer_secret"];
+                [request addPostValue:key forKey:@"oauth_token"];
+                [request addPostValue:secret forKey:@"oauth_secret"];
+                [request addPostValue:postText.text forKey:@"message"];
+                [request addData:imageData forKey:@"media"];
+                
+            }else {
+                
+                //Twitpic投稿が不可な場合はimg.urに投稿
+                request.url = [NSURL URLWithString:@"http://api.imgur.com/2/upload.json"];
+                
+                [d setObject:@"img.ur" forKey:@"PhotoService"];
+                [request addPostValue:IMGUR_API_KEY forKey:@"key"];
+                [request addData:imageData forKey:@"image"];
+                
+                [ShowAlert error:[NSString stringWithFormat:@"%@のTwitpicアカウントが見つからなかったためimg.urに投稿しました。", twAccount.username]];
+            }
         }
+        
+        [request setDelegate:self];
+        [request start];
     }
-    
-    [request setDelegate:self];
-    [request start];
 }
 
 #pragma mark - NotificationAction

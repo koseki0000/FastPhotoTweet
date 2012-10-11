@@ -484,7 +484,14 @@
         appDelegate.startupUrlList = BLANK_ARRAY;
         appDelegate.reOpenUrl = accessURL;
         
-        [self dismissModalViewControllerAnimated:YES];
+        if ( [appDelegate.firmwareVersion hasPrefix:@"6"] ) {
+            
+            [self dismissViewControllerAnimated:YES completion:nil];
+            
+        }else {
+            
+            [self dismissModalViewControllerAnimated:YES];
+        }
     }
 }
 
@@ -509,7 +516,14 @@
         appDelegate.startupUrlList = BLANK_ARRAY;
         appDelegate.reOpenUrl = BLANK;
         
-        [self dismissModalViewControllerAnimated:YES];
+        if ( [appDelegate.firmwareVersion hasPrefix:@"6"] ) {
+        
+            [self dismissViewControllerAnimated:YES completion:nil];
+            
+        }else {
+            
+            [self dismissModalViewControllerAnimated:YES];
+        }
     }
 }
 
@@ -1173,7 +1187,14 @@
             
             [self resetUserAgent];
             
-            [self dismissModalViewControllerAnimated:YES];
+            if ( [appDelegate.firmwareVersion hasPrefix:@"6"] ) {
+                
+                [self dismissViewControllerAnimated:YES completion:nil];
+                
+            }else {
+                
+                [self dismissModalViewControllerAnimated:YES];
+            }
         }
         
     }else if ( actionSheetNo == 12 ) {
@@ -1182,7 +1203,14 @@
             
             [self resetUserAgent];
             
-            [self dismissModalViewControllerAnimated:YES];
+            if ( [appDelegate.firmwareVersion hasPrefix:@"6"] ) {
+                
+                [self dismissViewControllerAnimated:YES completion:nil];
+                
+            }else {
+                
+                [self dismissModalViewControllerAnimated:YES];
+            }
         }
     
     }else if ( actionSheetNo == 13 ) {
@@ -1947,6 +1975,8 @@
 }
 
 - (void)dealloc {
+    
+    NSLog(@"WebViewExController dealloc");
     
     appDelegate.browserOpenMode = NO;
     appDelegate.urlSchemeDownloadUrl = BLANK;

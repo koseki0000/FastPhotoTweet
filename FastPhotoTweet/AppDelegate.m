@@ -47,12 +47,15 @@ void uncaughtExceptionHandler(NSException *e) {
 @synthesize reOpenUrl;
 @synthesize listId;
 @synthesize addTwitpicAccountName;
+@synthesize platformName;
+@synthesize firmwareVersion;
 @synthesize startupUrlList;
 @synthesize listAll;
 @synthesize postError;
 @synthesize postData;
 @synthesize resendNumber;
 @synthesize launchMode;
+@synthesize reloadInterval;
 @synthesize resendMode;
 @synthesize browserOpenMode;
 @synthesize pcUaMode;
@@ -89,6 +92,8 @@ void uncaughtExceptionHandler(NSException *e) {
     reOpenUrl = BLANK;
     listId = BLANK;
     addTwitpicAccountName = BLANK;
+    firmwareVersion = [[UIDevice currentDevice] systemVersion];
+    platformName = [self getPlatformName];
     
     postError = [NSMutableArray array];
     
@@ -172,7 +177,7 @@ void uncaughtExceptionHandler(NSException *e) {
     
     BOOL result = NO;
     
-    if ([[[UIDevice currentDevice] systemVersion] floatValue] < 5.0) {
+    if ( [[[UIDevice currentDevice] systemVersion] floatValue] < 5.0 ) {
         
         //iOS5以前
         [ShowAlert error:@"Twitter APIはiOS5以降で使用できます。最新OSに更新してください。"];
@@ -192,6 +197,47 @@ void uncaughtExceptionHandler(NSException *e) {
     if ( [[NSFileManager defaultManager] fileExistsAtPath:FILE_PATH isDirectory:&isDir] && !isDir ) isDir = YES;
     
     return isDir;
+}
+
+- (NSString *)getPlatformName {
+    
+    struct utsname u;
+    uname(&u);
+    NSString *hardwareName = [NSString stringWithFormat:@"%s", u.machine];
+    
+    if ( [hardwareName hasPrefix:@"iPhone2"] ) {
+        hardwareName = @"iPhone 3GS";
+        reloadInterval = 0.35;
+    }else if ( [hardwareName hasPrefix:@"iPhone3"] ) {
+        hardwareName = @"iPhone 4";
+        reloadInterval = 0.2;
+    }else if ( [hardwareName hasPrefix:@"iPhone4"] ) {
+        hardwareName = @"iPhone 4S";
+        reloadInterval = 0.1;
+    }else if ( [hardwareName hasPrefix:@"iPhone5"] ) {
+        hardwareName = @"iPhone 5";
+        reloadInterval = 0.065;
+    }else if ( [hardwareName hasPrefix:@"iPad1"] ) {
+        hardwareName = @"iPad";
+        reloadInterval = 0.2;
+    }else if ( [hardwareName hasPrefix:@"iPad2"] ) {
+        hardwareName = @"iPad 2gen";
+        reloadInterval = 0.1;
+    }else if ( [hardwareName hasPrefix:@"iPad3"] ) {
+        hardwareName = @"iPad 3gen";
+        reloadInterval = 0.08;
+    }else if ( [hardwareName hasPrefix:@"x86_64"] ||
+               [hardwareName hasPrefix:@"i386"] ) {
+        hardwareName = @"iOS Simulator";
+        reloadInterval = 0.05;
+    }else {
+        hardwareName = @"OtherDevice";
+        reloadInterval = 0.2;
+    }
+    
+    NSLog(@"Run with %@@%@", hardwareName, firmwareVersion);
+    
+    return hardwareName;
 }
 
 #pragma mark - PasteBoard

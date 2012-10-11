@@ -296,7 +296,7 @@
     if ( scrollView.dragging && !isLoading ) {
         
         if ( scrollView.contentOffset.y > REFRESH_DERAY &&
-            scrollView.contentOffset.y < 0.0f ) {
+             scrollView.contentOffset.y < 0.0f ) {
             
             [headerView setStatus:TTTableHeaderDragRefreshPullToReload];
             
@@ -340,7 +340,9 @@
     
     if ( reloadButton.isEnabled ) {
         
-        [self pushReloadButton:nil];
+        [self performSelector:@selector(pushReloadButton:)
+                   withObject:nil
+                   afterDelay:0.1];
         
     }else {
         
@@ -1157,7 +1159,7 @@
 - (void)checkTimelineCount {
     
     int max = 400;
-    if ( searchStream ) max = 200;
+    if ( searchStream ) max = 100;
     
     while ( timelineArray.count > max ) {
         
@@ -2130,10 +2132,10 @@
 
 - (void)startSearchStreamTimer {
     
-    NSLog(@"startSearchStreamTimer");
+    NSLog(@"startSearchStreamTimer InterVal: %.3f", appDelegate.reloadInterval);
     
     searchStreamTemp = [NSMutableArray array];
-    searchStreamTimer = [NSTimer scheduledTimerWithTimeInterval:0.1f
+    searchStreamTimer = [NSTimer scheduledTimerWithTimeInterval:appDelegate.reloadInterval
                                                          target:self
                                                        selector:@selector(checkSearchStreamTemp)
                                                        userInfo:nil
@@ -2830,7 +2832,7 @@
                         mentionsArray = BLANK_ARRAY;
                         [allLists removeAllObjects];
                         allLists = nil;
-                        allLists = BLANK_M_ARRAY;
+                        allLists = BLANK_M_DIC;
                         
                         if ( buttonIndex == 2 ) {
                             
@@ -2842,7 +2844,7 @@
                             //アイコンキャッシュを削除
                             [icons removeAllObjects];
                             icons = nil;
-                            icons = BLANK_M_ARRAY;
+                            icons = BLANK_M_DIC;
                             [iconUrls removeAllObjects];
                             iconUrls = nil;
                             iconUrls = BLANK_M_ARRAY;

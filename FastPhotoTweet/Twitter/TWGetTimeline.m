@@ -14,9 +14,9 @@
 
 + (oneway void)homeTimeline {
     
-//    NSAutoreleasePool *pool = [[NSAutoreleasePool alloc] init];
-//    
-//    @try {
+    NSAutoreleasePool *pool = [[NSAutoreleasePool alloc] init];
+    
+    @try {
     
         //アカウントの取得
         ACAccount *twAccount = [TWGetAccount currentAccount];
@@ -114,11 +114,11 @@
              });
          }];
         
-//    }@finally {
-//        
-//        [pool drain];
-//    }
-    
+    }@finally {
+        
+        [pool drain];
+    }
+
     NSLog(@"HomeTimeline request sended");
 }
 

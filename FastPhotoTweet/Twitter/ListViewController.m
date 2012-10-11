@@ -62,7 +62,14 @@
 
 - (IBAction)pushCloseButton:(id)sender {
     
-    [self dismissModalViewControllerAnimated:YES];
+    if ( [appDelegate.firmwareVersion hasPrefix:@"6"] ) {
+        
+        [self dismissViewControllerAnimated:YES completion:nil];
+        
+    }else {
+        
+        [self dismissModalViewControllerAnimated:YES];
+    }
 }
 
 /* TableView必須メソッド */
@@ -104,7 +111,14 @@
     appDelegate.listId = [[listAll objectAtIndex:indexPath.row] objectForKey:@"id_str"];
     
     //閉じる
-    [self dismissModalViewControllerAnimated:YES];
+    if ( [appDelegate.firmwareVersion hasPrefix:@"6"] ) {
+        
+        [self dismissViewControllerAnimated:YES completion:nil];
+        
+    }else {
+        
+        [self dismissModalViewControllerAnimated:YES];
+    }
 }
 
 /* TableView必須メソッドここまで */

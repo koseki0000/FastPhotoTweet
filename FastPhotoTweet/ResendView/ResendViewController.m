@@ -48,7 +48,14 @@
     //再投稿モードを無効化
     appDelegate.resendMode = NO;
     
-    [self dismissModalViewControllerAnimated:YES];
+    if ( [appDelegate.firmwareVersion hasPrefix:@"6"] ) {
+        
+        [self dismissViewControllerAnimated:YES completion:nil];
+        
+    }else {
+        
+        [self dismissModalViewControllerAnimated:YES];
+    }
 }
 
 /* TableView必須メソッド */
@@ -110,7 +117,14 @@
     appDelegate.resendNumber = indexPath.row;
     
     //閉じる
-    [self dismissModalViewControllerAnimated:YES];
+    if ( [appDelegate.firmwareVersion hasPrefix:@"6"] ) {
+        
+        [self dismissViewControllerAnimated:YES completion:nil];
+        
+    }else {
+        
+        [self dismissModalViewControllerAnimated:YES];
+    }
 }
 
 - (void)tableView:(UITableView *)tableView commitEditingStyle:(UITableViewCellEditingStyle)editingStyle forRowAtIndexPath:(NSIndexPath *)indexPath {
