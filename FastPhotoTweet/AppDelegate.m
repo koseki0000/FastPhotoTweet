@@ -8,6 +8,8 @@
 #import "AppDelegate.h"
 #import "ViewController.h"
 #import "TimelineViewController.h"
+#import <Three20UI/TTNavigator.h>
+#import <Three20UINavigator/TTURLMap.h>
 
 void uncaughtExceptionHandler(NSException *e) {
     
@@ -80,6 +82,8 @@ void uncaughtExceptionHandler(NSException *e) {
         
         [D setObject:@"http://www.google.co.jp/" forKey:@"HomePageURL"];
     }
+    
+    [self setNavigatorMap];
     
     //各種初期化
     pboard = [UIPasteboard generalPasteboard];
@@ -173,6 +177,13 @@ void uncaughtExceptionHandler(NSException *e) {
 
 #pragma mark - System
 
+- (oneway void)setNavigatorMap {
+    
+    TTNavigator *navigator = [TTNavigator navigator];
+    TTURLMap *map = navigator.URLMap;
+    [map from:@"*" toViewController:[TimelineViewController class] selector:@selector(openTimelineURL:)];
+}
+
 - (BOOL)ios5Check {
     
     BOOL result = NO;
@@ -216,7 +227,7 @@ void uncaughtExceptionHandler(NSException *e) {
         reloadInterval = 0.1;
     }else if ( [hardwareName hasPrefix:@"iPhone5"] ) {
         hardwareName = @"iPhone 5";
-        reloadInterval = 0.065;
+        reloadInterval = 0.1;
     }else if ( [hardwareName hasPrefix:@"iPad1"] ) {
         hardwareName = @"iPad";
         reloadInterval = 0.2;
@@ -225,11 +236,11 @@ void uncaughtExceptionHandler(NSException *e) {
         reloadInterval = 0.1;
     }else if ( [hardwareName hasPrefix:@"iPad3"] ) {
         hardwareName = @"iPad 3gen";
-        reloadInterval = 0.08;
+        reloadInterval = 0.1;
     }else if ( [hardwareName hasPrefix:@"x86_64"] ||
                [hardwareName hasPrefix:@"i386"] ) {
         hardwareName = @"iOS Simulator";
-        reloadInterval = 0.05;
+        reloadInterval = 0.1;
     }else {
         hardwareName = @"OtherDevice";
         reloadInterval = 0.2;

@@ -7,6 +7,8 @@
 
 #import "TWEvent.h"
 
+#define API_VERSION @"1"
+
 @implementation TWEvent
 
 + (void)favorite:(NSString *)tweetId accountIndex:(int)accountIndex {
@@ -18,7 +20,7 @@
     if ( twAccount != nil ) {
         
         //リクエストURLを指定
-        NSString *tReqURL = [NSString stringWithFormat:@"https://api.twitter.com/1/favorites/create/%@.json", tweetId];
+        NSString *tReqURL = [NSString stringWithFormat:@"https://api.twitter.com/%@/favorites/create/%@.json", API_VERSION, tweetId];
         
         //リクエストの作成
         TWRequest *postRequest = [[[TWRequest alloc] initWithURL:[NSURL URLWithString:tReqURL] 
@@ -48,7 +50,7 @@
     if ( twAccount != nil ) {
         
         //リクエストURLを指定
-        NSString *tReqURL = [NSString stringWithFormat:@"https://api.twitter.com/1/statuses/retweet/%@.json", tweetId];
+        NSString *tReqURL = [NSString stringWithFormat:@"https://api.twitter.com/%@/statuses/retweet/%@.json",API_VERSION , tweetId];
         
         //リクエストの作成
         TWRequest *postRequest = [[[TWRequest alloc] initWithURL:[NSURL URLWithString:tReqURL] 
@@ -84,7 +86,7 @@
     if ( twAccount != nil ) {
         
         //リクエストURLを指定
-        NSString *tReqURL = [NSString stringWithFormat:@"https://api.twitter.com/1/favorites/destroy/%@.json", tweetId];
+        NSString *tReqURL = [NSString stringWithFormat:@"https://api.twitter.com/%@/favorites/destroy/%@.json", API_VERSION, tweetId];
         
         //リクエストの作成
         TWRequest *postRequest = [[[TWRequest alloc] initWithURL:[NSURL URLWithString:tReqURL] 
@@ -117,7 +119,7 @@
         [ActivityIndicator visible:YES];
         
         //リクエストURLを指定
-        NSString *tReqURL = [NSString stringWithFormat:@"https://api.twitter.com/1/users/show.json?screen_name=%@&include_entities=true", screenName];
+        NSString *tReqURL = [NSString stringWithFormat:@"https://api.twitter.com/%@/users/show.json?screen_name=%@&include_entities=true",API_VERSION , screenName];
         
         //リクエストの作成
         TWRequest *postRequest = [[[TWRequest alloc] initWithURL:[NSURL URLWithString:tReqURL] 
@@ -180,7 +182,7 @@
         [ActivityIndicator visible:YES];
         
         //リクエストURLを指定
-        NSString *tReqURL = [NSString stringWithFormat:@"https://api.twitter.com/1/statuses/show.json?id=%@&include_entities=true", tweetId];
+        NSString *tReqURL = [NSString stringWithFormat:@"https://api.twitter.com/%@/statuses/show.json?id=%@&include_entities=true", API_VERSION, tweetId];
         
         //リクエストの作成
         TWRequest *postRequest = [[[TWRequest alloc] initWithURL:[NSURL URLWithString:tReqURL] 
@@ -245,7 +247,7 @@
         [ActivityIndicator visible:YES];
         
         //リクエストURLを指定
-        NSString *tReqURL = [NSString stringWithFormat:@"https://api.twitter.com/1/statuses/destroy/%@.json", tweetId];
+        NSString *tReqURL = [NSString stringWithFormat:@"https://api.twitter.com/%@/statuses/destroy/%@.json", API_VERSION, tweetId];
         
         //リクエストの作成
         TWRequest *postRequest = [[[TWRequest alloc] initWithURL:[NSURL URLWithString:tReqURL] 

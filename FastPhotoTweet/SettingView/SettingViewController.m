@@ -16,7 +16,7 @@
 //セクション2の項目数 (その他の設定)
 #define SECTION_2 5
 //セクション2の項目数 (タイムライン設定)
-#define SECTION_3 6
+#define SECTION_3 7
 
 //セクション3の項目数 (ライセンス)
 #define SECTION_4 1
@@ -60,6 +60,7 @@
 #define NAME_30 @"NG設定を開く"
 #define NAME_31 @"自分のTweetもNGを行う"
 #define NAME_32 @"アイコンの角を丸める"
+#define NAME_33 @"UserStream接続中は自動ロックを無効化する"
 
 //ライセンス
 #define NAME_LICENSE @"ライセンス"
@@ -97,7 +98,7 @@
                                                         NAME_20, NAME_21, NAME_22, NAME_23,
                                                         NAME_24, NAME_25, NAME_26, NAME_27, 
                                                         NAME_28, NAME_29, NAME_30, NAME_31,
-                                                        NAME_32, NAME_LICENSE, nil];
+                                                        NAME_32, NAME_33, NAME_LICENSE, nil];
         
         [settingArray retain];
     }
@@ -318,11 +319,11 @@
         
         if ( [d boolForKey:@"NowPlayingEdit"] ) {
             
-            result = @"OFF";
+            result = @"ON";
             
         }else {
             
-            result = @"ON";
+            result = @"OFF";
         }
         
     //カスタム書式を編集
@@ -590,6 +591,17 @@
     }else if ( settingState == 32 ) {
         
         if ( [d integerForKey:@"IconCornerRounding"] == 1 ) {
+            
+            result = @"ON";
+            
+        }else {
+            
+            result = @"OFF";
+        }
+        
+    }else if ( settingState == 33 ) {
+        
+        if ( [d boolForKey:@"USNoAutoLock"] ) {
             
             result = @"ON";
             
@@ -1186,6 +1198,18 @@
                      otherButtonTitles:@"OFF", @"ON", nil];
             [sheet autorelease];
             [sheet showInView:self.view];
+        
+        }else if ( indexPath.row == 6 ) {
+            
+            //UserStream接続中は自動ロックを無効化する
+            sheet = [[UIActionSheet alloc]
+                     initWithTitle:NAME_33
+                     delegate:self
+                     cancelButtonTitle:@"Cancel"
+                     destructiveButtonTitle:nil
+                     otherButtonTitles:@"ON", @"OFF", nil];
+            [sheet autorelease];
+            [sheet showInView:self.view];
         }
         
     }else if ( indexPath.section == 4 ) {
@@ -1637,6 +1661,13 @@
         }
         
         [ShowAlert title:@"設定変更完了" message:@"設定を有効にするにはアプリケーションを再起動してください。"];
+        
+    }else if ( actionSheetNo == 32 ) {
+        if ( buttonIndex == 0 ) {
+            [d setBool:YES forKey:@"USNoAutoLock"];
+        }else if ( buttonIndex == 1 ) {
+            [d setBool:NO forKey:@"USNoAutoLock"];
+        }
         
     }else if ( actionSheetNo == 100 ) {
         if ( buttonIndex == 0 ) {

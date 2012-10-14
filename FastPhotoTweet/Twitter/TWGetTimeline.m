@@ -200,7 +200,7 @@
                          
                          NSMutableArray *userTimeline = [NSMutableArray arrayWithArray:responseJSONData];
                          
-                         //NSLog(@"userTimeline: %@", userTimeline);
+                         NSLog(@"userTimeline: %@", userTimeline);
                          
                          [result setObject:twAccount.username forKey:@"Account"];
                          
@@ -522,47 +522,38 @@
 
 + (NSArray *)fixTwitterSearchResponse:(NSArray *)twitterSearchResponse {
     
-    NSAutoreleasePool *pool = [[NSAutoreleasePool alloc] init];
+    //差異修正済みTweetを格納する
+    NSMutableArray *fixedResponse = [NSMutableArray array];
     
-    @try {
+    //TwitterSearch形式のTweetを順に差異修正する
+    for ( id tweet in twitterSearchResponse ) {
         
-        //差異修正済みTweetを格納する
-        NSMutableArray *fixedResponse = [NSMutableArray array];
+        //修正のため可変長に変換する
+        NSMutableDictionary *fixedTweet = [NSMutableDictionary dictionaryWithDictionary:tweet];
         
-        //TwitterSearch形式のTweetを順に差異修正する
-        for ( id tweet in twitterSearchResponse ) {
-            
-            //修正のため可変長に変換する
-            NSMutableDictionary *fixedTweet = [NSMutableDictionary dictionaryWithDictionary:tweet];
-            
-            //user以下を作成する
-            NSMutableDictionary *user = [NSMutableDictionary dictionary];
-            [user setObject:[fixedTweet objectForKey:@"from_user"] forKey:@"screen_name"];
-            [user setObject:[fixedTweet objectForKey:@"profile_image_url"] forKey:@"profile_image_url"];
-            [user setObject:[fixedTweet objectForKey:@"from_user_id_str"] forKey:@"id_str"];
-            
-            //sourceの文字参照を置換する
-            NSMutableString *source = [fixedTweet objectForKey:@"source"];
-            [source replaceOccurrencesOfString:@"&gt;"  withString:@">" options:0 range:NSMakeRange(0, [source length] )];
-            [source replaceOccurrencesOfString:@"&lt;"  withString:@"<" options:0 range:NSMakeRange(0, [source length] )];
-            [source replaceOccurrencesOfString:@"&amp;" withString:@"&" options:0 range:NSMakeRange(0, [source length] )];
-            [source replaceOccurrencesOfString:@"&quot;" withString:@"\"" options:0 range:NSMakeRange(0, [source length] )];
-            
-            //Tweetにセット
-            [fixedTweet setObject:user forKey:@"user"];
-            [fixedTweet setObject:source forKey:@"source"];
-            
-            //修正済みTweetを配列に追加
-            [fixedResponse addObject:fixedTweet];
-        }
+        //user以下を作成する
+        NSMutableDictionary *user = [NSMutableDictionary dictionary];
+        [user setObject:[fixedTweet objectForKey:@"from_user"] forKey:@"screen_name"];
+        [user setObject:[fixedTweet objectForKey:@"profile_image_url"] forKey:@"profile_image_url"];
+        [user setObject:[fixedTweet objectForKey:@"from_user_id_str"] forKey:@"id_str"];
         
-        //固定長配列にして返す
-        return [NSArray arrayWithArray:fixedResponse];
+        //sourceの文字参照を置換する
+        NSMutableString *source = [fixedTweet objectForKey:@"source"];
+        [source replaceOccurrencesOfString:@"&gt;"  withString:@">" options:0 range:NSMakeRange(0, [source length] )];
+        [source replaceOccurrencesOfString:@"&lt;"  withString:@"<" options:0 range:NSMakeRange(0, [source length] )];
+        [source replaceOccurrencesOfString:@"&amp;" withString:@"&" options:0 range:NSMakeRange(0, [source length] )];
+        [source replaceOccurrencesOfString:@"&quot;" withString:@"\"" options:0 range:NSMakeRange(0, [source length] )];
         
-    }@finally {
+        //Tweetにセット
+        [fixedTweet setObject:user forKey:@"user"];
+        [fixedTweet setObject:source forKey:@"source"];
         
-        [pool drain];
+        //修正済みTweetを配列に追加
+        [fixedResponse addObject:fixedTweet];
     }
+    
+    //固定長配列にして返す
+    return [NSArray arrayWithArray:fixedResponse];
 }
 
 @end

@@ -10,7 +10,10 @@
 #import <Twitter/Twitter.h>
 #import <Accounts/Accounts.h>
 #import "AppDelegate.h"
-#import "TimelineCellController.h"
+
+//#import "TimelineCellController.h"
+#import "TimelineStyledCellController.h"
+
 #import "TWTwitterHeader.h"
 #import "UtilityClass.h"
 #import <MobileCoreServices/MobileCoreServices.h>
@@ -20,9 +23,14 @@
 #import "JSON.h"
 #import "WebViewExController.h"
 
-#import <Three20UI/Three20UI.h>
+#import "Three20UI/TTTableHeaderDragRefreshView.h"
+#import "Three20Style/TTDefaultStyleSheet.h"
+#import <Three20UI/TTActivityLabel.h>
+#import <Three20UI/TTStyledTextLabel.h>
 #import <Three20Style/Three20Style.h>
-#import "Three20UICommon/TTGlobalUICommon.h"
+#import <Three20UICommon/Three20UICommon.h>
+#import <Three20UINavigator/Three20UINavigator.h>
+
 
 @interface TimelineViewController : UIViewController <UIActionSheetDelegate, UITextFieldDelegate, UIPickerViewDelegate, UIPickerViewDataSource, UITableViewDelegate, UITableViewDataSource> {
     
@@ -52,6 +60,8 @@
     NSString *selectAccount;
     NSString *alertSearchUserName;
     NSTimer *searchStreamTimer;
+    NSTimer *connectionCheckTimer;
+    NSTimer *onlineCheckTimer;
     
     UIPasteboard *pboard;
     UIImage *startImage;
@@ -138,6 +148,9 @@
 - (void)refreshTimelineCell:(NSNumber *)index;
 - (void)copyTweetInUrl:(NSArray *)urlList;
 - (void)checkTimelineCount;
+- (void)pushIcon:(UIButton *)sender;
+- (void)openTimelineURL:(NSURL *)urlPath;
+- (void)receiveOpenTimelineURLNotification:(NSNotification *)notification;
 
 - (void)openStream;
 - (void)closeStream;
@@ -170,5 +183,13 @@
 - (void)pickerDone;
 - (void)pickerCancel;
 - (void)hidePicker;
+
+- (void)startConnectionCheckTimer;
+- (void)stopConnectionCheckTimer;
+- (void)checkConnection;
+
+- (void)startOnlineCheckTimer;
+- (void)stopOnlineCheckTimer;
+- (void)checkOnline;
 
 @end

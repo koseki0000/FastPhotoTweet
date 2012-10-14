@@ -11,6 +11,6 @@
 
 @property (retain, nonatomic) IBOutlet UILabel *infoLabel;
 @property (retain, nonatomic) IBOutlet UILabel *textLabel;
-@property (retain, nonatomic) IBOutlet UIImageView *iconView;
+@property (retain, nonatomic) IBOutlet UIButton *iconView;
 
 @end

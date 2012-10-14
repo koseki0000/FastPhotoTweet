@@ -69,6 +69,11 @@
     return result;
 }
 
++ (BOOL)isEnabled {
+    
+    return [[Reachability reachabilityForInternetConnection] currentReachabilityStatus] != NotReachable;
+}
+
 + (BOOL)disable {
     
     BOOL result = NO;

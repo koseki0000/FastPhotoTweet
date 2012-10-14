@@ -14,6 +14,7 @@
 + (BOOL)mobile;
 + (BOOL)wifi;
 + (BOOL)enable;
++ (BOOL)isEnabled;
 + (BOOL)disable;
 
 @end

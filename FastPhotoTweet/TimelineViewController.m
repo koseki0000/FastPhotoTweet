@@ -15,6 +15,10 @@
 #define OTHER_TWEETS_BAR [NSArray arrayWithObjects:flexibleSpace, closeOtherTweetsButton, nil]
 #define PICKER_BAR_ITEM [NSArray arrayWithObjects:pickerBarCancelButton, flexibleSpace, pickerBarDoneButton, nil]
 
+#define CELL_IDENTIFIER @"TimelineStyledCell"
+#define CELL_XIB_NAME @"TimelineStyledCellController"
+
+
 @implementation TimelineViewController
 @synthesize topBar;
 @synthesize timeline;
@@ -55,7 +59,7 @@
     
     //各種通知設定
     [self setNotifications];
-
+    [self performSelectorInBackground:@selector(startConnectionCheckTimer) withObject:nil];
     [self createPullDownRefreshHeader];
     
     //各種初期化
@@ -237,6 +241,16 @@
     [notificationCenter addObserver:self
                            selector:@selector(pboardNotification:)
                                name:@"pboardNotification"
+                             object:nil];
+    
+    [notificationCenter addObserver:self
+                           selector:@selector(receiveOpenTimelineURLNotification:)
+                               name:@"OpenTimelineURL"
+                             object:nil];
+    
+    [notificationCenter addObserver:self
+                           selector:@selector(startConnectionCheckTimer)
+                               name:@"BecomeOnline"
                              object:nil];
 }
 
@@ -1280,21 +1294,26 @@
     @autoreleasepool {
         
         //TableViewCellを生成
-        static NSString *identifier = @"TimelineCell";
-        TimelineCell *cell = (TimelineCell *)[tableView dequeueReusableCellWithIdentifier:identifier];
+        TimelineStyledCell *cell = (TimelineStyledCell *)[tableView dequeueReusableCellWithIdentifier:CELL_IDENTIFIER];
         cell.infoLabel.textColor = [UIColor blackColor];
-        cell.textLabel.textColor = [UIColor blackColor];
+        [cell.mainLabel setTextColor:[UIColor blackColor]];
         
         if ( cell == nil ) {
             
-            TimelineCellController *controller = [[TimelineCellController alloc] initWithNibName:identifier bundle:nil];
-            cell = (TimelineCell *)controller.view;
+            TimelineStyledCellController *controller = [[TimelineStyledCellController alloc] initWithNibName:CELL_XIB_NAME
+                                                                                                       bundle:nil];
+            cell = (TimelineStyledCell *)controller.view;
+            
+            //アイコンタップ時の動作を設定
+            [cell.iconView addTarget:self action:@selector(pushIcon:) forControlEvents:UIControlEventTouchUpInside];
+            
+            //テキストラベルの設定
+            [cell.mainLabel setFont:[UIFont systemFontOfSize:12]];
         }
-        
-        //Tweet表示モード
         
         timelineScroll = (int)timeline.contentOffset.y;
         currentTweet = [timelineArray objectAtIndex:indexPath.row];
+        cell.iconView.tag = indexPath.row;
         
         BOOL reTweet = [[[currentTweet objectForKey:@"retweeted_status"] objectForKey:@"id"] boolValue];
         
@@ -1302,7 +1321,7 @@
         if ( reTweet ) {
             
             cell.infoLabel.textColor = [UIColor colorWithRed:0.0 green:0.4 blue:0.0 alpha:1.0];
-            cell.textLabel.textColor = [UIColor colorWithRed:0.0 green:0.4 blue:0.0 alpha:1.0];
+            [cell.mainLabel setTextColor:[UIColor colorWithRed:0.0 green:0.4 blue:0.0 alpha:1.0]];
         }
         
         NSString *myAccountName = twAccount.username;
@@ -1334,17 +1353,17 @@
             if ( [d integerForKey:@"IconCornerRounding"] == 1 ) {
                 
                 //角を丸める
-                CALayer *layer = [cell.iconView layer];
+                CALayer *layer = [cell.iconView.imageView layer];
                 [layer setMasksToBounds:YES];
                 [layer setCornerRadius:6.0f];
             }
             
             //アイコンを設定
-            cell.iconView.image = [icons objectForKey:searchName];
+            [cell.iconView setImage:[icons objectForKey:searchName] forState:UIControlStateNormal];
             
         }else {
             
-            cell.iconView.image = nil;
+            [cell.iconView setImage:nil forState:UIControlStateNormal];
         }
         
         //自分の発言の色を変える
@@ -1352,7 +1371,7 @@
             !reTweet ) {
             
             cell.infoLabel.textColor = [UIColor blueColor];
-            cell.textLabel.textColor = [UIColor blueColor];
+            [cell.mainLabel setTextColor:[UIColor blueColor]];
         }
         
         //Replyの色を変える
@@ -1361,7 +1380,7 @@
             !reTweet ) {
             
             cell.infoLabel.textColor = [UIColor redColor];
-            cell.textLabel.textColor = [UIColor redColor];
+            [cell.mainLabel setTextColor:[UIColor redColor]];
         }
         
         //Favoriteの色を変えて星をつける
@@ -1370,7 +1389,7 @@
             
             infoLabelText = [NSMutableString stringWithFormat:@"★%@",infoLabelText];
             cell.infoLabel.textColor = [UIColor colorWithRed:0.5 green:0.4 blue:0.0 alpha:1.0];
-            cell.textLabel.textColor = [UIColor colorWithRed:0.5 green:0.4 blue:0.0 alpha:1.0];
+            [cell.mainLabel setTextColor:[UIColor colorWithRed:0.5 green:0.4 blue:0.0 alpha:1.0]];
         }
         
         //ふぁぼられイベント用
@@ -1384,10 +1403,11 @@
         
         //セルのテキストを設定
         cell.infoLabel.text = infoLabelText;
-        cell.textLabel.text = text;
+        cell.mainLabel.text = [TTStyledText textWithURLs:text
+                                              lineBreaks:YES];
         
         //セルの高さを設定
-        cell.textLabel.frame = CGRectMake(54, 22, 264, [self heightForContents:text]);
+        cell.mainLabel.frame = CGRectMake(54, 22, 264, [self heightForContents:text]);
         
         return cell;
     }
@@ -1426,38 +1446,43 @@
 
 - (void)tableView:(UITableView *)tableView didSelectRowAtIndexPath:(NSIndexPath *)indexPath {
     
+    NSLog(@"didSelectRowAtIndexPath");
+    
     //セルの選択状態を解除
 	[tableView deselectRowAtIndexPath:indexPath animated:YES];
     
-    //ピッカー表示中は何もしない
-    if ( pickerVisible ) return;
-    
-    selectRow = indexPath.row;
-    selectTweet = [timelineArray objectAtIndex:indexPath.row];
-    
-    if ( [selectTweet objectForKey:@"FavEvent"] == nil ) {
-     
-        UIActionSheet *sheet = [[UIActionSheet alloc]
-                                initWithTitle:@"機能選択"
-                                delegate:self
-                                cancelButtonTitle:@"Cancel"
-                                destructiveButtonTitle:nil
-                                otherButtonTitles:@"URLを開く", @"Reply", @"Favorite／UnFavorite", @"ReTweet",
-                                @"Fav+RT", @"IDとFav,RTを選択", @"ハッシュタグをNG", @"クライアントをNG", @"InReplyTo", @"Tweetをコピー",
-                                @"Tweetを削除", @"Tweetを編集", @"ユーザーメニュー", nil];
+    if ( !webBrowserMode ) {
         
-        sheet.tag = 0;
+        //ピッカー表示中は何もしない
+        if ( pickerVisible ) return;
         
-        [sheet showInView:appDelegate.tabBarController.self.view];
+        selectRow = indexPath.row;
+        selectTweet = [timelineArray objectAtIndex:indexPath.row];
         
-    }else {
-        
-        NSString *targetId = [selectTweet objectForKey:@"id_str"];
-        NSString *favStarUrl = [NSString stringWithFormat:@"http://ja.favstar.fm/users/%@/status/%@",twAccount.username, targetId];
-
-        appDelegate.startupUrlList = [NSArray arrayWithObject:favStarUrl];
-        
-        [self openBrowser];
+        if ( [selectTweet objectForKey:@"FavEvent"] == nil ) {
+            
+            UIActionSheet *sheet = [[UIActionSheet alloc]
+                                    initWithTitle:@"機能選択"
+                                    delegate:self
+                                    cancelButtonTitle:@"Cancel"
+                                    destructiveButtonTitle:nil
+                                    otherButtonTitles:@"URLを開く", @"Reply", @"Favorite／UnFavorite", @"ReTweet",
+                                    @"Fav+RT", @"IDとFav,RTを選択", @"ハッシュタグをNG", @"クライアントをNG", @"InReplyTo", @"Tweetをコピー",
+                                    @"Tweetを削除", @"Tweetを編集", @"ユーザーメニュー", nil];
+            
+            sheet.tag = 0;
+            
+            [sheet showInView:appDelegate.tabBarController.self.view];
+            
+        }else {
+            
+            NSString *targetId = [selectTweet objectForKey:@"id_str"];
+            NSString *favStarUrl = [NSString stringWithFormat:@"http://ja.favstar.fm/users/%@/status/%@",twAccount.username, targetId];
+            
+            appDelegate.startupUrlList = [NSArray arrayWithObject:favStarUrl];
+            
+            [self openBrowser];
+        }
     }
 }
 
@@ -1557,6 +1582,41 @@
     swipeRight = nil;
 }
 
+- (void)pushIcon:(UIButton *)sender {
+    
+    NSLog(@"pushIcon: %d", sender.tag);
+    
+    alertSearchUserName = [[[timelineArray objectAtIndex:sender.tag] objectForKey:@"user"] objectForKey:@"screen_name"];
+    selectAccount = alertSearchUserName;
+    
+    NSLog(@"alertSearchUserName: %@", alertSearchUserName);
+    
+    UIActionSheet *sheet = [[UIActionSheet alloc]
+                            initWithTitle:@"外部サービスやユーザー情報を開く"
+                            delegate:self
+                            cancelButtonTitle:@"Cancel"
+                            destructiveButtonTitle:nil
+                            otherButtonTitles:@"Twilog", @"TwilogSearch", @"favstar", @"Twitpic", @"UserTimeline", @"TwitterSearch", @"TwitterSearch(Stream)", nil];
+    
+    sheet.tag = 1;
+    
+    [sheet showInView:appDelegate.tabBarController.self.view];
+}
+
+- (void)openTimelineURL:(NSURL *)urlPath {
+    
+    NSNotification *notification = [NSNotification notificationWithName:@"OpenTimelineURL"
+                                                                 object:self
+                                                               userInfo:@{ @"URL" : urlPath.absoluteString }];
+    [[NSNotificationCenter defaultCenter] postNotification:notification];
+}
+
+- (void)receiveOpenTimelineURLNotification:(NSNotification *)notification {
+    
+    appDelegate.startupUrlList = @[[notification.userInfo objectForKey:@"URL"]];
+    [self openBrowser];
+}
+
 #pragma mark - ASIHTTPRequest
 
 - (void)requestFinished:(ASIHTTPRequest *)request {
@@ -1622,13 +1682,16 @@
     
     [ActivityIndicator off];
     
-    //再送信
-    NSURL *URL = [NSURL URLWithString:[request.userInfo objectForKey:@"profile_image_url"]];
-    ASIFormDataRequest *reSendRequest = [[ASIFormDataRequest alloc] initWithURL:URL];
-    reSendRequest.userInfo = request.userInfo;
-    
-    [reSendRequest setDelegate:self];
-    [reSendRequest start];
+    if ( [InternetConnection enable] ) {
+     
+        //再送信
+        NSURL *URL = [NSURL URLWithString:[request.userInfo objectForKey:@"profile_image_url"]];
+        ASIFormDataRequest *reSendRequest = [[ASIFormDataRequest alloc] initWithURL:URL];
+        reSendRequest.userInfo = request.userInfo;
+        
+        [reSendRequest setDelegate:self];
+        [reSendRequest start];
+    }
 }
 
 #pragma mark - IBAction
@@ -1781,6 +1844,8 @@
             dispatch_queue_t syncQueue = dispatch_queue_create( "info.ktysne.fastphototweet", NULL );
             dispatch_sync( syncQueue, ^{
                 
+                if ( [d boolForKey:@"USNoAutoLock"] ) [[UIApplication sharedApplication] setIdleTimerDisabled:YES];
+                
                 //アクティブアカウント
                 twAccount = [TWGetAccount currentAccount];
                 
@@ -1815,6 +1880,8 @@
 - (void)closeStream {
     
     NSLog(@"closeStream");
+    
+    if ( [d boolForKey:@"USNoAutoLock"] ) [[UIApplication sharedApplication] setIdleTimerDisabled:NO];
     
     userStream = NO;
     userStreamFirstResponse = NO;
@@ -2046,6 +2113,8 @@
             dispatch_queue_t syncQueue = dispatch_queue_create( "info.ktysne.fastphototweet", NULL );
             dispatch_sync( syncQueue, ^{
                 
+                if ( [d boolForKey:@"USNoAutoLock"] ) [[UIApplication sharedApplication] setIdleTimerDisabled:YES];
+                
                 [self setOtherTweetsBarItems];
                 
                 //アクティブアカウント
@@ -2062,7 +2131,6 @@
                 TWRequest *request = [[TWRequest alloc] initWithURL:[NSURL URLWithString:@"https://stream.twitter.com/1.1/statuses/filter.json"]
                                                          parameters:params
                                                       requestMethod:TWRequestMethodPOST];
-                
                 
                 //アカウントの設定
                 [request setAccount:twAccount];
@@ -2090,6 +2158,8 @@
 - (void)closeSearchStream {
     
     NSLog(@"closeSearchStream");
+    
+    if ( [d boolForKey:@"USNoAutoLock"] ) [[UIApplication sharedApplication] setIdleTimerDisabled:NO];
     
     searchStream = NO;
     userStreamFirstResponse = NO;
@@ -3563,6 +3633,8 @@ numberOfRowsInComponent:(NSInteger)component {
 
 - (void)openBrowser {
     
+    NSLog(@"openBrowser");
+    
     @autoreleasepool {
         
         NSString *useragent = IPHONE_USERAGENT;
@@ -3748,6 +3820,8 @@ numberOfRowsInComponent:(NSInteger)component {
      
         if ( userStream ) [self closeStream];
         if ( searchStream ) [self closeSearchStream];
+        if ( connectionCheckTimer.isValid ) [self stopConnectionCheckTimer];
+        if ( onlineCheckTimer.isValid ) [self stopOnlineCheckTimer];
     }
 }
 
@@ -3761,6 +3835,8 @@ numberOfRowsInComponent:(NSInteger)component {
     }
     
     appDelegate.pboardURLOpenTimeline = NO;
+    
+    if ( !connectionCheckTimer.isValid ) [self startConnectionCheckTimer];
 }
 
 - (void)pboardNotification:(NSNotification *)notification {
@@ -3773,6 +3849,90 @@ numberOfRowsInComponent:(NSInteger)component {
     
     appDelegate.startupUrlList = [NSArray arrayWithObject:[notification.userInfo objectForKey:@"pboardURL"]];
     [self openBrowser];
+}
+
+#pragma mark - NSTimer
+
+- (void)startConnectionCheckTimer {
+    
+    //NSLog(@"startConnectionCheckTimer");
+    
+    connectionCheckTimer = [NSTimer scheduledTimerWithTimeInterval:3.0
+                                                         target:self
+                                                       selector:@selector(checkConnection)
+                                                       userInfo:nil
+                                                        repeats:YES];
+    [connectionCheckTimer fire];
+}
+
+- (void)stopConnectionCheckTimer {
+    
+    //NSLog(@"stopConnectionCheckTimer");
+    
+    [connectionCheckTimer invalidate];
+    connectionCheckTimer = nil;
+}
+
+- (void)checkConnection {
+    
+    //NSLog(@"checkConnection");
+    
+    @autoreleasepool {
+        
+        if ( [InternetConnection disable] ) {
+            
+            [self stopConnectionCheckTimer];
+            
+            NSNotification *notification =
+            [NSNotification notificationWithName:@"Offline"
+                                          object:self
+                                        userInfo:nil];
+            
+            [[NSNotificationCenter defaultCenter] postNotification:notification];
+            
+            [self performSelectorInBackground:@selector(startOnlineCheckTimer) withObject:nil];
+        }
+    }
+}
+
+- (void)startOnlineCheckTimer {
+    
+    //NSLog(@"startOnlineCheckTimer");
+    
+    onlineCheckTimer = [NSTimer scheduledTimerWithTimeInterval:3.0
+                                                            target:self
+                                                          selector:@selector(checkOnline)
+                                                          userInfo:nil
+                                                           repeats:YES];
+    [onlineCheckTimer fire];
+}
+
+- (void)stopOnlineCheckTimer {
+    
+    //NSLog(@"stopOnlineCheckTimer");
+    
+    [onlineCheckTimer invalidate];
+    onlineCheckTimer = nil;
+}
+
+- (void)checkOnline {
+    
+    //NSLog(@"checkOnline");
+    
+    @autoreleasepool {
+        
+        if ( [InternetConnection isEnabled] ) {
+            
+            [self stopOnlineCheckTimer];
+            
+            NSNotification *notification =
+            [NSNotification notificationWithName:@"BecomeOnline"
+                                          object:self
+                                        userInfo:nil];
+            
+            [[NSNotificationCenter defaultCenter] postNotification:notification];
+        }
+    }
 }
 
 #pragma mark - View

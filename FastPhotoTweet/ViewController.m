@@ -299,7 +299,7 @@
             //NSLog(@"newVersion");
             
             [ShowAlert title:[NSString stringWithFormat:@"FastPhotoTweet %@", APP_VERSION] 
-                 message:@"・Timelineのプルダウン更新の引っ掛かりを改善\n・メモリ管理の改善\n・iOS6で起こる問題を修正"];
+                 message:@"・TimelineのURLをリンク化\n・Timelineのアイコンを押すと「ユーザメニュー」を開く機能を追加\n・その他細かな修正"];
             
             information = [[[NSMutableDictionary alloc] initWithDictionary:[d dictionaryForKey:@"Information"]] autorelease];
             [information setValue:[NSNumber numberWithInt:1] forKey:APP_VERSION];
@@ -331,7 +331,7 @@
             
             NSString *text = [[[NSString alloc] initWithString:postText.text] autorelease];
             
-            if ( ![EmptyCheck check:text] ) {
+            if ( imagePreview.image == nil && ![EmptyCheck check:text] ) {
                 
                 [ShowAlert error:@"文字が入力されていません。"];
                 return;
@@ -1270,7 +1270,7 @@
                                                               SCREEN_HEIGHT);
                                  
                                  sv.frame = CGRectMake(0,
-                                                       0,
+                                                       TOOL_BAR_HEIGHT,
                                                        SCREEN_WIDTH * 2,
                                                        SCREEN_HEIGHT - TOOL_BAR_HEIGHT * 2);
                              }
@@ -1284,7 +1284,7 @@
                                                   animations:^{
                                                       
                                                       imagePreview.frame = CGRectMake(SCREEN_WIDTH,
-                                                                                      TOOL_BAR_HEIGHT,
+                                                                                      0,
                                                                                       SCREEN_WIDTH - (SCREEN_WIDTH / 8),
                                                                                       SCREEN_HEIGHT - TAB_BAR_HEIGHT - (TOOL_BAR_HEIGHT * 2));
                                                       
