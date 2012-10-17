@@ -15,6 +15,7 @@
 #import "NGSettingViewController.h"
 #import "TWGetAccount.h"
 #import "AppDelegate.h"
+#import "UIViewControllerAdditinons.h"
 
 @interface SettingViewController : UIViewController <UIActionSheetDelegate, UITextFieldDelegate> {
     

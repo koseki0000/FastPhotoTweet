@@ -44,6 +44,8 @@
         startupUrlList = appDelegate.startupUrlList;
         urlList = BLANK_ARRAY;
         
+        if ( startupUrlList == nil ) [d objectForKey:@"HomePageURL"];
+        
         retina4InchOffset = 0;
         
         if ( SCREEN_HEIGHT == 548 ) {
@@ -90,6 +92,8 @@
                            selector:@selector(pboardNotification:)
                                name:@"pboardNotification"
                              object:nil];
+    
+    notificationCenter = nil;
     
     d = [NSUserDefaults standardUserDefaults];
 
@@ -309,6 +313,8 @@
 
 - (void)selectUrl {
     
+    UIActionSheet *sheet;
+    
     if (startupUrlList.count == 1 ) {
         
         [wv loadRequestWithString:[startupUrlList objectAtIndex:0]];
@@ -317,7 +323,7 @@
         
         actionSheetNo = 2;
         
-        UIActionSheet *sheet = [[UIActionSheet alloc]
+        sheet = [[UIActionSheet alloc]
                                 initWithTitle:@"URL選択"
                                 delegate:self
                                 cancelButtonTitle:@"Cancel"
@@ -330,7 +336,7 @@
         
         actionSheetNo = 3;
         
-        UIActionSheet *sheet = [[UIActionSheet alloc]
+        sheet = [[UIActionSheet alloc]
                                 initWithTitle:@"URL選択"
                                 delegate:self
                                 cancelButtonTitle:@"Cancel"
@@ -344,7 +350,7 @@
         
         actionSheetNo = 4;
         
-        UIActionSheet *sheet = [[UIActionSheet alloc]
+        sheet = [[UIActionSheet alloc]
                                 initWithTitle:@"URL選択"
                                 delegate:self
                                 cancelButtonTitle:@"Cancel"
@@ -359,7 +365,7 @@
         
         actionSheetNo = 5;
         
-        UIActionSheet *sheet = [[UIActionSheet alloc]
+        sheet = [[UIActionSheet alloc]
                                 initWithTitle:@"URL選択"
                                 delegate:self
                                 cancelButtonTitle:@"Cancel"
@@ -375,7 +381,7 @@
         
         actionSheetNo = 6;
         
-        UIActionSheet *sheet = [[UIActionSheet alloc]
+        sheet = [[UIActionSheet alloc]
                                 initWithTitle:@"URL選択"
                                 delegate:self
                                 cancelButtonTitle:@"Cancel"
@@ -388,6 +394,8 @@
                                 [startupUrlList objectAtIndex:5], nil];
         [sheet showInView:self.view];
     }
+    
+    sheet = nil;
 }
 
 - (void)pboardNotification:(NSNotification *)notification {
@@ -439,6 +447,7 @@
                                 otherButtonTitles:@"Tweet", @"FastGoogle", @"ペーストボードのURLを開く", nil];
         
         [sheet showInView:self.view];
+        sheet = nil;
     }
 }
 
@@ -461,6 +470,7 @@
                             otherButtonTitles:@"Google", @"Amazon", @"Yahoo!オークション", 
                                               @"Wikipedia", @"Twitter検索", @"Wikipedia (Suggestion)", nil];
     [sheet showInView:self.view];
+    sheet = nil;
 }
 
 - (IBAction)pushComposeButton:(id)sender {
@@ -475,7 +485,8 @@
                                 cancelButtonTitle:@"Cancel"
                                 destructiveButtonTitle:nil
                                 otherButtonTitles:@"ブラウザを閉じる", nil];
-        [sheet showInView:self.view];    
+        [sheet showInView:self.view];
+        sheet = nil;
         
     }else {
     
@@ -507,7 +518,8 @@
                                 cancelButtonTitle:@"Cancel"
                                 destructiveButtonTitle:nil
                                 otherButtonTitles:@"ブラウザを閉じる", nil];
-        [sheet showInView:self.view];    
+        [sheet showInView:self.view];
+        sheet = nil;
         
     }else {
      
@@ -568,6 +580,7 @@
                                               @"Safariで開く", @"ホームページを変更", @"FastEverで開く", 
                                               @"PC版UAで開き直す", nil];
     [sheet showInView:self.view];
+    sheet = nil;
 }
 
 - (IBAction)pushBookmarkButton:(id)sender {
@@ -577,6 +590,7 @@
     BookmarkViewController *dialog = [[BookmarkViewController alloc] init];
     dialog.modalTransitionStyle = UIModalTransitionStyleCoverVertical;
     [self presentModalViewController:dialog animated:YES];
+    dialog = nil;
 }
 
 - (IBAction)enterSearchField:(id)sender {
@@ -624,6 +638,8 @@
     if ( ![[d objectForKey:@"SearchEngine"] isEqualToString:@"Wikipedia (Suggestion)"] ) {
         
         [wv loadRequestWithString:[NSString stringWithFormat:@"%@%@", searchURL, encodedSearchWord]];
+        searchURL = nil;
+        encodedSearchWord = nil;
     
     }else {
         
@@ -641,10 +657,12 @@
                 
                 NSString *suggestion = [RegularExpression strWithRegExp:xmlString
                                                       regExpPattern:@"<suggestion data=\".{1,50}\"/><num_queries"];
+                xmlString = nil;
                 
                 if ( ![EmptyCheck check:suggestion] ) {
                     
                     [ShowAlert error:@"サジェストがありません。"];
+                    suggestion = nil;
                     return;
                 }
                 
@@ -660,6 +678,8 @@
                     [self enterSearchField:nil];
                     [ActivityIndicator off];
                 });
+                
+                suggestion = nil;
             });
             
             dispatch_release(syncQueue);
@@ -678,6 +698,8 @@
     
     NSString *encodedUrl = [DeleteWhiteSpace string:urlField.text];
     [wv loadRequestWithString:encodedUrl];
+    
+    encodedUrl = nil;
 }
 
 - (IBAction)onUrlField: (id)sender {
@@ -749,6 +771,9 @@
                             destructiveButtonTitle:nil
                             otherButtonTitles:@"タイトルをコピー", @"URLをコピー", @"タイトルとURLをコピー", nil];
     [sheet showInView:self.view];
+    
+    copyURL = nil;
+    sheet = nil;
 }
 
 - (void)actionSheet:(UIActionSheet *)actionSheet clickedButtonAtIndex:(NSInteger)buttonIndex {
@@ -1542,6 +1567,7 @@
                                     otherButtonTitles:buttonTitle0, buttonTitle1, nil];
             
             [sheet showInView:self.view];
+            sheet = nil;
             
         }else {
             
@@ -1558,6 +1584,7 @@
                                     otherButtonTitles:buttonTitle0, buttonTitle1, buttonTitle2, nil];
             
             [sheet showInView:self.view];
+            sheet = nil;
         }
     }
 }
@@ -1716,6 +1743,7 @@
                                     otherButtonTitles:@"保存する", nil];
             
             [sheet showInView:self.view];
+            sheet = nil;
             
             result = YES;
         }
@@ -1983,25 +2011,23 @@
     
     if ( wv.loading ) [wv stopLoading];
     wv.delegate = nil;
-    [wv removeFromSuperview];
     
-    [self setTopBar:nil];
-    [self setBottomBar:nil];
-    [self setSearchButton:nil];
-    [self setCloseButton:nil];
-    [self setReloadButton:nil];
-    [self setBackButton:nil];
-    [self setForwardButton:nil];
-    [self setMenuButton:nil];
-    [self setFlexibleSpace:nil];
-    [self setUrlField:nil];
-    [self setSearchField:nil];
-    [self setComposeButton:nil];
-    [self setWv:nil];
-    [self setBytesLabel:nil];
-    [self setProgressBar:nil];
-    [self setDownloadCancelButton:nil];
-    [self setBookmarkButton:nil];
+    appDelegate = nil;
+    pboard = nil;
+    alert = nil;
+    alertText = nil;
+    reloadButtonImage = nil;
+    stopButtonImage = nil;
+    d = nil;
+    accessURL = nil;
+    loadStartURL = nil;
+    saveFileName = nil;
+    asyncConnection = nil;
+    asyncData = nil;;
+    startupUrlList = nil;
+    urlList = nil;
+    
+    [self removeAllSubViews];
     
     [ActivityIndicator visible:NO];
 }

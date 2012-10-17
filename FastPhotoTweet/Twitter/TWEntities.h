@@ -9,6 +9,7 @@
 #import "JSON.h"
 #import "TWParser.h"
 #import "EmptyCheck.h"
+#import "NSStringAdditions.h"
 
 @interface TWEntities : NSObject
 

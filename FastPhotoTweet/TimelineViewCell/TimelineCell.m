@@ -39,11 +39,11 @@
 
     //NSLog(@"TimelineCell dealloc");
     
-    [infoLabel release];
+    [infoLabel removeFromSuperview];
     infoLabel = nil;
-	[textLabel release];
+	[textLabel removeFromSuperview];
     textLabel = nil;
-    [iconView release];
+    [iconView removeFromSuperview];
     iconView = nil;
     
     [super dealloc];

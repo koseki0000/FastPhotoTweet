@@ -13,6 +13,7 @@
 #import "BookmarkViewController.h"
 #import "InternetConnection.h"
 #import "ADBlock.h"
+#import "UIViewControllerAdditinons.h"
 
 @interface WebViewExController : UIViewController <UIWebViewDelegate, UIActionSheetDelegate, UITextFieldDelegate, NSXMLParserDelegate> {
     

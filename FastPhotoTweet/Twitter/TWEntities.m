@@ -36,6 +36,7 @@
     [text replaceOccurrencesOfString:@"&gt;"  withString:@">" options:0 range:NSMakeRange(0, [text length] )];
     [text replaceOccurrencesOfString:@"&lt;"  withString:@"<" options:0 range:NSMakeRange(0, [text length] )];
     [text replaceOccurrencesOfString:@"&amp;" withString:@"&" options:0 range:NSMakeRange(0, [text length] )];
+    [text replaceOccurrencesOfString:@"　"  withString:@" " options:0 range:NSMakeRange(0, [text length] )];
     
     //展開するt.coがない場合は何もせず終了
     if ( [[tweet objectForKey:@"entities"] objectForKey:@"urls"]  == nil &&
@@ -129,6 +130,7 @@
     //textを置き換える
     NSMutableDictionary *replacedTweet = [NSMutableDictionary dictionaryWithDictionary:tweet];
     [replacedTweet setObject:text forKey:@"text"];
+    [replacedTweet setObject:text.linkWrappingAll forKey:@"link_text"];
     
     tweet = [NSDictionary dictionaryWithDictionary:replacedTweet];
     

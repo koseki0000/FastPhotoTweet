@@ -400,6 +400,9 @@
     
     NSLog(@"WebViewEx dealloc");
     
+    URL = nil;
+    URLReq = nil;
+    
     //メモリキャッシュの削除
     NSURLCache *cache = [NSURLCache sharedURLCache];
     [cache removeAllCachedResponses];

@@ -106,18 +106,16 @@
     NSString *originalText =  [[tweet objectForKey:@"retweeted_status"] objectForKey:@"text"];
     NSString *postUser =     [[[tweet objectForKey:@"retweeted_status"] objectForKey:@"user"] objectForKey:@"screen_name"];
     NSString *postUserIcon = [[[tweet objectForKey:@"retweeted_status"] objectForKey:@"user"] objectForKey:@"profile_image_url"];
-
     NSString *rtUser = [[tweet objectForKey:@"user"] objectForKey:@"screen_name"];
-    
-    NSString *reTweetText = [NSString stringWithFormat:@"%@\nRetweeted by @%@", originalText, rtUser];
     
     NSMutableDictionary *user = [NSMutableDictionary dictionaryWithDictionary:[tweet objectForKey:@"user"]];
     [user setObject:postUser forKey:@"screen_name"];
     [user setObject:postUserIcon forKey:@"profile_image_url"];
     
     NSMutableDictionary *mutableCurrentTweet = [NSMutableDictionary dictionaryWithDictionary:tweet];
-    [mutableCurrentTweet setObject:reTweetText forKey:@"text"];
+    [mutableCurrentTweet setObject:originalText forKey:@"text"];
     [mutableCurrentTweet setObject:user forKey:@"user"];
+    [mutableCurrentTweet setObject:rtUser forKey:@"rt_user"];
     
     return [NSDictionary dictionaryWithDictionary:mutableCurrentTweet];
 }

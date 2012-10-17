@@ -14,7 +14,7 @@
 
     //NSLog(@"TimelineCellController dealloc");
     
-    [cell release];
+    [cell removeFromSuperview];
     cell = nil;
     
 	[super dealloc];

@@ -34,9 +34,13 @@
 
 - (void)dealloc {
     
-    [_iconView release];
-    [_infoLabel release];
-    [_mainLabel release];
+    [_iconView removeFromSuperview];
+    _iconView = nil;
+    [_infoLabel removeFromSuperview];
+    _infoLabel = nil;
+    [_mainLabel removeFromSuperview];
+    _mainLabel = nil;
+    
     [super dealloc];
 }
 
@@ -46,13 +50,17 @@
 
 - (void)dealloc {
     
-    [_styledCell release];
+    [_styledCell removeFromSuperview];
+    _styledCell = nil;
+    
     [super dealloc];
 }
 
 - (void)viewDidUnload {
     
-    [self setStyledCell:nil];
+    [_styledCell removeFromSuperview];
+    _styledCell = nil;
+    
     [super viewDidUnload];
 }
 

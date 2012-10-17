@@ -11,210 +11,192 @@
 
 + (BOOL)boolWithRegExp:(NSString *)matchString regExpPattern:(NSString *)regExpPattern {
     
-    @autoreleasepool {
+    BOOL result = NO;
+    
+    NSError *error = nil;
+    NSRegularExpression *regexp = [NSRegularExpression regularExpressionWithPattern:regExpPattern
+                                                                            options:0
+                                                                              error:&error];
+    
+    NSTextCheckingResult *match = [regexp firstMatchInString:matchString
+                                                     options:0
+                                                       range:NSMakeRange(0, matchString.length)];
+    
+    if ( !error ) {
         
-        BOOL result = NO;
-        
-        NSError *error = nil;
-        NSRegularExpression *regexp = [NSRegularExpression regularExpressionWithPattern:regExpPattern
-                                                                                options:0
-                                                                                  error:&error];
-        
-        NSTextCheckingResult *match = [regexp firstMatchInString:matchString
-                                                         options:0
-                                                           range:NSMakeRange(0, matchString.length)];
-        
-        if ( !error ) {
+        if ( match.numberOfRanges != 0 ) {
             
-            if ( match.numberOfRanges != 0 ) {
-                
-                //正規表現にマッチ
-                result = YES;
-            }
-            
-        }else {
-            
-            //正規表現でエラー
-            [RegularExpression regExpError];
+            //正規表現にマッチ
+            result = YES;
         }
         
-        return result;
+    }else {
+        
+        //正規表現でエラー
+        [RegularExpression regExpError];
     }
+    
+    return result;
 }
 
 + (NSString *)strWithRegExp:(NSString *)matchString regExpPattern:(NSString *)regExpPattern {
     
-    @autoreleasepool {
+    NSString *result = [NSString string];
+    
+    NSError *error = nil;
+    NSRegularExpression *regexp = [NSRegularExpression regularExpressionWithPattern:regExpPattern
+                                                                            options:0
+                                                                              error:&error];
+    
+    NSTextCheckingResult *match = [regexp firstMatchInString:matchString
+                                                     options:0
+                                                       range:NSMakeRange(0, matchString.length)];
+    
+    if (!error) {
         
-        NSString *result = [NSString string];
-        
-        NSError *error = nil;
-        NSRegularExpression *regexp = [NSRegularExpression regularExpressionWithPattern:regExpPattern
-                                                                                options:0
-                                                                                  error:&error];
-        
-        NSTextCheckingResult *match = [regexp firstMatchInString:matchString
-                                                         options:0
-                                                           range:NSMakeRange(0, matchString.length)];
-        
-        if (!error) {
+        if (match.numberOfRanges != 0) {
             
-            if (match.numberOfRanges != 0) {
-                
-                result = [matchString substringWithRange:match.range];
-            }
-            
-        }else {
-            
-            [RegularExpression regExpError];
+            result = [matchString substringWithRange:match.range];
         }
         
-        return result;
+    }else {
+        
+        [RegularExpression regExpError];
     }
+    
+    return result;
 }
 
 + (NSMutableString *)mStrWithRegExp:(NSString *)matchString regExpPattern:(NSString *)regExpPattern {
     
-    @autoreleasepool {
+    //マッチした文字列を格納する
+    NSMutableString *result = [NSMutableString string];
+    
+    NSError *error = nil;
+    NSRegularExpression *regexp = [NSRegularExpression regularExpressionWithPattern:regExpPattern
+                                                                            options:0
+                                                                              error:&error];
+    
+    NSTextCheckingResult *match = [regexp firstMatchInString:matchString
+                                                     options:0
+                                                       range:NSMakeRange(0, matchString.length)];
+    
+    if ( !error ) {
         
-        //マッチした文字列を格納する
-        NSMutableString *result = [NSMutableString string];
-        
-        NSError *error = nil;
-        NSRegularExpression *regexp = [NSRegularExpression regularExpressionWithPattern:regExpPattern
-                                                                                options:0
-                                                                                  error:&error];
-        
-        NSTextCheckingResult *match = [regexp firstMatchInString:matchString
-                                                         options:0
-                                                           range:NSMakeRange(0, matchString.length)];
-        
-        if ( !error ) {
+        if ( match.numberOfRanges != 0 ) {
             
-            if ( match.numberOfRanges != 0 ) {
-                
-                //正規表現でマッチした文字列を可変長にする
-                result = [NSMutableString stringWithString:[matchString substringWithRange:match.range]];
-            }
-            
-        }else {
-            
-            //正規表現でエラー
-            [RegularExpression regExpError];
+            //正規表現でマッチした文字列を可変長にする
+            result = [NSMutableString stringWithString:[matchString substringWithRange:match.range]];
         }
         
-        return result;
+    }else {
+        
+        //正規表現でエラー
+        [RegularExpression regExpError];
     }
+    
+    return result;
 }
 
 + (NSArray *)arrayWithRegExp:(NSString *)matchString regExpPattern:(NSString *)regExpPattern {
     
-    @autoreleasepool {
+    //マッチした文字列を格納する
+    NSMutableArray *resultArray = [NSMutableArray array];
+    NSError *error = nil;
+    
+    NSRegularExpression *regexp = [NSRegularExpression regularExpressionWithPattern:regExpPattern
+                                                                            options:0
+                                                                              error:&error];
+    
+    NSArray *match = [regexp matchesInString:matchString
+                                     options:0
+                                       range:NSMakeRange(0,
+                                                         matchString.length)];
+    
+    if ( !error ) {
         
-        //マッチした文字列を格納する
-        NSMutableArray *resultArray = [NSMutableArray array];
-        NSError *error = nil;
-        
-        NSRegularExpression *regexp = [NSRegularExpression regularExpressionWithPattern:regExpPattern
-                                                                                options:0
-                                                                                  error:&error];
-        
-        NSArray *match = [regexp matchesInString:matchString
-                                         options:0
-                                           range:NSMakeRange(0,
-                                                             matchString.length)];
-        
-        if ( !error ) {
+        for ( NSTextCheckingResult *result in match ) {
             
-            for ( NSTextCheckingResult *result in match ) {
-                
-                [resultArray addObject:[matchString substringWithRange:result.range]];
-            }
-            
-        }else {
-            
-            //正規表現でエラー
-            [RegularExpression regExpError];
-            return [NSArray array];
+            [resultArray addObject:[matchString substringWithRange:result.range]];
         }
         
-        //固定長にして返す
-        return [NSArray arrayWithArray:resultArray];
+    }else {
+        
+        //正規表現でエラー
+        [RegularExpression regExpError];
+        return [NSArray array];
     }
+    
+    //固定長にして返す
+    return [NSArray arrayWithArray:resultArray];
 }
 
 + (NSMutableArray *)mArrayWithRegExp:(NSString *)matchString regExpPattern:(NSString *)regExpPattern {
     
-    @autoreleasepool {
+    //マッチした文字列を格納する
+    NSMutableArray *resultArray = [NSMutableArray array];
+    NSError *error = nil;
+    
+    NSRegularExpression *regexp = [NSRegularExpression regularExpressionWithPattern:regExpPattern
+                                                                            options:0
+                                                                              error:&error];
+    
+    NSArray *match = [regexp matchesInString:matchString
+                                     options:0
+                                       range:NSMakeRange(0,
+                                                         matchString.length)];
+    
+    if ( !error ) {
         
-        //マッチした文字列を格納する
-        NSMutableArray *resultArray = [NSMutableArray array];
-        NSError *error = nil;
-        
-        NSRegularExpression *regexp = [NSRegularExpression regularExpressionWithPattern:regExpPattern
-                                                                                options:0
-                                                                                  error:&error];
-        
-        NSArray *match = [regexp matchesInString:matchString
-                                         options:0
-                                           range:NSMakeRange(0,
-                                                             matchString.length)];
-        
-        if ( !error ) {
+        for ( NSTextCheckingResult *result in match ) {
             
-            for ( NSTextCheckingResult *result in match ) {
-                
-                [resultArray addObject:[matchString substringWithRange:result.range]];
-            }
-            
-        }else {
-            
-            //正規表現でエラー
-            [RegularExpression regExpError];
-            return [NSMutableArray array];
+            [resultArray addObject:[matchString substringWithRange:result.range]];
         }
         
-        return resultArray;
+    }else {
+        
+        //正規表現でエラー
+        [RegularExpression regExpError];
+        return [NSMutableArray array];
     }
+    
+    return resultArray;
 }
 
 + (NSMutableArray *)urls:(id)string {
     
-    @autoreleasepool {
-        
-        //stringが空の場合終了
-        if ( string == nil ) return [NSMutableArray array];
-        
-        //NSStringでもNSMutableStringでもない場合は終了
-        if ( ![string isKindOfClass:[NSString class]] &&
-            ![string isKindOfClass:[NSMutableString class]] ) return [NSMutableArray array];
-        
-        NSError *error = nil;
-        
-        //NSMutableString型にする
-        NSString *searchString = [NSString stringWithString:string];
-        
-        //URLを格納する
-        NSMutableArray *urlList = [NSMutableArray array];
-        
-        //URLを判定する
-        NSDataDetector *linkDetector = [NSDataDetector dataDetectorWithTypes:NSTextCheckingTypeLink
-                                                                       error:&error];
-        
-        NSArray *matches = [linkDetector matchesInString:searchString
-                                                 options:0
-                                                   range:NSMakeRange(0, [searchString length])];
-        
-        for ( NSTextCheckingResult *match in matches ) {
-            
-            //マッチしたURLを配列に追加
-            [urlList addObject:match.URL.absoluteString];
-        }
-        
-        return urlList;
-    }
-}
+    //stringが空の場合終了
+    if ( string == nil ) return [NSMutableArray array];
     
+    //NSStringでもNSMutableStringでもない場合は終了
+    if ( ![string isKindOfClass:[NSString class]] &&
+        ![string isKindOfClass:[NSMutableString class]] ) return [NSMutableArray array];
+    
+    NSError *error = nil;
+    
+    //NSMutableString型にする
+    NSString *searchString = [NSString stringWithString:string];
+    
+    //URLを格納する
+    NSMutableArray *urlList = [NSMutableArray array];
+    
+    //URLを判定する
+    NSDataDetector *linkDetector = [NSDataDetector dataDetectorWithTypes:NSTextCheckingTypeLink
+                                                                   error:&error];
+    
+    NSArray *matches = [linkDetector matchesInString:searchString
+                                             options:0
+                                               range:NSMakeRange(0, [searchString length])];
+    
+    for ( NSTextCheckingResult *match in matches ) {
+        
+        //マッチしたURLを配列に追加
+        [urlList addObject:match.URL.absoluteString];
+    }
+    
+    return urlList;
+}
+
 + (NSMutableArray *)twitterIds:(id)searchString {
     
     //stringが空の場合終了
@@ -222,7 +204,7 @@
     
     //NSStringでもNSMutableStringでもない場合は終了
     if ( ![searchString isKindOfClass:[NSString class]] &&
-         ![searchString isKindOfClass:[NSMutableString class]] ) return [NSMutableArray array];
+        ![searchString isKindOfClass:[NSMutableString class]] ) return [NSMutableArray array];
     
     //NSStringにする
     NSString *string = [NSString stringWithString:searchString];

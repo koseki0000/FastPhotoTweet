@@ -14,7 +14,7 @@
 //セクション1の項目数 (投稿関連設定)
 #define SECTION_1 13
 //セクション2の項目数 (その他の設定)
-#define SECTION_2 5
+#define SECTION_2 6
 //セクション2の項目数 (タイムライン設定)
 #define SECTION_3 7
 
@@ -23,44 +23,46 @@
 
 //設定項目名
 //画像関連設定
-#define NAME_0  @"画像投稿時リサイズを行う"
-#define NAME_1  @"リサイズ最大長辺"
-#define NAME_2  @"画像形式"
-#define NAME_3  @"Retina解像度画像もリサイズを行う"
-#define NAME_4  @"画像投稿先"
-#define NAME_5  @"画像ソース"
-#define NAME_6  @"連続投稿確認表示"
-#define NAME_7  @"画像共有サービスフルサイズ取得"
-#define NAME_8  @"NowPlaying画像投稿先"
+#define IMAGE_RESIZE  @"画像投稿時リサイズを行う"
+#define IMAGE_RESIZE_MAX  @"リサイズ最大長辺"
+#define IMAGE_FORMAT  @"画像形式"
+#define NO_RESIZE_RETINA  @"Retina解像度画像もリサイズを行う"
+#define IMAGE_SERVICE  @"画像投稿先"
+#define IMAGE_SOURCE  @"画像ソース"
+#define IMAGE_REPEATED  @"連続投稿確認表示"
+#define IMAGE_GET_FULL  @"画像共有サービスフルサイズ取得"
+#define NOWPLAYING_IMAGE  @"NowPlaying画像投稿先"
 //投稿関連設定
-#define NAME_9  @"NowPlaying時はFastTweetを行う"
-#define NAME_10 @"NowPlaying時はCallBackを行う"
-#define NAME_11 @"NowPlayingにカスタム書式を使用"
-#define NAME_12 @"カスタム書式を編集"
-#define NAME_13 @"曲名とアルバム名が同じな場合サブ書式を使用"
-#define NAME_14 @"サブ書式を編集"
-#define NAME_15 @"NowPlaying時にアートワークを投稿"
-#define NAME_16 @"とは検索機能を使用"
-#define NAME_17 @"Webページ投稿書式変更"
-#define NAME_18 @"Webページ投稿書式セット後カーソル位置"
-#define NAME_19 @"引用投稿書式変更"
-#define NAME_20 @"引用投稿書式セット後カーソル位置"
-#define NAME_21 @"投稿後アプリ切替"
+#define NOWPLAYING_FASTTWEET  @"NowPlaying時はFastTweetを行う"
+#define NOWPLAYING_CALLBACK @"NowPlaying時はCallBackを行う"
+#define NOWPLAYING_CUSTOM @"NowPlayingにカスタム書式を使用"
+#define NOWPLAYING_CUSTOM_EDIT @"カスタム書式を編集"
+#define NOWPLAYING_DUPLICATE_NAME @"曲名とアルバム名が同じな場合サブ書式を使用"
+#define NOWPLAYING_SUB_STYLE @"サブ書式を編集"
+#define NOWPLAYING_ARTWORK @"NowPlaying時にアートワークを投稿"
+#define TOHA_SEARCH @"とは検索機能を使用"
+#define WEB_PAGE_SHARE_STYLE @"Webページ投稿書式変更"
+#define WEB_PAGE_SHARE_CURSOR @"Webページ投稿書式セット後カーソル位置"
+#define WEB_PAGE_QUOTE_STYLE @"引用投稿書式変更"
+#define WEB_PAGE_QUOTE_CURSOR @"引用投稿書式セット後カーソル位置"
+#define SWITCH_APP @"投稿後アプリ切替"
 
 //その他の設定
-#define NAME_22 @"アプリがアクティブになった際入力可能状態にする"
-#define NAME_23 @"ブラウザの検索ワードを毎回リセット"
-#define NAME_24 @"ブラウザを開く時ペーストボード内のURLを開く"
-#define NAME_25 @"ブラウザユーザーエージェント"
-#define NAME_26 @"ブラウザを閉じる時にユーザーエージェントを戻す"
+#define ACTIVE_INPUT @"アプリがアクティブになった際入力可能状態にする"
+#define SEARCH_WORD_RESET @"ブラウザの検索ワードを毎回リセット"
+#define PASTE_BOARD_URL @"ブラウザを開く時ペーストボード内のURLを開く"
+#define USER_AGENT @"ブラウザユーザーエージェント"
+#define USER_AGENT_RESET @"ブラウザを閉じる時にユーザーエージェントを戻す"
+#define SWIPE_SHIFT_CARET @"Tweet入力欄をスワイプでカーソルを移動"
+
 //タイムライン設定
-#define NAME_27 @"バックグラウンドに移行時UserStreamを切断"
-#define NAME_28 @"バックグラウンドから復帰時UserStreamに接続"
-#define NAME_29 @"通常の更新後にUserStreamに接続"
-#define NAME_30 @"NG設定を開く"
-#define NAME_31 @"自分のTweetもNGを行う"
-#define NAME_32 @"アイコンの角を丸める"
-#define NAME_33 @"UserStream接続中は自動ロックを無効化する"
+#define ENTER_BACKGROUND_US @"バックグラウンドに移行時UserStreamを切断"
+#define BECOME_ACTIVE_US @"バックグラウンドから復帰時UserStreamに接続"
+#define RELOAD_US @"通常の更新後にUserStreamに接続"
+#define NG_OPEN @"NG設定を開く"
+#define MY_TWEET_NG @"自分のTweetもNGを行う"
+#define ICON_CORNER @"アイコンの角を丸める"
+#define US_NO_AUTO_LOCK @"UserStream接続中は自動ロックを無効化する"
 
 //ライセンス
 #define NAME_LICENSE @"ライセンス"
@@ -90,15 +92,16 @@
         appDelegate.addTwitpicAccountName = BLANK;
         
         //設定項目名を持った可変長配列を生成
-        settingArray = [NSMutableArray arrayWithObjects:NAME_0,  NAME_1,  NAME_2,  NAME_3, 
-                                                        NAME_4,  NAME_5,  NAME_6,  NAME_7, 
-                                                        NAME_8,  NAME_9,  NAME_10, NAME_11, 
-                                                        NAME_12, NAME_13, NAME_14, NAME_15, 
-                                                        NAME_16, NAME_17, NAME_18, NAME_19, 
-                                                        NAME_20, NAME_21, NAME_22, NAME_23,
-                                                        NAME_24, NAME_25, NAME_26, NAME_27, 
-                                                        NAME_28, NAME_29, NAME_30, NAME_31,
-                                                        NAME_32, NAME_33, NAME_LICENSE, nil];
+        settingArray = [NSMutableArray arrayWithObjects:IMAGE_RESIZE,  IMAGE_RESIZE_MAX,  IMAGE_FORMAT,  NO_RESIZE_RETINA, 
+                                                        IMAGE_SERVICE,  IMAGE_SOURCE,  IMAGE_REPEATED,  IMAGE_GET_FULL, 
+                                                        NOWPLAYING_IMAGE,  NOWPLAYING_FASTTWEET,  NOWPLAYING_CALLBACK,
+                                                        NOWPLAYING_CUSTOM, NOWPLAYING_CUSTOM_EDIT, NOWPLAYING_DUPLICATE_NAME,
+                                                        NOWPLAYING_SUB_STYLE, NOWPLAYING_ARTWORK, TOHA_SEARCH,
+                                                        WEB_PAGE_SHARE_STYLE, WEB_PAGE_SHARE_CURSOR, WEB_PAGE_QUOTE_STYLE,
+                                                        WEB_PAGE_QUOTE_CURSOR, SWITCH_APP, ACTIVE_INPUT, SEARCH_WORD_RESET,
+                                                        PASTE_BOARD_URL, USER_AGENT, USER_AGENT_RESET, SWIPE_SHIFT_CARET,
+                                                        ENTER_BACKGROUND_US, BECOME_ACTIVE_US, RELOAD_US, NG_OPEN,
+                                                        MY_TWEET_NG, ICON_CORNER, US_NO_AUTO_LOCK, NAME_LICENSE, nil];
         
         [settingArray retain];
     }
@@ -544,7 +547,7 @@
         
     }else if ( settingState == 27 ) {
         
-        if ( [d boolForKey:@"EnterBackgroundUSDisConnect"] ) {
+        if ( [d boolForKey:@"SwipeShiftCaret"] ) {
             
             result = @"ON";
             
@@ -555,7 +558,7 @@
         
     }else if ( settingState == 28 ) {
         
-        if ( [d boolForKey:@"BecomeActiveUSConnect"] ) {
+        if ( [d boolForKey:@"EnterBackgroundUSDisConnect"] ) {
             
             result = @"ON";
             
@@ -566,6 +569,17 @@
         
     }else if ( settingState == 29 ) {
         
+        if ( [d boolForKey:@"BecomeActiveUSConnect"] ) {
+            
+            result = @"ON";
+            
+        }else {
+            
+            result = @"OFF";
+        }
+        
+    }else if ( settingState == 30 ) {
+        
         if ( [d boolForKey:@"ReloadAfterUSConnect"] ) {
             
             result = @"ON";
@@ -575,9 +589,9 @@
             result = @"OFF";
         }
         
-//    }else if ( settingState == 30 ) {
+//    }else if ( settingState == 31 ) {
         
-    }else if ( settingState == 31 ) {
+    }else if ( settingState == 32 ) {
 
         if ( [d boolForKey:@"MyTweetNG"] ) {
             
@@ -588,7 +602,7 @@
             result = @"OFF";
         }
         
-    }else if ( settingState == 32 ) {
+    }else if ( settingState == 33 ) {
         
         if ( [d integerForKey:@"IconCornerRounding"] == 1 ) {
             
@@ -599,7 +613,7 @@
             result = @"OFF";
         }
         
-    }else if ( settingState == 33 ) {
+    }else if ( settingState == 34 ) {
         
         if ( [d boolForKey:@"USNoAutoLock"] ) {
             
@@ -701,7 +715,7 @@
             
             //画像投稿時リサイズを行う
             sheet = [[UIActionSheet alloc]
-                     initWithTitle:NAME_0
+                     initWithTitle:IMAGE_RESIZE
                      delegate:self
                      cancelButtonTitle:@"Cancel"
                      destructiveButtonTitle:nil
@@ -713,7 +727,7 @@
             
             //リサイズ最大長辺
             sheet = [[UIActionSheet alloc]
-                     initWithTitle:NAME_1
+                     initWithTitle:IMAGE_RESIZE_MAX
                      delegate:self
                      cancelButtonTitle:@"Cancel"
                      destructiveButtonTitle:nil
@@ -725,7 +739,7 @@
             
             //画像形式
             sheet = [[UIActionSheet alloc]
-                     initWithTitle:NAME_2
+                     initWithTitle:IMAGE_FORMAT
                      delegate:self
                      cancelButtonTitle:@"Cancel"
                      destructiveButtonTitle:nil
@@ -737,7 +751,7 @@
             
             //Retina解像度画像もリサイズを行う
             sheet = [[UIActionSheet alloc]
-                     initWithTitle:NAME_3
+                     initWithTitle:NO_RESIZE_RETINA
                      delegate:self
                      cancelButtonTitle:@"Cancel"
                      destructiveButtonTitle:nil
@@ -749,7 +763,7 @@
             
             //画像投稿先
             sheet = [[UIActionSheet alloc]
-                     initWithTitle:NAME_4
+                     initWithTitle:IMAGE_SERVICE
                      delegate:self
                      cancelButtonTitle:@"Cancel"
                      destructiveButtonTitle:nil
@@ -762,7 +776,7 @@
             
             //画像ソース
             sheet = [[UIActionSheet alloc]
-                     initWithTitle:NAME_5
+                     initWithTitle:IMAGE_SOURCE
                      delegate:self
                      cancelButtonTitle:@"Cancel"
                      destructiveButtonTitle:nil
@@ -774,7 +788,7 @@
             
             //連続投稿確認表示
             sheet = [[UIActionSheet alloc]
-                     initWithTitle:NAME_6
+                     initWithTitle:IMAGE_REPEATED
                      delegate:self
                      cancelButtonTitle:@"Cancel"
                      destructiveButtonTitle:nil
@@ -786,7 +800,7 @@
             
             //画像共有サービスフルサイズ取得
             sheet = [[UIActionSheet alloc]
-                     initWithTitle:NAME_7
+                     initWithTitle:IMAGE_GET_FULL
                      delegate:self
                      cancelButtonTitle:@"Cancel"
                      destructiveButtonTitle:nil
@@ -798,7 +812,7 @@
             
             //NowPlaying画像投稿先
             sheet = [[UIActionSheet alloc]
-                     initWithTitle:NAME_8
+                     initWithTitle:NOWPLAYING_IMAGE
                      delegate:self
                      cancelButtonTitle:@"Cancel"
                      destructiveButtonTitle:nil
@@ -815,7 +829,7 @@
         
             //NowPlaying時はFastPostを行う
             sheet = [[UIActionSheet alloc]
-                     initWithTitle:NAME_9
+                     initWithTitle:NOWPLAYING_FASTTWEET
                      delegate:self
                      cancelButtonTitle:@"Cancel"
                      destructiveButtonTitle:nil
@@ -827,7 +841,7 @@
             
             //NowPlaying時はCallBackを行う
             sheet = [[UIActionSheet alloc]
-                     initWithTitle:NAME_10
+                     initWithTitle:NOWPLAYING_CALLBACK
                      delegate:self
                      cancelButtonTitle:@"Cancel"
                      destructiveButtonTitle:nil
@@ -839,7 +853,7 @@
             
             //NowPlayingにカスタム書式を使用
             sheet = [[UIActionSheet alloc]
-                     initWithTitle:NAME_11
+                     initWithTitle:NOWPLAYING_CUSTOM
                      delegate:self
                      cancelButtonTitle:@"Cancel"
                      destructiveButtonTitle:nil
@@ -859,7 +873,7 @@
                 alertMessage = [d objectForKey:@"NowPlayingEditText"];
             }
             
-            alert = [[UIAlertView alloc] initWithTitle:NAME_12 
+            alert = [[UIAlertView alloc] initWithTitle:NOWPLAYING_CUSTOM_EDIT 
                                                             message:message
                                                            delegate:self 
                                                   cancelButtonTitle:@"キャンセル" 
@@ -883,7 +897,7 @@
             
             //曲名とアルバム名が同じな場合サブ書式を使用
             sheet = [[UIActionSheet alloc]
-                     initWithTitle:NAME_13
+                     initWithTitle:NOWPLAYING_DUPLICATE_NAME
                      delegate:self
                      cancelButtonTitle:@"Cancel"
                      destructiveButtonTitle:nil
@@ -903,7 +917,7 @@
                 alertMessage = [d objectForKey:@"NowPlayingEditTextSub"];
             }
             
-            alert = [[UIAlertView alloc] initWithTitle:NAME_14
+            alert = [[UIAlertView alloc] initWithTitle:NOWPLAYING_SUB_STYLE
                                                message:message
                                               delegate:self 
                                      cancelButtonTitle:@"キャンセル" 
@@ -927,7 +941,7 @@
             
             //NowPlaying時にアートワークを投稿
             sheet = [[UIActionSheet alloc]
-                     initWithTitle:NAME_15
+                     initWithTitle:NOWPLAYING_ARTWORK
                      delegate:self
                      cancelButtonTitle:@"Cancel"
                      destructiveButtonTitle:nil
@@ -939,7 +953,7 @@
             
             //とは検索
             sheet = [[UIActionSheet alloc]
-                     initWithTitle:NAME_16
+                     initWithTitle:TOHA_SEARCH
                      delegate:self
                      cancelButtonTitle:@"Cancel"
                      destructiveButtonTitle:nil
@@ -965,7 +979,7 @@
                 [d setObject:alertMessage forKey:@"WebPagePostFormat"];
             }
             
-            alert = [[UIAlertView alloc] initWithTitle:NAME_17
+            alert = [[UIAlertView alloc] initWithTitle:WEB_PAGE_SHARE_STYLE
                                                message:message
                                               delegate:self 
                                      cancelButtonTitle:@"キャンセル" 
@@ -989,7 +1003,7 @@
             
             //Webページ投稿書式セット後カーソル位置
             sheet = [[UIActionSheet alloc]
-                     initWithTitle:NAME_18
+                     initWithTitle:WEB_PAGE_SHARE_CURSOR
                      delegate:self
                      cancelButtonTitle:@"Cancel"
                      destructiveButtonTitle:nil
@@ -1015,7 +1029,7 @@
                 [d setObject:alertMessage forKey:@"QuoteFormat"];
             }
             
-            alert = [[UIAlertView alloc] initWithTitle:NAME_19
+            alert = [[UIAlertView alloc] initWithTitle:WEB_PAGE_QUOTE_STYLE
                                                message:message
                                               delegate:self 
                                      cancelButtonTitle:@"キャンセル" 
@@ -1039,7 +1053,7 @@
             
             //引用投稿書式セット後カーソル位置
             sheet = [[UIActionSheet alloc]
-                     initWithTitle:NAME_20
+                     initWithTitle:WEB_PAGE_QUOTE_CURSOR
                      delegate:self
                      cancelButtonTitle:@"Cancel"
                      destructiveButtonTitle:nil
@@ -1050,7 +1064,7 @@
         }else if ( indexPath.row == 12 ) {
             
             sheet = [[UIActionSheet alloc]
-                     initWithTitle:NAME_21
+                     initWithTitle:SWITCH_APP
                      delegate:self
                      cancelButtonTitle:@"Cancel"
                      destructiveButtonTitle:nil
@@ -1072,7 +1086,7 @@
             
             //アプリがアクティブになった際入力可能状態にする
             sheet = [[UIActionSheet alloc]
-                     initWithTitle:NAME_22
+                     initWithTitle:ACTIVE_INPUT
                      delegate:self
                      cancelButtonTitle:@"Cancel"
                      destructiveButtonTitle:nil
@@ -1084,7 +1098,7 @@
             
             //ブラウザの検索ワードを毎回リセット
             sheet = [[UIActionSheet alloc]
-                     initWithTitle:NAME_23
+                     initWithTitle:SEARCH_WORD_RESET
                      delegate:self
                      cancelButtonTitle:@"Cancel"
                      destructiveButtonTitle:nil
@@ -1096,7 +1110,7 @@
             
             //ブラウザを開く時ペーストボード内のURLを開く
             sheet = [[UIActionSheet alloc]
-                     initWithTitle:NAME_24
+                     initWithTitle:PASTE_BOARD_URL
                      delegate:self
                      cancelButtonTitle:@"Cancel"
                      destructiveButtonTitle:nil
@@ -1108,7 +1122,7 @@
             
             //ブラウザユーザーエージェント
             sheet = [[UIActionSheet alloc]
-                     initWithTitle:NAME_25
+                     initWithTitle:USER_AGENT
                      delegate:self
                      cancelButtonTitle:@"Cancel"
                      destructiveButtonTitle:nil
@@ -1119,11 +1133,22 @@
         }else if ( indexPath.row == 4 ) {
             
             sheet = [[UIActionSheet alloc]
-                     initWithTitle:NAME_26
+                     initWithTitle:USER_AGENT_RESET
                      delegate:self
                      cancelButtonTitle:@"Cancel"
                      destructiveButtonTitle:nil
                      otherButtonTitles:@"OFF", @"FireFox", @"iPad", @"iPhone", nil];
+            [sheet autorelease];
+            [sheet showInView:self.view];
+        
+        }else if ( indexPath.row == 5 ) {
+            
+            sheet = [[UIActionSheet alloc]
+                     initWithTitle:SWIPE_SHIFT_CARET
+                     delegate:self
+                     cancelButtonTitle:@"Cancel"
+                     destructiveButtonTitle:nil
+                     otherButtonTitles:@"ON", @"OFF", nil];
             [sheet autorelease];
             [sheet showInView:self.view];
         }
@@ -1136,7 +1161,7 @@
             
             //バックグラウンドに移行時UserStreamを切断
             sheet = [[UIActionSheet alloc]
-                     initWithTitle:NAME_27
+                     initWithTitle:ENTER_BACKGROUND_US
                      delegate:self
                      cancelButtonTitle:@"Cancel"
                      destructiveButtonTitle:nil
@@ -1148,7 +1173,7 @@
             
             //バックグラウンドから復帰時UserStreamに接続
             sheet = [[UIActionSheet alloc]
-                     initWithTitle:NAME_28
+                     initWithTitle:BECOME_ACTIVE_US
                      delegate:self
                      cancelButtonTitle:@"Cancel"
                      destructiveButtonTitle:nil
@@ -1160,7 +1185,7 @@
         
             //通常の更新後にUserStreamに接続
             sheet = [[UIActionSheet alloc]
-                     initWithTitle:NAME_29
+                     initWithTitle:RELOAD_US
                      delegate:self
                      cancelButtonTitle:@"Cancel"
                      destructiveButtonTitle:nil
@@ -1179,7 +1204,7 @@
             
             //自分のTweetもNGを行う
             sheet = [[UIActionSheet alloc]
-                     initWithTitle:NAME_31
+                     initWithTitle:MY_TWEET_NG
                      delegate:self
                      cancelButtonTitle:@"Cancel"
                      destructiveButtonTitle:nil
@@ -1191,7 +1216,7 @@
             
             //アイコンの角を丸める
             sheet = [[UIActionSheet alloc]
-                     initWithTitle:NAME_32
+                     initWithTitle:ICON_CORNER
                      delegate:self
                      cancelButtonTitle:@"Cancel"
                      destructiveButtonTitle:nil
@@ -1203,7 +1228,7 @@
             
             //UserStream接続中は自動ロックを無効化する
             sheet = [[UIActionSheet alloc]
-                     initWithTitle:NAME_33
+                     initWithTitle:US_NO_AUTO_LOCK
                      delegate:self
                      cancelButtonTitle:@"Cancel"
                      destructiveButtonTitle:nil
@@ -1623,36 +1648,44 @@
         }
     
     }else if ( actionSheetNo == 27 ) {
+        
+        if ( buttonIndex == 0 ) {
+            [d setBool:YES forKey:@"SwipeShiftCaret"];
+        }else if ( buttonIndex == 1 ) {
+            [d setBool:NO forKey:@"SwipeShiftCaret"];
+        }
+        
+    }else if ( actionSheetNo == 28 ) {
         if ( buttonIndex == 0 ) {
             [d setBool:YES forKey:@"EnterBackgroundUSDisConnect"];
         }else if ( buttonIndex == 1 ) {
             [d setBool:NO forKey:@"EnterBackgroundUSDisConnect"];
         }
         
-    }else if ( actionSheetNo == 28 ) {
+    }else if ( actionSheetNo == 29 ) {
         if ( buttonIndex == 0 ) {
             [d setBool:YES forKey:@"BecomeActiveUSConnect"];
         }else if ( buttonIndex == 1 ) {
             [d setBool:NO forKey:@"BecomeActiveUSConnect"];
         }
         
-    }else if ( actionSheetNo == 29 ) {
+    }else if ( actionSheetNo == 30 ) {
         if ( buttonIndex == 0 ) {
             [d setBool:YES forKey:@"ReloadAfterUSConnect"];
         }else if ( buttonIndex == 1 ) {
             [d setBool:NO forKey:@"ReloadAfterUSConnect"];
         }
         
-//    }else if ( actionSheetNo == 30 ) {
+//    }else if ( actionSheetNo == 31 ) {
     
-    }else if ( actionSheetNo == 31 ) {
+    }else if ( actionSheetNo == 32 ) {
         if ( buttonIndex == 0 ) {
             [d setBool:YES forKey:@"MyTweetNG"];
         }else if ( buttonIndex == 1 ) {
             [d setBool:NO forKey:@"MyTweetNG"];
         }
     
-    }else if ( actionSheetNo == 32 ) {
+    }else if ( actionSheetNo == 33 ) {
         
         if ( buttonIndex == 0 ) {
             [d setInteger:2 forKey:@"IconCornerRounding"];
@@ -1662,7 +1695,7 @@
         
         [ShowAlert title:@"設定変更完了" message:@"設定を有効にするにはアプリケーションを再起動してください。"];
         
-    }else if ( actionSheetNo == 32 ) {
+    }else if ( actionSheetNo == 34 ) {
         if ( buttonIndex == 0 ) {
             [d setBool:YES forKey:@"USNoAutoLock"];
         }else if ( buttonIndex == 1 ) {
@@ -1748,9 +1781,10 @@
     
     [settingArray release];
     
-    [tv release];
-    [bar release];
-    [saveButton release];
+    appDelegate = nil;
+    
+    [self removeAllSubViews];
+    
     [super dealloc];
 }
 

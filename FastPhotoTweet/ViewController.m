@@ -299,7 +299,7 @@
             //NSLog(@"newVersion");
             
             [ShowAlert title:[NSString stringWithFormat:@"FastPhotoTweet %@", APP_VERSION] 
-                 message:@"・TimelineのURLをリンク化\n・Timelineのアイコンを押すと「ユーザメニュー」を開く機能を追加\n・その他細かな修正"];
+                 message:@"・メモリ管理の改善\n・設定に｢Tweet入力欄をスワイプでカーソルを移動｣を追加\n・その他多数の不具合を修正"];
             
             information = [[[NSMutableDictionary alloc] initWithDictionary:[d dictionaryForKey:@"Information"]] autorelease];
             [information setValue:[NSNumber numberWithInt:1] forKey:APP_VERSION];
@@ -633,6 +633,8 @@
 
 - (IBAction)swipeToMoveCursorRight:(id)sender {
     
+    if ( ![d boolForKey:@"SwipeShiftCaret"] ) return;
+    
     int location = postText.selectedRange.location + 1;
     
     if ( location <= postText.text.length ) {
@@ -642,6 +644,8 @@
 }
 
 - (IBAction)swipeToMoveCursorLeft:(id)sender {
+    
+    if ( ![d boolForKey:@"SwipeShiftCaret"] ) return;
     
     if ( postText.selectedRange.location != 0 ) {
         

@@ -200,7 +200,7 @@
                          
                          NSMutableArray *userTimeline = [NSMutableArray arrayWithArray:responseJSONData];
                          
-                         NSLog(@"userTimeline: %@", userTimeline);
+//                         NSLog(@"userTimeline: %@", userTimeline);
                          
                          [result setObject:twAccount.username forKey:@"Account"];
                          
