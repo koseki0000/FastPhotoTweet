@@ -1,5 +1,8 @@
 //
 //  IndexDictionary.m
+//  FastPhotoTweet
+//
+//  Created by @peace3884 on 12/10/05.
 //
 
 #import "IndexDictionary.h"

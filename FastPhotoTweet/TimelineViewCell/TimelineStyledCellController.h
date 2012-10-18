@@ -10,16 +10,18 @@
 #import <Three20UICommon/Three20UICommon.h>
 #import <Three20Style/Three20Style.h>
 
+#import "UIViewControllerAdditinons.h"
+
 @interface TimelineStyledCell : UITableViewCell
 
-@property (retain, nonatomic) IBOutlet UIButton *iconView;
-@property (retain, nonatomic) IBOutlet UILabel *infoLabel;
-@property (retain, nonatomic) IBOutlet TTStyledTextLabel *mainLabel;
+@property (weak, nonatomic) IBOutlet UIButton *iconView;
+@property (weak, nonatomic) IBOutlet UILabel *infoLabel;
+@property (weak, nonatomic) IBOutlet TTStyledTextLabel *mainLabel;
 
 @end
 
 @interface TimelineStyledCellController : UIViewController
 
-@property (retain, nonatomic) IBOutlet TimelineStyledCell *styledCell;
+@property (weak, nonatomic) IBOutlet TimelineStyledCell *styledCell;
 
 @end

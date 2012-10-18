@@ -40,8 +40,6 @@
     _infoLabel = nil;
     [_mainLabel removeFromSuperview];
     _mainLabel = nil;
-    
-    [super dealloc];
 }
 
 @end
@@ -52,8 +50,6 @@
     
     [_styledCell removeFromSuperview];
     _styledCell = nil;
-    
-    [super dealloc];
 }
 
 - (void)viewDidUnload {

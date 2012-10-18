@@ -1,9 +1,8 @@
 //
 //  NSStringAdditions.m
-//  Three20Test
+//  FastPhotoTweet
 //
-//  Created by 日暮佑貴 on 12/10/09.
-//  Copyright (c) 2012年 日暮佑貴. All rights reserved.
+//  Created by @peace3884 on 12/10/09.
 //
 
 #import "NSStringAdditions.h"
@@ -36,7 +35,7 @@
         
         if ( links.count == 0 ) return self;
         
-        NSMutableString *linkedText = [self mutableCopy];
+        NSMutableString *linkedText = [NSMutableString stringWithString:self];
         
         for ( NSString *link in links ) {
             
@@ -46,11 +45,6 @@
                                            options:0
                                              range:NSMakeRange(0, linkedText.length)];
         }
-        
-//        [linkedText replaceOccurrencesOfString:@"\n"
-//                                    withString:@"<br/>"
-//                                       options:0
-//                                         range:NSMakeRange(0, linkedText.length)];
         
         return [NSString stringWithString:linkedText];
         

@@ -299,7 +299,7 @@
             //NSLog(@"newVersion");
             
             [ShowAlert title:[NSString stringWithFormat:@"FastPhotoTweet %@", APP_VERSION] 
-                 message:@"・メモリ管理の改善\n・設定に｢Tweet入力欄をスワイプでカーソルを移動｣を追加\n・その他多数の不具合を修正"];
+                 message:@"・Timelineの表示形式を設定から選択出来るように変更\n・その他多数の不具合を修正"];
             
             information = [[[NSMutableDictionary alloc] initWithDictionary:[d dictionaryForKey:@"Information"]] autorelease];
             [information setValue:[NSNumber numberWithInt:1] forKey:APP_VERSION];

@@ -171,6 +171,11 @@
         index++;
     }
     
+    tweets = nil;
+    users = nil;
+    exclusionUsers = nil;
+    myAccont = nil;
+    
     if ( ngList.count != 0 ) {
         
         //NSLog(@"ngList: %@", ngList);
@@ -261,6 +266,8 @@
         index++;
     }        
     
+    tweets = nil;
+    
     if ( ngList.count != 0 ) {
         
         //NGすべきものがある場合
@@ -338,6 +345,8 @@
         index++;
     }
     
+    tweets = nil;
+    
     if ( ngList.count != 0 ) {
         
         //NGすべきものがある場合
@@ -378,6 +387,8 @@
     
     //可変長で受け取った場合は可変長にして返す
     if ( isMutable ) tweets = [NSMutableArray arrayWithArray:tweetsArray];
+    
+    tweetsArray = nil;
     
     return tweets;
 }

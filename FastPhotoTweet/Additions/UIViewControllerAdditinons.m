@@ -2,7 +2,7 @@
 //  UIViewControllerAdditinons.m
 //  FastPhotoTweet
 //
-//  Created by Yuki Higurashi on 12/10/16.
+//  Created by @peace3884 on 12/10/16.
 //
 //
 
@@ -12,8 +12,9 @@
 
 - (void)removeAllSubViews {
     
-    for ( UIView *subView in self.view.subviews ) {
+    while ( self.view.subviews.count ) {
         
+        UIView *subView = self.view.subviews.lastObject;
         [subView removeFromSuperview];
         subView = nil;
     }

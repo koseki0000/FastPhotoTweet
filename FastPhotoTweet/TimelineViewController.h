@@ -11,7 +11,7 @@
 #import <Accounts/Accounts.h>
 #import "AppDelegate.h"
 
-//#import "TimelineCellController.h"
+#import "TimelineCellController.h"
 #import "TimelineStyledCellController.h"
 
 #import "TWTwitterHeader.h"
@@ -22,6 +22,7 @@
 #import <CFNetwork/CFNetwork.h>
 #import "JSON.h"
 #import "WebViewExController.h"
+#import "UIViewControllerAdditinons.h"
 
 #import "Three20UI/TTTableHeaderDragRefreshView.h"
 #import "Three20Style/TTDefaultStyleSheet.h"
@@ -30,7 +31,6 @@
 #import <Three20Style/Three20Style.h>
 #import <Three20UICommon/Three20UICommon.h>
 #import <Three20UINavigator/Three20UINavigator.h>
-
 
 @interface TimelineViewController : UIViewController <UIActionSheetDelegate, UITextFieldDelegate, UIPickerViewDelegate, UIPickerViewDataSource, UITableViewDelegate, UITableViewDataSource> {
     
@@ -70,6 +70,7 @@
     UIImage *defaultActionButtonImage;
     UIAlertView *alertSearch;
     UITextField *alertSearchText;
+    UIFont *timelineFont;
     
     UIView *pickerBase;
     UIToolbar *pickerBar;
@@ -90,6 +91,7 @@
     BOOL listMode;
     BOOL pickerVisible;
     BOOL searchStream;
+    BOOL timelineCellStyle;
     
     int selectRow;
     int longPressControl;

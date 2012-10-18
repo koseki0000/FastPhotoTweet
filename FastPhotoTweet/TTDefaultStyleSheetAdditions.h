@@ -2,7 +2,7 @@
 //  TTDefaultStyleSheetAdditions.h
 //  FastPhotoTweet
 //
-//  Created by Yuki Higurashi on 12/10/15.
+//  Created by @peace3884 on 12/10/15.
 //
 //
 

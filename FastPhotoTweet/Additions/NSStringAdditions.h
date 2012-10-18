@@ -1,9 +1,8 @@
 //
 //  NSStringAdditions.h
-//  Three20Test
+//  FastPhotoTweet
 //
-//  Created by 日暮佑貴 on 12/10/09.
-//  Copyright (c) 2012年 日暮佑貴. All rights reserved.
+//  Created by @peace3884 on 12/10/09.
 //
 
 #import <Foundation/Foundation.h>

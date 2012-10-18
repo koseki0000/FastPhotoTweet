@@ -10,7 +10,7 @@
 
 @interface TimelineCellController : UIViewController
 
-@property (nonatomic, retain) TimelineCell *cell;
+@property (nonatomic, retain) IBOutlet TimelineCell *cell;
 
 @end
 

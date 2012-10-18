@@ -103,6 +103,8 @@
 
 + (NSDictionary *)rtText:(NSDictionary *)tweet {
     
+    BOOL style = [[NSUserDefaults standardUserDefaults] boolForKey:@"TimelineCellStyle"];
+    
     NSString *originalText =  [[tweet objectForKey:@"retweeted_status"] objectForKey:@"text"];
     NSString *postUser =     [[[tweet objectForKey:@"retweeted_status"] objectForKey:@"user"] objectForKey:@"screen_name"];
     NSString *postUserIcon = [[[tweet objectForKey:@"retweeted_status"] objectForKey:@"user"] objectForKey:@"profile_image_url"];
@@ -113,7 +115,13 @@
     [user setObject:postUserIcon forKey:@"profile_image_url"];
     
     NSMutableDictionary *mutableCurrentTweet = [NSMutableDictionary dictionaryWithDictionary:tweet];
-    [mutableCurrentTweet setObject:originalText forKey:@"text"];
+    
+    if ( style ) {
+        [mutableCurrentTweet setObject:[[tweet objectForKey:@"retweeted_status"] objectForKey:@"text"] forKey:@"text"];
+    }else {
+        [mutableCurrentTweet setObject:[NSString stringWithFormat:@"%@\nRetweeted by @%@", originalText, rtUser] forKey:@"text"];
+    }
+
     [mutableCurrentTweet setObject:user forKey:@"user"];
     [mutableCurrentTweet setObject:rtUser forKey:@"rt_user"];
     

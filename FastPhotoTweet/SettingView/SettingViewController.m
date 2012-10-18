@@ -16,7 +16,7 @@
 //セクション2の項目数 (その他の設定)
 #define SECTION_2 6
 //セクション2の項目数 (タイムライン設定)
-#define SECTION_3 7
+#define SECTION_3 8
 
 //セクション3の項目数 (ライセンス)
 #define SECTION_4 1
@@ -63,6 +63,7 @@
 #define MY_TWEET_NG @"自分のTweetもNGを行う"
 #define ICON_CORNER @"アイコンの角を丸める"
 #define US_NO_AUTO_LOCK @"UserStream接続中は自動ロックを無効化する"
+#define TIMELINE_CELL_STYLE @"タイムラインセル表示形式"
 
 //ライセンス
 #define NAME_LICENSE @"ライセンス"
@@ -101,7 +102,8 @@
                                                         WEB_PAGE_QUOTE_CURSOR, SWITCH_APP, ACTIVE_INPUT, SEARCH_WORD_RESET,
                                                         PASTE_BOARD_URL, USER_AGENT, USER_AGENT_RESET, SWIPE_SHIFT_CARET,
                                                         ENTER_BACKGROUND_US, BECOME_ACTIVE_US, RELOAD_US, NG_OPEN,
-                                                        MY_TWEET_NG, ICON_CORNER, US_NO_AUTO_LOCK, NAME_LICENSE, nil];
+                                                        MY_TWEET_NG, ICON_CORNER, US_NO_AUTO_LOCK, TIMELINE_CELL_STYLE,
+                                                        NAME_LICENSE, nil];
         
         [settingArray retain];
     }
@@ -622,6 +624,17 @@
         }else {
             
             result = @"OFF";
+        }
+    
+    }else if ( settingState == 35 ) {
+        
+        if ( [d boolForKey:@"TimelineCellStyle"] ) {
+            
+            result = @"新";
+            
+        }else {
+            
+            result = @"旧";
         }
     }
         
@@ -1235,6 +1248,18 @@
                      otherButtonTitles:@"ON", @"OFF", nil];
             [sheet autorelease];
             [sheet showInView:self.view];
+            
+        }else if ( indexPath.row == 7 ) {
+            
+            //タイムラインのセル表示形式
+            sheet = [[UIActionSheet alloc]
+                     initWithTitle:TIMELINE_CELL_STYLE
+                     delegate:self
+                     cancelButtonTitle:@"Cancel"
+                     destructiveButtonTitle:nil
+                     otherButtonTitles:@"新", @"旧", nil];
+            [sheet autorelease];
+            [sheet showInView:self.view];
         }
         
     }else if ( indexPath.section == 4 ) {
@@ -1701,6 +1726,15 @@
         }else if ( buttonIndex == 1 ) {
             [d setBool:NO forKey:@"USNoAutoLock"];
         }
+    
+    }else if ( actionSheetNo == 35 ) {
+        if ( buttonIndex == 0 ) {
+            [d setBool:YES forKey:@"TimelineCellStyle"];
+        }else if ( buttonIndex == 1 ) {
+            [d setBool:NO forKey:@"TimelineCellStyle"];
+        }
+        
+        [ShowAlert title:@"設定変更完了" message:@"設定を有効にするにはアプリケーションを再起動、またはログの削除をしてください。"];
         
     }else if ( actionSheetNo == 100 ) {
         if ( buttonIndex == 0 ) {
