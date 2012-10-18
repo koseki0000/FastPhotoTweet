@@ -6,11 +6,12 @@
 //
 
 #import <UIKit/UIKit.h>
+#import "TitleButton.h"
 
 @interface TimelineCell : UITableViewCell
 
 @property (retain, nonatomic) IBOutlet UILabel *infoLabel;
 @property (retain, nonatomic) IBOutlet UILabel *textLabel;
-@property (retain, nonatomic) IBOutlet UIButton *iconView;
+@property (retain, nonatomic) IBOutlet TitleButton *iconView;
 
 @end

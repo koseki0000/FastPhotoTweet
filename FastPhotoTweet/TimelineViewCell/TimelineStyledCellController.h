@@ -6,15 +6,14 @@
 //
 
 #import <UIKit/UIKit.h>
+#import "TitleButton.h"
 #import <Three20UI/Three20UI.h>
 #import <Three20UICommon/Three20UICommon.h>
 #import <Three20Style/Three20Style.h>
 
-#import "UIViewControllerAdditinons.h"
-
 @interface TimelineStyledCell : UITableViewCell
 
-@property (weak, nonatomic) IBOutlet UIButton *iconView;
+@property (weak, nonatomic) IBOutlet TitleButton *iconView;
 @property (weak, nonatomic) IBOutlet UILabel *infoLabel;
 @property (weak, nonatomic) IBOutlet TTStyledTextLabel *mainLabel;
 

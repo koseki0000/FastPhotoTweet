@@ -7,7 +7,7 @@
 
 #import "ADBlock.h"
 
-#define BLOCK_PATTERN @".+\\.adlantis\\.jp|(xid|spadpc[0-9])\\.i-mobile\\.co\\.jp|i\\.adimg\\.net|ad\\.yieldmanager\\.com|adserver\\.twitpic\\.com|googleads\\.g\\.doubleclick\\.net|j\\.amoad\\.com|vsc\\.send\\.microad\\.jp|ad\\.pitta\\.ne\\.jp"
+#define BLOCK_PATTERN @".+\\.adlantis\\.jp|(xid|spadpc[0-9])\\.i-mobile\\.co\\.jp|i\\.adimg\\.net|ad\\.yieldmanager\\.com|adserver\\.twitpic\\.com|googleads\\.g\\.doubleclick\\.net|j\\.amoad\\.com|vsc\\.send\\.microad\\.jp|ad\\.pitta\\.ne\\.jp|facebook\\.com/plugins/comments\\.php"
 
 @implementation ADBlock
 

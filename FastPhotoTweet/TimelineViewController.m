@@ -1008,6 +1008,7 @@
         [reSendRequest setDelegate:self];
         [reSendRequest start];
         
+        if ( iconUrls.count == 0 ) return;
         [iconUrls removeObjectAtIndex:0];
         reSendRequest = nil;
     }
@@ -1349,6 +1350,19 @@
                 
                 //アイコンタップ時の動作を設定
                 [newCell.iconView addTarget:self action:@selector(pushIcon:) forControlEvents:UIControlEventTouchUpInside];
+                
+                CALayer *imageLayer = [CALayer layer];
+                imageLayer.name = @"Icon";
+                imageLayer.frame = CGRectMake(0, 0, 48, 48);
+                
+                if ( [d integerForKey:@"IconCornerRounding"] == 1 ) {
+                    
+                    //角を丸める
+                    [imageLayer setMasksToBounds:YES];
+                    [imageLayer setCornerRadius:6.0f];
+                }
+                
+                [newCell.iconView.layer addSublayer:imageLayer];
             }
             
             timelineScroll = (int)timeline.contentOffset.y;
@@ -1370,7 +1384,7 @@
             
             //ID
             NSString *screenName = [[currentTweet objectForKey:@"user"] objectForKey:@"screen_name"];
-            newCell.iconView.titleLabel.text = screenName;
+            newCell.iconView.buttonTitle = screenName;
             
             //日付
             NSString *jstDate = [TWParser JSTDate:[currentTweet objectForKey:@"created_at"]];
@@ -1401,23 +1415,27 @@
             NSString *fileName = [TWIconBigger normal:[[[currentTweet objectForKey:@"user"] objectForKey:@"profile_image_url"] lastPathComponent]];
             NSString *searchName = [NSString stringWithFormat:@"%@_%@", screenName, fileName];
             
-            if ( [icons objectForKey:searchName] != nil ) {
+            UIImage *icon = [icons objectForKey:searchName];
+            CALayer *subLayer = newCell.iconView.layer.sublayers.lastObject;
+            
+            if ( [subLayer.name isEqualToString:@"Icon"] ) {
                 
-                if ( [d integerForKey:@"IconCornerRounding"] == 1 ) {
+                if ( icon == nil ) {
                     
-                    //角を丸める
-                    CALayer *layer = [newCell.iconView.imageView layer];
-                    [layer setMasksToBounds:YES];
-                    [layer setCornerRadius:6.0f];
-                    layer = nil;
+                    [newCell.iconView.layer.sublayers.lastObject setContents:nil];
+                    
+                }else {
+                    
+                    [newCell.iconView.layer.sublayers.lastObject setContents:(id)icon.CGImage];
                 }
+            }
+            
+            //自分の発言の色を変える
+            if ( [screenName isEqualToString:myAccountName] &&
+                !reTweet ) {
                 
-                //アイコンを設定
-                [newCell.iconView setImage:[icons objectForKey:searchName] forState:UIControlStateNormal];
-                
-            }else {
-                
-                [newCell.iconView setImage:nil forState:UIControlStateNormal];
+                newCell.infoLabel.textColor = [UIColor blueColor];
+                newCell.mainLabel.textColor = [UIColor blueColor];
             }
             
             //自分の発言の色を変える
@@ -1482,6 +1500,19 @@
                 
                 //アイコンタップ時の動作を設定
                 [cell.iconView addTarget:self action:@selector(pushIcon:) forControlEvents:UIControlEventTouchUpInside];
+                
+                CALayer *imageLayer = [CALayer layer];
+                imageLayer.name = @"Icon";
+                imageLayer.frame = CGRectMake(0, 0, 48, 48);
+                
+                if ( [d integerForKey:@"IconCornerRounding"] == 1 ) {
+                    
+                    //角を丸める
+                    [imageLayer setMasksToBounds:YES];
+                    [imageLayer setCornerRadius:6.0f];
+                }
+                
+                [cell.iconView.layer addSublayer:imageLayer];
             }
             
             timelineScroll = (int)timeline.contentOffset.y;
@@ -1503,7 +1534,7 @@
             
             //ID
             NSString *screenName = [[currentTweet objectForKey:@"user"] objectForKey:@"screen_name"];
-            cell.iconView.titleLabel.text = screenName;
+            cell.iconView.buttonTitle = screenName;
             
             //日付
             NSString *jstDate = [TWParser JSTDate:[currentTweet objectForKey:@"created_at"]];
@@ -1521,23 +1552,19 @@
             NSString *fileName = [TWIconBigger normal:[[[currentTweet objectForKey:@"user"] objectForKey:@"profile_image_url"] lastPathComponent]];
             NSString *searchName = [NSString stringWithFormat:@"%@_%@", screenName, fileName];
             
-            if ( [icons objectForKey:searchName] != nil ) {
+            UIImage *icon = [icons objectForKey:searchName];
+            CALayer *subLayer = cell.iconView.layer.sublayers.lastObject;
+            
+            if ( [subLayer.name isEqualToString:@"Icon"] ) {
                 
-                if ( [d integerForKey:@"IconCornerRounding"] == 1 ) {
+                if ( icon == nil ) {
                     
-                    //角を丸める
-                    CALayer *layer = [cell.iconView.imageView layer];
-                    [layer setMasksToBounds:YES];
-                    [layer setCornerRadius:6.0f];
-                    layer = nil;
+                    [cell.iconView.layer.sublayers.lastObject setContents:nil];
+                    
+                }else {
+                    
+                    [cell.iconView.layer.sublayers.lastObject setContents:(id)icon.CGImage];
                 }
-                
-                //アイコンを設定
-                [cell.iconView setImage:[icons objectForKey:searchName] forState:UIControlStateNormal];
-                
-            }else {
-                
-                [cell.iconView setImage:nil forState:UIControlStateNormal];
             }
             
             //自分の発言の色を変える
@@ -1757,14 +1784,14 @@
     swipeRight = nil;
 }
 
-- (void)pushIcon:(UIButton *)sender {
+- (void)pushIcon:(TitleButton *)sender {
     
-    NSLog(@"pushIcon: %d", sender.tag);
+//    NSLog(@"pushIcon: %d", sender.tag);
     
-    alertSearchUserName = sender.titleLabel.text;
+    alertSearchUserName = sender.buttonTitle;
     selectAccount = alertSearchUserName;
     
-    NSLog(@"alertSearchUserName: %@", alertSearchUserName);
+//    NSLog(@"alertSearchUserName: %@", alertSearchUserName);
     
     UIActionSheet *sheet = [[UIActionSheet alloc]
                             initWithTitle:@"外部サービスやユーザー情報を開く"
@@ -2224,7 +2251,8 @@
         //クライアント
         NSString *favClient = [[receiveData objectForKey:@"target_object"] objectForKey:@"source"];
         
-        if ( favUser == nil || favUserIcon == nil || favTime == nil || favClient == nil || user == nil || targetText == nil || targetId == nil || addUser == nil ) return;
+        if ( favUser == nil || favUserIcon == nil || favTime == nil || favClient == nil ||
+             targetText == nil || targetId == nil || addUser == nil ) return;
         
         //辞書に追加
         //ふぁぼられイベントフラグ
@@ -2267,8 +2295,6 @@
             [timeline insertRowsAtIndexPaths:@[[NSIndexPath indexPathForRow:0 inSection:0]] withRowAnimation:UITableViewRowAnimationTop];
         });
         
-        [favDic removeAllObjects];
-        [user removeAllObjects];
         favDic = nil;
         user = nil;
     }
@@ -2533,7 +2559,8 @@
                     
                     NSArray *newTweet = [NSArray arrayWithObject:receiveData];
                     
-                    if ( [receiveData objectForKey:@"event"] == nil && [receiveData objectForKey:@"delete"] == nil ) {
+                    if ( [receiveData objectForKey:@"event"] == nil &&
+                         [receiveData objectForKey:@"delete"] == nil ) {
                         
                         //NG判定を行う
                         newTweet = [TWNgTweet ngAll:newTweet];
@@ -2759,7 +2786,7 @@
             if ( timelineSegment.selectedSegmentIndex == 0 ) {
                 
                 //Timelineに切り替わった
-                [timelineArray removeAllObjects];
+//                [timelineArray removeAllObjects];
                 timelineArray = [allTimelines objectForKey:twAccount.username];
                 [timeline reloadData];
                 
@@ -4236,6 +4263,8 @@ numberOfRowsInComponent:(NSInteger)component {
     listMode = YES;
     timelineControlButton.image = listImage;
     
+    if ( twAccount == nil ) twAccount = [TWGetAccount currentAccount];
+    [allTimelines setObject:timelineArray forKey:twAccount.username];
     [timelineArray removeAllObjects];
     
     if ( [EmptyCheck string:appDelegate.listId] ) {
