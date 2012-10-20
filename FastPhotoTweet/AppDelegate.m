@@ -83,7 +83,7 @@ void uncaughtExceptionHandler(NSException *e) {
         [D setObject:@"http://www.google.co.jp/" forKey:@"HomePageURL"];
     }
     
-    [self setNavigatorMap];
+//    [self setNavigatorMap];
     
     //各種初期化
     pboard = [UIPasteboard generalPasteboard];
@@ -177,12 +177,12 @@ void uncaughtExceptionHandler(NSException *e) {
 
 #pragma mark - System
 
-- (oneway void)setNavigatorMap {
-    
-    TTNavigator *navigator = [TTNavigator navigator];
-    TTURLMap *map = navigator.URLMap;
-    [map from:@"*" toViewController:[TimelineViewController class] selector:@selector(openTimelineURL:)];
-}
+//- (oneway void)setNavigatorMap {
+//    
+//    TTNavigator *navigator = [TTNavigator navigator];
+//    TTURLMap *map = navigator.URLMap;
+//    [map from:@"*" toViewController:[TimelineViewController class] selector:@selector(openTimelineURL:)];
+//}
 
 - (BOOL)ios5Check {
     
@@ -218,32 +218,32 @@ void uncaughtExceptionHandler(NSException *e) {
     
     if ( [hardwareName hasPrefix:@"iPhone2"] ) {
         hardwareName = @"iPhone 3GS";
-        reloadInterval = 0.35;
+        reloadInterval = 0.5;
     }else if ( [hardwareName hasPrefix:@"iPhone3"] ) {
         hardwareName = @"iPhone 4";
-        reloadInterval = 0.2;
+        reloadInterval = 0.3;
     }else if ( [hardwareName hasPrefix:@"iPhone4"] ) {
         hardwareName = @"iPhone 4S";
-        reloadInterval = 0.1;
+        reloadInterval = 0.15;
     }else if ( [hardwareName hasPrefix:@"iPhone5"] ) {
         hardwareName = @"iPhone 5";
-        reloadInterval = 0.1;
+        reloadInterval = 0.15;
     }else if ( [hardwareName hasPrefix:@"iPad1"] ) {
         hardwareName = @"iPad";
-        reloadInterval = 0.2;
+        reloadInterval = 0.25;
     }else if ( [hardwareName hasPrefix:@"iPad2"] ) {
         hardwareName = @"iPad 2gen";
-        reloadInterval = 0.1;
+        reloadInterval = 0.15;
     }else if ( [hardwareName hasPrefix:@"iPad3"] ) {
         hardwareName = @"iPad 3gen";
-        reloadInterval = 0.1;
+        reloadInterval = 0.15;
     }else if ( [hardwareName hasPrefix:@"x86_64"] ||
                [hardwareName hasPrefix:@"i386"] ) {
         hardwareName = @"iOS Simulator";
-        reloadInterval = 0.1;
+        reloadInterval = 0.15;
     }else {
         hardwareName = @"OtherDevice";
-        reloadInterval = 0.2;
+        reloadInterval = 0.35;
     }
     
     NSLog(@"Run with %@@%@", hardwareName, firmwareVersion);

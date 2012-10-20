@@ -8,11 +8,11 @@
 #import <Foundation/Foundation.h>
 
 @interface IndexDictionary : NSObject {
-
+    
     BOOL _sort;
     NSMutableDictionary *_items;
     NSArray *_sortedIndexKeys;
-
+    
     NSUInteger _iteratorIndex;
 }
 
@@ -31,9 +31,16 @@
 - (NSString *)keyAtIndex:(NSUInteger)index;
 
 //AddObject
+- (void)addObject:(id)object;
 - (void)addObject:(id)object forKey:(NSString *)key;
+- (void)addObjects:(NSArray *)objects;
 - (void)addObjects:(NSArray *)objects forKeys:(NSArray *)keys;
 - (void)addDictionary:(id)dictionary;
+
+//ChangeObject
+- (void)changeObjectWithObject:(id)object;
+- (void)changeObjectWithArray:(NSArray *)array;
+- (void)changeObjectWithDictionary:(NSDictionary *)dictionary;
 
 //ReplaceObject
 - (void)replaceObject:(id)object forKey:(NSString *)key;
@@ -56,8 +63,11 @@
 - (id)beforeObject;
 - (void)setIteratorIndex:(NSUInteger)index;
 - (NSUInteger)currentIteratorIndex;
+- (void)incrementIndex;
+- (void)decrementIndex;
 - (BOOL)isExistNextItem;
 - (void)resetIterator;
+- (BOOL)iterator;
 
 //GetValue
 - (NSUInteger)count;
@@ -65,6 +75,12 @@
 - (NSArray *)allValues;
 - (NSString *)description;
 - (NSString *)debugDescription;
+
+//Search
+- (NSArray *)keySearchResultWithSearchWord:(NSString *)searchWord;
+- (NSArray *)valueSearchResultWithSearchWord:(NSString *)searchWord;
+- (IndexDictionary *)keySearchResultWithSearchWord:(NSString *)searchWord sort:(BOOL)sort;
+- (IndexDictionary *)valueSearchResultWithSearchWord:(NSString *)searchWord sort:(BOOL)sort;
 
 //DebugLog
 - (void)logOutputAllKey;

@@ -188,7 +188,7 @@
     [tv release];
     tv = nil;
     
-    [self removeAllSubViews];
+    [self.view removeAllSubViews];
     
     [super dealloc];
 }

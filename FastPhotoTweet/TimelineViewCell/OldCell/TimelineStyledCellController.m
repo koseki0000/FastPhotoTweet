@@ -9,6 +9,19 @@
 
 @implementation TimelineStyledCell
 
+- (id)initWithCoder:(NSCoder *)aDecoder {
+    
+    self = [super initWithCoder:aDecoder];
+    
+    if ( self ) {
+        
+        [self.textLabel removeFromSuperview];
+        [self.imageView removeFromSuperview];
+    }
+    
+    return self;
+}
+
 - (void)drawRect:(CGRect)rect {
     
     CGContextRef context = UIGraphicsGetCurrentContext();

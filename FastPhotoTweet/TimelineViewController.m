@@ -17,9 +17,15 @@
 
 #define NEW_CELL_IDENTIFIER @"TimelineStyledCell"
 #define NEW_CELL_XIB_NAME @"TimelineStyledCellController"
-
 #define OLD_CELL_IDENTIFIER @"TimelineCell"
 #define OLD_CELL_XIB_NAME @"TimelineCellController"
+#define CELL_IDENTIFIER @"TimelineAttributedCell"
+
+#define BLACK_COLOR [UIColor blackColor]
+#define GREEN_COLOR [UIColor colorWithRed:0.0 green:0.4 blue:0.0 alpha:1.0]
+#define BLUE_COLOR  [UIColor blueColor]
+#define RED_COLOR   [UIColor redColor]
+#define GOLD_COLOR  [UIColor colorWithRed:0.5 green:0.4 blue:0.0 alpha:1.0]
 
 @implementation TimelineViewController
 @synthesize topBar;
@@ -61,8 +67,11 @@
     
     //各種通知設定
     [self setNotifications];
-    [self performSelectorInBackground:@selector(startConnectionCheckTimer) withObject:nil];
+    [self startConnectionCheckTimer];
     [self createPullDownRefreshHeader];
+    
+    grayView = [ActivityGrayView grayViewWithTaskName:@"FirstLoad"];
+    [self.view addSubview:grayView];
     
     //各種初期化
     appDelegate = (AppDelegate *)[[UIApplication sharedApplication] delegate];
@@ -252,13 +261,18 @@
                              object:nil];
     
     [notificationCenter addObserver:self
-                           selector:@selector(receiveOpenTimelineURLNotification:)
+                           selector:@selector(startConnectionCheckTimer)
+                               name:@"BecomeOnline"
+                             object:nil];
+    
+    [notificationCenter addObserver:self
+                           selector:@selector(openTimelineURL:)
                                name:@"OpenTimelineURL"
                              object:nil];
     
     [notificationCenter addObserver:self
-                           selector:@selector(startConnectionCheckTimer)
-                               name:@"BecomeOnline"
+                           selector:@selector(receiveGrayViewDoneNotification:)
+                               name:@"GrayViewDone"
                              object:nil];
     
     notificationCenter = nil;
@@ -392,6 +406,8 @@
     
     [headerView setStatus:TTTableHeaderDragRefreshPullToReload];
     
+    [grayView end];
+    
     [UIView beginAnimations:nil context:NULL];
     [UIView setAnimationDuration:ttkDefaultTransitionDuration];
     timeline.contentInset = UIEdgeInsetsZero;
@@ -459,6 +475,11 @@
         //タイムライン取得
         [TWGetTimeline performSelectorInBackground:@selector(homeTimeline) withObject:nil];
     }
+    
+    dispatch_async(dispatch_get_main_queue(), ^ {
+        
+        if ( timelineArray.count == 0 ) [grayView start];
+    });
 }
 
 - (void)loadTimeline:(NSNotification *)center {
@@ -466,6 +487,11 @@
     @autoreleasepool {
         
         NSLog(@"loadTimeline[%d], userStream[%d]", timelineArray.count, userStream);
+        
+        dispatch_async(dispatch_get_main_queue(), ^ {
+            
+            [self finishLoad];
+        });
         
         //Timelineタブ以外が選択されている場合は終了
         if ( timelineSegment.selectedSegmentIndex != 0 ) return;
@@ -476,11 +502,6 @@
         dispatch_async( globalQueue, ^{
             dispatch_queue_t syncQueue = dispatch_queue_create( "info.ktysne.fastphototweet", NULL );
             dispatch_sync( syncQueue, ^{
-                
-                dispatch_async(dispatch_get_main_queue(), ^ {
-                    
-                    [self finishLoad];
-                });
                 
                 twAccount = [TWGetAccount currentAccount];
                 
@@ -643,6 +664,11 @@
         
         NSLog(@"loadUserTimeline");
         
+        dispatch_async(dispatch_get_main_queue(), ^ {
+            
+            [self finishLoad];
+        });
+        
         if ( ![[center.userInfo objectForKey:@"Type"] isEqualToString:@"UserTimeline"] ) return;
         
         //レスポンスが空の場合は何もしない
@@ -650,8 +676,6 @@
         
         //UserStream接続中の場合は切断する
         if ( userStream ) [self closeStream];
-        
-        [self finishLoad];
         
         timelineControlButton.enabled = NO;
         
@@ -702,6 +726,11 @@
         
         NSLog(@"loadMentions");
         
+        dispatch_async(dispatch_get_main_queue(), ^ {
+            
+            [self finishLoad];
+        });
+        
         if ( ![[center.userInfo objectForKey:@"Type"] isEqualToString:@"Mentions"] ) return;
         
         //Mentionsタブ以外が選択されている場合は終了
@@ -709,8 +738,6 @@
         
         //UserStream接続中の場合は切断する
         if ( userStream ) [self closeStream];
-        
-        [self finishLoad];
         
         reloadButton.enabled = YES;
         timelineControlButton.enabled = NO;
@@ -754,6 +781,11 @@
     @autoreleasepool {
         
         NSLog(@"loadFavorites");
+        
+        dispatch_async(dispatch_get_main_queue(), ^ {
+            
+            [self finishLoad];
+        });
         
         if ( ![[center.userInfo objectForKey:@"Type"] isEqualToString:@"Favorites"] ) return;
         
@@ -806,12 +838,15 @@
         
         NSLog(@"loadSearch");
         
+        dispatch_async(dispatch_get_main_queue(), ^ {
+            
+            [self finishLoad];
+        });
+        
         if ( ![[center.userInfo objectForKey:@"Type"] isEqualToString:@"Search"] ) return;
         
         //UserStream接続中の場合は切断する
         if ( userStream ) [self closeStream];
-        
-        [self finishLoad];
         
         timelineControlButton.enabled = NO;
         
@@ -851,12 +886,15 @@
         
         NSLog(@"loadList");
         
+        dispatch_async(dispatch_get_main_queue(), ^ {
+            
+            [self finishLoad];
+        });
+        
         if ( ![[center.userInfo objectForKey:@"Type"] isEqualToString:@"List"] ) return;
         
         //Listタブ以外が選択されている場合は終了
         if ( timelineSegment.selectedSegmentIndex != 3 ) return;
-        
-        [self finishLoad];
         
         reloadButton.enabled = YES;
         
@@ -1003,7 +1041,7 @@
         
         //アイコンダウンロード開始
         NSURL *URL = [NSURL URLWithString:biggerUrl];
-        ASIFormDataRequest *reSendRequest = [[ASIFormDataRequest alloc] initWithURL:URL];
+        ASIHTTPRequest *reSendRequest = [[ASIHTTPRequest alloc] initWithURL:URL];
         reSendRequest.userInfo = dic;
         [reSendRequest setDelegate:self];
         [reSendRequest start];
@@ -1258,8 +1296,7 @@
                             inReplyTo = [TWEntities replaceTcoAll:inReplyTo];
                             
                             [self setOtherTweetsBarItems];
-                        
-                            [timelineArray removeAllObjects];    
+                          
                             timelineArray = BLANK_M_ARRAY;
                             [timeline reloadData];
                             
@@ -1335,282 +1372,119 @@
     
     @autoreleasepool {
         
-        if ( timelineCellStyle ) {
+        TimelineAttributedCell *cell = (TimelineAttributedCell *)[tableView dequeueReusableCellWithIdentifier:CELL_IDENTIFIER];
+        
+        if ( cell == nil ) {
             
-            //TableViewCellを生成
-            TimelineStyledCell *newCell = (TimelineStyledCell *)[tableView dequeueReusableCellWithIdentifier:NEW_CELL_IDENTIFIER];
-            newCell.infoLabel.textColor = [UIColor blackColor];
-            [newCell.mainLabel setTextColor:[UIColor blackColor]];
+            cell = [[TimelineAttributedCell alloc] initWithStyle:UITableViewCellStyleDefault reuseIdentifier:CELL_IDENTIFIER];
             
-            if ( newCell == nil ) {
+            [cell.iconView addTarget:self action:@selector(pushIcon:) forControlEvents:UIControlEventTouchUpInside];
+            
+            CALayer *imageLayer = [CALayer layer];
+            imageLayer.name = @"Icon";
+            imageLayer.frame = CGRectMake(0, 0, 48, 48);
+            
+            if ( [d integerForKey:@"IconCornerRounding"] == 1 ) {
                 
-                TimelineStyledCellController *controller = [[TimelineStyledCellController alloc] initWithNibName:NEW_CELL_XIB_NAME
-                                                                                                          bundle:nil];
-                newCell = (TimelineStyledCell *)controller.view;
-                
-                //アイコンタップ時の動作を設定
-                [newCell.iconView addTarget:self action:@selector(pushIcon:) forControlEvents:UIControlEventTouchUpInside];
-                
-                CALayer *imageLayer = [CALayer layer];
-                imageLayer.name = @"Icon";
-                imageLayer.frame = CGRectMake(0, 0, 48, 48);
-                
-                if ( [d integerForKey:@"IconCornerRounding"] == 1 ) {
-                    
-                    //角を丸める
-                    [imageLayer setMasksToBounds:YES];
-                    [imageLayer setCornerRadius:6.0f];
-                }
-                
-                [newCell.iconView.layer addSublayer:imageLayer];
+                //角を丸める
+                [imageLayer setMasksToBounds:YES];
+                [imageLayer setCornerRadius:6.0f];
             }
             
-            timelineScroll = (int)timeline.contentOffset.y;
-            currentTweet = [timelineArray objectAtIndex:indexPath.row];
+            [cell.iconView.layer addSublayer:imageLayer];
+        }
+        
+        currentTweet = [timelineArray objectAtIndex:indexPath.row];
+        
+        BOOL reTweet = [[[currentTweet objectForKey:@"retweeted_status"] objectForKey:@"id"] boolValue];
+        
+        UIColor *textColor = BLACK_COLOR;
+        
+        //ReTweetの色変えと本文の調整は先にやっておく
+        if ( reTweet ) textColor = GREEN_COLOR;
+        
+        NSString *myAccountName = twAccount.username;
+        
+        //Tweetの本文
+        NSString *text = [currentTweet objectForKey:@"text"];
+        
+        //ID
+        NSString *screenName = [[currentTweet objectForKey:@"user"] objectForKey:@"screen_name"];
+        cell.iconView.buttonTitle = screenName;
+        
+        //日付
+        NSString *jstDate = [TWParser JSTDate:[currentTweet objectForKey:@"created_at"]];
+        
+        //投稿クライアント名
+        NSString *clientName = [TWParser client:[currentTweet objectForKey:@"source"]];
+        
+        //ID - 日付 [クライアント名]
+        NSString *infoLabelText = [NSString stringWithFormat:@"%@ - %@ [%@]", screenName, jstDate, clientName];
+
+        //Favorite判定
+        BOOL favorited = [[currentTweet objectForKey:@"favorited"] boolValue];
+        
+        //アイコン検索用
+        NSString *fileName = [TWIconBigger normal:[[[currentTweet objectForKey:@"user"] objectForKey:@"profile_image_url"] lastPathComponent]];
+        NSString *searchName = [NSString stringWithFormat:@"%@_%@", screenName, fileName];
+        
+        UIImage *icon = [icons objectForKey:searchName];
+        CALayer *subLayer = cell.iconView.layer.sublayers.lastObject;
+        
+        if ( [subLayer.name isEqualToString:@"Icon"] ) {
             
-            BOOL reTweet = [[[currentTweet objectForKey:@"retweeted_status"] objectForKey:@"id"] boolValue];
-            
-            //ReTweetの色変えと本文の調整は先にやっておく
-            if ( reTweet ) {
+            if ( icon == nil ) {
                 
-                newCell.infoLabel.textColor = [UIColor colorWithRed:0.0 green:0.4 blue:0.0 alpha:1.0];
-                [newCell.mainLabel setTextColor:[UIColor colorWithRed:0.0 green:0.4 blue:0.0 alpha:1.0]];
-            }
-            
-            NSString *myAccountName = twAccount.username;
-            
-            //Tweetの本文
-            NSString *text = [currentTweet objectForKey:@"text"];
-            
-            //ID
-            NSString *screenName = [[currentTweet objectForKey:@"user"] objectForKey:@"screen_name"];
-            newCell.iconView.buttonTitle = screenName;
-            
-            //日付
-            NSString *jstDate = [TWParser JSTDate:[currentTweet objectForKey:@"created_at"]];
-            
-            //投稿クライアント名
-            NSString *clientName = [TWParser client:[currentTweet objectForKey:@"source"]];
-            
-            //ID - 日付 [クライアント名]
-            //        NSString *infoLabelText = [NSString stringWithFormat:@"%@ - %@ [%@]", screenName, jstDate, clientName];
-            NSString *infoLabelText = nil;
-            
-            if ( reTweet ) {
-                
-                infoLabelText = [NSString stringWithFormat:@"%@ RT by %@ - %@ [%@]",
-                                 screenName, [currentTweet objectForKey:@"rt_user"],
-                                 jstDate,
-                                 clientName];
+                [cell.iconView.layer.sublayers.lastObject setContents:nil];
                 
             }else {
                 
-                infoLabelText = [NSString stringWithFormat:@"%@ - %@ [%@]", screenName, jstDate, clientName];
+                [cell.iconView.layer.sublayers.lastObject setContents:(id)icon.CGImage];
             }
-            
-            //Favorite判定
-            BOOL favorited = [[currentTweet objectForKey:@"favorited"] boolValue];
-            
-            //アイコン検索用
-            NSString *fileName = [TWIconBigger normal:[[[currentTweet objectForKey:@"user"] objectForKey:@"profile_image_url"] lastPathComponent]];
-            NSString *searchName = [NSString stringWithFormat:@"%@_%@", screenName, fileName];
-            
-            UIImage *icon = [icons objectForKey:searchName];
-            CALayer *subLayer = newCell.iconView.layer.sublayers.lastObject;
-            
-            if ( [subLayer.name isEqualToString:@"Icon"] ) {
-                
-                if ( icon == nil ) {
-                    
-                    [newCell.iconView.layer.sublayers.lastObject setContents:nil];
-                    
-                }else {
-                    
-                    [newCell.iconView.layer.sublayers.lastObject setContents:(id)icon.CGImage];
-                }
-            }
-            
-            //自分の発言の色を変える
-            if ( [screenName isEqualToString:myAccountName] &&
-                !reTweet ) {
-                
-                newCell.infoLabel.textColor = [UIColor blueColor];
-                newCell.mainLabel.textColor = [UIColor blueColor];
-            }
-            
-            //自分の発言の色を変える
-            if ( [screenName isEqualToString:myAccountName] &&
-                !reTweet ) {
-                
-                newCell.infoLabel.textColor = [UIColor blueColor];
-                [newCell.mainLabel setTextColor:[UIColor blueColor]];
-            }
-            
-            //Replyの色を変える
-            if ( [RegularExpression boolWithRegExp:text
-                                     regExpPattern:[NSString stringWithFormat:@"@%@", myAccountName]] &&
-                !reTweet ) {
-                
-                newCell.infoLabel.textColor = [UIColor redColor];
-                [newCell.mainLabel setTextColor:[UIColor redColor]];
-            }
-            
-            //Favoriteの色を変えて星をつける
-            if ( favorited &&
-                !reTweet ) {
-                
-                infoLabelText = [NSMutableString stringWithFormat:@"★%@",infoLabelText];
-                newCell.infoLabel.textColor = [UIColor colorWithRed:0.5 green:0.4 blue:0.0 alpha:1.0];
-                [newCell.mainLabel setTextColor:[UIColor colorWithRed:0.5 green:0.4 blue:0.0 alpha:1.0]];
-            }
-            
-            //ふぁぼられイベント用
-            if ( [currentTweet objectForKey:@"FavEvent"] != nil ) {
-                
-                NSString *temp = infoLabelText;
-                infoLabelText = [NSString stringWithFormat:@"【%@がお気に入りに追加】", [currentTweet objectForKey:@"addUser"]];
-                text = [NSString stringWithFormat:@"%@\n%@", temp, text];
-                temp = nil;
-            }
-            
-            //セルのテキストを設定
-            newCell.infoLabel.text = infoLabelText;
-            newCell.mainLabel.text = [TTStyledText textWithURLs:text
-                                                  lineBreaks:YES];
-            //テキストラベルの設定
-            [newCell.mainLabel setFont:[UIFont systemFontOfSize:12]];
-            
-            //セルの高さを設定
-            newCell.mainLabel.frame = CGRectMake(54, 22, 264, [self heightForContents:text]);
-            
-            return newCell;
-            
-        }else {
-            
-            //TableViewCellを生成
-            TimelineCell *cell = (TimelineCell *)[tableView dequeueReusableCellWithIdentifier:OLD_CELL_IDENTIFIER];
-            cell.infoLabel.textColor = [UIColor blackColor];
-            cell.textLabel.textColor = [UIColor blackColor];
-            
-            if ( cell == nil ) {
-                
-                TimelineCellController *controller = [[TimelineCellController alloc] initWithNibName:OLD_CELL_IDENTIFIER
-                                                                                                          bundle:nil];
-                cell = (TimelineCell *)controller.view;
-                
-                //アイコンタップ時の動作を設定
-                [cell.iconView addTarget:self action:@selector(pushIcon:) forControlEvents:UIControlEventTouchUpInside];
-                
-                CALayer *imageLayer = [CALayer layer];
-                imageLayer.name = @"Icon";
-                imageLayer.frame = CGRectMake(0, 0, 48, 48);
-                
-                if ( [d integerForKey:@"IconCornerRounding"] == 1 ) {
-                    
-                    //角を丸める
-                    [imageLayer setMasksToBounds:YES];
-                    [imageLayer setCornerRadius:6.0f];
-                }
-                
-                [cell.iconView.layer addSublayer:imageLayer];
-            }
-            
-            timelineScroll = (int)timeline.contentOffset.y;
-            currentTweet = [timelineArray objectAtIndex:indexPath.row];
-            
-            BOOL reTweet = [[[currentTweet objectForKey:@"retweeted_status"] objectForKey:@"id"] boolValue];
-            
-            //ReTweetの色変えと本文の調整は先にやっておく
-            if ( reTweet ) {
-                
-                cell.infoLabel.textColor = [UIColor colorWithRed:0.0 green:0.4 blue:0.0 alpha:1.0];
-                cell.textLabel.textColor = [UIColor colorWithRed:0.0 green:0.4 blue:0.0 alpha:1.0];
-            }
-            
-            NSString *myAccountName = twAccount.username;
-            
-            //Tweetの本文
-            NSString *text = [currentTweet objectForKey:@"text"];
-            
-            //ID
-            NSString *screenName = [[currentTweet objectForKey:@"user"] objectForKey:@"screen_name"];
-            cell.iconView.buttonTitle = screenName;
-            
-            //日付
-            NSString *jstDate = [TWParser JSTDate:[currentTweet objectForKey:@"created_at"]];
-            
-            //投稿クライアント名
-            NSString *clientName = [TWParser client:[currentTweet objectForKey:@"source"]];
-            
-            //ID - 日付 [クライアント名]
-            NSString *infoLabelText = [NSString stringWithFormat:@"%@ - %@ [%@]", screenName, jstDate, clientName];
-            
-            //Favorite判定
-            BOOL favorited = [[currentTweet objectForKey:@"favorited"] boolValue];
-            
-            //アイコン検索用
-            NSString *fileName = [TWIconBigger normal:[[[currentTweet objectForKey:@"user"] objectForKey:@"profile_image_url"] lastPathComponent]];
-            NSString *searchName = [NSString stringWithFormat:@"%@_%@", screenName, fileName];
-            
-            UIImage *icon = [icons objectForKey:searchName];
-            CALayer *subLayer = cell.iconView.layer.sublayers.lastObject;
-            
-            if ( [subLayer.name isEqualToString:@"Icon"] ) {
-                
-                if ( icon == nil ) {
-                    
-                    [cell.iconView.layer.sublayers.lastObject setContents:nil];
-                    
-                }else {
-                    
-                    [cell.iconView.layer.sublayers.lastObject setContents:(id)icon.CGImage];
-                }
-            }
-            
-            //自分の発言の色を変える
-            if ( [screenName isEqualToString:myAccountName] &&
-                !reTweet ) {
-                
-                cell.infoLabel.textColor = [UIColor blueColor];
-                cell.textLabel.textColor = [UIColor blueColor];
-            }
-            
-            //Replyの色を変える
-            if ( [RegularExpression boolWithRegExp:text
-                                     regExpPattern:[NSString stringWithFormat:@"@%@", myAccountName]] &&
-                !reTweet ) {
-                
-                cell.infoLabel.textColor = [UIColor redColor];
-                cell.textLabel.textColor = [UIColor redColor];
-            }
-            
-            //Favoriteの色を変えて星をつける
-            if ( favorited &&
-                !reTweet ) {
-                
-                infoLabelText = [NSMutableString stringWithFormat:@"★%@",infoLabelText];
-                cell.infoLabel.textColor = [UIColor colorWithRed:0.5 green:0.4 blue:0.0 alpha:1.0];
-                cell.textLabel.textColor = [UIColor colorWithRed:0.5 green:0.4 blue:0.0 alpha:1.0];
-            }
-            
-            //ふぁぼられイベント用
-            if ( [currentTweet objectForKey:@"FavEvent"] != nil ) {
-                
-                NSString *temp = infoLabelText;
-                infoLabelText = [NSString stringWithFormat:@"【%@がお気に入りに追加】", [currentTweet objectForKey:@"addUser"]];
-                text = [NSString stringWithFormat:@"%@\n%@", temp, text];
-                temp = nil;
-            }
-            
-            //セルのテキストを設定
-            cell.infoLabel.text = infoLabelText;
-            cell.textLabel.text = text;
-            
-            //セルの高さを設定
-            cell.textLabel.frame = CGRectMake(54, 22, 264, [self heightForContents:text]);
-            
-            return cell;
         }
+        
+        //自分の発言の色を変える
+        if ( [screenName isEqualToString:myAccountName] && !reTweet ) textColor = BLUE_COLOR;
+        
+        //Replyの色を変える
+        if ( [RegularExpression boolWithRegExp:text regExpPattern:[NSString stringWithFormat:@"@%@", myAccountName]] && !reTweet ) textColor = RED_COLOR;
+        
+        //Favoriteの色を変えて星をつける
+        if ( favorited && !reTweet ) {
+            
+            infoLabelText = [NSMutableString stringWithFormat:@"★%@",infoLabelText];
+            textColor = GOLD_COLOR;
+        }
+        
+        //ふぁぼられイベント用
+        if ( [currentTweet objectForKey:@"FavEvent"] != nil ) {
+            
+            NSString *temp = infoLabelText;
+            infoLabelText = [NSString stringWithFormat:@"【%@がお気に入りに追加】", [currentTweet objectForKey:@"addUser"]];
+            text = [NSString stringWithFormat:@"%@\n%@", temp, text];
+            temp = nil;
+        }
+        
+        //セルへの反映開始
+        cell.infoLabel.text = infoLabelText;
+        cell.infoLabel.textColor = textColor;
+        
+        NSMutableAttributedString *mainText = [NSMutableAttributedString attributedStringWithString:text];
+        [mainText setFont:[UIFont systemFontOfSize:12]];
+        [mainText setTextColor:textColor range:NSMakeRange(0, text.length)];
+        [mainText setTextAlignment:kCTLeftTextAlignment
+                     lineBreakMode:kCTLineBreakByCharWrapping
+                     maxLineHeight:14.0
+                     minLineHeight:14.0
+                    maxLineSpacing:1.0
+                    minLineSpacing:1.0
+                             range:NSMakeRange(0, mainText.length)];
+        cell.mainLabel.attributedText = mainText;
+        
+        //セルの高さを設定
+        cell.mainLabel.frame = CGRectMake(54, 19, 264, [self heightForContents:text]);
+        
+        return cell;
     }
 }
 
@@ -1630,17 +1504,14 @@
 - (CGFloat)heightForContents:(NSString *)contents {
     
     //標準フォント12.0pxで横264pxの範囲に表示した際の縦幅
-	CGSize labelSize = [contents sizeWithFont:timelineFont
+	CGSize labelSize = [contents sizeWithFont:[UIFont systemFontOfSize:12.0]
                             constrainedToSize:CGSizeMake(264, 20000)
-                                lineBreakMode:NSLineBreakByWordWrapping];
+                                lineBreakMode:NSLineBreakByCharWrapping];
 	
     CGFloat height = labelSize.height;
     
     //アイコン表示があるため、最低31px必要
-    if ( height < 31) {
-        
-        height = 31;
-    }
+    if ( height < 31 ) height = 31;
     
     return height;
 }
@@ -1806,19 +1677,19 @@
     sheet = nil;
 }
 
-- (void)openTimelineURL:(NSURL *)urlPath {
+- (void)openTimelineURL:(NSNotification *)notification {
     
-    NSNotification *notification = [NSNotification notificationWithName:@"OpenTimelineURL"
-                                                                 object:self
-                                                               userInfo:@{ @"URL" : urlPath.absoluteString }];
-    [[NSNotificationCenter defaultCenter] postNotification:notification];
-    notification = nil;
+    NSString *urlString = [notification.userInfo objectForKey:@"URL"];
+    
+    if ( urlString == nil )return;
+    
+    appDelegate.startupUrlList = @[urlString];
+    [self openBrowser];
 }
 
-- (void)receiveOpenTimelineURLNotification:(NSNotification *)notification {
+- (void)receiveGrayViewDoneNotification:(NSNotification *)notification {
     
-    appDelegate.startupUrlList = @[[notification.userInfo objectForKey:@"URL"]];
-    [self openBrowser];
+    NSLog(@"receiveGrayViewDoneNotification");
 }
 
 #pragma mark - ASIHTTPRequest
@@ -1831,6 +1702,9 @@
         dispatch_async( globalQueue, ^{
             dispatch_queue_t syncQueue = dispatch_queue_create( "info.ktysne.fastphototweet", NULL );
             dispatch_sync( syncQueue, ^{
+                
+//                NSLog(@"responseString: %@", request.responseString);
+//                NSLog(@"responseData: %dbytes", request.responseData.length);
                 
                 NSString *screenName = [request.userInfo objectForKey:@"screen_name"];
                 NSString *searchName = [request.userInfo objectForKey:@"SearchName"];
@@ -1874,6 +1748,10 @@
                             
                             tempTimelineArray = nil;
                         });
+                        
+                    }else {
+                        
+                        NSLog(@"receiveImage nil");
                     }
                     
                 }@finally {
@@ -1893,7 +1771,7 @@
 
 - (void)requestFailed:(ASIHTTPRequest *)request {
     
-    NSLog(@"requestFailed");
+    NSLog(@"requestFailed: %@", request.responseString);
     
     [ActivityIndicator off];
     
@@ -1901,7 +1779,7 @@
      
         //再送信
         NSURL *URL = [NSURL URLWithString:[request.userInfo objectForKey:@"profile_image_url"]];
-        ASIFormDataRequest *reSendRequest = [[ASIFormDataRequest alloc] initWithURL:URL];
+        ASIHTTPRequest *reSendRequest = [[ASIHTTPRequest alloc] initWithURL:URL];
         reSendRequest.userInfo = request.userInfo;
         
         [reSendRequest setDelegate:self];
@@ -1951,26 +1829,25 @@
             [timeline reloadData];
             
             //リロード
+//            [self createTimeline];
             [self performSelectorInBackground:@selector(createTimeline) withObject:nil];
-            //[self createTimeline];
             
         }else if ( timelineSegment.selectedSegmentIndex == 1 ) {
             
             //Mentionsを取得
+//            [TWGetTimeline mentions];
             [TWGetTimeline performSelectorInBackground:@selector(mentions) withObject:nil];
-            //[TWGetTimeline mentions];
             
         }else if ( timelineSegment.selectedSegmentIndex == 2 ) {
             
             //Favoritesを取得
+//            [TWGetTimeline favotites];
             [TWGetTimeline performSelectorInBackground:@selector(favotites) withObject:nil];
-            //[TWGetTimeline favotites];
             
         }else if ( timelineSegment.selectedSegmentIndex == 3 ) {
             
             //リストを再読み込み
             [TWList performSelectorInBackground:@selector(getList:) withObject:appDelegate.listId];
-            //[TWList getList:appDelegate.listId];
         }
     }
 }
@@ -2762,7 +2639,7 @@
 
 - (IBAction)changeSegment:(UISegmentedControl *)sender {
     
-    NSLog(@"changeSegment");
+    NSLog(@"changeSegment[%d]", timelineSegment.selectedSegmentIndex);
     
     @autoreleasepool {
         
@@ -2786,7 +2663,6 @@
             if ( timelineSegment.selectedSegmentIndex == 0 ) {
                 
                 //Timelineに切り替わった
-//                [timelineArray removeAllObjects];
                 timelineArray = [allTimelines objectForKey:twAccount.username];
                 [timeline reloadData];
                 
@@ -2804,8 +2680,8 @@
                 timelineControlButton.image = startImage;
                 
                 //Mentionsに切り替わった
+//                [TWGetTimeline mentions];
                 [TWGetTimeline performSelectorInBackground:@selector(mentions) withObject:nil];
-                //[TWGetTimeline mentions];
                 
             }else if ( timelineSegment.selectedSegmentIndex == 2 ) {
                 
@@ -2813,6 +2689,7 @@
                 timelineControlButton.image = startImage;
                 
                 //Favoritesに切り替わった
+//                [TWGetTimeline favotites];
                 [TWGetTimeline performSelectorInBackground:@selector(favotites) withObject:nil];
                 
             }else if ( timelineSegment.selectedSegmentIndex == 3 ) {
@@ -2821,6 +2698,16 @@
                 [self timelineDidListChanged];
             }
         }
+        
+        dispatch_async(dispatch_get_main_queue(), ^ {
+            
+            if ( timelineSegment.selectedSegmentIndex != 0 &&
+                 timelineSegment.selectedSegmentIndex != 3 ) {
+             
+                NSLog(@"grayView start before");
+                [grayView start];
+            }
+        });
     }
 }
 
@@ -4081,6 +3968,8 @@ numberOfRowsInComponent:(NSInteger)component {
     reloadButton.enabled = YES;
     if ( userStream ) [self closeStream];
     if ( searchStream ) [self closeSearchStream];
+    if ( isLoading ) [self finishLoad];
+    [grayView forceEnd];
 }
 
 - (void)enterBackground:(NSNotification *)notification {
@@ -4124,7 +4013,7 @@ numberOfRowsInComponent:(NSInteger)component {
 
 - (void)startConnectionCheckTimer {
     
-    //NSLog(@"startConnectionCheckTimer");
+    NSLog(@"startConnectionCheckTimer");
     
     connectionCheckTimer = [NSTimer scheduledTimerWithTimeInterval:3.0
                                                          target:self
@@ -4136,7 +4025,7 @@ numberOfRowsInComponent:(NSInteger)component {
 
 - (void)stopConnectionCheckTimer {
     
-    //NSLog(@"stopConnectionCheckTimer");
+    NSLog(@"stopConnectionCheckTimer");
     
     [connectionCheckTimer invalidate];
     connectionCheckTimer = nil;
@@ -4159,14 +4048,14 @@ numberOfRowsInComponent:(NSInteger)component {
             
             [[NSNotificationCenter defaultCenter] postNotification:notification];
             
-            [self performSelectorInBackground:@selector(startOnlineCheckTimer) withObject:nil];
+            [self startOnlineCheckTimer];
         }
     }
 }
 
 - (void)startOnlineCheckTimer {
     
-    //NSLog(@"startOnlineCheckTimer");
+    NSLog(@"startOnlineCheckTimer");
     
     onlineCheckTimer = [NSTimer scheduledTimerWithTimeInterval:3.0
                                                             target:self
@@ -4178,7 +4067,7 @@ numberOfRowsInComponent:(NSInteger)component {
 
 - (void)stopOnlineCheckTimer {
     
-    //NSLog(@"stopOnlineCheckTimer");
+    NSLog(@"stopOnlineCheckTimer");
     
     [onlineCheckTimer invalidate];
     onlineCheckTimer = nil;
@@ -4265,7 +4154,6 @@ numberOfRowsInComponent:(NSInteger)component {
     
     if ( twAccount == nil ) twAccount = [TWGetAccount currentAccount];
     [allTimelines setObject:timelineArray forKey:twAccount.username];
-    [timelineArray removeAllObjects];
     
     if ( [EmptyCheck string:appDelegate.listId] ) {
         
@@ -4338,6 +4226,8 @@ numberOfRowsInComponent:(NSInteger)component {
         
         [timeline reloadData];
         [TWList getList:appDelegate.listId];
+        
+        [grayView start];
     }
 }
 
@@ -4346,9 +4236,6 @@ numberOfRowsInComponent:(NSInteger)component {
     [super viewWillAppear:animated];
     
     //NSLog(@"viewWillAppear");
-    
-    timelineCellStyle = [d boolForKey:@"TimelineCellStyle"];
-    timelineFont = timelineCellStyle ? [UIFont boldSystemFontOfSize:12.0] : [UIFont systemFontOfSize:12.0];
     
     ACAccount *account = [TWGetAccount currentAccount];
     
@@ -4395,7 +4282,7 @@ numberOfRowsInComponent:(NSInteger)component {
 
     [self setConnection:nil];
     
-    [self removeAllSubViews];
+    [self.view removeAllSubViews];
 }
 
 @end

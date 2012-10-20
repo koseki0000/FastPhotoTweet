@@ -5,7 +5,6 @@
 //  Created by @peace3884 on 12/05/02.
 //
 
-#import <UIKit/UIKit.h>
 #import "AppDelegate.h"
 #import "WebViewEx.h"
 #import "UtilityClass.h"
@@ -13,7 +12,7 @@
 #import "BookmarkViewController.h"
 #import "InternetConnection.h"
 #import "ADBlock.h"
-#import "UIViewControllerAdditinons.h"
+#import "UIViewSubViewRemover.h"
 
 @interface WebViewExController : UIViewController <UIWebViewDelegate, UIActionSheetDelegate, UITextFieldDelegate, NSXMLParserDelegate> {
     

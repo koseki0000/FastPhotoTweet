@@ -11,7 +11,7 @@
 @interface TimelineCell : UITableViewCell
 
 @property (retain, nonatomic) IBOutlet UILabel *infoLabel;
-@property (retain, nonatomic) IBOutlet UILabel *textLabel;
+@property (retain, nonatomic) IBOutlet UILabel *mainText;
 @property (retain, nonatomic) IBOutlet TitleButton *iconView;
 
 @end

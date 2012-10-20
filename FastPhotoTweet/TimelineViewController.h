@@ -11,19 +11,19 @@
 #import <Accounts/Accounts.h>
 #import "AppDelegate.h"
 
-#import "TimelineCellController.h"
-#import "TimelineStyledCellController.h"
+#import "TimelineAttributedCell.h"
+#import "NSAttributedString+Attributes.h"
 
 #import "TWTwitterHeader.h"
 #import "UtilityClass.h"
 #import <MobileCoreServices/MobileCoreServices.h>
 #import "ASIHTTPRequest.h"
-#import "ASIFormDataRequest.h"
 #import <CFNetwork/CFNetwork.h>
 #import "JSON.h"
 #import "WebViewExController.h"
-#import "UIViewControllerAdditinons.h"
+#import "UIViewSubViewRemover.h"
 #import "TitleButton.h"
+#import "ActivityGrayView.h"
 
 #import "Three20UI/TTTableHeaderDragRefreshView.h"
 #import "Three20Style/TTDefaultStyleSheet.h"
@@ -36,6 +36,8 @@
 @interface TimelineViewController : UIViewController <UIActionSheetDelegate, UITextFieldDelegate, UIPickerViewDelegate, UIPickerViewDataSource, UITableViewDelegate, UITableViewDataSource> {
     
     AppDelegate *appDelegate;
+    
+    ActivityGrayView *grayView;
     
     NSUserDefaults *d;
     NSFileManager *fileManager;
@@ -71,7 +73,6 @@
     UIImage *defaultActionButtonImage;
     UIAlertView *alertSearch;
     UITextField *alertSearchText;
-    UIFont *timelineFont;
     
     UIView *pickerBase;
     UIToolbar *pickerBar;
@@ -92,7 +93,6 @@
     BOOL listMode;
     BOOL pickerVisible;
     BOOL searchStream;
-    BOOL timelineCellStyle;
     
     int selectRow;
     int longPressControl;
@@ -152,8 +152,8 @@
 - (void)copyTweetInUrl:(NSArray *)urlList;
 - (void)checkTimelineCount;
 - (void)pushIcon:(UIButton *)sender;
-- (void)openTimelineURL:(NSURL *)urlPath;
-- (void)receiveOpenTimelineURLNotification:(NSNotification *)notification;
+- (void)openTimelineURL:(NSNotification *)notification;
+- (void)receiveGrayViewDoneNotification:(NSNotification *)notification;
 
 - (void)openStream;
 - (void)closeStream;

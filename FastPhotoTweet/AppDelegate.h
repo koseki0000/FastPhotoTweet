@@ -87,9 +87,8 @@ void uncaughtExceptionHandler(NSException *exception);
 @property BOOL willResignActiveBrowser;
 @property BOOL twitpicLinkMode;
 @property BOOL needChangeAccount;
-@property BOOL openTimelineURL;
 
-- (oneway void)setNavigatorMap;
+//- (oneway void)setNavigatorMap;
 - (BOOL)ios5Check;
 - (BOOL)iconExist:(NSString *)searchName;
 - (NSString *)getPlatformName;

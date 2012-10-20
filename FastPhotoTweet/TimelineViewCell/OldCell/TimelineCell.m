@@ -9,8 +9,23 @@
 
 @implementation TimelineCell
 @synthesize infoLabel;
-@synthesize textLabel;
+@synthesize mainText;
 @synthesize iconView;
+
+- (id)initWithCoder:(NSCoder *)aDecoder {
+    
+    NSLog(@"%@: initWithCoder", NSStringFromClass([self class]));
+    
+    self = [super initWithCoder:aDecoder];
+    
+    if ( self ) {
+        
+        [self.textLabel removeFromSuperview];
+        [self.imageView removeFromSuperview];
+    }
+    
+    return self;
+}
 
 - (void)drawRect:(CGRect)rect {
 
@@ -41,8 +56,8 @@
     
     [infoLabel removeFromSuperview];
     infoLabel = nil;
-	[textLabel removeFromSuperview];
-    textLabel = nil;
+	[mainText removeFromSuperview];
+    mainText = nil;
     [iconView removeFromSuperview];
     iconView = nil;
     

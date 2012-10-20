@@ -5,7 +5,7 @@
 //  Created by @peace3884 on 12/05/02.
 //
 
-#import <UIKit/UIKit.h>
+#import <UIKit/UIWebView.h>
 #import "ShowAlert.h"
 #import "RegularExpression.h"
 #import "DeleteWhiteSpace.h"

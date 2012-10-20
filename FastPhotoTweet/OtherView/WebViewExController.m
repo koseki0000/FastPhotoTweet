@@ -1769,7 +1769,7 @@
 
 - (void)rotateView:(int)mode {
  
-    NSLog(@"rotateView: %d", mode);
+    //NSLog(@"rotateView: %d", mode);
     
     [UIView beginAnimations:nil context:nil];
     [UIView setAnimationDuration:0.05];
@@ -2027,7 +2027,7 @@
     startupUrlList = nil;
     urlList = nil;
     
-    [self removeAllSubViews];
+    [self.view removeAllSubViews];
     
     [ActivityIndicator visible:NO];
 }

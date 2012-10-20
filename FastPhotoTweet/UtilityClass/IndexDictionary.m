@@ -15,8 +15,10 @@
     
     self = [super init];
     
-    if ( self ) {
+    if ( dictionary == nil ) dictionary = @{};
     
+    if ( self ) {
+        
         _sort = sort;
         _items = [NSMutableDictionary dictionaryWithDictionary:dictionary];
         [self resetIndex];
@@ -56,7 +58,7 @@
 - (NSArray *)itemKeys {
     
     if ( _sort ) {
-    
+        
         return [[_items allKeys] sortedArrayUsingSelector:@selector(caseInsensitiveCompare:)];
         
     }else {
@@ -66,6 +68,8 @@
 }
 
 - (NSArray *)objects {
+    
+    [self resetIndex];
     
     NSMutableArray *temp = [NSMutableArray array];
     
@@ -87,13 +91,13 @@
 - (id)objectAtIndex:(NSUInteger)index {
     
     if ( _sortedIndexKeys == nil ||
-         _items == nil ||
-         index > _sortedIndexKeys.count ) {
-     
+        _items == nil ||
+        index >= _sortedIndexKeys.count ) {
+        
         return nil;
         
     }else {
-
+        
         return [_items objectForKey:[_sortedIndexKeys objectAtIndex:index]];
     }
 }
@@ -101,14 +105,14 @@
 - (NSString *)keyAtIndex:(NSUInteger)index {
     
     if ( _sortedIndexKeys == nil ||
-         _items == nil ||
-         index >= _sortedIndexKeys.count ) {
+        _items == nil ||
+        index >= _sortedIndexKeys.count ) {
         
         return nil;
         
     }else {
         
-       return [_sortedIndexKeys objectAtIndex:index];
+        return [_sortedIndexKeys objectAtIndex:index];
     }
 }
 
@@ -121,23 +125,43 @@
 
 #pragma mark - AddObject
 
+- (void)addObject:(id)object {
+    
+    if ( object == nil ) return;
+    
+    [_items setObject:object forKey:[NSString stringWithFormat:@"%d", _items.count + 1]];
+    [self resetIndex];
+}
+
 - (void)addObject:(id)object forKey:(NSString *)key {
     
     if ( object == nil ||
-         key == nil ||
+        key == nil ||
         [key isEqualToString:@""] ) return;
     
     if ( [ _items objectForKey:key] == nil ) {
-     
+        
         [_items setObject:object forKey:key];
         [self resetIndex];
     }
 }
 
+- (void)addObjects:(NSArray *)objects {
+    
+    if ( objects == nil || objects.count == 0 ) return;
+    
+    for (int i = 0; i < objects.count; i++ ) {
+        
+        [_items setObject:[objects objectAtIndex:i] forKey:[NSString stringWithFormat:@"%d", _items.count + 1]];
+    }
+    
+    [self resetIndex];
+}
+
 - (void)addObjects:(NSArray *)objects forKeys:(NSArray *)keys {
     
     if (( objects != nil && keys != nil ) &&
-          objects.count == keys.count ) {
+        objects.count == keys.count ) {
         
         for (int i = 0; i < objects.count; i++ ) {
             
@@ -156,7 +180,7 @@
     if ( dictionary != nil ) {
         
         if ( [dictionary isKindOfClass:[NSDictionary class]] ||
-             [dictionary isKindOfClass:[NSMutableDictionary class]] ) {
+            [dictionary isKindOfClass:[NSMutableDictionary class]] ) {
             
             NSDictionary *temp = [NSDictionary dictionaryWithDictionary:dictionary];
             
@@ -166,7 +190,7 @@
                 NSArray *values = [temp allValues];
                 
                 for (int i = 0; i < keys.count; i++ ) {
-                
+                    
                     [_items setObject:[values objectAtIndex:i] forKey:[keys objectAtIndex:i]];
                 }
                 
@@ -176,12 +200,32 @@
     }
 }
 
+#pragma mark - ChangeObject
+
+- (void)changeObjectWithObject:(id)object {
+    
+    [self removeAllObjects];
+    [self addObject:object];
+}
+
+- (void)changeObjectWithArray:(NSArray *)array {
+    
+    [self removeAllObjects];
+    [self addObjects:array];
+}
+
+- (void)changeObjectWithDictionary:(NSDictionary *)dictionary {
+    
+    [self removeAllObjects];
+    [self addDictionary:dictionary];
+}
+
 #pragma mark - ReplaceObject
 
 - (void)replaceObject:(id)object forKey:(NSString *)key {
     
     if ( object == nil ||
-         key == nil ||
+        key == nil ||
         [key isEqualToString:@""] ) return;
     
     [_items setObject:object forKey:key];
@@ -191,7 +235,7 @@
 - (void)replaceObjects:(NSArray *)objects forKeys:(NSArray *)keys {
     
     if (( objects != nil && keys != nil ) &&
-          objects.count == keys.count ) {
+        objects.count == keys.count ) {
         
         for (int i = 0; i < objects.count; i++ ) {
             
@@ -241,8 +285,8 @@
 - (void)keyRenameAtIndex:(NSUInteger)index newKeyName:(NSString *)newKeyName {
     
     if (( newKeyName != nil && [newKeyName isEqualToString:@""] ) &&
-          index > _sortedIndexKeys.count &&
-         [self objectAtIndex:index] != nil ) {
+        index >= _sortedIndexKeys.count &&
+        [self objectAtIndex:index] != nil ) {
         
         id object = [self objectAtIndex:index];
         [self removeObjectAtIndex:index];
@@ -255,8 +299,8 @@
 - (id)firstObject {
     
     if ( _sortedIndexKeys != nil &&
-         _sortedIndexKeys.count != 0 ) {
-     
+        _sortedIndexKeys.count != 0 ) {
+        
         _iteratorIndex = 0;
         return [self objectAtIndex:_iteratorIndex];
         
@@ -269,8 +313,8 @@
 - (id)lastObject {
     
     if ( _sortedIndexKeys != nil &&
-         _sortedIndexKeys.count != 0 ) {
-     
+        _sortedIndexKeys.count != 0 ) {
+        
         _iteratorIndex = _sortedIndexKeys.count - 1;
         return [self objectAtIndex:_iteratorIndex];
         
@@ -321,6 +365,16 @@
     return _iteratorIndex;
 }
 
+- (void)incrementIndex {
+    
+    _iteratorIndex++;
+}
+
+- (void)decrementIndex {
+    
+    _iteratorIndex--;
+}
+
 - (BOOL)isExistNextItem {
     
     return [self objectAtIndex:_iteratorIndex + 1] ? YES : NO;
@@ -329,6 +383,11 @@
 - (void)resetIterator {
     
     _iteratorIndex = 0;
+}
+
+- (BOOL)iterator {
+    
+    return [self isExistNextItem];
 }
 
 #pragma mark - GetValue
@@ -340,12 +399,12 @@
 
 - (NSArray *)allKeys {
     
-    return _items.allKeys;
+    return [self itemKeys];
 }
 
 - (NSArray *)allValues {
     
-    return _items.allValues;
+    return [self objects];
 }
 
 - (NSString *)description {
@@ -356,6 +415,102 @@
 - (NSString *)debugDescription {
     
     return _items.debugDescription;
+}
+
+#pragma mark - Search
+
+- (NSArray *)keySearchResultWithSearchWord:(NSString *)searchWord {
+    
+    NSMutableArray *resultKeys = [NSMutableArray array];
+    
+    if ( searchWord == nil ||
+        ( ![searchWord isKindOfClass:[NSString class]] && ![searchWord isKindOfClass:[NSMutableString class]] )) {
+        
+        return resultKeys;
+    }
+    
+    for ( NSString *item in self.allKeys ) {
+        
+        if ( [item rangeOfString:searchWord].location != NSNotFound ) {
+            
+            [resultKeys addObject:item];
+        }
+    }
+    
+    return resultKeys;
+}
+
+- (NSArray *)valueSearchResultWithSearchWord:(NSString *)searchWord {
+    
+    NSMutableArray *resultValues = [NSMutableArray array];
+    
+    if ( searchWord == nil ||
+        ( ![searchWord isKindOfClass:[NSString class]] && ![searchWord isKindOfClass:[NSMutableString class]] )) {
+        
+        return resultValues;
+    }
+    
+    for ( id item in self.allValues ) {
+        
+        if (( [item isKindOfClass:[NSString class]] || [item isKindOfClass:[NSMutableString class]] ) &&
+            [item rangeOfString:searchWord].location != NSNotFound ) {
+            
+            [resultValues addObject:item];
+        }
+    }
+    
+    return resultValues;
+}
+
+- (IndexDictionary *)keySearchResultWithSearchWord:(NSString *)searchWord sort:(BOOL)sort {
+    
+    NSMutableArray *result = [NSMutableArray array];
+    
+    if ( searchWord == nil ||
+        [searchWord isEqualToString:@""] ) {
+        
+        IndexDictionary *resultObjects = [[[IndexDictionary alloc] initWithArray:result sort:sort] autorelease];
+        
+        return resultObjects;
+    }
+    
+    for ( id item in self.allKeys ) {
+        
+        if ( [item rangeOfString:searchWord].location != NSNotFound ) {
+            
+            [result addObject:item];
+        }
+    }
+    
+    IndexDictionary *resultObjects = [[[IndexDictionary alloc] initWithArray:result sort:sort] autorelease];
+    
+    return resultObjects;
+}
+
+- (IndexDictionary *)valueSearchResultWithSearchWord:(NSString *)searchWord sort:(BOOL)sort {
+    
+    NSMutableArray *result = [NSMutableArray array];
+    
+    if ( searchWord == nil ||
+        [searchWord isEqualToString:@""] ) {
+        
+        IndexDictionary *resultObjects = [[[IndexDictionary alloc] initWithArray:result sort:sort] autorelease];
+        
+        return resultObjects;
+    }
+    
+    for ( id item in self.allValues ) {
+        
+        if (( [item isKindOfClass:[NSString class]] || [item isKindOfClass:[NSMutableString class]] ) &&
+            [item rangeOfString:searchWord].location != NSNotFound ) {
+            
+            [result addObject:item];
+        }
+    }
+    
+    IndexDictionary *resultObjects = [[[IndexDictionary alloc] initWithArray:result sort:sort] autorelease];
+    
+    return resultObjects;
 }
 
 #pragma mark - DebugLog
@@ -393,6 +548,8 @@
 #pragma mark - MemoryManagement
 
 - (void)dealloc {
+    
+    NSLog(@"IndexDictionary dealloc");
     
     [_items removeAllObjects];
     _items = nil;

@@ -2,11 +2,11 @@
 //  TitleButton.h
 //  FastPhotoTweet
 //
-//  Created by m.s.s02968 on 12/10/18.
+//  Created by peace3884 on 12/10/18.
 //
 //
 
-#import <UIKit/UIKit.h>
+#import <UIKit/UIButton.h>
 
 @interface TitleButton : UIButton
 
