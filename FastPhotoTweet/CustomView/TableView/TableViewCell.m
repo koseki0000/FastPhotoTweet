@@ -15,9 +15,15 @@
 
     //NSLog(@"TableViewCell dealloc");
     
-    [numberLabel release];
-	[textLabel release];
-    [super dealloc];
+    [numberLabel removeFromSuperview];
+    numberLabel = nil;
+    [textLabel removeFromSuperview];
+    textLabel = nil;
+    
+    
+//    [numberLabel release];
+//	[textLabel release];
+//    [super dealloc];
 }
 
 @end

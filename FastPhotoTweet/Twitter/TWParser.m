@@ -69,6 +69,8 @@
     
     @try {
         
+        if ( tweetData == nil )return BLANK;
+        
         if ( [tweetData isEqualToString:@"web"] ) return @"web";
         
         NSError *error = nil;

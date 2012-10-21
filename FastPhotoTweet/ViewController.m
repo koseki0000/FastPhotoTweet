@@ -139,8 +139,8 @@
                      NSArray *twitterAccounts = [accountStore accountsWithAccountType:accountType];
                      
                      if ( twitterAccounts.count > 0 ) {
-                         
-                         twAccount = [[twitterAccounts objectAtIndex:[d integerForKey:@"UseAccount"]] retain];
+
+                         twAccount = [twitterAccounts objectAtIndex:[d integerForKey:@"UseAccount"]];
                          
                          //入力可能状態にする
                          [postText becomeFirstResponder];
@@ -153,14 +153,14 @@
                          twAccount = nil;
                          [ShowAlert error:@"Twitterアカウントが見つかりませんでした。"];
                      }
-                     
-                 } else {
+                                     } else {
                      
                      twAccount = nil;
                      [ShowAlert error:@"Twitterのアカウントへのアクセスが拒否されました。"];
                  }
              });
          }];
+;
         
     } else {
         

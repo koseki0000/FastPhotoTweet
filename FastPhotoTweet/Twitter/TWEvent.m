@@ -23,9 +23,9 @@
         NSString *tReqURL = [NSString stringWithFormat:@"https://api.twitter.com/%@/favorites/create/%@.json", API_VERSION, tweetId];
         
         //リクエストの作成
-        TWRequest *postRequest = [[[TWRequest alloc] initWithURL:[NSURL URLWithString:tReqURL] 
+        TWRequest *postRequest = [[TWRequest alloc] initWithURL:[NSURL URLWithString:tReqURL]
                                                       parameters:nil 
-                                                   requestMethod:TWRequestMethodPOST] autorelease];
+                                                   requestMethod:TWRequestMethodPOST];
         
         //リクエストにアカウントを設定
         [postRequest setAccount:twAccount];
@@ -53,9 +53,9 @@
         NSString *tReqURL = [NSString stringWithFormat:@"https://api.twitter.com/%@/statuses/retweet/%@.json",API_VERSION , tweetId];
         
         //リクエストの作成
-        TWRequest *postRequest = [[[TWRequest alloc] initWithURL:[NSURL URLWithString:tReqURL] 
+        TWRequest *postRequest = [[TWRequest alloc] initWithURL:[NSURL URLWithString:tReqURL]
                                                       parameters:nil 
-                                                   requestMethod:TWRequestMethodPOST] autorelease];
+                                                   requestMethod:TWRequestMethodPOST];
         
         //リクエストにアカウントを設定
         [postRequest setAccount:twAccount];
@@ -89,9 +89,9 @@
         NSString *tReqURL = [NSString stringWithFormat:@"https://api.twitter.com/%@/favorites/destroy/%@.json", API_VERSION, tweetId];
         
         //リクエストの作成
-        TWRequest *postRequest = [[[TWRequest alloc] initWithURL:[NSURL URLWithString:tReqURL] 
+        TWRequest *postRequest = [[TWRequest alloc] initWithURL:[NSURL URLWithString:tReqURL]
                                                       parameters:nil 
-                                                   requestMethod:TWRequestMethodPOST] autorelease];
+                                                   requestMethod:TWRequestMethodPOST];
         
         //リクエストにアカウントを設定
         [postRequest setAccount:twAccount];
@@ -122,9 +122,9 @@
         NSString *tReqURL = [NSString stringWithFormat:@"https://api.twitter.com/%@/users/show.json?screen_name=%@&include_entities=true",API_VERSION , screenName];
         
         //リクエストの作成
-        TWRequest *postRequest = [[[TWRequest alloc] initWithURL:[NSURL URLWithString:tReqURL] 
+        TWRequest *postRequest = [[TWRequest alloc] initWithURL:[NSURL URLWithString:tReqURL]
                                                       parameters:nil 
-                                                   requestMethod:TWRequestMethodGET] autorelease];
+                                                   requestMethod:TWRequestMethodGET];
         
         //リクエストにアカウントを設定
         [postRequest setAccount:twAccount];
@@ -141,7 +141,7 @@
              dispatch_async(dispatch_get_main_queue(), ^{
                  
                  //レスポンスのデータをNSStringに変換後JSONをDictionaryに格納
-                 NSString *responseDataString = [[[NSString alloc] initWithData:responseData encoding:NSUTF8StringEncoding] autorelease];
+                 NSString *responseDataString = [[NSString alloc] initWithData:responseData encoding:NSUTF8StringEncoding];
                  
                  if ( responseDataString != nil && ![responseDataString isEqualToString:@""] ) {
                      
@@ -185,9 +185,9 @@
         NSString *tReqURL = [NSString stringWithFormat:@"https://api.twitter.com/%@/statuses/show.json?id=%@&include_entities=true", API_VERSION, tweetId];
         
         //リクエストの作成
-        TWRequest *postRequest = [[[TWRequest alloc] initWithURL:[NSURL URLWithString:tReqURL] 
+        TWRequest *postRequest = [[TWRequest alloc] initWithURL:[NSURL URLWithString:tReqURL]
                                                       parameters:nil 
-                                                   requestMethod:TWRequestMethodGET] autorelease];
+                                                   requestMethod:TWRequestMethodGET];
         
         //リクエストにアカウントを設定
         [postRequest setAccount:twAccount];
@@ -204,7 +204,7 @@
              dispatch_async(dispatch_get_main_queue(), ^{
                  
                  //レスポンスのデータをNSStringに変換後JSONをDictionaryに格納
-                 NSString *responseDataString = [[[NSString alloc] initWithData:responseData encoding:NSUTF8StringEncoding] autorelease];
+                 NSString *responseDataString = [[NSString alloc] initWithData:responseData encoding:NSUTF8StringEncoding];
                  NSDictionary *result = [responseDataString JSONValue];
                  
                  //NSLog(@"Tweet: %@", result);
@@ -250,9 +250,9 @@
         NSString *tReqURL = [NSString stringWithFormat:@"https://api.twitter.com/%@/statuses/destroy/%@.json", API_VERSION, tweetId];
         
         //リクエストの作成
-        TWRequest *postRequest = [[[TWRequest alloc] initWithURL:[NSURL URLWithString:tReqURL] 
-                                                      parameters:nil 
-                                                   requestMethod:TWRequestMethodPOST] autorelease];
+        TWRequest *postRequest = [[TWRequest alloc] initWithURL:[NSURL URLWithString:tReqURL]
+                                                      parameters:nil
+                                                   requestMethod:TWRequestMethodPOST];
         
         //リクエストにアカウントを設定
         [postRequest setAccount:twAccount];
@@ -268,7 +268,7 @@
              dispatch_async(dispatch_get_main_queue(), ^{
                  
                  //レスポンスのデータをNSStringに変換後JSONをDictionaryに格納
-                 NSString *responseDataString = [[[NSString alloc] initWithData:responseData encoding:NSUTF8StringEncoding] autorelease];
+                 NSString *responseDataString = [[NSString alloc] initWithData:responseData encoding:NSUTF8StringEncoding];
                  NSDictionary *result = [responseDataString JSONValue];
                  
                  //NSLog(@"result: %@", result);

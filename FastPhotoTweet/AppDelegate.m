@@ -113,6 +113,7 @@ void uncaughtExceptionHandler(NSException *e) {
     willResignActiveBrowser = NO;
     twitpicLinkMode = NO;
     needChangeAccount = NO;
+    debugMode = NO;
     
     startupUrlList = [NSArray arrayWithObject:[D objectForKey:@"HomePageURL"]];
     
@@ -249,6 +250,22 @@ void uncaughtExceptionHandler(NSException *e) {
     NSLog(@"Run with %@@%@", hardwareName, firmwareVersion);
     
     return hardwareName;
+}
+
+- (void)memoryStatus {
+    
+    if ( debugMode ) {
+     
+        [stats removeFromSuperview];
+        stats = nil;
+        debugMode = NO;
+        
+    }else {
+
+        stats = [[Stats alloc] initWithFrame:CGRectMake(5, 25, 100.0, 60.0)];
+        [self.window addSubview:stats];
+        debugMode = YES;
+    }
 }
 
 #pragma mark - PasteBoard

@@ -39,7 +39,7 @@
             NSString *tReqURL = [NSString stringWithFormat:@"https://api.twitter.com/%@/account/update_profile_image.json", API_VERSION];
             
             //リクエストの作成
-            TWRequest *postRequest = [[[TWRequest alloc] initWithURL:[NSURL URLWithString:tReqURL] 
+            TWRequest *postRequest = [[[TWRequest alloc] initWithURL:[NSURL URLWithString:tReqURL]
                                                           parameters:nil 
                                                        requestMethod:TWRequestMethodPOST] autorelease];
             

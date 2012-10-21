@@ -8,12 +8,16 @@
 #import <UIKit/UIKit.h>
 #import "AppDelegate.h"
 
-@interface LicenseViewController : UIViewController
+@interface LicenseViewController : UIViewController {
+    
+    BOOL debugMode;
+}
 
 @property (retain, nonatomic) IBOutlet UINavigationBar *bar;
 @property (retain, nonatomic) IBOutlet UIBarButtonItem *closeButton;
 @property (retain, nonatomic) IBOutlet UITextView *textView;
 
 - (IBAction)pushCloseButton:(id)sender;
+- (IBAction)debug:(id)sender;
 
 @end

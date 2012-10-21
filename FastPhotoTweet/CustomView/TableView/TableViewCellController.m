@@ -13,8 +13,6 @@
 - (void)dealloc {
 
     //NSLog(@"TableViewCellController dealloc");
-    
-	[super dealloc];
 }
 
 @end

@@ -8,6 +8,7 @@
 #import <UIKit/UIKit.h>
 #import <sys/utsname.h>
 #import "MainTabBarController.h"
+#import "Stats.h"
 
 #define IMGUR_API_KEY   @"6de089e68b55d6e390d246c4bf932901"
 #define TWITPIC_API_KEY @"95cf146048caad3267f95219b379e61c"
@@ -45,6 +46,8 @@ void uncaughtExceptionHandler(NSException *exception);
 
 @interface AppDelegate : UIResponder <UIApplicationDelegate, UITabBarControllerDelegate> {
     
+    Stats *stats;
+    
     NSString *lastCheckPasteBoardURL;
     NSArray *pBoardUrls;
     
@@ -52,6 +55,7 @@ void uncaughtExceptionHandler(NSException *exception);
     UIBackgroundTaskIdentifier backgroundTask;
     
     BOOL pBoardWatch;
+    BOOL debugMode;
 }
 
 @property (strong, nonatomic) UIWindow *window;
@@ -92,6 +96,7 @@ void uncaughtExceptionHandler(NSException *exception);
 - (BOOL)ios5Check;
 - (BOOL)iconExist:(NSString *)searchName;
 - (NSString *)getPlatformName;
+- (void)memoryStatus;
 
 - (void)startPasteBoardTimer;
 - (void)stopPasteBoardTimer;

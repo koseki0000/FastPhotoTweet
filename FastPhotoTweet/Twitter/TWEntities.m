@@ -33,6 +33,8 @@
     }
     
     //ついでに記号も置換
+    [text replaceOccurrencesOfString:@"["  withString:@"［" options:0 range:NSMakeRange(0, [text length] )];
+    [text replaceOccurrencesOfString:@"]"  withString:@"］" options:0 range:NSMakeRange(0, [text length] )];
     [text replaceOccurrencesOfString:@"&gt;"  withString:@">" options:0 range:NSMakeRange(0, [text length] )];
     [text replaceOccurrencesOfString:@"&lt;"  withString:@"<" options:0 range:NSMakeRange(0, [text length] )];
     [text replaceOccurrencesOfString:@"&amp;" withString:@"&" options:0 range:NSMakeRange(0, [text length] )];
@@ -219,15 +221,17 @@
     //t.coをすべて展開
     for ( id tweet in tweets ) {
         
+        NSDictionary *checkedTweet = tweet;
+        
         //公式RTであるか
-        if ( [[tweet objectForKey:@"retweeted_status"] objectForKey:@"id"] ) {
+        if ( [[checkedTweet objectForKey:@"retweeted_status"] objectForKey:@"id"] ) {
             
             //公式RTの場合はテキストを組み替える
-            tweet = [TWParser rtText:tweet];
+            checkedTweet = [TWParser rtText:checkedTweet];
         }
         
         //t.coを展開して追加
-        [replacedTweets addObject:[TWEntities replaceTco:tweet]];
+        [replacedTweets addObject:[TWEntities replaceTco:checkedTweet]];
     }
     
     //NSLog(@"replaceTcoAll: %@", replacedTweets);

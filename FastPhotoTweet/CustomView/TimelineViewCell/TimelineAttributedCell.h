@@ -2,7 +2,7 @@
 //  TimelineAttributedCell.h
 //  FastPhotoTweet
 //
-//  Created by Yuki Higurashi on 12/10/19.
+//  Created by @peace3884 on 12/10/19.
 //
 //
 

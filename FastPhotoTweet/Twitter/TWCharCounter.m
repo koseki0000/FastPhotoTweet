@@ -19,7 +19,7 @@
 + (int)charCounter:(id)post {
     
     //自動開放プールを生成
-    NSAutoreleasePool *pool = [[NSAutoreleasePool alloc] init];
+//    NSAutoreleasePool *pool = [[NSAutoreleasePool alloc] init];
     
     //id型で受け取りNSMutableStringにキャスト
     NSMutableString *postString = (NSMutableString *)post;
@@ -90,7 +90,7 @@
     }@finally {
         
         //自動開放プールを開放
-        [pool drain];
+//        [pool drain];
     }
     
     //入力可能文字数を返す
