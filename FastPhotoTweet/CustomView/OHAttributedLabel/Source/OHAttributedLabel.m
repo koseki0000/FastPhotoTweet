@@ -392,7 +392,17 @@ NSDataDetector* sharedReusableDataDetector(NSTextCheckingTypes types)
         (void)MRC_AUTORELEASE(MRC_RETAIN(linkToOpen));
 		BOOL openLink = (self.delegate && [self.delegate respondsToSelector:@selector(attributedLabel:shouldFollowLink:)])
 		? [self.delegate attributedLabel:self shouldFollowLink:linkToOpen] : YES;
-		if (openLink) [[UIApplication sharedApplication] openURL:linkToOpen.extendedURL];
+        
+        
+		if (openLink) {
+        
+            NSNotification *notification =[NSNotification notificationWithName:@"OpenTimelineURL"
+                                                                        object:self
+                                                                      userInfo:@{@"URL" : linkToOpen.extendedURL.absoluteString != nil ?  linkToOpen.extendedURL.absoluteString : @"" }];
+            
+            //通知を実行
+            [[NSNotificationCenter defaultCenter] postNotification:notification];
+        }
 	}
 	
 	self.activeLink = nil;

@@ -36,51 +36,7 @@
 @interface TimelineViewController : UIViewController <UIActionSheetDelegate, UITextFieldDelegate, UIPickerViewDelegate, UIPickerViewDataSource, UITableViewDelegate, UITableViewDataSource> {
     
     AppDelegate *appDelegate;
-    
     ActivityGrayView *grayView;
-    
-    NSUserDefaults *d;
-    NSFileManager *fileManager;
-    NSMutableArray *timelineArray;
-    NSMutableArray *timelineAppend;
-    NSMutableArray *inReplyTo;
-    NSMutableArray *reqedUser;
-    NSMutableArray *iconUrls;
-    NSMutableArray *currentList;
-    NSMutableArray *searchStreamTemp;
-    NSMutableDictionary *allTimelines;
-    NSMutableDictionary *sinceIds;
-    NSMutableDictionary *icons;
-    NSMutableDictionary *allLists;
-    NSArray *mentionsArray;
-    NSArray *selectTweetIds;
-    NSArray *tweetInUrls;
-    NSDictionary *currentTweet;
-    NSDictionary *selectTweet;
-    NSString *userStreamAccount;
-    NSString *lastUpdateAccount;
-    NSString *timelineTopTweetId;
-    NSString *selectAccount;
-    NSString *alertSearchUserName;
-    NSTimer *searchStreamTimer;
-    NSTimer *connectionCheckTimer;
-    NSTimer *onlineCheckTimer;
-    
-    UIPasteboard *pboard;
-    UIImage *startImage;
-    UIImage *stopImage;
-    UIImage *listImage;
-    UIImage *defaultActionButtonImage;
-    UIAlertView *alertSearch;
-    UITextField *alertSearchText;
-    
-    UIView *pickerBase;
-    UIToolbar *pickerBar;
-    UIPickerView *eventPicker;
-    UIBarButtonItem *pickerBarDoneButton;
-    UIBarButtonItem *pickerBarCancelButton;
-    
-    ACAccount *twAccount;
     
     BOOL userStream;
     BOOL openStreamAfter;
@@ -99,10 +55,62 @@
     int timelineScroll;
     
     //PulllDownRefresh
-    TTTableHeaderDragRefreshView *headerView;
-    UIView *activityTable;
     BOOL isLoading;
 }
+
+@property (retain, nonatomic) ACAccount *twAccount;
+
+@property (retain, nonatomic) NSMutableArray *timelineArray;
+@property (retain, nonatomic) NSMutableArray *timelineAppend;
+@property (retain, nonatomic) NSMutableArray *inReplyTo;
+@property (retain, nonatomic) NSMutableArray *reqedUser;
+@property (retain, nonatomic) NSMutableArray *iconUrls;
+@property (retain, nonatomic) NSMutableArray *currentList;
+@property (retain, nonatomic) NSMutableArray *searchStreamTemp;
+
+@property (retain, nonatomic) NSMutableDictionary *allTimelines;
+@property (retain, nonatomic) NSMutableDictionary *sinceIds;
+@property (retain, nonatomic) NSMutableDictionary *icons;
+@property (retain, nonatomic) NSMutableDictionary *allLists;
+
+@property (retain, nonatomic) NSArray *mentionsArray;
+@property (retain, nonatomic) NSArray *selectTweetIds;
+@property (retain, nonatomic) NSArray *tweetInUrls;
+
+@property (retain, nonatomic) NSDictionary *currentTweet;
+@property (retain, nonatomic) NSDictionary *selectTweet;
+
+@property (retain, nonatomic) NSString *userStreamAccount;
+@property (retain, nonatomic) NSString *lastUpdateAccount;
+@property (retain, nonatomic) NSString *timelineTopTweetId;
+@property (retain, nonatomic) NSString *selectAccount;
+@property (retain, nonatomic) NSString *alertSearchUserName;
+
+@property (retain, nonatomic) NSTimer *searchStreamTimer;
+@property (retain, nonatomic) NSTimer *connectionCheckTimer;
+@property (retain, nonatomic) NSTimer *onlineCheckTimer;
+
+@property (strong, nonatomic) NSURLConnection *connection;
+
+@property (retain, nonatomic) NSUserDefaults *d;
+@property (retain, nonatomic) NSFileManager *fileManager;
+
+@property (retain, nonatomic) UIPasteboard *pboard;
+@property (retain, nonatomic) UIImage *startImage;
+@property (retain, nonatomic) UIImage *stopImage;
+@property (retain, nonatomic) UIImage *listImage;
+@property (retain, nonatomic) UIImage *defaultActionButtonImage;
+@property (retain, nonatomic) UIAlertView *alertSearch;
+@property (retain, nonatomic) UITextField *alertSearchText;
+
+@property (retain, nonatomic) UIView *pickerBase;
+@property (retain, nonatomic) UIToolbar *pickerBar;
+@property (retain, nonatomic) UIPickerView *eventPicker;
+@property (retain, nonatomic) UIBarButtonItem *pickerBarDoneButton;
+@property (retain, nonatomic) UIBarButtonItem *pickerBarCancelButton;
+
+@property (retain, nonatomic) TTTableHeaderDragRefreshView *headerView;
+@property (retain, nonatomic) UIView *activityTable;
 
 @property (retain, nonatomic) IBOutlet UIToolbar *topBar;
 @property (retain, nonatomic) IBOutlet UITableView *timeline;
@@ -115,7 +123,6 @@
 @property (retain, nonatomic) IBOutlet UIBarButtonItem *closeOtherTweetsButton;
 @property (retain, nonatomic) IBOutlet UIImageView *accountIconView;
 @property (retain, nonatomic) IBOutlet UISegmentedControl *timelineSegment;
-@property (strong, nonatomic) NSURLConnection *connection;
 
 - (IBAction)pushPostButton:(UIBarButtonItem *)sender;
 - (IBAction)pushReloadButton:(UIBarButtonItem *)sender;
