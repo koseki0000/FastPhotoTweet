@@ -11,22 +11,9 @@
 @implementation TitleButton
 @synthesize buttonTitle;
 
-- (id)initWithCoder:(NSCoder *)aDecoder {
-    
-    self = [super initWithCoder:aDecoder];
-    
-    if ( self ) {
-        
-        [self.titleLabel removeFromSuperview];
-        [self.imageView removeFromSuperview];
-    }
-    
-    return self;
-}
-
 - (void)dealloc {
     
-    [buttonTitle release];
+    [self setButtonTitle:nil];
     
     [super dealloc];
 }

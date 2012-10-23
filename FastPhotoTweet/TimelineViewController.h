@@ -35,9 +35,6 @@
 
 @interface TimelineViewController : UIViewController <UIActionSheetDelegate, UITextFieldDelegate, UIPickerViewDelegate, UIPickerViewDataSource, UITableViewDelegate, UITableViewDataSource> {
     
-    AppDelegate *appDelegate;
-    ActivityGrayView *grayView;
-    
     BOOL userStream;
     BOOL openStreamAfter;
     BOOL userStreamFirstResponse;
@@ -49,66 +46,57 @@
     BOOL listMode;
     BOOL pickerVisible;
     BOOL searchStream;
+    BOOL isLoading;
+    BOOL iconWorking;
     
     int selectRow;
     int longPressControl;
     int timelineScroll;
-    
-    //PulllDownRefresh
-    BOOL isLoading;
 }
 
-@property (retain, nonatomic) ACAccount *twAccount;
+@property (retain, nonatomic) AppDelegate *appDelegate;
+@property (retain, nonatomic) ActivityGrayView *grayView;
 
+@property (retain, nonatomic) ACAccount *twAccount;
 @property (retain, nonatomic) NSMutableArray *timelineArray;
-@property (retain, nonatomic) NSMutableArray *timelineAppend;
 @property (retain, nonatomic) NSMutableArray *inReplyTo;
 @property (retain, nonatomic) NSMutableArray *reqedUser;
 @property (retain, nonatomic) NSMutableArray *iconUrls;
 @property (retain, nonatomic) NSMutableArray *currentList;
 @property (retain, nonatomic) NSMutableArray *searchStreamTemp;
-
 @property (retain, nonatomic) NSMutableDictionary *allTimelines;
 @property (retain, nonatomic) NSMutableDictionary *sinceIds;
 @property (retain, nonatomic) NSMutableDictionary *icons;
 @property (retain, nonatomic) NSMutableDictionary *allLists;
-
 @property (retain, nonatomic) NSArray *mentionsArray;
 @property (retain, nonatomic) NSArray *selectTweetIds;
 @property (retain, nonatomic) NSArray *tweetInUrls;
-
 @property (retain, nonatomic) NSDictionary *currentTweet;
 @property (retain, nonatomic) NSDictionary *selectTweet;
-
 @property (retain, nonatomic) NSString *userStreamAccount;
 @property (retain, nonatomic) NSString *lastUpdateAccount;
 @property (retain, nonatomic) NSString *timelineTopTweetId;
 @property (retain, nonatomic) NSString *selectAccount;
 @property (retain, nonatomic) NSString *alertSearchUserName;
-
 @property (retain, nonatomic) NSTimer *searchStreamTimer;
 @property (retain, nonatomic) NSTimer *connectionCheckTimer;
 @property (retain, nonatomic) NSTimer *onlineCheckTimer;
-
 @property (strong, nonatomic) NSURLConnection *connection;
-
 @property (retain, nonatomic) NSUserDefaults *d;
 @property (retain, nonatomic) NSFileManager *fileManager;
-
 @property (retain, nonatomic) UIPasteboard *pboard;
 @property (retain, nonatomic) UIImage *startImage;
 @property (retain, nonatomic) UIImage *stopImage;
 @property (retain, nonatomic) UIImage *listImage;
 @property (retain, nonatomic) UIImage *defaultActionButtonImage;
+
 @property (retain, nonatomic) UIAlertView *alertSearch;
 @property (retain, nonatomic) UITextField *alertSearchText;
-
 @property (retain, nonatomic) UIView *pickerBase;
 @property (retain, nonatomic) UIToolbar *pickerBar;
 @property (retain, nonatomic) UIPickerView *eventPicker;
 @property (retain, nonatomic) UIBarButtonItem *pickerBarDoneButton;
 @property (retain, nonatomic) UIBarButtonItem *pickerBarCancelButton;
-
 @property (retain, nonatomic) TTTableHeaderDragRefreshView *headerView;
 @property (retain, nonatomic) UIView *activityTable;
 
@@ -149,12 +137,9 @@
 - (void)getIconWithTweetArray:(NSMutableArray *)tweetArray;
 - (void)getIconWithSequential;
 - (void)changeAccount:(NSNotification *)notification;
-- (void)appendTimelineUnit;
-- (BOOL)appendTimelineUnitScroll;
 - (void)getInReplyToChain:(NSDictionary *)tweetData;
 - (void)scrollTimelineForNewTweet;
 - (void)scrollTimelineToTop:(BOOL)animation;
-- (void)reCreateTimeline;
 - (void)refreshTimelineCell:(NSNumber *)index;
 - (void)copyTweetInUrl:(NSArray *)urlList;
 - (void)checkTimelineCount;
@@ -163,6 +148,7 @@
 - (void)receiveGrayViewDoneNotification:(NSNotification *)notification;
 - (void)saveTimeline:(ACAccount *)account;
 - (void)saveTimeline:(ACAccount *)account tweets:(NSArray *)tweets;
+- (UIColor *)getTextColor:(int)color;
 
 - (void)openStream;
 - (void)closeStream;
@@ -205,3 +191,13 @@
 - (void)checkOnline;
 
 @end
+
+typedef enum {
+    CellTextColorBlack,
+    CellTextColorRed,
+    CellTextColorBlue,
+    CellTextColorGreen,
+    CellTextColorGold
+}CellTextColor;
+
+

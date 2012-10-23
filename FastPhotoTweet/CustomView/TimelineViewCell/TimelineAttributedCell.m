@@ -43,9 +43,6 @@ static NSInteger const kAttributedLabelTag = 100;
     
     if ( self ) {
         
-        [self.textLabel removeFromSuperview];
-        [self.imageView removeFromSuperview];
-        
         _infoLabel = [[[OHAttributedLabel alloc] initWithFrame:CGRectMake(54, 2,  264, 14)] autorelease];
         _mainLabel = [[[OHAttributedLabel alloc] initWithFrame:CGRectMake(54, 19, 264, 31)] autorelease];
         _iconView = [[[TitleButton alloc] initWithFrame:CGRectMake(2, 4, 48, 48)] autorelease];
@@ -72,7 +69,9 @@ static NSInteger const kAttributedLabelTag = 100;
     
     //NSLog(@"%@: dealloc", NSStringFromClass([self class]));
     
-    [self removeAllSubViews];
+    [self setIconView:nil];
+    [self setInfoLabel:nil];
+    [self setMainLabel:nil];
     
     [super dealloc];
 }

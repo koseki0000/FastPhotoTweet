@@ -46,6 +46,11 @@
             //JSTタイムゾーンを適用し、時刻部分を抜き出す
             jstDate = [[[NSDate dateWithTimeInterval:64800 sinceDate:inputDate] description] substringWithRange:NSMakeRange(11, 8)];
             
+            inputDate = nil;
+            inputDateFormatter = nil;
+            date = nil;
+            tweetData = nil;
+            
         }@catch ( NSException *e ) {
             
             return BLANK;
@@ -94,6 +99,11 @@
         
         //クライアント名が取得できなかった場合
         if ( clientName == nil ) return BLANK;
+        
+        tweetData = nil;
+        error = nil;
+        regexp = nil;
+        match = nil;
         
     }@catch ( NSException *e ) {
         

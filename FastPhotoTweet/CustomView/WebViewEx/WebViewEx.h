@@ -20,10 +20,10 @@
     int viewSize;
     
     BOOL isInit;
-    
-    NSURL *URL;
-    NSURLRequest *URLReq;
 }
+
+@property (retain, nonatomic) NSURL *URL;
+@property (retain, nonatomic) NSURLRequest *URLReq;
 
 - (id)initWithSizeZero;
 - (id)initWithSizeFullScreenNoStatusBar;

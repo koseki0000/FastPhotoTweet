@@ -56,13 +56,13 @@
 + (ActivityGrayView *)grayView {
     
     //タスク名を指定せず初期化
-    return [[[ActivityGrayView alloc] init] autorelease];
+    return [[ActivityGrayView alloc] init];
 }
 
 + (ActivityGrayView *)grayViewWithTaskName:(NSString *)taskName {
     
     //タスク名を指定して初期化
-    ActivityGrayView *grayView = [[[ActivityGrayView alloc] init] autorelease];
+    ActivityGrayView *grayView = [[ActivityGrayView alloc] init];
     [grayView addTaskName:taskName];
     
     return grayView;

@@ -25,6 +25,8 @@
 #define IPAD_IAD_HEIGTH 66
 
 @implementation WebViewEx
+@synthesize URL;
+@synthesize URLReq;
 
 - (id)initWithSizeZero {
     
@@ -400,8 +402,8 @@
     
     NSLog(@"WebViewEx dealloc");
     
-    URL = nil;
-    URLReq = nil;
+    [self setURL:nil];
+    [self setURLReq:nil];
     
     //メモリキャッシュの削除
     NSURLCache *cache = [NSURLCache sharedURLCache];

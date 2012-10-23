@@ -16,25 +16,6 @@
 
 @interface WebViewExController : UIViewController <UIWebViewDelegate, UIActionSheetDelegate, UITextFieldDelegate, NSXMLParserDelegate> {
     
-    AppDelegate *appDelegate;
-    GrayView *grayView;
-
-    UIPasteboard *pboard;
-    UIAlertView *alert;
-    UITextField *alertText;
-    UIImage *reloadButtonImage;
-    UIImage *stopButtonImage;
-    
-    NSUserDefaults *d;
-    NSString *accessURL;
-    NSString *loadStartURL;
-    NSString *saveFileName;
-    NSString *downloadUrl;
-    NSURLConnection *asyncConnection;
-    NSMutableData *asyncData;
-    NSArray *startupUrlList;
-    NSArray *urlList;
-    
     float totalbytes;
     float loadedbytes;
     
@@ -49,6 +30,25 @@
     BOOL downloading;
     BOOL loading;
 }
+
+@property (retain, nonatomic) AppDelegate *appDelegate;
+@property (retain, nonatomic) GrayView *grayView;
+
+@property (retain, nonatomic) UIPasteboard *pboard;
+@property (retain, nonatomic) UIAlertView *alert;
+@property (retain, nonatomic) UITextField *alertText;
+@property (retain, nonatomic) UIImage *reloadButtonImage;
+@property (retain, nonatomic) UIImage *stopButtonImage;
+
+@property (retain, nonatomic) NSUserDefaults *d;
+@property (retain, nonatomic) NSString *accessURL;
+@property (retain, nonatomic) NSString *loadStartURL;
+@property (retain, nonatomic) NSString *saveFileName;
+@property (retain, nonatomic) NSString *downloadUrl;
+@property (retain, nonatomic) NSURLConnection *asyncConnection;
+@property (retain, nonatomic) NSMutableData *asyncData;
+@property (retain, nonatomic) NSArray *startupUrlList;
+@property (retain, nonatomic) NSArray *urlList;
 
 @property (weak, nonatomic) IBOutlet WebViewEx *wv;
 @property (weak, nonatomic) IBOutlet UIToolbar *topBar;

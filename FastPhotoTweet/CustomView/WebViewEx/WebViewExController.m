@@ -16,6 +16,23 @@
 #define EXTENSIONS [NSArray arrayWithObjects:@"zip", @"mp4", @"mov", @"m4a", @"rar", @"dmg", @"deb", nil]
 
 @implementation WebViewExController
+@synthesize appDelegate;
+@synthesize grayView;
+@synthesize pboard;
+@synthesize alert;
+@synthesize alertText;
+@synthesize reloadButtonImage;
+@synthesize stopButtonImage;
+@synthesize d;
+@synthesize accessURL;
+@synthesize loadStartURL;
+@synthesize saveFileName;
+@synthesize downloadUrl;
+@synthesize asyncConnection;
+@synthesize asyncData;
+@synthesize startupUrlList;
+@synthesize urlList;
+
 @synthesize wv;
 @synthesize topBar;
 @synthesize urlField;
@@ -2012,20 +2029,20 @@
     if ( wv.loading ) [wv stopLoading];
     wv.delegate = nil;
     
-    appDelegate = nil;
-    pboard = nil;
-    alert = nil;
-    alertText = nil;
-    reloadButtonImage = nil;
-    stopButtonImage = nil;
-    d = nil;
-    accessURL = nil;
-    loadStartURL = nil;
-    saveFileName = nil;
-    asyncConnection = nil;
-    asyncData = nil;;
-    startupUrlList = nil;
-    urlList = nil;
+    self.appDelegate = nil;
+    self.pboard = nil;
+    self.alert = nil;
+    self.alertText = nil;
+    self.reloadButtonImage = nil;
+    self.stopButtonImage = nil;
+    self.d = nil;
+    self.accessURL = nil;
+    self.loadStartURL = nil;
+    self.saveFileName = nil;
+    self.asyncConnection = nil;
+    self.asyncData = nil;;
+    self.startupUrlList = nil;
+    self.urlList = nil;
     
     [self.view removeAllSubViews];
     
