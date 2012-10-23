@@ -17,7 +17,7 @@
     //NSLog(@"originalUrl: %@", urlString);
     
     if ( [urlString hasPrefix:@"http://twitvid.com/"] || [urlString hasPrefix:@"http://www.twitvid.com/"] ) {
-         
+        
         NSMutableString *mString = [NSMutableString stringWithString:urlString];
         [mString replaceOccurrencesOfString:@"www." 
                                  withString:BLANK 
@@ -198,6 +198,45 @@
     if ( error ) [ShowAlert error:error.localizedDescription];
     
     return dataStr;
+}
+
++ (BOOL)checkImageUrl:(NSString *)urlString {
+    
+    BOOL result = NO;
+    
+    if ( [urlString hasPrefix:@"http://twitvid.com/"] || [urlString hasPrefix:@"http://www.twitvid.com/"] ) {
+        result = YES;
+    }else if ( [urlString hasPrefix:@"http://lockerz.com/"] ) {
+        result = YES;
+    }else if ([urlString hasPrefix:@"http://p.twipple.jp/"]) {
+        result = YES;
+    }else if ( [urlString hasPrefix:@"http://yfrog.com/"] ) {
+        result = YES;
+    }else if ( [urlString hasPrefix:@"http://ow.ly/i/"] ) {
+        result = YES;
+    }else if ( [urlString hasPrefix:@"http://twitpic.com/"] && ![urlString hasPrefix:@"http://twitpic.com/photos/"] &&
+              ![urlString hasPrefix:@"http://twitpic.com/show"] && ![urlString hasPrefix:@"http://twitpic.com/account"] &&
+              ![urlString hasPrefix:@"http://twitpic.com/session"] && ![urlString hasPrefix:@"http://twitpic.com/events"] &&
+              ![urlString hasPrefix:@"http://twitpic.com/faces"] && ![urlString hasPrefix:@"http://twitpic.com/upload"] &&
+              ![urlString hasPrefix:@"http://twitpic.com/ad_"] && ![urlString hasSuffix:@".do"] &&
+              ![urlString isEqualToString:@"http://twitpic.com/"] &&
+              ![RegularExpression boolWithRegExp:urlString regExpPattern:@"http://twitpic.com/[0-9a-zA-Z]+/full$"] ) {
+        result = YES;
+    }else if ( [urlString hasPrefix:@"http://instagr.am/p/"] ) {
+        result = YES;
+    }else if ( [RegularExpression boolWithRegExp:urlString regExpPattern:@"https?://(mobile\\.)?twitter\\.com/[_a-zA-Z0-9]{1,15}/status/[0-9]+/photo/1"] ) {
+        result = YES;
+    }else if ( [RegularExpression boolWithRegExp:urlString regExpPattern:@"https?://via.me/-[a-zA-Z0-9]+"] ) {
+        result = YES;
+    }else if ( [RegularExpression boolWithRegExp:urlString regExpPattern:@"https?://img.ly/[a-zA-Z0-9]+"] ) {
+        result = YES;
+    }
+    
+    if ( [RegularExpression boolWithRegExp:[urlString lowercaseString] regExpPattern:@"\\.(jpe?g|png|gif)$"] ) {
+        result = YES;
+    }
+    
+    return result;
 }
 
 @end

@@ -129,6 +129,12 @@
     [mutableCurrentTweet setObject:user forKey:@"user"];
     [mutableCurrentTweet setObject:rtUser forKey:@"rt_user"];
     
+    originalText = nil;
+    postUser = nil;
+    postUserIcon = nil;
+    rtUser = nil;
+    user = nil;
+    
     return [NSDictionary dictionaryWithDictionary:mutableCurrentTweet];
 }
 

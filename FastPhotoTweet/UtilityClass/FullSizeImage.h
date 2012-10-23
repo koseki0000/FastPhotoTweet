@@ -15,4 +15,6 @@
 + (NSString *)urlString:(NSString *)urlString;
 + (NSString *)getSourceCode:(NSString *)urlString;
 
++ (BOOL)checkImageUrl:(NSString *)urlString;
+
 @end

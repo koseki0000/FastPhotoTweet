@@ -299,7 +299,7 @@
             //NSLog(@"newVersion");
             
             [ShowAlert title:[NSString stringWithFormat:@"FastPhotoTweet %@", APP_VERSION]
-                     message:@"・Timelineセル表示の改善と高速化\n・その他多数の不具合を修正"];
+                     message:@"・Timelineの画像URLの表示を良い感じにしました\n・リストが読み込まれていない状態でリロードを行うとクラッシュする問題の修正\n・Timelineが400件以上ある場合にクラッシュする問題の修正\n・Timeline表示の高速化\n・その他多数の不具合を修正"];
             
             information = [[[NSMutableDictionary alloc] initWithDictionary:[d dictionaryForKey:@"Information"]] autorelease];
             [information setValue:[NSNumber numberWithInt:1] forKey:APP_VERSION];
@@ -354,7 +354,8 @@
             }else {
                 
                 //画像投稿先がTwitterの場合
-                if (( [[d objectForKey:@"PhotoService"] isEqualToString:@"Twitter"] || [d  integerForKey:@"NowPlayingPhotoService"] == 1 )) {
+                if ( [[d objectForKey:@"PhotoService"] isEqualToString:@"Twitter"] ||
+                    ( nowPlayingMode && [d  integerForKey:@"NowPlayingPhotoService"] == 1 )) {
                     
                     @autoreleasepool {
                         

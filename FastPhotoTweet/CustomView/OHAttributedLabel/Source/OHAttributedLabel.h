@@ -29,6 +29,7 @@
 #import <CoreText/CoreText.h>
 #import "NSTextCheckingResult+ExtendedURL.h"
 
+#import "FullSizeImage.h"
 
 /////////////////////////////////////////////////////////////////////////////////////
 #pragma mark - OHAttributedLabel Delegate Protocol

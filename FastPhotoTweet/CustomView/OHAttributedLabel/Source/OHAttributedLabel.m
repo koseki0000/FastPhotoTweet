@@ -394,14 +394,31 @@ NSDataDetector* sharedReusableDataDetector(NSTextCheckingTypes types)
 		? [self.delegate attributedLabel:self shouldFollowLink:linkToOpen] : YES;
         
         
-		if (openLink) {
+		if ( openLink ) {
         
-            NSNotification *notification =[NSNotification notificationWithName:@"OpenTimelineURL"
-                                                                        object:self
-                                                                      userInfo:@{@"URL" : linkToOpen.extendedURL.absoluteString != nil ?  linkToOpen.extendedURL.absoluteString : @"" }];
+            NSString *urlString = linkToOpen.extendedURL.absoluteString;
             
-            //通知を実行
-            [[NSNotificationCenter defaultCenter] postNotification:notification];
+            if ( urlString == nil ||
+                [urlString isEqualToString:@""] ) return;
+            
+            if ( [FullSizeImage checkImageUrl:urlString]) {
+                
+                NSNotification *notification =[NSNotification notificationWithName:@"OpenTimelineImage"
+                                                                            object:self
+                                                                          userInfo:@{@"URL" : urlString}];
+                
+                //通知を実行
+                [[NSNotificationCenter defaultCenter] postNotification:notification];
+                
+            }else {
+             
+                NSNotification *notification =[NSNotification notificationWithName:@"OpenTimelineURL"
+                                                                            object:self
+                                                                          userInfo:@{@"URL" : urlString}];
+                
+                //通知を実行
+                [[NSNotificationCenter defaultCenter] postNotification:notification];
+            }
         }
 	}
 	

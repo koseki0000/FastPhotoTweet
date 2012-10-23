@@ -33,6 +33,8 @@
 #import <Three20UICommon/Three20UICommon.h>
 #import <Three20UINavigator/Three20UINavigator.h>
 
+#import "ImageWindow.h"
+
 @interface TimelineViewController : UIViewController <UIActionSheetDelegate, UITextFieldDelegate, UIPickerViewDelegate, UIPickerViewDataSource, UITableViewDelegate, UITableViewDataSource> {
     
     BOOL userStream;
@@ -100,6 +102,8 @@
 @property (retain, nonatomic) TTTableHeaderDragRefreshView *headerView;
 @property (retain, nonatomic) UIView *activityTable;
 
+@property (retain, nonatomic) ImageWindow *imageWindow;
+
 @property (retain, nonatomic) IBOutlet UIToolbar *topBar;
 @property (retain, nonatomic) IBOutlet UITableView *timeline;
 @property (retain, nonatomic) IBOutlet UIBarButtonItem *flexibleSpace;
@@ -145,6 +149,7 @@
 - (void)checkTimelineCount;
 - (void)pushIcon:(UIButton *)sender;
 - (void)openTimelineURL:(NSNotification *)notification;
+- (void)openTimelineImage:(NSNotification *)notification;
 - (void)receiveGrayViewDoneNotification:(NSNotification *)notification;
 - (void)saveTimeline:(ACAccount *)account;
 - (void)saveTimeline:(ACAccount *)account tweets:(NSArray *)tweets;

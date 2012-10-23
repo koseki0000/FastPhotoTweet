@@ -115,9 +115,16 @@
                               withString:replaceUrl
                                  options:0
                                    range:NSMakeRange( 0, text.length )];
+        
+        replaceUrl = nil;
+        tcoUrl = nil;
     }
     
     //NSLog(@"ResutlText: %@", text);
+    
+    urls = nil;
+    media = nil;
+    entities = nil;
     
     //t.coが展開されたReTweet本文が返される
     return [NSString stringWithString:text];
