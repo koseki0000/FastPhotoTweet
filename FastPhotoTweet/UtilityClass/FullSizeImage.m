@@ -232,7 +232,7 @@
         result = YES;
     }
     
-    if ( [RegularExpression boolWithRegExp:[urlString lowercaseString] regExpPattern:@"\\.(jpe?g|png|gif)$"] ) {
+    if ( [RegularExpression boolWithRegExp:[urlString lowercaseString] regExpPattern:@"\\.(jpe?g|png|gif)"] ) {
         result = YES;
     }
     

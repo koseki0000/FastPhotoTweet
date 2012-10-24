@@ -128,8 +128,8 @@
 
 - (IBAction)changeSegment:(UISegmentedControl *)sender;
 
-- (oneway void)setNotifications;
-- (oneway void)setTimelineHeight;
+- (void)setNotifications;
+- (void)setTimelineHeight;
 - (void)createPullDownRefreshHeader;
 - (void)startLoad;
 - (void)finishLoad;
@@ -176,7 +176,7 @@
 - (void)enterBackground:(NSNotification *)notification;
 - (void)becomeActive:(NSNotification *)notification;
 
-- (oneway void)getMyAccountIcon;
+- (void)getMyAccountIcon;
 - (void)timelineDidListChanged;
 - (void)showListSelectView;
 - (void)setTimelineBarItems;

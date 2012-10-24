@@ -14,6 +14,7 @@
     CGFloat _receivedSize;
     
     BOOL _afterClose;
+    BOOL _saveStarted;
 }
 
 @property (retain, nonatomic) NSString *imageUrl;
@@ -35,6 +36,9 @@
 - (void)reloadProgressBar;
 - (void)setImageAtImageView:(UIImage *)image;
 - (void)saveImageForLibrary;
+
 - (void)tapImageView:(UITapGestureRecognizer *)sender;
+- (void)swipeUpImageView:(UISwipeGestureRecognizer *)sender;
+- (void)longPressImageView:(UILongPressGestureRecognizer *)sender;
 
 @end

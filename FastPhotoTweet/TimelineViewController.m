@@ -216,7 +216,7 @@
     [self performSelectorInBackground:@selector(createTimeline) withObject:nil];
 }
 
-- (oneway void)setNotifications {
+- (void)setNotifications {
     
     NSNotificationCenter *notificationCenter = [NSNotificationCenter defaultCenter];
     
@@ -326,7 +326,7 @@
     notificationCenter = nil;
 }
 
-- (oneway void)setTimelineHeight {
+- (void)setTimelineHeight {
     
     //タイムラインの位置を計算する
     int timelineY = TOOL_BAR_HEIGHT + SEGMENT_BAR_HEIGHT;
@@ -3295,7 +3295,7 @@
         alertSearchUserName = selectAccount;
         
         UIActionSheet *oneUserSheet = [[UIActionSheet alloc]
-                                initWithTitle:alertSearchUserName
+                                initWithTitle:selectAccount
                                 delegate:self
                                 cancelButtonTitle:@"Cancel"
                                 destructiveButtonTitle:nil
@@ -3378,31 +3378,69 @@
 
 - (void)openTwitterService:(NSString *)username serviceType:(int)serviceType {
     
-    @try {
+    if ( ![EmptyCheck string:username] ) return;
+    
+    appDelegate.reOpenUrl = BLANK;
+    
+    NSString *serviceUrl = nil;
+    
+    if ( serviceType == 0 ) {
         
-        if ( ![EmptyCheck string:username] ) return;
+        //Twilog
+        serviceUrl = [NSString stringWithFormat:@"http://twilog.org/%@", username];
         
-        appDelegate.reOpenUrl = BLANK;
+    }else if ( serviceType == 1 ) {
         
-        NSString *serviceUrl = nil;
-        
-        if ( serviceType == 0 ) {
+        dispatch_async(dispatch_get_main_queue(), ^ {
             
-            //Twilog
-            serviceUrl = [NSString stringWithFormat:@"http://twilog.org/%@", username];
+            self.alertSearch = nil;
+            alertSearch = [[UIAlertView alloc] initWithTitle:@"TwilogSearch"
+                                                     message:@"\n"
+                                                    delegate:self
+                                           cancelButtonTitle:@"キャンセル"
+                                           otherButtonTitles:@"確定", nil];
             
-        }else if ( serviceType == 1 ) {
+            alertSearch.tag = 0;
             
-            dispatch_async(dispatch_get_main_queue(), ^ {
+            self.alertSearchText = nil;
+            alertSearchText = [[UITextField alloc] initWithFrame:CGRectMake(12, 40, 260, 25)];
+            [alertSearchText setBackgroundColor:[UIColor whiteColor]];
+            alertSearchText.contentVerticalAlignment = UIControlContentVerticalAlignmentCenter;
+            alertSearchText.delegate = self;
+            alertSearchText.text = BLANK;
+            alertSearchText.tag = 0;
+            
+            [alertSearch addSubview:alertSearchText];
+            [alertSearch show];
+            [alertSearchText becomeFirstResponder];
+        });
+        
+        return;
+        
+    }else if ( serviceType == 2 ) {
+        
+        //favstar
+        serviceUrl = [NSString stringWithFormat:@"http://ja.favstar.fm/users/%@/recent", username];
+        
+    }else if ( serviceType == 3 ) {
+        
+        //Twitpic
+        serviceUrl = [NSString stringWithFormat:@"http://twitpic.com/photos/%@", username];
+        
+    }else if ( serviceType == 4 ) {
+        
+        dispatch_async(dispatch_get_main_queue(), ^ {
+            
+            if ( alertSearchType ) {
                 
                 self.alertSearch = nil;
-                alertSearch = [[UIAlertView alloc] initWithTitle:@"TwilogSearch"
+                alertSearch = [[UIAlertView alloc] initWithTitle:@"ID入力 (screen_name)"
                                                          message:@"\n"
                                                         delegate:self
                                                cancelButtonTitle:@"キャンセル"
                                                otherButtonTitles:@"確定", nil];
                 
-                alertSearch.tag = 0;
+                alertSearch.tag = 1;
                 
                 self.alertSearchText = nil;
                 alertSearchText = [[UITextField alloc] initWithFrame:CGRectMake(12, 40, 260, 25)];
@@ -3410,129 +3448,36 @@
                 alertSearchText.contentVerticalAlignment = UIControlContentVerticalAlignmentCenter;
                 alertSearchText.delegate = self;
                 alertSearchText.text = BLANK;
-                alertSearchText.tag = 0;
+                alertSearchText.tag = 1;
                 
                 [alertSearch addSubview:alertSearchText];
                 [alertSearch show];
                 [alertSearchText becomeFirstResponder];
-            });
-            
-            return;
-            
-        }else if ( serviceType == 2 ) {
-            
-            //favstar
-            serviceUrl = [NSString stringWithFormat:@"http://ja.favstar.fm/users/%@/recent", username];
-            
-        }else if ( serviceType == 3 ) {
-            
-            //Twitpic
-            serviceUrl = [NSString stringWithFormat:@"http://twitpic.com/photos/%@", username];
-            
-        }else if ( serviceType == 4 ) {
-            
-            dispatch_async(dispatch_get_main_queue(), ^ {
                 
-                if ( alertSearchType ) {
-                    
-                    self.alertSearch = nil;
-                    alertSearch = [[UIAlertView alloc] initWithTitle:@"ID入力 (screen_name)"
-                                                             message:@"\n"
-                                                            delegate:self
-                                                   cancelButtonTitle:@"キャンセル"
-                                                   otherButtonTitles:@"確定", nil];
-                    
-                    alertSearch.tag = 1;
-                    
-                    self.alertSearchText = nil;
-                    alertSearchText = [[UITextField alloc] initWithFrame:CGRectMake(12, 40, 260, 25)];
-                    [alertSearchText setBackgroundColor:[UIColor whiteColor]];
-                    alertSearchText.contentVerticalAlignment = UIControlContentVerticalAlignmentCenter;
-                    alertSearchText.delegate = self;
-                    alertSearchText.text = BLANK;
-                    alertSearchText.tag = 1;
-                    
-                    [alertSearch addSubview:alertSearchText];
-                    [alertSearch show];
-                    [alertSearchText becomeFirstResponder];
-                    
-                }else {
-                    
-                    [TWGetTimeline userTimeline:username];
-                }
-            });
+            }else {
+                
+                [TWGetTimeline userTimeline:username];
+            }
+        });
+        
+        return;
+        
+    }else if ( serviceType == 5 ) {
+        
+        dispatch_async(dispatch_get_main_queue(), ^ {
             
-            return;
+            otherTweetsMode = YES;
             
-        }else if ( serviceType == 5 ) {
-            
-            dispatch_async(dispatch_get_main_queue(), ^ {
-                
-                otherTweetsMode = YES;
-                
-                if ( alertSearchType ) {
-                    
-                    self.alertSearch = nil;
-                    alertSearch = [[UIAlertView alloc] initWithTitle:@"Twitter Search"
-                                                             message:@"\n"
-                                                            delegate:self
-                                                   cancelButtonTitle:@"キャンセル"
-                                                   otherButtonTitles:@"確定", nil];
-                    
-                    alertSearch.tag = 2;
-                    
-                    self.alertSearchText = nil;
-                    alertSearchText = [[UITextField alloc] initWithFrame:CGRectMake(12, 40, 260, 25)];
-                    [alertSearchText setBackgroundColor:[UIColor whiteColor]];
-                    alertSearchText.contentVerticalAlignment = UIControlContentVerticalAlignmentCenter;
-                    alertSearchText.delegate = self;
-                    alertSearchText.text = BLANK;
-                    alertSearchText.tag = 2;
-                    
-                    [alertSearch addSubview:alertSearchText];
-                    [alertSearch show];
-                    [alertSearchText becomeFirstResponder];
-                    
-                }else {
-                    
-                    [TWGetTimeline twitterSearch:[CreateSearchURL encodeWord:username
-                                                                    encoding:kCFStringEncodingUTF8]];
-                }
-            });
-            
-            return;
-            
-        }else if ( serviceType == 6 ) {
-            
-            dispatch_async(dispatch_get_main_queue(), ^ {
-                
-                //UserStreamを切断
-                if ( username ) [self closeStream];
-                
-                twAccount = [TWGetAccount currentAccount];
-                
-                if ( timelineSegment.selectedSegmentIndex == 0 ) {
-                    
-                    @synchronized(self) {
-                        
-                        [allTimelines setObject:timelineArray forKey:twAccount.username];
-                    }
-                }
-                
-                [timelineArray removeAllObjects];
-                timelineArray = BLANK_M_ARRAY;
-                [timeline reloadData];
-                
-                searchStream =YES;
+            if ( alertSearchType ) {
                 
                 self.alertSearch = nil;
-                alertSearch = [[UIAlertView alloc] initWithTitle:@"Twitter Search(Stream)"
+                alertSearch = [[UIAlertView alloc] initWithTitle:@"Twitter Search"
                                                          message:@"\n"
                                                         delegate:self
                                                cancelButtonTitle:@"キャンセル"
                                                otherButtonTitles:@"確定", nil];
                 
-                alertSearch.tag = 3;
+                alertSearch.tag = 2;
                 
                 self.alertSearchText = nil;
                 alertSearchText = [[UITextField alloc] initWithFrame:CGRectMake(12, 40, 260, 25)];
@@ -3540,29 +3485,76 @@
                 alertSearchText.contentVerticalAlignment = UIControlContentVerticalAlignmentCenter;
                 alertSearchText.delegate = self;
                 alertSearchText.text = BLANK;
-                alertSearchText.tag = 3;
+                alertSearchText.tag = 2;
                 
                 [alertSearch addSubview:alertSearchText];
                 [alertSearch show];
                 [alertSearchText becomeFirstResponder];
-            });
+                
+            }else {
+                
+                [TWGetTimeline twitterSearch:[CreateSearchURL encodeWord:username
+                                                                encoding:kCFStringEncodingUTF8]];
+            }
+        });
+        
+        return;
+        
+    }else if ( serviceType == 6 ) {
+        
+        dispatch_async(dispatch_get_main_queue(), ^ {
             
-            return;
+            //UserStreamを切断
+            if ( username ) [self closeStream];
             
-        }else {
+            twAccount = [TWGetAccount currentAccount];
             
-            return;
-        }
+            if ( timelineSegment.selectedSegmentIndex == 0 ) {
+                
+                @synchronized(self) {
+                    
+                    [allTimelines setObject:timelineArray forKey:twAccount.username];
+                }
+            }
+            
+            [timelineArray removeAllObjects];
+            timelineArray = BLANK_M_ARRAY;
+            [timeline reloadData];
+            
+            searchStream =YES;
+            
+            self.alertSearch = nil;
+            alertSearch = [[UIAlertView alloc] initWithTitle:@"Twitter Search(Stream)"
+                                                     message:@"\n"
+                                                    delegate:self
+                                           cancelButtonTitle:@"キャンセル"
+                                           otherButtonTitles:@"確定", nil];
+            
+            alertSearch.tag = 3;
+            
+            self.alertSearchText = nil;
+            alertSearchText = [[UITextField alloc] initWithFrame:CGRectMake(12, 40, 260, 25)];
+            [alertSearchText setBackgroundColor:[UIColor whiteColor]];
+            alertSearchText.contentVerticalAlignment = UIControlContentVerticalAlignmentCenter;
+            alertSearchText.delegate = self;
+            alertSearchText.text = BLANK;
+            alertSearchText.tag = 3;
+            
+            [alertSearch addSubview:alertSearchText];
+            [alertSearch show];
+            [alertSearchText becomeFirstResponder];
+        });
         
-        appDelegate.startupUrlList = [NSArray arrayWithObject:serviceUrl];
+        return;
         
-        [self openBrowser];
+    }else {
         
-    }@finally {
-        
-        [self setAlertSearchUserName:nil];
-        [self setSelectAccount:nil];
+        return;
     }
+    
+    appDelegate.startupUrlList = [NSArray arrayWithObject:serviceUrl];
+    
+    [self openBrowser];
 }
 
 #pragma mark - UIPickerView
@@ -3836,6 +3828,7 @@
         [[NSUserDefaults standardUserDefaults] registerDefaults:dictionary];
         
         webBrowserMode = YES;
+        appDelegate.reOpenUrl = BLANK;
         
         dispatch_async(dispatch_get_main_queue(), ^ {
             
@@ -4133,7 +4126,7 @@
 
 #pragma mark - View
 
-- (oneway void)getMyAccountIcon {
+- (void)getMyAccountIcon {
     
     @autoreleasepool {
         

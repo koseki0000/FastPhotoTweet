@@ -299,7 +299,7 @@
             //NSLog(@"newVersion");
             
             [ShowAlert title:[NSString stringWithFormat:@"FastPhotoTweet %@", APP_VERSION]
-                     message:@"・Timelineの画像URLの表示を良い感じにしました\n・リストが読み込まれていない状態でリロードを行うとクラッシュする問題の修正\n・Timelineが400件以上ある場合にクラッシュする問題の修正\n・Timeline表示の高速化\n・その他多数の不具合を修正"];
+                     message:@"・Timeline画像プレビューにジェスチャーを追加\n長押し→保存して閉じる\n上スワイプ→閉じる\n・その他不具合を修正"];
             
             information = [[[NSMutableDictionary alloc] initWithDictionary:[d dictionaryForKey:@"Information"]] autorelease];
             [information setValue:[NSNumber numberWithInt:1] forKey:APP_VERSION];

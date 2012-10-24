@@ -18,6 +18,8 @@
 + (NSDictionary *)replaceTco:(NSDictionary *)tweet;
 + (NSMutableString *)replace:(NSDictionary *)tweet text:(NSMutableString *)text entitiesType:(NSString *)entitiesType;
 
++ (NSDictionary *)truncateUselessData:(NSMutableDictionary *)tweet;
+
 + (id)replaceTcoAll:(id)tweets;
 
 @end

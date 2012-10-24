@@ -309,21 +309,24 @@ NSDataDetector* sharedReusableDataDetector(NSTextCheckingTypes types)
 	return foundResult;
 }
 
--(NSTextCheckingResult*)linkAtPoint:(CGPoint)point
-{
+-(NSTextCheckingResult *)linkAtPoint:(CGPoint)point {
+    
 	static const CGFloat kVMargin = 5.f;
-	if (!CGRectContainsPoint(CGRectInset(drawingRect, 0, -kVMargin), point)) return nil;
+	
+    if ( !CGRectContainsPoint( CGRectInset( drawingRect, 0, -kVMargin ), point )) return nil;
 	
 	CFArrayRef lines = CTFrameGetLines(textFrame);
-	if (!lines) return nil;
+	
+    if ( !lines ) return nil;
+    
 	CFIndex nbLines = CFArrayGetCount(lines);
 	NSTextCheckingResult* link = nil;
 	
 	CGPoint origins[nbLines];
 	CTFrameGetLineOrigins(textFrame, CFRangeMake(0,0), origins);
 	
-	for (int lineIndex=0 ; lineIndex<nbLines ; ++lineIndex) {
-		// this actually the origin of the line rect, so we need the whole rect to flip it
+	for ( int lineIndex=0; lineIndex<nbLines; ++lineIndex ) {
+
 		CGPoint lineOriginFlipped = origins[lineIndex];
 		
 		CTLineRef line = CFArrayGetValueAtIndex(lines, lineIndex);
@@ -331,93 +334,97 @@ NSDataDetector* sharedReusableDataDetector(NSTextCheckingTypes types)
 		CGRect lineRect = CGRectFlipped(lineRectFlipped, CGRectFlipped(drawingRect,self.bounds));
 		
 		lineRect = CGRectInset(lineRect, 0, -kVMargin);
-		if (CGRectContainsPoint(lineRect, point)) {
+        
+		if ( CGRectContainsPoint( lineRect, point )) {
+            
 			CGPoint relativePoint = CGPointMake(point.x-CGRectGetMinX(lineRect),
 												point.y-CGRectGetMinY(lineRect));
+            
 			CFIndex idx = CTLineGetStringIndexForPosition(line, relativePoint);
+            
 			link = ([self linkAtCharacterIndex:idx]);
-			if (link) return link;
+            
+			if ( link ) return link;
 		}
 	}
 	return nil;
 }
 
--(UIView *)hitTest:(CGPoint)point withEvent:(UIEvent *)event
-{
-	// never return self. always return the result of [super hitTest..].
-	// this takes userInteraction state, enabled, alpha values etc. into account
+- (UIView *)hitTest:(CGPoint)point withEvent:(UIEvent *)event {
+    
 	UIView *hitResult = [super hitTest:point withEvent:event];
 	
-	// don't check for links if the event was handled by one of the subviews
-	if (hitResult != self) {
+	if ( hitResult != self ) {
+        
 		return hitResult;
 	}
 	
-	if (self.onlyCatchTouchesOnLinks) {
-		BOOL didHitLink = ([self linkAtPoint:point] != nil);
-		if (!didHitLink) {
-			// not catch the touch if it didn't hit a link
+	if ( self.onlyCatchTouchesOnLinks ) {
+        
+		BOOL didHitLink = ( [self linkAtPoint:point] != nil );
+
+		if ( !didHitLink ) {
+
 			return nil;
 		}
 	}
+    
 	return hitResult;
 }
 
--(void)touchesBegan:(NSSet *)touches withEvent:(UIEvent *)event
-{
-	UITouch* touch = [touches anyObject];
+-(void)touchesBegan:(NSSet *)touches withEvent:(UIEvent *)event {
+    
+	UITouch *touch = [touches anyObject];
 	CGPoint pt = [touch locationInView:self];
 	
 	self.activeLink = [self linkAtPoint:pt];
 	_touchStartPoint = pt;
 	
-	// we're using activeLink to draw a highlight in -drawRect:
 	[self setNeedsDisplay];
 }
 
--(void)touchesEnded:(NSSet *)touches withEvent:(UIEvent *)event
-{
+- (void)touchesEnded:(NSSet *)touches withEvent:(UIEvent *)event {
+    
 	UITouch* touch = [touches anyObject];
 	CGPoint pt = [touch locationInView:self];
 	
 	NSTextCheckingResult *linkAtTouchesEnded = [self linkAtPoint:pt];
 	
-	BOOL closeToStart = (abs(_touchStartPoint.x - pt.x) < 10 && abs(_touchStartPoint.y - pt.y) < 10);
+	BOOL closeToStart = ( abs( _touchStartPoint.x - pt.x ) < 10 && abs( _touchStartPoint.y - pt.y ) < 10 );
 
-	// we can check on equality of the ranges themselfes since the data detectors create new results
-	if (_activeLink && (NSEqualRanges(_activeLink.range,linkAtTouchesEnded.range) || closeToStart))
-    {
-        NSTextCheckingResult* linkToOpen = _activeLink;
-        // In case the delegate calls recomputeLinksInText or anything that will clear the _activeLink variable, keep it around anyway
+	if ( _activeLink && ( NSEqualRanges( _activeLink.range, linkAtTouchesEnded.range ) || closeToStart )) {
+        
+        NSTextCheckingResult *linkToOpen = _activeLink;
+
         (void)MRC_AUTORELEASE(MRC_RETAIN(linkToOpen));
+        
 		BOOL openLink = (self.delegate && [self.delegate respondsToSelector:@selector(attributedLabel:shouldFollowLink:)])
 		? [self.delegate attributedLabel:self shouldFollowLink:linkToOpen] : YES;
-        
         
 		if ( openLink ) {
         
             NSString *urlString = linkToOpen.extendedURL.absoluteString;
             
-            if ( urlString == nil ||
-                [urlString isEqualToString:@""] ) return;
-            
-            if ( [FullSizeImage checkImageUrl:urlString]) {
-                
-                NSNotification *notification =[NSNotification notificationWithName:@"OpenTimelineImage"
-                                                                            object:self
-                                                                          userInfo:@{@"URL" : urlString}];
-                
-                //通知を実行
-                [[NSNotificationCenter defaultCenter] postNotification:notification];
-                
-            }else {
+            if ( urlString != nil && ![urlString isEqualToString:@""] ) {
              
-                NSNotification *notification =[NSNotification notificationWithName:@"OpenTimelineURL"
-                                                                            object:self
-                                                                          userInfo:@{@"URL" : urlString}];
-                
-                //通知を実行
-                [[NSNotificationCenter defaultCenter] postNotification:notification];
+                if ( [FullSizeImage checkImageUrl:urlString] ) {
+                    
+                    NSNotification *notification =[NSNotification notificationWithName:@"OpenTimelineImage"
+                                                                                object:self
+                                                                              userInfo:@{@"URL" : urlString}];
+                    
+                    //通知を実行
+                    [[NSNotificationCenter defaultCenter] postNotification:notification];
+                    
+                }else {
+                    
+                    NSNotification *notification =[NSNotification notificationWithName:@"OpenTimelineURL"
+                                                                                object:self
+                                                                              userInfo:@{@"URL" : urlString}];
+                    
+                    //通知を実行
+                    [[NSNotificationCenter defaultCenter] postNotification:notification];
+                }
             }
         }
 	}
@@ -426,14 +433,11 @@ NSDataDetector* sharedReusableDataDetector(NSTextCheckingTypes types)
 	[self setNeedsDisplay];
 }
 
--(void)touchesCancelled:(NSSet *)touches withEvent:(UIEvent *)event
-{
+- (void)touchesCancelled:(NSSet *)touches withEvent:(UIEvent *)event {
+    
 	self.activeLink = nil;
 	[self setNeedsDisplay];
 }
-
-
-
 
 /////////////////////////////////////////////////////////////////////////////////////
 #pragma mark - Drawing Text

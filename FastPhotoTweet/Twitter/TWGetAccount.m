@@ -11,42 +11,50 @@
 
 + (ACAccount *)currentAccount {
     
-    NSUserDefaults *d = [NSUserDefaults standardUserDefaults];
-    
     ACAccountStore *accountStore = [[[ACAccountStore alloc] init] autorelease];
-    ACAccountType *accountType = [accountStore accountTypeWithAccountTypeIdentifier:ACAccountTypeIdentifierTwitter];
-    NSArray *twitterAccounts = [accountStore accountsWithAccountType:accountType];
     
-    if ( twitterAccounts.count > 0 ) {
+    @try {
         
-        //NSLog(@"Account Success");
+        ACAccountType *accountType = [accountStore accountTypeWithAccountTypeIdentifier:ACAccountTypeIdentifierTwitter];
+        NSArray *twitterAccounts = [accountStore accountsWithAccountType:accountType];
         
-        return [twitterAccounts objectAtIndex:[d integerForKey:@"UseAccount"]];
+        if ( twitterAccounts.count > 0 ) {
+            
+            return [twitterAccounts objectAtIndex:[[NSUserDefaults standardUserDefaults] integerForKey:@"UseAccount"]];
+            
+        }else {
+        
+            return nil;
+        }
+    
+    }@catch ( NSException *e ) {
+        
+        return nil;
     }
-    
-    //NSLog(@"%@", twAccount.username);
-    
-    return nil;
 }
 
 + (ACAccount *)selectAccount:(int)num {
     
-    ACAccount *twAccount = [[[ACAccount alloc] init] autorelease];
+    ACAccountStore *accountStore = [[[ACAccountStore alloc] init] autorelease];
     
     @try {
         
-        ACAccountStore *accountStore = [[[ACAccountStore alloc] init] autorelease];
         ACAccountType *accountType = [accountStore accountTypeWithAccountTypeIdentifier:ACAccountTypeIdentifierTwitter];
         NSArray *twitterAccounts = [accountStore accountsWithAccountType:accountType];
         
         if ( twitterAccounts.count > 0 && twitterAccounts.count - 1 >= num ) {
             
-            twAccount = [twitterAccounts objectAtIndex:num];
+            return [twitterAccounts objectAtIndex:num];
+            
+        }else {
+            
+            return nil;
         }
         
-    }@catch ( NSException *e ) { return nil; }
+    }@catch (NSException *e) {
     
-    return twAccount;
+        return nil;
+    }
 }
 
 + (int)getCount {
@@ -63,8 +71,6 @@
     ACAccountStore *accountStore = [[[ACAccountStore alloc] init] autorelease];
     ACAccountType *accountType = [accountStore accountTypeWithAccountTypeIdentifier:ACAccountTypeIdentifierTwitter];
     NSArray *twitterAccounts = [accountStore accountsWithAccountType:accountType];
-    
-    //NSLog(@"twitterAccounts: %@", twitterAccounts);
     
     return twitterAccounts;
 }

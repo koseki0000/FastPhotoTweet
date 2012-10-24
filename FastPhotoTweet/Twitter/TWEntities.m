@@ -139,11 +139,8 @@
     //textを置き換える
     NSMutableDictionary *replacedTweet = [NSMutableDictionary dictionaryWithDictionary:tweet];
     [replacedTweet setObject:text forKey:@"text"];
-    [replacedTweet setObject:text.linkWrappingAll forKey:@"link_text"];
     
-    tweet = [NSDictionary dictionaryWithDictionary:replacedTweet];
-    
-    return tweet;
+    return [TWEntities truncateUselessData:replacedTweet];
 }
 
 //t.co置換処理本体
@@ -205,6 +202,40 @@
     
     //t.co展開済みの本文を返す
     return text;
+}
+
++ (NSDictionary *)truncateUselessData:(NSMutableDictionary *)tweet {
+    
+    [tweet removeObjectForKey:@"coordinates"];
+    [tweet removeObjectForKey:@"truncated"];
+    [tweet removeObjectForKey:@"contributors"];
+    [tweet removeObjectForKey:@"geo"];
+    [tweet removeObjectForKey:@"possibly_sensitive"];
+    
+    NSMutableDictionary *user = [NSMutableDictionary dictionaryWithDictionary:[tweet objectForKey:@"user"]];
+    
+    [user removeObjectForKey:@"profile_sidebar_border_color"];
+    [user removeObjectForKey:@"profile_sidebar_fill_color"];
+    [user removeObjectForKey:@"profile_background_tile"];
+    [user removeObjectForKey:@"is_translator"];
+    [user removeObjectForKey:@"profile_link_color"];
+    [user removeObjectForKey:@"profile_background_image_url_https"];
+    [user removeObjectForKey:@"description"];
+    [user removeObjectForKey:@"profile_background_image_url"];
+    [user removeObjectForKey:@"profile_background_color"];
+    [user removeObjectForKey:@"profile_image_url_https"];
+    [user removeObjectForKey:@"url"];
+    [user removeObjectForKey:@"geo_enabled"];
+    [user removeObjectForKey:@"verified"];
+    [user removeObjectForKey:@"notifications"];
+    [user removeObjectForKey:@"statuses_count"];
+    [user removeObjectForKey:@"friends_count"];
+    [user removeObjectForKey:@"show_all_inline_media"];
+    [user removeObjectForKey:@"utc_offset"];
+    
+    [tweet setObject:user forKey:@"user"];
+    
+    return [NSDictionary dictionaryWithDictionary:tweet];
 }
 
 //複数のTweetのt.coを全て展開する

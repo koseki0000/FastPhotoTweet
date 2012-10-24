@@ -12,7 +12,7 @@
 
 @implementation TWGetTimeline
 
-+ (oneway void)homeTimeline {
++ (void)homeTimeline {
     
     NSAutoreleasePool *pool = [[NSAutoreleasePool alloc] init];
     
@@ -122,7 +122,7 @@
     NSLog(@"HomeTimeline request sended");
 }
 
-+ (oneway void)userTimeline:(NSString *)screenName {
++ (void)userTimeline:(NSString *)screenName {
     
     NSAutoreleasePool *pool = [[NSAutoreleasePool alloc] init];
     
@@ -260,7 +260,7 @@
     //NSLog(@"UserTimeline request sended");
 }
 
-+ (oneway void)mentions {
++ (void)mentions {
     
     NSAutoreleasePool *pool = [[NSAutoreleasePool alloc] init];
     
@@ -342,7 +342,7 @@
     //NSLog(@"Mentions request sended");
 }
 
-+ (oneway void)favotites {
++ (void)favotites {
     
     NSAutoreleasePool *pool = [[NSAutoreleasePool alloc] init];
     
@@ -424,7 +424,7 @@
     //NSLog(@"Favorites request sended");
 }
 
-+ (oneway void)twitterSearch:(NSString *)searchWord {
++ (void)twitterSearch:(NSString *)searchWord {
     
     NSAutoreleasePool *pool = [[NSAutoreleasePool alloc] init];
     

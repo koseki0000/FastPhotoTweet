@@ -34,6 +34,8 @@
     if ( imageUrl == nil ||
         [imageUrl isEqualToString:@""] ) [self hideWindow];
     
+    _saveStarted = NO;
+    
     [self setImageUrl:nil];
     self.imageUrl = [FullSizeImage urlString:imageUrl];
     [self.imageUrl retain];
@@ -88,10 +90,21 @@
     imageView.contentMode = UIViewContentModeScaleAspectFit;
     [self addSubview:imageView];
     
+    UISwipeGestureRecognizer *swipeUpGesture = [[UISwipeGestureRecognizer alloc] initWithTarget:self
+                                                                                 action:@selector(swipeUpImageView:)];
+    swipeUpGesture.direction = UISwipeGestureRecognizerDirectionUp;
+    [imageView addGestureRecognizer:swipeUpGesture];
+    [swipeUpGesture release];
+    
     UITapGestureRecognizer *tapGesture = [[UITapGestureRecognizer alloc] initWithTarget:self
                                                                                  action:@selector(tapImageView:)];
     [imageView addGestureRecognizer:tapGesture];
     [tapGesture release];
+    
+    UILongPressGestureRecognizer *longPressGesture = [[UILongPressGestureRecognizer alloc] initWithTarget:self action:@selector(longPressImageView:)];
+    longPressGesture.minimumPressDuration = 0.5;
+    [imageView addGestureRecognizer:longPressGesture];
+    [longPressGesture release];
     
     activityIndicator = [[UIActivityIndicatorView alloc] initWithActivityIndicatorStyle:UIActivityIndicatorViewStyleWhiteLarge];
     [imageView addSubview:activityIndicator];
@@ -129,6 +142,22 @@
         sheet.tag = 1;
         [sheet showInView:self];
         [sheet release];
+    }
+}
+
+- (void)swipeUpImageView:(UISwipeGestureRecognizer *)sender {
+
+    [self hideWindow];
+}
+
+- (void)longPressImageView:(UILongPressGestureRecognizer *)sender {
+    
+    if ( imageView.image != nil && !_saveStarted ) {
+     
+        _saveStarted = YES;
+        _afterClose = YES;
+        
+        [self performSelectorInBackground:@selector(saveImageForLibrary) withObject:nil];
     }
 }
 
@@ -296,6 +325,8 @@
                    contextInfo:(void *)contextInfo {
     
     [ShowAlert title:@"保存完了" message:@"カメラロールに保存しました。"];
+
+    _saveStarted = NO;
     
     [activityIndicator stopAnimating];
     
