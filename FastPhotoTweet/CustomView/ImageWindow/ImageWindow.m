@@ -141,6 +141,10 @@
     [imageView addGestureRecognizer:longPressGesture];
     [longPressGesture release];
     
+    UIPinchGestureRecognizer *pinchGesture = [[UIPinchGestureRecognizer alloc] initWithTarget:self action:@selector(pinchImageView:)];
+    [imageView addGestureRecognizer:pinchGesture];
+    [pinchGesture release];
+    
     activityIndicator = [[UIActivityIndicatorView alloc] initWithActivityIndicatorStyle:UIActivityIndicatorViewStyleWhiteLarge];
     [imageView addSubview:activityIndicator];
     
@@ -196,6 +200,18 @@
     }
 }
 
+- (void)pinchImageView:(UIPinchGestureRecognizer *)sender {
+    
+    if ( sender.state == UIGestureRecognizerStateBegan ) {
+        
+        currentTransForm = imageView.transform;
+    }
+	
+    CGFloat scale = [sender scale];
+    
+    imageView.transform = CGAffineTransformConcat(currentTransForm, CGAffineTransformMakeScale(scale, scale));
+}
+
 - (void)actionSheet:(UIActionSheet *)actionSheet clickedButtonAtIndex:(NSInteger)buttonIndex {
     
 //    NSLog(@"actionSheet clickedButtonAtIndex: %d", buttonIndex);
@@ -246,6 +262,7 @@
 
 - (void)hideWindow {
     
+    [self.connection cancel];
     [self setImageName:nil];
     [self setImageUrl:nil];
     [self setConnection:nil];

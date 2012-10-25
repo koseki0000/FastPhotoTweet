@@ -299,7 +299,7 @@
             //NSLog(@"newVersion");
             
             [ShowAlert title:[NSString stringWithFormat:@"FastPhotoTweet %@", APP_VERSION]
-                     message:@"・不具合修正\n・速度改善"];
+                     message:@"・画像プレビューがピンチイン・アウトに対応\n・画像プレビューがfc2画像に対応\n・不具合修正\n・速度改善"];
             
             information = [[[NSMutableDictionary alloc] initWithDictionary:[d dictionaryForKey:@"Information"]] autorelease];
             [information setValue:[NSNumber numberWithInt:1] forKey:APP_VERSION];

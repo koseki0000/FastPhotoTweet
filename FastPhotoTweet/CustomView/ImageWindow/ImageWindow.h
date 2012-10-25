@@ -9,6 +9,8 @@
 
 @interface ImageWindow : UIView <NSURLConnectionDelegate, UIActionSheetDelegate> {
     
+    CGAffineTransform currentTransForm;
+    
     CGRect _viewRect;
     CGFloat _maxSize;
     CGFloat _receivedSize;
@@ -40,5 +42,6 @@
 - (void)tapImageView:(UITapGestureRecognizer *)sender;
 - (void)swipeUpImageView:(UISwipeGestureRecognizer *)sender;
 - (void)longPressImageView:(UILongPressGestureRecognizer *)sender;
+- (void)pinchImageView:(UIPinchGestureRecognizer *)sender;
 
 @end
