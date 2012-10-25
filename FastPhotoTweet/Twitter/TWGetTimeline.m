@@ -14,17 +14,15 @@
 
 + (void)homeTimeline {
     
-    NSAutoreleasePool *pool = [[NSAutoreleasePool alloc] init];
+//    NSAutoreleasePool *pool = [[NSAutoreleasePool alloc] init];
     
     @try {
     
         //アカウントの取得
-        ACAccount *twAccount = [TWGetAccount currentAccount];
-        
         //NSLog(@"Get HomeTimeline: %@", twAccount.username);
         
         //Twitterアカウントの確認
-        if ( twAccount == nil ) {
+        if ( [TWAccounts currentAccount] == nil ) {
             
             //アカウントデータが空
             [ShowAlert error:@"アカウントが取得できませんでした。"];
@@ -63,7 +61,7 @@
                                                requestMethod:TWRequestMethodGET] autorelease];
         
         //リクエストにアカウントを設定
-        [request setAccount:twAccount];
+        [request setAccount:[TWAccounts currentAccount]];
         
         //Timeline取得結果通知を作成
         NSMutableDictionary *result = [NSMutableDictionary dictionary];
@@ -86,7 +84,7 @@
                                                                                                   options:NSJSONReadingMutableLeaves
                                                                                                     error:&jsonError];
                      
-                     [result setObject:twAccount.username forKey:@"Account"];
+                     [result setObject:[TWAccounts currentAccount].username forKey:@"Account"];
                      
                      //NSLog(@"timeline: %@", timeline);
                      
@@ -116,7 +114,7 @@
         
     }@finally {
         
-        [pool drain];
+//        [pool drain];
     }
 
     NSLog(@"HomeTimeline request sended");
@@ -133,14 +131,11 @@
             screenName = [screenName substringFromIndex:1];
         }
         
-        //アカウントの取得
-        ACAccount *twAccount = [TWGetAccount currentAccount];
-        
-        NSLog(@"userTimeline: %@", twAccount.username);
-        NSLog(@"TargetUser: %@", screenName);
+//        NSLog(@"userTimeline: %@", twAccount.username);
+//        NSLog(@"TargetUser: %@", screenName);
         
         //Twitterアカウントの確認
-        if ( twAccount == nil ) {
+        if ( [TWAccounts currentAccount] == nil ) {
             
             //アカウントデータが空
             [ShowAlert error:@"アカウントが取得できませんでした。"];
@@ -174,7 +169,7 @@
                                                requestMethod:TWRequestMethodGET] autorelease];
         
         //リクエストにアカウントを設定
-        [request setAccount:twAccount];
+        [request setAccount:[TWAccounts currentAccount]];
         
         //Timeline取得結果通知を作成
         NSMutableDictionary *result = [NSMutableDictionary dictionary];
@@ -202,7 +197,7 @@
                          
 //                         NSLog(@"userTimeline: %@", userTimeline);
                          
-                         [result setObject:twAccount.username forKey:@"Account"];
+                         [result setObject:[TWAccounts currentAccount].username forKey:@"Account"];
                          
                          if ( userTimeline != nil && userTimeline.count != 0 ) {
                              
@@ -266,12 +261,8 @@
     
     @try {
         
-        //アカウントの取得
-        ACAccount *twAccount = [TWGetAccount currentAccount];
-        //NSLog(@"mentions: %@", twAccount.username);
-        
         //Twitterアカウントの確認
-        if ( twAccount == nil ) {
+        if ( [TWAccounts currentAccount] == nil ) {
             
             //アカウントデータが空
             [ShowAlert error:@"アカウントが取得できませんでした。"];
@@ -301,7 +292,7 @@
                                                requestMethod:TWRequestMethodGET] autorelease];
         
         //リクエストにアカウントを設定
-        [request setAccount:twAccount];
+        [request setAccount:[TWAccounts currentAccount]];
         
         //Mentions取得結果通知を作成
         NSMutableDictionary *result = [NSMutableDictionary dictionary];
@@ -348,12 +339,8 @@
     
     @try {
         
-        //アカウントの取得
-        ACAccount *twAccount = [TWGetAccount currentAccount];
-        //NSLog(@"mentions: %@", twAccount.username);
-        
         //Twitterアカウントの確認
-        if ( twAccount == nil ) {
+        if ( [TWAccounts currentAccount] == nil ) {
             
             //アカウントデータが空
             [ShowAlert error:@"アカウントが取得できませんでした。"];
@@ -383,7 +370,7 @@
                                                requestMethod:TWRequestMethodGET] autorelease];
         
         //リクエストにアカウントを設定
-        [request setAccount:twAccount];
+        [request setAccount:[TWAccounts currentAccount]];
         
         //Mentions取得結果通知を作成
         NSMutableDictionary *result = [NSMutableDictionary dictionary];
@@ -430,12 +417,8 @@
     
     @try {
         
-        //アカウントの取得
-        ACAccount *twAccount = [TWGetAccount currentAccount];
-        //NSLog(@"mentions: %@", twAccount.username);
-        
         //Twitterアカウントの確認
-        if ( twAccount == nil ) {
+        if ( [TWAccounts currentAccount] == nil ) {
             
             //アカウントデータが空
             [ShowAlert error:@"アカウントが取得できませんでした。"];
@@ -468,7 +451,7 @@
                                                requestMethod:TWRequestMethodGET] autorelease];
         
         //リクエストにアカウントを設定
-        [request setAccount:twAccount];
+        [request setAccount:[TWAccounts currentAccount]];
         
         //Mentions取得結果通知を作成
         NSMutableDictionary *result = [NSMutableDictionary dictionary];

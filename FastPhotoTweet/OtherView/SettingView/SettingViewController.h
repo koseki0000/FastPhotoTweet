@@ -13,9 +13,9 @@
 #import "IDChangeViewController.h"
 #import "LicenseViewController.h"
 #import "NGSettingViewController.h"
-#import "TWGetAccount.h"
 #import "AppDelegate.h"
 #import "UIViewSubViewRemover.h"
+#import "TWAccounts.h"
 
 @interface SettingViewController : UIViewController <UIActionSheetDelegate, UITextFieldDelegate> {
     

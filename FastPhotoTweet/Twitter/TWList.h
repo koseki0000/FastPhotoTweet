@@ -7,11 +7,11 @@
 
 #import <Foundation/Foundation.h>
 #import <Twitter/Twitter.h>
-#import "TWGetAccount.h"
 #import "ActivityIndicator.h"
 #import "ShowAlert.h"
 #import "RegularExpression.h"
 #import "TWEntities.h"
+#import "TWAccounts.h"
 
 @interface TWList : NSObject
 

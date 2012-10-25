@@ -7,9 +7,9 @@
 
 #import <Foundation/Foundation.h>
 #import <Twitter/Twitter.h>
-#import "TWGetAccount.h"
 #import "ActivityIndicator.h"
 #import "ShowAlert.h"
+#import "TWAccounts.h"
 
 @interface TWFriends : NSObject
 

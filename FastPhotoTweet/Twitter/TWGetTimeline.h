@@ -8,12 +8,12 @@
 #import <Twitter/Twitter.h>
 #import <Accounts/Accounts.h>
 #import <Foundation/Foundation.h>
-#import "TWGetAccount.h"
 #import "ShowAlert.h"
 #import "ActivityIndicator.h"
 #import "AppDelegate.h"
 #import "InternetConnection.h"
 #import "TWEntities.h"
+#import "TWAccounts.h"
 
 @interface TWGetTimeline : NSObject
 

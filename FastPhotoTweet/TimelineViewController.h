@@ -15,6 +15,7 @@
 #import "NSAttributedString+Attributes.h"
 
 #import "TWTwitterHeader.h"
+#import "ListViewController.h"
 #import "UtilityClass.h"
 #import <MobileCoreServices/MobileCoreServices.h>
 #import "ASIHTTPRequest.h"

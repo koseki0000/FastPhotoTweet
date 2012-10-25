@@ -32,17 +32,52 @@
 - (void)loadImage:(NSString *)imageUrl viewRect:(CGRect)viewRect {
     
     if ( imageUrl == nil ||
-        [imageUrl isEqualToString:@""] ) [self hideWindow];
-    
-    _saveStarted = NO;
-    
-    [self setImageUrl:nil];
-    self.imageUrl = [FullSizeImage urlString:imageUrl];
-    [self.imageUrl retain];
-    
-    _viewRect = viewRect;
-    
-    [self showWindow];
+        [imageUrl isEqualToString:@""] ) {
+        
+        [self hideWindow];
+        
+    }else {
+        
+        _saveStarted = NO;
+        
+        [self setImageUrl:nil];
+        
+        NSString *fullSizeImageUrl = [FullSizeImage urlString:imageUrl];
+        
+        if ( ![fullSizeImageUrl isEqualToString:imageUrl] ) {
+         
+            //URLに変化がある場合(フルサイズURLになっている)は画像共有サービス
+            self.imageUrl = fullSizeImageUrl;
+            [self.imageUrl retain];
+            
+            _viewRect = viewRect;
+            
+            [self showWindow];
+            
+        }else {
+            
+            if ( [FullSizeImage isSocialService:imageUrl] ) {
+                
+                //画像共有サービスだが開けない
+                [[UIApplication sharedApplication] openURL:[NSURL URLWithString:imageUrl]];
+                [self performSelector:@selector(hideWindow) withObject:nil afterDelay:0.1];
+                
+            }else {
+            
+                NSMutableString *mString = [NSMutableString stringWithString:imageUrl];
+                [mString replaceOccurrencesOfString:@"%2528" withString:@"(" options:0 range:NSMakeRange(0, mString.length)];
+                [mString replaceOccurrencesOfString:@"%2529" withString:@")" options:0 range:NSMakeRange(0, mString.length)];
+                
+                //通常の画像
+                self.imageUrl = mString;
+                [self.imageUrl retain];
+                
+                _viewRect = viewRect;
+                
+                [self showWindow];
+            }
+        }
+    }
 }
 
 - (void)showWindow {
@@ -255,6 +290,7 @@
     receivedData = [[NSMutableData alloc] initWithData:0];
     
     [self setConnection:nil];
+    
     connection = [[NSURLConnection alloc] initWithRequest:[NSURLRequest requestWithURL:[NSURL URLWithString:self.imageUrl]]
                                                  delegate:self];
     

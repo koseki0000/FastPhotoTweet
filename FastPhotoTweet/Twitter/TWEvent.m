@@ -15,9 +15,7 @@
     
     NSLog(@"Add Favorite");
     
-    ACAccount *twAccount = [TWEvent canActionWithAccount:accountIndex];
-    
-    if ( twAccount != nil ) {
+    if ( [TWAccounts selectAccount:accountIndex] != nil ) {
         
         //リクエストURLを指定
         NSString *tReqURL = [NSString stringWithFormat:@"https://api.twitter.com/%@/favorites/create/%@.json", API_VERSION, tweetId];
@@ -28,7 +26,7 @@
                                                    requestMethod:TWRequestMethodPOST];
         
         //リクエストにアカウントを設定
-        [postRequest setAccount:twAccount];
+        [postRequest setAccount:[TWAccounts selectAccount:accountIndex]];
         
         [postRequest performRequestWithHandler:
          ^( NSData *responseData, NSHTTPURLResponse *urlResponse, NSError *error ) {
@@ -45,9 +43,7 @@
     
     NSLog(@"ReTweet");
     
-    ACAccount *twAccount = [TWEvent canActionWithAccount:accountIndex];
-    
-    if ( twAccount != nil ) {
+    if ( [TWAccounts selectAccount:accountIndex] != nil ) {
         
         //リクエストURLを指定
         NSString *tReqURL = [NSString stringWithFormat:@"https://api.twitter.com/%@/statuses/retweet/%@.json",API_VERSION , tweetId];
@@ -58,7 +54,7 @@
                                                    requestMethod:TWRequestMethodPOST];
         
         //リクエストにアカウントを設定
-        [postRequest setAccount:twAccount];
+        [postRequest setAccount:[TWAccounts selectAccount:accountIndex]];
         
         [postRequest performRequestWithHandler:
          ^( NSData *responseData, NSHTTPURLResponse *urlResponse, NSError *error ) {
@@ -81,9 +77,7 @@
     
     NSLog(@"UnFavorite");
     
-    ACAccount *twAccount = [TWEvent canActionWithAccount:accountIndex];
-    
-    if ( twAccount != nil ) {
+    if ( [TWAccounts selectAccount:accountIndex] != nil ) {
         
         //リクエストURLを指定
         NSString *tReqURL = [NSString stringWithFormat:@"https://api.twitter.com/%@/favorites/destroy/%@.json", API_VERSION, tweetId];
@@ -94,7 +88,7 @@
                                                    requestMethod:TWRequestMethodPOST];
         
         //リクエストにアカウントを設定
-        [postRequest setAccount:twAccount];
+        [postRequest setAccount:[TWAccounts selectAccount:accountIndex]];
         
         [postRequest performRequestWithHandler:
          ^( NSData *responseData, NSHTTPURLResponse *urlResponse, NSError *error ) {
@@ -111,9 +105,7 @@
     
     NSLog(@"getProfile");
     
-    ACAccount *twAccount = [TWEvent canAction];
-    
-    if ( twAccount != nil ) {
+    if ( [TWAccounts currentAccount] != nil ) {
         
         //ステータスバーに処理中表示
         [ActivityIndicator visible:YES];
@@ -127,7 +119,7 @@
                                                    requestMethod:TWRequestMethodGET];
         
         //リクエストにアカウントを設定
-        [postRequest setAccount:twAccount];
+        [postRequest setAccount:[TWAccounts currentAccount]];
         
         //投稿結果通知を作成
         NSMutableDictionary *resultProfile = [NSMutableDictionary dictionary];
@@ -174,9 +166,7 @@
     
     NSLog(@"getTweet");
     
-    ACAccount *twAccount = [TWEvent canAction];
-    
-    if ( twAccount != nil ) {
+    if ( [TWAccounts currentAccount] != nil ) {
      
         //ステータスバーに処理中表示
         [ActivityIndicator visible:YES];
@@ -190,7 +180,7 @@
                                                    requestMethod:TWRequestMethodGET];
         
         //リクエストにアカウントを設定
-        [postRequest setAccount:twAccount];
+        [postRequest setAccount:[TWAccounts currentAccount]];
         
         //投稿結果通知を作成
         NSMutableDictionary *resultProfile = [NSMutableDictionary dictionary];
@@ -239,9 +229,7 @@
     
     NSLog(@"destroy");
     
-    ACAccount *twAccount = [TWEvent canAction];
-    
-    if ( twAccount != nil ) {
+    if ( [TWAccounts currentAccount] != nil ) {
         
         //ステータスバーに処理中表示
         [ActivityIndicator visible:YES];
@@ -255,7 +243,7 @@
                                                    requestMethod:TWRequestMethodPOST];
         
         //リクエストにアカウントを設定
-        [postRequest setAccount:twAccount];
+        [postRequest setAccount:[TWAccounts currentAccount]];
         
         //投稿結果通知を作成
         NSMutableDictionary *resultDestroy = [NSMutableDictionary dictionary];
@@ -289,30 +277,6 @@
              });
          }];
     }
-}
-
-+ (ACAccount *)canAction {
-    
-    ACAccount *twAccount = [TWGetAccount currentAccount];
-    
-    if ( [TWTweetComposeViewController canSendTweet] && twAccount != nil ) {
-        
-        return twAccount;
-    }
-    
-    return nil;
-}
-
-+ (ACAccount *)canActionWithAccount:(int)num {
-    
-    ACAccount *twAccount = [TWGetAccount selectAccount:num];
-    
-    if ( [TWTweetComposeViewController canSendTweet] && twAccount != nil ) {
-        
-        return twAccount;
-    }
-    
-    return nil;
 }
 
 @end

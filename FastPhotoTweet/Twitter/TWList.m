@@ -19,7 +19,7 @@
         if ( [TWTweetComposeViewController canSendTweet] ) {
             
             //アカウントの取得
-            ACAccount *twAccount = [TWGetAccount currentAccount];
+            ACAccount *twAccount = [TWAccounts currentAccount];
             
             //Twitterアカウントの確認
             if (twAccount == nil) {
@@ -95,7 +95,7 @@
         if ( [TWTweetComposeViewController canSendTweet] ) {
             
             //アカウントの取得
-            ACAccount *twAccount = [TWGetAccount currentAccount];
+            ACAccount *twAccount = [TWAccounts currentAccount];
             
             //Twitterアカウントの確認
             if (twAccount == nil) {

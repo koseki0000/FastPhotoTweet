@@ -17,7 +17,7 @@
 #import <CFNetwork/CFNetwork.h>
 #import <QuartzCore/QuartzCore.h>
 #import <SystemConfiguration/SystemConfiguration.h>
-#import "Twitter/TWTwitterHeader.h"
+#import "TWTwitterHeader.h"
 #import "UtilityClass.h"
 #import "IDChangeViewController.h"
 #import "SettingViewController.h"

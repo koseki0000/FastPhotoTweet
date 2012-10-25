@@ -6,11 +6,10 @@
 //
 
 #import <Foundation/Foundation.h>
-#import <MediaPlayer/MediaPlayer.h>
 
 @interface ResizeImage : NSObject
 
 + (UIImage *)aspectResize:(UIImage *)image;
-+ (UIImage *)aspectResizeSetMaxSize:(UIImage *)image maxSize:(int)maxSize;
++ (UIImage *)aspectResizeForMaxSize:(UIImage *)image maxSize:(int)maxSize;
 
 @end

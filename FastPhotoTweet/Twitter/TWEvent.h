@@ -8,10 +8,10 @@
 #import <Twitter/Twitter.h>
 #import <Accounts/Accounts.h>
 #import <Foundation/Foundation.h>
-#import "TWGetAccount.h"
 #import "ShowAlert.h"
 #import "ActivityIndicator.h"
 #import "JSON.h"
+#import "TWAccounts.h"
 
 @interface TWEvent : NSObject {
     
@@ -27,8 +27,5 @@
 
 + (void)unFavorite:(NSString *)tweetId accountIndex:(int)accountIndex;
 + (void)destroy:(NSString *)tweetId;
-
-+ (ACAccount *)canAction;
-+ (ACAccount *)canActionWithAccount:(int)num;
 
 @end

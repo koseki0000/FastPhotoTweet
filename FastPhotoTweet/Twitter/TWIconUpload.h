@@ -10,9 +10,9 @@
 #import <Accounts/Accounts.h>
 #import "AppDelegate.h"
 #import "JSON.h"
-#import "TWGetAccount.h"
 #import "TWEntities.h"
 #import "UtilityClass.h"
+#import "TWAccounts.h"
 
 @interface TWIconUpload : NSObject
 

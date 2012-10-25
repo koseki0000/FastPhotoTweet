@@ -11,7 +11,11 @@
 
 + (BOOL)boolWithRegExp:(NSString *)matchString regExpPattern:(NSString *)regExpPattern {
     
-    BOOL result = NO;
+    if ( matchString == nil || regExpPattern == nil ) {
+     
+        NSLog(@"RegExp nil");
+        return NO;
+    }
     
     NSError *error = nil;
     NSRegularExpression *regexp = [NSRegularExpression regularExpressionWithPattern:regExpPattern
@@ -27,7 +31,7 @@
         if ( match.numberOfRanges != 0 ) {
             
             //正規表現にマッチ
-            result = YES;
+            return YES;
         }
         
     }else {
@@ -36,12 +40,16 @@
         [RegularExpression regExpError];
     }
     
-    return result;
+    return NO;
 }
 
 + (NSString *)strWithRegExp:(NSString *)matchString regExpPattern:(NSString *)regExpPattern {
     
-    NSString *result = [NSString string];
+    if ( matchString == nil || regExpPattern == nil ) {
+        
+        NSLog(@"RegExp nil");
+        return @"";
+    }
     
     NSError *error = nil;
     NSRegularExpression *regexp = [NSRegularExpression regularExpressionWithPattern:regExpPattern
@@ -52,11 +60,11 @@
                                                      options:0
                                                        range:NSMakeRange(0, matchString.length)];
     
-    if (!error) {
+    if ( !error ) {
         
-        if (match.numberOfRanges != 0) {
+        if ( match.numberOfRanges != 0 ) {
             
-            result = [matchString substringWithRange:match.range];
+            return [matchString substringWithRange:match.range];
         }
         
     }else {
@@ -64,13 +72,16 @@
         [RegularExpression regExpError];
     }
     
-    return result;
+    return @"";
 }
 
 + (NSMutableString *)mStrWithRegExp:(NSString *)matchString regExpPattern:(NSString *)regExpPattern {
     
-    //マッチした文字列を格納する
-    NSMutableString *result = [NSMutableString string];
+    if ( matchString == nil || regExpPattern == nil ) {
+        
+        NSLog(@"RegExp nil");
+        return [NSMutableString stringWithString:@""];
+    }
     
     NSError *error = nil;
     NSRegularExpression *regexp = [NSRegularExpression regularExpressionWithPattern:regExpPattern
@@ -86,7 +97,7 @@
         if ( match.numberOfRanges != 0 ) {
             
             //正規表現でマッチした文字列を可変長にする
-            result = [NSMutableString stringWithString:[matchString substringWithRange:match.range]];
+            return [NSMutableString stringWithString:[matchString substringWithRange:match.range]];
         }
         
     }else {
@@ -95,10 +106,16 @@
         [RegularExpression regExpError];
     }
     
-    return result;
+    return [NSMutableString stringWithString:@""];
 }
 
 + (NSArray *)arrayWithRegExp:(NSString *)matchString regExpPattern:(NSString *)regExpPattern {
+    
+    if ( matchString == nil || regExpPattern == nil ) {
+        
+        NSLog(@"RegExp nil");
+        return @[];
+    }
     
     //マッチした文字列を格納する
     NSMutableArray *resultArray = [NSMutableArray array];
@@ -133,6 +150,12 @@
 
 + (NSMutableArray *)mArrayWithRegExp:(NSString *)matchString regExpPattern:(NSString *)regExpPattern {
     
+    if ( matchString == nil || regExpPattern == nil ) {
+        
+        NSLog(@"RegExp nil");
+        return [NSMutableArray arrayWithArray:@[]];
+    }
+    
     //マッチした文字列を格納する
     NSMutableArray *resultArray = [NSMutableArray array];
     NSError *error = nil;
@@ -166,15 +189,23 @@
 + (NSMutableArray *)urls:(id)string {
     
     //stringが空の場合終了
-    if ( string == nil ) return [NSMutableArray array];
+    if ( string == nil ) {
+     
+        NSLog(@"RegExp nil");
+        return [NSMutableArray arrayWithArray:@[]];
+    }
     
     //NSStringでもNSMutableStringでもない場合は終了
     if ( ![string isKindOfClass:[NSString class]] &&
-        ![string isKindOfClass:[NSMutableString class]] ) return [NSMutableArray array];
+         ![string isKindOfClass:[NSMutableString class]] ) {
+        
+        NSLog(@"RegExp not array");
+        return [NSMutableArray arrayWithArray:@[]];
+    }
     
     NSError *error = nil;
     
-    //NSMutableString型にする
+    //NSString型にする
     NSString *searchString = [NSString stringWithString:string];
     
     //URLを格納する
@@ -200,11 +231,19 @@
 + (NSMutableArray *)twitterIds:(id)searchString {
     
     //stringが空の場合終了
-    if ( searchString == nil ) return [NSMutableArray array];
+    if ( searchString == nil ) {
+        
+        NSLog(@"RegExp nil");
+        return [NSMutableArray arrayWithArray:@[]];
+    }
     
     //NSStringでもNSMutableStringでもない場合は終了
     if ( ![searchString isKindOfClass:[NSString class]] &&
-        ![searchString isKindOfClass:[NSMutableString class]] ) return [NSMutableArray array];
+         ![searchString isKindOfClass:[NSMutableString class]] ) {
+     
+        NSLog(@"RegExp not array");
+        return [NSMutableArray arrayWithArray:@[]];
+    }
     
     //NSStringにする
     NSString *string = [NSString stringWithString:searchString];

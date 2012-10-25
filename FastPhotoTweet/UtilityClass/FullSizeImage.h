@@ -16,5 +16,6 @@
 + (NSString *)getSourceCode:(NSString *)urlString;
 
 + (BOOL)checkImageUrl:(NSString *)urlString;
++ (BOOL)isSocialService:(NSString *)urlString;
 
 @end

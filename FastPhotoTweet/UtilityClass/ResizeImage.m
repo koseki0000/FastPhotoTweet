@@ -89,7 +89,7 @@
     return image;
 }
 
-+ (UIImage *)aspectResizeSetMaxSize:(UIImage *)image maxSize:(int)maxSize {
++ (UIImage *)aspectResizeForMaxSize:(UIImage *)image maxSize:(int)maxSize {
     
     //NSLog(@"aspectResizeSetMaxSize");
     

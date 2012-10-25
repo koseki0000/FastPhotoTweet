@@ -56,11 +56,8 @@
     //Tweet可能な状態か判別
     if ( [TWTweetComposeViewController canSendTweet] ) {
         
-        //アカウントの取得
-        ACAccount *twAccount = [TWGetAccount currentAccount];
-        
         //Twitterアカウントの確認
-        if (twAccount == nil) {
+        if ( [TWAccounts currentAccount] == nil ) {
             
             //アカウントデータが空
             [ShowAlert error:@"アカウントが取得できませんでした。"];
@@ -85,7 +82,7 @@
                                                requestMethod:TWRequestMethodPOST] autorelease];
         
         //リクエストにアカウントを設定
-        [request setAccount:twAccount];
+        [request setAccount:[TWAccounts currentAccount]];
         
         [request performRequestWithHandler:
          ^( NSData *responseData, NSHTTPURLResponse *urlResponse, NSError *error ) {

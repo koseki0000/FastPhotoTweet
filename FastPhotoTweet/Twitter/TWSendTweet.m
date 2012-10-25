@@ -22,11 +22,8 @@
         //Tweet可能な状態か判別
         if ( [TWTweetComposeViewController canSendTweet] ) {
             
-            //アカウントの取得
-            ACAccount *twAccount = [TWGetAccount currentAccount];
-            
             //Twitterアカウントの確認
-            if ( twAccount == nil ) {
+            if ( [TWAccounts currentAccount] == nil ) {
                 
                 //アカウントデータが空
                 [ShowAlert error:@"アカウントが取得できませんでした。"];
@@ -44,7 +41,7 @@
             AppDelegate *appDelegate = (AppDelegate *)[[UIApplication sharedApplication] delegate];
             NSMutableArray *tempMArray = [NSMutableArray arrayWithArray:postData];
             [tempMArray insertObject:[NSNumber numberWithInt:[d integerForKey:@"UseAccount"]] atIndex:0];
-            [tempMArray insertObject:twAccount.username atIndex:1];
+            [tempMArray insertObject:[TWAccounts currentAccount].username atIndex:1];
             [appDelegate.postError addObject:(NSArray *)tempMArray];
             
             //画像のチェック
@@ -121,7 +118,7 @@
             }
             
             //リクエストにアカウントを設定
-            [postRequest setAccount:twAccount];
+            [postRequest setAccount:[TWAccounts currentAccount]];
             
             //投稿結果通知を作成
             NSMutableDictionary *postResult = [NSMutableDictionary dictionary];

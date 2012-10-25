@@ -299,7 +299,7 @@
             //NSLog(@"newVersion");
             
             [ShowAlert title:[NSString stringWithFormat:@"FastPhotoTweet %@", APP_VERSION]
-                     message:@"・Timeline画像プレビューにジェスチャーを追加\n長押し→保存して閉じる\n上スワイプ→閉じる\n・その他不具合を修正"];
+                     message:@"・不具合修正\n・速度改善"];
             
             information = [[[NSMutableDictionary alloc] initWithDictionary:[d dictionaryForKey:@"Information"]] autorelease];
             [information setValue:[NSNumber numberWithInt:1] forKey:APP_VERSION];
@@ -863,7 +863,7 @@
         
         iconUploadMode = NO;
         
-        image = [ResizeImage aspectResizeSetMaxSize:image maxSize:256];
+        image = [ResizeImage aspectResizeForMaxSize:image maxSize:256];
         [TWIconUpload image:image];
         
         if ( [appDelegate.firmwareVersion hasPrefix:@"6"] ) {
@@ -1513,7 +1513,7 @@
             
             //NSLog(@"Twitpic upload");
             
-            twAccount = [TWGetAccount currentAccount];
+            twAccount = [TWAccounts currentAccount];
             
             NSDictionary *dic = [d dictionaryForKey:@"OAuthAccount"];
             
@@ -1635,7 +1635,7 @@
             int h = (int)artwork.bounds.size.height;
             int w = (int)artwork.bounds.size.width;
             
-            imagePreview.image = [ResizeImage aspectResizeSetMaxSize:[artwork imageWithSize:CGSizeMake(500, 500)]
+            imagePreview.image = [ResizeImage aspectResizeForMaxSize:[artwork imageWithSize:CGSizeMake(500, 500)]
                                                              maxSize:500];
             
             if ( ![EmptyCheck check:url] ) {
@@ -1766,7 +1766,7 @@
 
 - (void)setIconPreviewImage {
     
-    twAccount = [TWGetAccount currentAccount];
+    twAccount = [TWAccounts currentAccount];
     
     NSArray *iconsDirectory = [[NSFileManager defaultManager] contentsOfDirectoryAtPath:ICONS_DIRECTORY error:nil];
     NSString *searchName = [NSString stringWithFormat:@"%@_", twAccount.username];
@@ -1837,7 +1837,7 @@
             
             //NSLog(@"Twitpic upload");
             
-            twAccount = [TWGetAccount currentAccount];
+            twAccount = [TWAccounts currentAccount];
             
             NSDictionary *dic = [d dictionaryForKey:@"OAuthAccount"];
             
