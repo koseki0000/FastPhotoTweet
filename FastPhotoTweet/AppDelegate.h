@@ -66,7 +66,6 @@ void uncaughtExceptionHandler(NSException *exception);
 @property (nonatomic, retain) NSString *bookmarkUrl;
 @property (nonatomic, retain) NSString *urlSchemeDownloadUrl;
 @property (nonatomic, retain) NSString *tabChangeFunction;
-@property (nonatomic, retain) NSString *sinceId;
 @property (nonatomic, retain) NSString *reOpenUrl;
 @property (nonatomic, retain) NSString *listId;
 @property (nonatomic, retain) NSString *addTwitpicAccountName;

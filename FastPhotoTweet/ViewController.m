@@ -136,11 +136,9 @@
                  
                  if ( granted ) {
                      
-                     NSArray *twitterAccounts = [accountStore accountsWithAccountType:accountType];
-                     
-                     if ( twitterAccounts.count > 0 ) {
+                     if ( [TWAccounts accountCount] > 0 ) {
 
-                         twAccount = [twitterAccounts objectAtIndex:[d integerForKey:@"UseAccount"]];
+                         twAccount = [TWAccounts currentAccount];
                          
                          //入力可能状態にする
                          [postText becomeFirstResponder];
@@ -299,7 +297,7 @@
             //NSLog(@"newVersion");
             
             [ShowAlert title:[NSString stringWithFormat:@"FastPhotoTweet %@", APP_VERSION]
-                     message:@"・画像プレビューがピンチイン・アウトに対応\n・画像プレビューがfc2画像に対応\n・不具合修正\n・速度改善"];
+                     message:@"・更新時にクラッシュする問題を修正\n・その他多数の動作改善とバグ修正"];
             
             information = [[[NSMutableDictionary alloc] initWithDictionary:[d dictionaryForKey:@"Information"]] autorelease];
             [information setValue:[NSNumber numberWithInt:1] forKey:APP_VERSION];
@@ -2290,8 +2288,6 @@
         if ( changeAccount || appDelegate.needChangeAccount ) {
             
             //NSLog(@"ChangeAccount");
-            
-            appDelegate.sinceId = BLANK;
             
             appDelegate.needChangeAccount = NO;
             changeAccount = NO;

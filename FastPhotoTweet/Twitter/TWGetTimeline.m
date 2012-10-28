@@ -14,15 +14,15 @@
 
 + (void)homeTimeline {
     
-//    NSAutoreleasePool *pool = [[NSAutoreleasePool alloc] init];
-    
     @try {
-    
+        
+        ACAccount *requestAccount = [TWAccounts currentAccount];
+        
         //アカウントの取得
         //NSLog(@"Get HomeTimeline: %@", twAccount.username);
         
         //Twitterアカウントの確認
-        if ( [TWAccounts currentAccount] == nil ) {
+        if ( requestAccount == nil ) {
             
             //アカウントデータが空
             [ShowAlert error:@"アカウントが取得できませんでした。"];
@@ -34,14 +34,13 @@
         if ( ![InternetConnection enable] ) return;
         
         [ActivityIndicator on];
-        AppDelegate *appDelegate = (AppDelegate *)[[UIApplication sharedApplication] delegate];
         
         //タイムライン取得リクエストURL作成
         NSString *urlString = [NSString stringWithFormat:@"https://api.twitter.com/%@/statuses/home_timeline.json", API_VERSION];
         NSURL *reqUrl = [NSURL URLWithString:urlString];
         
         //リクエストパラメータを作成
-        NSMutableDictionary *params = [[[NSMutableDictionary alloc] init] autorelease];
+        NSMutableDictionary *params = [[NSMutableDictionary alloc] init];
         //取得数
         [params setObject:@"60" forKey:@"count"];
         //エンティティの有効化
@@ -50,18 +49,19 @@
         [params setObject:@"1" forKey:@"include_rts"];
         
         //差分取得
-        if ( ![appDelegate.sinceId isEqualToString:BLANK] ) {
+        if (  [TWTweets currentSinceID] != nil &&
+            ![[TWTweets currentSinceID] isEqualToString:BLANK] ) {
             
-            [params setObject:appDelegate.sinceId forKey:@"since_id"];
+            [params setObject:[TWTweets currentSinceID] forKey:@"since_id"];
         }
         
         //リクエストを作成
-        TWRequest *request = [[[TWRequest alloc] initWithURL:reqUrl
-                                                  parameters:params
-                                               requestMethod:TWRequestMethodGET] autorelease];
+        TWRequest *request = [[TWRequest alloc] initWithURL:reqUrl
+                                                 parameters:params
+                                              requestMethod:TWRequestMethodGET];
         
         //リクエストにアカウントを設定
-        [request setAccount:[TWAccounts currentAccount]];
+        [request setAccount:requestAccount];
         
         //Timeline取得結果通知を作成
         NSMutableDictionary *result = [NSMutableDictionary dictionary];
@@ -70,199 +70,190 @@
                                                                     object:self
                                                                   userInfo:result];
         
+        //        NSLog(@"\nrequest:\n  URL: %@\n  UserName: %@\n  Parameters: %@", request.URL, request.account, request.parameters);
+        
         [request performRequestWithHandler:
          ^( NSData *responseData, NSHTTPURLResponse *urlResponse, NSError *error ) {
              
-             dispatch_async(dispatch_get_main_queue(), ^{
+             NSLog(@"HomeTimeline receive response");
+             
+             if ( responseData ) {
                  
-                 NSLog(@"HomeTimeline receive response");
+                 NSError *jsonError = nil;
+                 NSMutableArray *timeline = (NSMutableArray *)[NSJSONSerialization JSONObjectWithData:responseData
+                                                                                              options:NSJSONReadingMutableLeaves
+                                                                                                error:&jsonError];
                  
-                 if ( responseData ) {
+                 [result setObject:requestAccount.username forKey:@"Account"];
+                 
+                 //NSLog(@"timeline: %@", timeline);
+                 
+                 if ( timeline != nil ) {
                      
-                     NSError *jsonError = nil;
-                     NSMutableArray *timeline = (NSMutableArray *)[NSJSONSerialization JSONObjectWithData:responseData
-                                                                                                  options:NSJSONReadingMutableLeaves
-                                                                                                    error:&jsonError];
+                     //t.coを全て展開する
+                     timeline = [TWEntities replaceTcoAll:timeline];
                      
-                     [result setObject:[TWAccounts currentAccount].username forKey:@"Account"];
+                     //取得完了を通知
+                     [result setObject:@"TimelineSuccess" forKey:@"Result"];
+                     [result setObject:timeline forKey:@"Timeline"];
                      
-                     //NSLog(@"timeline: %@", timeline);
+                 }else {
                      
-                     if ( timeline != nil ) {
-                         
-                         //t.coを全て展開する
-                         timeline = [TWEntities replaceTcoAll:timeline];
-                         
-                         //取得完了を通知
-                         [result setObject:@"TimelineSuccess" forKey:@"Result"];
-                         [result setObject:timeline forKey:@"Timeline"];
-                         
-                     }else {
-                         
-                         [result setObject:@"TimelineError" forKey:@"Result"];
-                     }
-                     
-                     //NSLog(@"Get HomeTimeline done");
-                     
-                     //通知を実行
-                     [[NSNotificationCenter defaultCenter] postNotification:notification];
-                     
-                     [ActivityIndicator off];
+                     [result setObject:@"TimelineError" forKey:@"Result"];
                  }
-             });
+                 
+                 //NSLog(@"Get HomeTimeline done");
+                 
+                 //通知を実行
+                 [[NSNotificationCenter defaultCenter] postNotification:notification];
+                 
+                 [ActivityIndicator off];
+             }
          }];
         
-    }@finally {
+        NSLog(@"HomeTimeline request sended");
         
-//        [pool drain];
+    }@catch ( NSException *e ) {
+        
+        NSLog(@"%@\n\n%@", e , [e callStackSymbols]);
     }
-
-    NSLog(@"HomeTimeline request sended");
 }
 
 + (void)userTimeline:(NSString *)screenName {
     
-    NSAutoreleasePool *pool = [[NSAutoreleasePool alloc] init];
+    NSLog(@"userTimeline");
     
-    @try {
+    if ( [screenName hasPrefix:@"@"] ) {
         
-        if ( [screenName hasPrefix:@"@"] ) {
-            
-            screenName = [screenName substringFromIndex:1];
-        }
+        screenName = [screenName substringFromIndex:1];
+    }
+    
+    ACAccount *requestAccount = [TWAccounts currentAccount];
+    
+    //Twitterアカウントの確認
+    if ( requestAccount == nil ) {
         
-//        NSLog(@"userTimeline: %@", twAccount.username);
-//        NSLog(@"TargetUser: %@", screenName);
+        //アカウントデータが空
+        [ShowAlert error:@"アカウントが取得できませんでした。"];
         
-        //Twitterアカウントの確認
-        if ( [TWAccounts currentAccount] == nil ) {
-            
-            //アカウントデータが空
-            [ShowAlert error:@"アカウントが取得できませんでした。"];
-            
-            return;
-        }
-        
-        //インターネット接続を確認
-        if ( ![InternetConnection enable] ) return;
-        
-        [ActivityIndicator on];
-        
-        //タイムライン取得リクエストURL作成
-        NSString *urlString = [NSString stringWithFormat:@"https://api.twitter.com/%@/statuses/user_timeline.json", API_VERSION];
-        NSURL *reqUrl = [NSURL URLWithString:urlString];
-        
-        //リクエストパラメータを作成
-        NSMutableDictionary *params = [[[NSMutableDictionary alloc] init] autorelease];
-        //表示するユーザー
-        [params setObject:screenName forKey:@"screen_name"];
-        //取得数
-        [params setObject:@"60" forKey:@"count"];
-        //エンティティの有効化
-        [params setObject:@"1" forKey:@"include_entities"];
-        //RT表示
-        [params setObject:@"1" forKey:@"include_rts"];
-        
-        //リクエストを作成
-        TWRequest *request = [[[TWRequest alloc] initWithURL:reqUrl
-                                                  parameters:params
-                                               requestMethod:TWRequestMethodGET] autorelease];
-        
-        //リクエストにアカウントを設定
-        [request setAccount:[TWAccounts currentAccount]];
-        
-        //Timeline取得結果通知を作成
-        NSMutableDictionary *result = [NSMutableDictionary dictionary];
-        [result setObject:@"UserTimeline" forKey:@"Type"];
-        NSNotification *notification =[NSNotification notificationWithName:@"GetUserTimeline"
-                                                                    object:self
-                                                                  userInfo:result];
-        
-        [request performRequestWithHandler:
-         ^( NSData *responseData, NSHTTPURLResponse *urlResponse, NSError *error ) {
+        return;
+    }
+    
+    //インターネット接続を確認
+    if ( ![InternetConnection enable] ) return;
+    
+    [ActivityIndicator on];
+    
+    //タイムライン取得リクエストURL作成
+    NSString *urlString = [NSString stringWithFormat:@"https://api.twitter.com/%@/statuses/user_timeline.json", API_VERSION];
+    NSURL *reqUrl = [NSURL URLWithString:urlString];
+    
+    //リクエストパラメータを作成
+    NSMutableDictionary *params = [[NSMutableDictionary alloc] init];
+    //表示するユーザー
+    [params setObject:screenName forKey:@"screen_name"];
+    //取得数
+    [params setObject:@"60" forKey:@"count"];
+    //エンティティの有効化
+    [params setObject:@"1" forKey:@"include_entities"];
+    //RT表示
+    [params setObject:@"1" forKey:@"include_rts"];
+    
+    //リクエストを作成
+    TWRequest *request = [[TWRequest alloc] initWithURL:reqUrl
+                                             parameters:params
+                                          requestMethod:TWRequestMethodGET];
+    
+    //リクエストにアカウントを設定
+    [request setAccount:requestAccount];
+    
+    //Timeline取得結果通知を作成
+    NSMutableDictionary *result = [NSMutableDictionary dictionary];
+    [result setObject:@"UserTimeline" forKey:@"Type"];
+    NSNotification *notification =[NSNotification notificationWithName:@"GetUserTimeline"
+                                                                object:self
+                                                              userInfo:result];
+    
+    [request performRequestWithHandler:
+     ^( NSData *responseData, NSHTTPURLResponse *urlResponse, NSError *error ) {
+         
+         if ( responseData ) {
              
-             dispatch_async(dispatch_get_main_queue(), ^{
+             NSError *jsonError = nil;
+             id responseJSONData = [NSJSONSerialization
+                                    JSONObjectWithData:responseData
+                                    options:NSJSONReadingMutableLeaves
+                                    error:&jsonError];
+             
+             if ( [responseJSONData isKindOfClass:[NSArray class]] ) {
                  
-                 if ( responseData ) {
+                 NSMutableArray *userTimeline = [NSMutableArray arrayWithArray:responseJSONData];
+                 
+                 //                         NSLog(@"userTimeline: %@", userTimeline);
+                 
+                 [result setObject:requestAccount.username forKey:@"Account"];
+                 
+                 if ( userTimeline != nil && userTimeline.count != 0 ) {
                      
-                     NSError *jsonError = nil;
-                     id responseJSONData = [NSJSONSerialization
-                                            JSONObjectWithData:responseData
-                                            options:NSJSONReadingMutableLeaves
-                                            error:&jsonError];
+                     NSLog(@"UserTimelineSuccess");
                      
-                     if ( [responseJSONData isKindOfClass:[NSArray class]] ) {
-                         
-                         NSMutableArray *userTimeline = [NSMutableArray arrayWithArray:responseJSONData];
-                         
-//                         NSLog(@"userTimeline: %@", userTimeline);
-                         
-                         [result setObject:[TWAccounts currentAccount].username forKey:@"Account"];
-                         
-                         if ( userTimeline != nil && userTimeline.count != 0 ) {
-                             
-                             NSLog(@"UserTimelineSuccess");
-                             
-                             //t.coを全て展開する
-                             userTimeline = [TWEntities replaceTcoAll:userTimeline];
-                             
-                             //取得完了を通知
-                             [result setObject:@"UserTimelineSuccess" forKey:@"Result"];
-                             [result setObject:userTimeline forKey:@"UserTimeline"];
-                             
-                         }else {
-                             
-                             NSLog(@"UserTimelineError");
-                             
-                             NSString *responseDataString = [[[NSString alloc] initWithData:responseData encoding:NSUTF8StringEncoding] autorelease];
-                             
-                             NSLog(@"responseData: %@", responseDataString);
-                             
-                             if ( userTimeline == nil ) NSLog(@"timeline == nil");
-                             if ( userTimeline.count == 0 ) NSLog(@"timeline.count == 0");
-                             
-                             [result setObject:@"UserTimelineError" forKey:@"Result"];
-                         }
-                         
-                         //通知を実行
-                         [[NSNotificationCenter defaultCenter] postNotification:notification];
-                         
-                     }else if ( [responseJSONData isKindOfClass:[NSDictionary class]] ) {
-                         
-                         NSDictionary *errorData = [NSDictionary dictionaryWithDictionary:responseJSONData];
-                         
-                         [ShowAlert error:[errorData objectForKey:@"error"]];
-                         
-                     }else {
-                         
-                         [ShowAlert unknownError];
-                     }
+                     //t.coを全て展開する
+                     userTimeline = [TWEntities replaceTcoAll:userTimeline];
                      
-                     [ActivityIndicator off];
+                     //取得完了を通知
+                     [result setObject:@"UserTimelineSuccess" forKey:@"Result"];
+                     [result setObject:userTimeline forKey:@"UserTimeline"];
                      
                  }else {
                      
-                     NSLog(@"responseData nil");
+                     NSLog(@"UserTimelineError");
+                     
+                     NSString *responseDataString = [[NSString alloc] initWithData:responseData
+                                                                          encoding:NSUTF8StringEncoding];
+                     
+                     NSLog(@"responseData: %@", responseDataString);
+                     
+                     if ( userTimeline == nil ) NSLog(@"timeline == nil");
+                     if ( userTimeline.count == 0 ) NSLog(@"timeline.count == 0");
+                     
+                     [result setObject:@"UserTimelineError" forKey:@"Result"];
                  }
-             });
-         }];
-        
-    }@finally {
-        
-        [pool drain];
-    }
+                 
+                 //通知を実行
+                 [[NSNotificationCenter defaultCenter] postNotification:notification];
+                 
+             }else if ( [responseJSONData isKindOfClass:[NSDictionary class]] ) {
+                 
+                 NSDictionary *errorData = [NSDictionary dictionaryWithDictionary:responseJSONData];
+                 
+                 [ShowAlert error:[errorData objectForKey:@"error"]];
+                 
+             }else {
+                 
+                 [ShowAlert unknownError];
+             }
+             
+             [ActivityIndicator off];
+             
+         }else {
+             
+             NSLog(@"responseData nil");
+         }
+     }];
     
     //NSLog(@"UserTimeline request sended");
 }
 
 + (void)mentions {
     
-    NSAutoreleasePool *pool = [[NSAutoreleasePool alloc] init];
-    
-    @try {
+    @autoreleasepool {
+        
+        NSLog(@"mentions");
+        
+        ACAccount *requestAccount = [TWAccounts currentAccount];
         
         //Twitterアカウントの確認
-        if ( [TWAccounts currentAccount] == nil ) {
+        if ( requestAccount == nil ) {
             
             //アカウントデータが空
             [ShowAlert error:@"アカウントが取得できませんでした。"];
@@ -280,19 +271,19 @@
         NSURL *reqUrl = [NSURL URLWithString:urlString];
         
         //リクエストパラメータを作成
-        NSMutableDictionary *params = [[[NSMutableDictionary alloc] init] autorelease];
+        NSMutableDictionary *params = [[NSMutableDictionary alloc] init];
         //取得数
         [params setObject:@"40" forKey:@"count"];
         //エンティティの有効化
         [params setObject:@"1" forKey:@"include_entities"];
         
         //リクエストを作成
-        TWRequest *request = [[[TWRequest alloc] initWithURL:reqUrl
-                                                  parameters:params
-                                               requestMethod:TWRequestMethodGET] autorelease];
+        TWRequest *request = [[TWRequest alloc] initWithURL:reqUrl
+                                                 parameters:params
+                                              requestMethod:TWRequestMethodGET];
         
         //リクエストにアカウントを設定
-        [request setAccount:[TWAccounts currentAccount]];
+        [request setAccount:requestAccount];
         
         //Mentions取得結果通知を作成
         NSMutableDictionary *result = [NSMutableDictionary dictionary];
@@ -304,43 +295,36 @@
         [request performRequestWithHandler:
          ^( NSData *responseData, NSHTTPURLResponse *urlResponse, NSError *error ) {
              
-             dispatch_async(dispatch_get_main_queue(), ^{
+             if ( responseData ) {
                  
-                 if ( responseData ) {
-                     
-                     NSError *jsonError = nil;
-                     NSMutableArray *mentions = (NSMutableArray *)[NSJSONSerialization JSONObjectWithData:responseData
-                                                                                                  options:NSJSONReadingMutableLeaves
-                                                                                                    error:&jsonError];
-                     
-                     //取得完了を通知
-                     [result setObject:@"MentionsSuccess" forKey:@"Result"];
-                     [result setObject:mentions forKey:@"Mentions"];
-                     
-                     //通知を実行
-                     [[NSNotificationCenter defaultCenter] postNotification:notification];
-                     
-                     [ActivityIndicator off];
-                 }
-             });
+                 NSError *jsonError = nil;
+                 NSMutableArray *mentions = (NSMutableArray *)[NSJSONSerialization JSONObjectWithData:responseData
+                                                                                              options:NSJSONReadingMutableLeaves
+                                                                                                error:&jsonError];
+                 
+                 //取得完了を通知
+                 [result setObject:@"MentionsSuccess" forKey:@"Result"];
+                 [result setObject:mentions forKey:@"Mentions"];
+                 
+                 //通知を実行
+                 [[NSNotificationCenter defaultCenter] postNotification:notification];
+                 
+                 [ActivityIndicator off];
+             }
          }];
         
-    }@finally {
-        
-        [pool drain];
+        //NSLog(@"Mentions request sended");
     }
-    
-    //NSLog(@"Mentions request sended");
 }
 
 + (void)favotites {
     
-    NSAutoreleasePool *pool = [[NSAutoreleasePool alloc] init];
-    
-    @try {
+    @autoreleasepool {
+        
+        ACAccount *requestAccount = [TWAccounts currentAccount];
         
         //Twitterアカウントの確認
-        if ( [TWAccounts currentAccount] == nil ) {
+        if ( requestAccount == nil ) {
             
             //アカウントデータが空
             [ShowAlert error:@"アカウントが取得できませんでした。"];
@@ -358,19 +342,19 @@
         NSURL *reqUrl = [NSURL URLWithString:urlString];
         
         //リクエストパラメータを作成
-        NSMutableDictionary *params = [[[NSMutableDictionary alloc] init] autorelease];
+        NSMutableDictionary *params = [[NSMutableDictionary alloc] init];
         //取得数
         [params setObject:@"40" forKey:@"count"];
         //エンティティの有効化
         [params setObject:@"1" forKey:@"include_entities"];
         
         //リクエストを作成
-        TWRequest *request = [[[TWRequest alloc] initWithURL:reqUrl
-                                                  parameters:params
-                                               requestMethod:TWRequestMethodGET] autorelease];
+        TWRequest *request = [[TWRequest alloc] initWithURL:reqUrl
+                                                 parameters:params
+                                              requestMethod:TWRequestMethodGET];
         
         //リクエストにアカウントを設定
-        [request setAccount:[TWAccounts currentAccount]];
+        [request setAccount:requestAccount];
         
         //Mentions取得結果通知を作成
         NSMutableDictionary *result = [NSMutableDictionary dictionary];
@@ -382,43 +366,32 @@
         [request performRequestWithHandler:
          ^( NSData *responseData, NSHTTPURLResponse *urlResponse, NSError *error ) {
              
-             dispatch_async(dispatch_get_main_queue(), ^{
-                 
-                 if ( responseData ) {
-                     
-                     NSError *jsonError = nil;
-                     NSMutableArray *favorites = (NSMutableArray *)[NSJSONSerialization JSONObjectWithData:responseData
-                                                                                                   options:NSJSONReadingMutableLeaves
-                                                                                                     error:&jsonError];
-                     
-                     //取得完了を通知
-                     [result setObject:@"FavoritesSuccess" forKey:@"Result"];
-                     [result setObject:favorites forKey:@"Favorites"];
-                     
-                     //通知を実行
-                     [[NSNotificationCenter defaultCenter] postNotification:notification];
-                     
-                     [ActivityIndicator off];
-                 }
-             });
+             if ( responseData ) {
+                 NSError *jsonError = nil;
+                 NSMutableArray *favorites = (NSMutableArray *)[NSJSONSerialization JSONObjectWithData:responseData
+                                                                                               options:NSJSONReadingMutableLeaves
+                                                                                                 error:&jsonError];
+                 //取得完了を通
+                 [result setObject:@"FavoritesSuccess" forKey:@"Result"];
+                 [result setObject:favorites forKey:@"Favorites"];
+                 //通知を実行
+                 [[NSNotificationCenter defaultCenter] postNotification:notification];
+                 [ActivityIndicator off];
+             }
          }];
         
-    }@finally {
-        
-        [pool drain];
+        //NSLog(@"Favorites request sended");
     }
-    
-    //NSLog(@"Favorites request sended");
 }
 
 + (void)twitterSearch:(NSString *)searchWord {
     
-    NSAutoreleasePool *pool = [[NSAutoreleasePool alloc] init];
-    
-    @try {
+    @autoreleasepool {
+        
+        ACAccount *requestAccount = [TWAccounts currentAccount];
         
         //Twitterアカウントの確認
-        if ( [TWAccounts currentAccount] == nil ) {
+        if ( requestAccount == nil ) {
             
             //アカウントデータが空
             [ShowAlert error:@"アカウントが取得できませんでした。"];
@@ -435,7 +408,7 @@
         NSURL *reqUrl = [NSURL URLWithString:@"http://search.twitter.com/search.json"];
         
         //リクエストパラメータを作成
-        NSMutableDictionary *params = [[[NSMutableDictionary alloc] init] autorelease];
+        NSMutableDictionary *params = [[NSMutableDictionary alloc] init];
         //サーチワード
         [params setObject:searchWord forKey:@"q"];
         //取得数
@@ -446,12 +419,12 @@
         [params setObject:@"ja" forKey:@"lang"];
         
         //リクエストを作成
-        TWRequest *request = [[[TWRequest alloc] initWithURL:reqUrl
-                                                  parameters:params
-                                               requestMethod:TWRequestMethodGET] autorelease];
+        TWRequest *request = [[TWRequest alloc] initWithURL:reqUrl
+                                                 parameters:params
+                                              requestMethod:TWRequestMethodGET];
         
         //リクエストにアカウントを設定
-        [request setAccount:[TWAccounts currentAccount]];
+        [request setAccount:requestAccount];
         
         //Mentions取得結果通知を作成
         NSMutableDictionary *result = [NSMutableDictionary dictionary];
@@ -495,12 +468,8 @@
              });
          }];
         
-    }@finally {
-        
-        [pool drain];
+        //NSLog(@"Favorites request sended");
     }
-    
-    //NSLog(@"Favorites request sended");
 }
 
 + (NSArray *)fixTwitterSearchResponse:(NSArray *)twitterSearchResponse {

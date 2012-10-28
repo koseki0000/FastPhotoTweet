@@ -45,7 +45,6 @@ void uncaughtExceptionHandler(NSException *e) {
 @synthesize bookmarkUrl;
 @synthesize urlSchemeDownloadUrl;
 @synthesize tabChangeFunction;
-@synthesize sinceId;
 @synthesize reOpenUrl;
 @synthesize listId;
 @synthesize addTwitpicAccountName;
@@ -92,7 +91,6 @@ void uncaughtExceptionHandler(NSException *e) {
     bookmarkUrl = BLANK;
     urlSchemeDownloadUrl = BLANK;
     tabChangeFunction = BLANK;
-    sinceId = BLANK;
     reOpenUrl = BLANK;
     listId = BLANK;
     addTwitpicAccountName = BLANK;

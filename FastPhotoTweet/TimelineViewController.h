@@ -6,7 +6,7 @@
 //
 
 #import <UIKit/UIKit.h>
-#import "QuartzCore/CALayer.h"
+#import <QuartzCore/CALayer.h>
 #import <Twitter/Twitter.h>
 #import <Accounts/Accounts.h>
 #import "AppDelegate.h"
@@ -15,16 +15,21 @@
 #import "NSAttributedString+Attributes.h"
 
 #import "TWTwitterHeader.h"
+#import "TWTweets.h"
 #import "ListViewController.h"
+
 #import "UtilityClass.h"
+
 #import <MobileCoreServices/MobileCoreServices.h>
 #import "ASIHTTPRequest.h"
 #import <CFNetwork/CFNetwork.h>
+
 #import "JSON.h"
 #import "WebViewExController.h"
 #import "UIViewSubViewRemover.h"
 #import "TitleButton.h"
 #import "ActivityGrayView.h"
+#import "ImageWindow.h"
 
 #import "Three20UI/TTTableHeaderDragRefreshView.h"
 #import "Three20Style/TTDefaultStyleSheet.h"
@@ -33,8 +38,6 @@
 #import <Three20Style/Three20Style.h>
 #import <Three20UICommon/Three20UICommon.h>
 #import <Three20UINavigator/Three20UINavigator.h>
-
-#import "ImageWindow.h"
 
 @interface TimelineViewController : UIViewController <UIActionSheetDelegate, UITextFieldDelegate, UIPickerViewDelegate, UIPickerViewDataSource, UITableViewDelegate, UITableViewDataSource> {
     
@@ -60,15 +63,12 @@
 @property (retain, nonatomic) AppDelegate *appDelegate;
 @property (retain, nonatomic) ActivityGrayView *grayView;
 
-@property (retain, nonatomic) ACAccount *twAccount;
 @property (retain, nonatomic) NSMutableArray *timelineArray;
 @property (retain, nonatomic) NSMutableArray *inReplyTo;
 @property (retain, nonatomic) NSMutableArray *reqedUser;
 @property (retain, nonatomic) NSMutableArray *iconUrls;
 @property (retain, nonatomic) NSMutableArray *currentList;
 @property (retain, nonatomic) NSMutableArray *searchStreamTemp;
-@property (retain, nonatomic) NSMutableDictionary *allTimelines;
-@property (retain, nonatomic) NSMutableDictionary *sinceIds;
 @property (retain, nonatomic) NSMutableDictionary *icons;
 @property (retain, nonatomic) NSMutableDictionary *allLists;
 @property (retain, nonatomic) NSArray *mentionsArray;
@@ -76,9 +76,7 @@
 @property (retain, nonatomic) NSArray *tweetInUrls;
 @property (retain, nonatomic) NSDictionary *currentTweet;
 @property (retain, nonatomic) NSDictionary *selectTweet;
-@property (retain, nonatomic) NSString *userStreamAccount;
 @property (retain, nonatomic) NSString *lastUpdateAccount;
-@property (retain, nonatomic) NSString *timelineTopTweetId;
 @property (retain, nonatomic) NSString *selectAccount;
 @property (retain, nonatomic) NSString *alertSearchUserName;
 @property (retain, nonatomic) NSTimer *searchStreamTimer;
@@ -152,8 +150,6 @@
 - (void)openTimelineURL:(NSNotification *)notification;
 - (void)openTimelineImage:(NSNotification *)notification;
 - (void)receiveGrayViewDoneNotification:(NSNotification *)notification;
-- (void)saveTimeline:(ACAccount *)account;
-- (void)saveTimeline:(ACAccount *)account tweets:(NSArray *)tweets;
 - (UIColor *)getTextColor:(int)color;
 
 - (void)openStream;

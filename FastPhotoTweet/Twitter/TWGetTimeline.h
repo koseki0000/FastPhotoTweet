@@ -10,10 +10,10 @@
 #import <Foundation/Foundation.h>
 #import "ShowAlert.h"
 #import "ActivityIndicator.h"
-#import "AppDelegate.h"
 #import "InternetConnection.h"
 #import "TWEntities.h"
 #import "TWAccounts.h"
+#import "TWTweets.h"
 
 @interface TWGetTimeline : NSObject
 

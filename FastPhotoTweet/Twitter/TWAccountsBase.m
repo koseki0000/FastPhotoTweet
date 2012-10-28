@@ -14,7 +14,7 @@
 
 static TWAccountsBase *sharedObject = nil;
 
-+ (id)manager {
++ (TWAccountsBase *)manager {
     
     @synchronized(self) {
         
@@ -34,8 +34,7 @@ static TWAccountsBase *sharedObject = nil;
         if ( sharedObject == nil ) {
             
             sharedObject = [super allocWithZone:zone];
-            sharedObject.twitterAccounts = [TWAccountsBase getTwitterAccounts];
-            [sharedObject.twitterAccounts retain];
+            [TWAccountsBase getTwitterAccounts];
             
             return sharedObject;
         }
@@ -44,16 +43,17 @@ static TWAccountsBase *sharedObject = nil;
     return nil;
 }
 
-+ (NSArray *)getTwitterAccounts {
++ (void)getTwitterAccounts {
+    
+    NSLog(@"getTwitterAccounts");
  
     ACAccountStore *store = [[ACAccountStore alloc] init];
     ACAccountType *type = [store accountTypeWithAccountTypeIdentifier:ACAccountTypeIdentifierTwitter];
-    NSArray *twAccounts = [store accountsWithAccountType:type];
-    
-    return twAccounts;
+    sharedObject.twitterAccounts = [store accountsWithAccountType:type];
+    [sharedObject.twitterAccounts retain];
 }
 
-- (id)copyWithZone:(NSZone*)zone {
+- (id)copyWithZone:(NSZone *)zone {
     
     return self;
 }

@@ -12,11 +12,18 @@
 }
 
 + (NSArray *)twitterAccounts {
+    
     return ((TWAccounts *)[TWAccountsBase manager]).twitterAccounts;
 }
 
 + (ACAccount *)currentAccount {
+    
     return [((TWAccounts *)[TWAccountsBase manager]).twitterAccounts objectAtIndex:[[NSUserDefaults standardUserDefaults] integerForKey:@"UseAccount"]];
+}
+
++ (NSString *)currentAccountName {
+    
+    return ((ACAccount *)[((TWAccounts *)[TWAccountsBase manager]).twitterAccounts objectAtIndex:[[NSUserDefaults standardUserDefaults] integerForKey:@"UseAccount"]]).username;
 }
 
 + (ACAccount *)selectAccount:(int)num {
@@ -34,7 +41,7 @@
             return nil;
         }
         
-    }@catch (NSException *e) {
+    }@catch ( NSException *e ) {
         
         return nil;
     }

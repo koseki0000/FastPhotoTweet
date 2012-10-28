@@ -9,7 +9,7 @@
 
 @property (retain, readonly) NSArray *twitterAccounts;
 
-+ (id)manager;
-+ (NSArray *)getTwitterAccounts;
++ (TWAccountsBase *)manager;
++ (void)getTwitterAccounts;
 
 @end

@@ -20,49 +20,46 @@
 //out: JSTタイムゾーン適用済み時刻
 + (NSString *)JSTDate:(NSString *)tweetData {
     
-    @autoreleasepool {
+    NSString *jstDate = BLANK;
+    
+    @try {
         
-        NSString *jstDate = BLANK;
+        //時刻のトリム開始位置
+        int from = 11;
         
-        @try {
-            
-            //時刻のトリム開始位置
-            int from = 11;
-            
-            //,がある場合はTwitterSearchのパターン
-            //トリム開始位置を変更
-            if ( [tweetData rangeOfString:@","].location != NSNotFound ) from = 17;
-            
-            //時刻部分を抜き出す
-            NSString *date = [tweetData substringWithRange:NSMakeRange(from, 8)];
-            
-            //時刻フォーマットを指定
-            NSDateFormatter *inputDateFormatter = [[NSDateFormatter alloc] init];
-            [inputDateFormatter setDateFormat:DATE_FORMAT];
-            
-            //時刻を指定フォーマットに合わせる
-            NSDate *inputDate = [inputDateFormatter dateFromString:date];
-            
-            //JSTタイムゾーンを適用し、時刻部分を抜き出す
-            jstDate = [[[NSDate dateWithTimeInterval:64800 sinceDate:inputDate] description] substringWithRange:NSMakeRange(11, 8)];
-            
-            inputDate = nil;
-            inputDateFormatter = nil;
-            date = nil;
-            tweetData = nil;
-            
-        }@catch ( NSException *e ) {
-            
-            return BLANK;
-        }
+        //,がある場合はTwitterSearchのパターン
+        //トリム開始位置を変更
+        if ( [tweetData rangeOfString:@","].location != NSNotFound ) from = 17;
         
-        //JSTタイムゾーン適用済み時刻をHH:mm:ss形式で返却
-        return jstDate;
+        //時刻部分を抜き出す
+        NSString *date = [tweetData substringWithRange:NSMakeRange(from, 8)];
+        
+        //時刻フォーマットを指定
+        NSDateFormatter *inputDateFormatter = [[NSDateFormatter alloc] init];
+        [inputDateFormatter setDateFormat:DATE_FORMAT];
+        
+        //時刻を指定フォーマットに合わせる
+        NSDate *inputDate = [inputDateFormatter dateFromString:date];
+        
+        //JSTタイムゾーンを適用し、時刻部分を抜き出す
+        jstDate = [[[NSDate dateWithTimeInterval:64800 sinceDate:inputDate] description] substringWithRange:NSMakeRange(11, 8)];
+        
+        inputDate = nil;
+        inputDateFormatter = nil;
+        date = nil;
+        tweetData = nil;
+        
+    }@catch ( NSException *e ) {
+        
+        return BLANK;
     }
+    
+    //JSTタイムゾーン適用済み時刻をHH:mm:ss形式で返却
+    return jstDate;
 }
 
 + (NSString *)date:(NSString *)tweetData {
-        
+    
     return [tweetData substringWithRange:NSMakeRange(11,8)];
 }
 
