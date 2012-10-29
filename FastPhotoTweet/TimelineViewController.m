@@ -153,8 +153,7 @@
     timelineScroll = 0;
     
     //アイコン表示の角を丸める
-    [accountIconView.layer setMasksToBounds:YES];
-    [accountIconView.layer setCornerRadius:5.0f];
+    [self setMyAccountIconCorner];
     
     //アイコン保存用ディレクトリ確認
     BOOL isDir = NO;
@@ -187,7 +186,6 @@
     
     //タイムライン生成
     [self performSelectorInBackground:@selector(createTimeline) withObject:nil];
-//  [self createTimeline];
 }
 
 - (void)setNotifications {
@@ -954,7 +952,10 @@
                     [icons setObject:image forKey:searchName];
                     
                     //自分のアイコンの場合は上部バーに設定
-                    if ( [screenName isEqualToString:[TWAccounts currentAccountName]] ) accountIconView.image = image;
+                    if ( [screenName isEqualToString:[TWAccounts currentAccountName]] ) {
+                        
+                        accountIconView.image = image;
+                    }
                     
                     [ActivityIndicator off];
                 }
@@ -1297,107 +1298,111 @@
 
 - (UITableViewCell *)tableView:(UITableView *)tableView cellForRowAtIndexPath:(NSIndexPath *)indexPath {
     
-    //NSLog(@"cellForRowAtIndexPath: %d", indexPath.row);
-    
-    TimelineAttributedCell *cell = (TimelineAttributedCell *)[tableView dequeueReusableCellWithIdentifier:CELL_IDENTIFIER];
-    
-    if ( cell == nil ) {
+    @autoreleasepool {
         
-        cell = [[TimelineAttributedCell alloc] initWithStyle:UITableViewCellStyleDefault reuseIdentifier:CELL_IDENTIFIER];
+        //NSLog(@"cellForRowAtIndexPath: %d", indexPath.row);
         
-        [cell.iconView addTarget:self action:@selector(pushIcon:) forControlEvents:UIControlEventTouchUpInside];
+        TimelineAttributedCell *cell = (TimelineAttributedCell *)[tableView dequeueReusableCellWithIdentifier:CELL_IDENTIFIER];
         
-        if ( [d integerForKey:@"IconCornerRounding"] == 1 ) {
+        if ( cell == nil ) {
             
-            //角を丸める
-            [cell.iconView.layer setMasksToBounds:YES];
-            [cell.iconView.layer setCornerRadius:6.0f];
+            cell = [[TimelineAttributedCell alloc] initWithStyle:UITableViewCellStyleDefault reuseIdentifier:CELL_IDENTIFIER];
+            
+            [cell.iconView addTarget:self action:@selector(pushIcon:) forControlEvents:UIControlEventTouchUpInside];
         }
-    }
-    
-    currentTweet = [timelineArray objectAtIndex:indexPath.row];
-    
-    BOOL reTweet = [[[currentTweet objectForKey:@"retweeted_status"] objectForKey:@"id"] boolValue];
-    
-    CellTextColor textColor = CellTextColorBlack;
-    
-    //ReTweetの色変えと本文の調整は先にやっておく
-    if ( reTweet ) textColor = CellTextColorGreen;
-    
-    //Tweetの本文
-    NSString *text = [currentTweet objectForKey:@"text"];
-    
-    //ID
-    NSString *screenName = [[currentTweet objectForKey:@"user"] objectForKey:@"screen_name"];
-    cell.iconView.buttonTitle = screenName;
-    
-    //ID - 日付 [クライアント名]
-    NSString *infoLabelText = [NSString stringWithFormat:@"%@ - %@ [%@]",
-                               screenName,
-                               [TWParser JSTDate:[currentTweet objectForKey:@"created_at"]],
-                               [TWParser client:[currentTweet objectForKey:@"source"]]];
-    
-    //アイコン検索用
-    NSString *searchName = [NSString stringWithFormat:@"%@_%@",
-                            screenName,
-                            [TWIconBigger normal:[[[currentTweet objectForKey:@"user"] objectForKey:@"profile_image_url"] lastPathComponent]]];
-    
-    if ( [icons objectForKey:searchName] == nil ) {
-    
-        [cell.iconView setImage:nil forState:UIControlStateNormal];
-
-    }else {
         
-        [cell.iconView setImage:[icons objectForKey:searchName] forState:UIControlStateNormal];
-    }
-    
-    NSString *myAccountName = [TWAccounts currentAccountName];
-    
-    //自分の発言の色を変える
-    if ( [screenName isEqualToString:myAccountName] && !reTweet ) textColor = CellTextColorBlue;
-    
-    //Replyの色を変える
-    if ( [RegularExpression boolWithRegExp:text
-                             regExpPattern:[NSString stringWithFormat:@"@%@", myAccountName]] &&
-        !reTweet ) textColor = CellTextColorRed;
-    
-    //Favoriteの色を変えて星をつける
-    if ( [[currentTweet objectForKey:@"favorited"] boolValue] && !reTweet ) {
+        currentTweet = [timelineArray objectAtIndex:indexPath.row];
         
-        infoLabelText = [NSMutableString stringWithFormat:@"★%@",infoLabelText];
-        textColor = CellTextColorGold;
-    }
-    
-    //ふぁぼられイベント用
-    if ( [currentTweet objectForKey:@"FavEvent"] != nil ) {
+        BOOL reTweet = [[[currentTweet objectForKey:@"retweeted_status"] objectForKey:@"id"] boolValue];
         
-        NSString *temp = infoLabelText;
-        infoLabelText = [NSString stringWithFormat:@"【%@がお気に入りに追加】",
-                         [currentTweet objectForKey:@"addUser"]];
+        CellTextColor textColor = CellTextColorBlack;
         
-        text = [NSString stringWithFormat:@"%@\n%@", temp, text];
+        //ReTweetの色変えと本文の調整は先にやっておく
+        if ( reTweet ) {
+         
+            textColor = CellTextColorGreen;
+        }
+        
+        //Tweetの本文
+        NSString *text = [currentTweet objectForKey:@"text"];
+        
+        //ID
+        NSString *screenName = [[currentTweet objectForKey:@"user"] objectForKey:@"screen_name"];
+        cell.iconView.buttonTitle = screenName;
+        
+        //ID - 日付 [クライアント名]
+        NSString *infoLabelText = [NSString stringWithFormat:@"%@ - %@ [%@]",
+                                   screenName,
+                                   [TWParser JSTDate:[currentTweet objectForKey:@"created_at"]],
+                                   [TWParser client:[currentTweet objectForKey:@"source"]]];
+        
+        //アイコン検索用
+        NSString *searchName = [NSString stringWithFormat:@"%@_%@",
+                                screenName,
+                                [TWIconBigger normal:[[[currentTweet objectForKey:@"user"] objectForKey:@"profile_image_url"] lastPathComponent]]];
+        
+        if ( [icons objectForKey:searchName] != nil &&
+             cell.iconView.layer.sublayers.count != 0 &&
+             [[cell.iconView.layer.sublayers.lastObject name] isEqualToString:@"Icon"] ) {
+            
+            [cell.iconView.layer.sublayers.lastObject setContents:(id)[[icons objectForKey:searchName] CGImage]];
+            
+        }else {
+            
+            [cell.iconView.layer.sublayers.lastObject setContents:nil];
+        }
+        
+        NSString *myAccountName = [TWAccounts currentAccountName];
+        
+        //自分の発言の色を変える
+        if ( [screenName isEqualToString:myAccountName] && !reTweet ) {
+         
+            textColor = CellTextColorBlue;
+        }
+        
+        //Replyの色を変える
+        if ( [RegularExpression boolWithRegExp:text
+                                 regExpPattern:[NSString stringWithFormat:@"@%@", myAccountName]] &&
+            !reTweet ) textColor = CellTextColorRed;
+        
+        //Favoriteの色を変えて星をつける
+        if ( [[currentTweet objectForKey:@"favorited"] boolValue] && !reTweet ) {
+            
+            infoLabelText = [NSMutableString stringWithFormat:@"★%@",infoLabelText];
+            textColor = CellTextColorGold;
+        }
+        
+        //ふぁぼられイベント用
+        if ( [currentTweet objectForKey:@"FavEvent"] != nil ) {
+            
+            NSString *temp = infoLabelText;
+            infoLabelText = [NSString stringWithFormat:@"【%@がお気に入りに追加】",
+                             [currentTweet objectForKey:@"addUser"]];
+            
+            text = [NSString stringWithFormat:@"%@\n%@", temp, text];
+        }
+        
+        //セルへの反映開始
+        cell.infoLabel.text = infoLabelText;
+        cell.infoLabel.textColor = [self getTextColor:textColor];
+        
+        NSMutableAttributedString *mainText = [NSMutableAttributedString attributedStringWithString:text];
+        [mainText setFont:[UIFont systemFontOfSize:12]];
+        [mainText setTextColor:[self getTextColor:textColor] range:NSMakeRange(0, text.length)];
+        [mainText setTextAlignment:kCTLeftTextAlignment
+                     lineBreakMode:kCTLineBreakByCharWrapping
+                     maxLineHeight:14.0
+                     minLineHeight:14.0
+                    maxLineSpacing:1.0
+                    minLineSpacing:1.0
+                             range:NSMakeRange(0, mainText.length)];
+        cell.mainLabel.attributedText = mainText;
+        
+        //セルの高さを設定
+        cell.mainLabel.frame = CGRectMake(54, 19, 264, [self heightForContents:text]);
+        
+        return cell;
     }
-    
-    //セルへの反映開始
-    cell.infoLabel.text = infoLabelText;
-    cell.infoLabel.textColor = [self getTextColor:textColor];
-    
-    NSMutableAttributedString *mainText = [NSMutableAttributedString attributedStringWithString:text];
-    [mainText setFont:[UIFont systemFontOfSize:12]];
-    [mainText setTextColor:[self getTextColor:textColor] range:NSMakeRange(0, text.length)];
-    [mainText setTextAlignment:kCTLeftTextAlignment
-                 lineBreakMode:kCTLineBreakByCharWrapping
-                 maxLineHeight:14.0
-                 minLineHeight:14.0
-                maxLineSpacing:1.0
-                minLineSpacing:1.0
-                         range:NSMakeRange(0, mainText.length)];
-    cell.mainLabel.attributedText = mainText;
-    
-    //セルの高さを設定
-    cell.mainLabel.frame = CGRectMake(54, 19, 264, [self heightForContents:text]);
-    
-    return cell;
 }
 
 - (UIColor *)getTextColor:(int)color {
@@ -1506,10 +1511,10 @@
     BOOL find = NO;
     for ( NSDictionary *tweet in tl ) {
         
-        if ( [[tweet objectForKey:@"id_str"] isEqualToString:[TWTweets currentSinceID]] ) {
+        if ( [tweet objectForKey:@"id_str"] != nil &&
+            [[tweet objectForKey:@"id_str"] isEqualToString:[TWTweets currentSinceID]] ) {
             
             find = YES;
-            [TWTweets saveSinceID:BLANK];
             break;
         }
         
@@ -2372,8 +2377,6 @@
     
     if ( num < 0 ) return;
     
-    [NSThread sleepForTimeInterval:0.1f];
-    
     int accountCount = [TWAccounts accountCount] - 1;
     
     if ( accountCount >= num ) {
@@ -2398,8 +2401,6 @@
     
     //InReplyTto表示中は何もしない
     if ( otherTweetsMode ) return;
-    
-    [NSThread sleepForTimeInterval:0.1f];
     
     int num = [d integerForKey:@"UseAccount"] + 1;
     int accountCount = [TWAccounts accountCount] - 1;
@@ -2501,7 +2502,7 @@
     dispatch_async(dispatch_get_main_queue(), ^ {
         
         if ( timelineSegment.selectedSegmentIndex != 0 &&
-            timelineSegment.selectedSegmentIndex != 3 ) {
+             timelineSegment.selectedSegmentIndex != 3 ) {
             
             [grayView start];
         }
@@ -3177,7 +3178,7 @@
             alertSearch.tag = 0;
             
             self.alertSearchText = nil;
-            alertSearchText = [[UITextField alloc] initWithFrame:CGRectMake(12, 40, 260, 25)];
+            alertSearchText = [[SSTextField alloc] initWithFrame:CGRectMake(12, 40, 260, 25)];
             [alertSearchText setBackgroundColor:[UIColor whiteColor]];
             alertSearchText.contentVerticalAlignment = UIControlContentVerticalAlignmentCenter;
             alertSearchText.delegate = self;
@@ -3217,7 +3218,7 @@
                 alertSearch.tag = 1;
                 
                 self.alertSearchText = nil;
-                alertSearchText = [[UITextField alloc] initWithFrame:CGRectMake(12, 40, 260, 25)];
+                alertSearchText = [[SSTextField alloc] initWithFrame:CGRectMake(12, 40, 260, 25)];
                 [alertSearchText setBackgroundColor:[UIColor whiteColor]];
                 alertSearchText.contentVerticalAlignment = UIControlContentVerticalAlignmentCenter;
                 alertSearchText.delegate = self;
@@ -3254,7 +3255,7 @@
                 alertSearch.tag = 2;
                 
                 self.alertSearchText = nil;
-                alertSearchText = [[UITextField alloc] initWithFrame:CGRectMake(12, 40, 260, 25)];
+                alertSearchText = [[SSTextField alloc] initWithFrame:CGRectMake(12, 40, 260, 25)];
                 [alertSearchText setBackgroundColor:[UIColor whiteColor]];
                 alertSearchText.contentVerticalAlignment = UIControlContentVerticalAlignmentCenter;
                 alertSearchText.delegate = self;
@@ -3302,7 +3303,7 @@
             alertSearch.tag = 3;
             
             self.alertSearchText = nil;
-            alertSearchText = [[UITextField alloc] initWithFrame:CGRectMake(12, 40, 260, 25)];
+            alertSearchText = [[SSTextField alloc] initWithFrame:CGRectMake(12, 40, 260, 25)];
             [alertSearchText setBackgroundColor:[UIColor whiteColor]];
             alertSearchText.contentVerticalAlignment = UIControlContentVerticalAlignmentCenter;
             alertSearchText.delegate = self;
@@ -3903,7 +3904,7 @@
         if ( [RegularExpression boolWithRegExp:string regExpPattern:[NSString stringWithFormat:@"%@_", [TWAccounts currentAccountName]]] ) {
             
             NSLog(@"icon find");
-            
+
             accountIconView.image = [icons objectForKey:string];
             find = YES;
             
@@ -3919,6 +3920,14 @@
         
         [TWEvent getProfile:[TWAccounts currentAccountName]];
     }
+}
+
+- (void)setMyAccountIconCorner {
+    
+    CALayer *layer = [accountIconView layer];
+    [layer setMasksToBounds:YES];
+    [layer setCornerRadius:5.0f];
+    layer = nil;
 }
 
 - (void)timelineDidListChanged {

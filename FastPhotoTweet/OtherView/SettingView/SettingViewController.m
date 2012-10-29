@@ -1471,7 +1471,6 @@
                 [d setInteger:0 forKey:@"ImageSource"];
             }
 
-            
         }else if ( buttonIndex == 1 ) {
             
             [d setBool:NO forKey:@"RepeatedPost"];

@@ -208,12 +208,12 @@
     
     //カスタム書式が設定されていない場合デフォルト書式を設定
     if ( ![EmptyCheck check:[d objectForKey:@"NowPlayingEditText"]] ) {
-        [d setObject:@" #nowplaying : [st] - [ar] " forKey:@"NowPlayingEditText"];
+        [d setObject:@" #nowplaying : [st] - [ar] - [at] -" forKey:@"NowPlayingEditText"];
     }
     
     //サブ書式が設定されていない場合デフォルト書式を設定
     if ( ![EmptyCheck check:[d objectForKey:@"NowPlayingEditTextSub"]] ) {
-        [d setObject:@" #nowplaying : [st] - [ar] " forKey:@"NowPlayingEditTextSub"];
+        [d setObject:@" #nowplaying : [st] - [ar] - " forKey:@"NowPlayingEditTextSub"];
     }
     
     //写真投稿先が設定されていない場合Twitterを設定
@@ -289,6 +289,19 @@
             NSDictionary *dic = [[[NSDictionary alloc] initWithDictionary:information] autorelease];
             [d setObject:dic forKey:@"Information"];
             
+            //推奨設定
+            [d setBool:YES forKey:@"ResizeImage"];
+            [d setInteger:800 forKey:@"ImageMaxSize"];
+            [d setObject:@"JPG(High)" forKey:@"SaveImageType"];
+            [d setBool:YES forKey:@"NoResizeIphone4Ss"];
+            [d setBool:YES forKey:@"FullSizeImage"];
+            [d setBool:YES forKey:@"NowPlayingArtWork"];
+            [d setBool:YES forKey:@"OpenPasteBoardURL"];
+            [d setBool:YES forKey:@"SwipeShiftCaret"];
+            [d setBool:YES forKey:@"EnterBackgroundUSDisConnect"];
+            [d setBool:YES forKey:@"BecomeActiveUSConnect"];
+            [d setBool:YES forKey:@"ReloadAfterUSConnect"];
+            
             continue;
         }
         
@@ -297,7 +310,7 @@
             //NSLog(@"newVersion");
             
             [ShowAlert title:[NSString stringWithFormat:@"FastPhotoTweet %@", APP_VERSION]
-                     message:@"・更新時にクラッシュする問題を修正\n・その他多数の動作改善とバグ修正"];
+                     message:@"・WebView、TwilogSearch等でSwipeShiftCaret機能が使えるようになりました。・\n更新時にクラッシュする問題を修正(仮)\n・その他多数の動作改善とバグ修正"];
             
             information = [[[NSMutableDictionary alloc] initWithDictionary:[d dictionaryForKey:@"Information"]] autorelease];
             [information setValue:[NSNumber numberWithInt:1] forKey:APP_VERSION];

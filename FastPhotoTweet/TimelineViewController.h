@@ -30,6 +30,7 @@
 #import "TitleButton.h"
 #import "ActivityGrayView.h"
 #import "ImageWindow.h"
+#import "SSTextField.h"
 
 #import "Three20UI/TTTableHeaderDragRefreshView.h"
 #import "Three20Style/TTDefaultStyleSheet.h"
@@ -92,7 +93,7 @@
 @property (retain, nonatomic) UIImage *defaultActionButtonImage;
 
 @property (retain, nonatomic) UIAlertView *alertSearch;
-@property (retain, nonatomic) UITextField *alertSearchText;
+@property (retain, nonatomic) SSTextField *alertSearchText;
 @property (retain, nonatomic) UIView *pickerBase;
 @property (retain, nonatomic) UIToolbar *pickerBar;
 @property (retain, nonatomic) UIPickerView *eventPicker;
@@ -174,6 +175,7 @@
 - (void)becomeActive:(NSNotification *)notification;
 
 - (void)getMyAccountIcon;
+- (void)setMyAccountIconCorner;
 - (void)timelineDidListChanged;
 - (void)showListSelectView;
 - (void)setTimelineBarItems;

@@ -7,6 +7,7 @@
 //
 
 #import <UIKit/UITableViewCell.h>
+#import <QuartzCore/QuartzCore.h>
 #import "OHAttributedLabel.h"
 #import "TitleButton.h"
 #import "NSAttributedString+Attributes.h"
@@ -14,8 +15,8 @@
 
 @interface TimelineAttributedCell : UITableViewCell <OHAttributedLabelDelegate>
 
-@property (retain, nonatomic) OHAttributedLabel *infoLabel;
-@property (retain, nonatomic) OHAttributedLabel *mainLabel;
-@property (retain, nonatomic) TitleButton *iconView;
+@property (strong, nonatomic) UILabel *infoLabel;
+@property (strong, nonatomic) OHAttributedLabel *mainLabel;
+@property (strong, nonatomic) TitleButton *iconView;
 
 @end

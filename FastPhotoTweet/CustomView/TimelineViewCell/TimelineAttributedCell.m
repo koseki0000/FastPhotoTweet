@@ -43,19 +43,54 @@ static NSInteger const kAttributedLabelTag = 100;
     
     if ( self ) {
         
-        _infoLabel = [[[OHAttributedLabel alloc] initWithFrame:CGRectMake(54, 2,  264, 14)] autorelease];
-        _mainLabel = [[[OHAttributedLabel alloc] initWithFrame:CGRectMake(54, 19, 264, 31)] autorelease];
-        _iconView = [[[TitleButton alloc] initWithFrame:CGRectMake(2, 4, 48, 48)] autorelease];
+        _infoLabel = [[UILabel alloc] initWithFrame:CGRectMake(54, 2,  264, 14)];
+        _mainLabel = [[OHAttributedLabel alloc] initWithFrame:CGRectMake(54, 19, 264, 31)];
+        _iconView = [[TitleButton alloc] initWithFrame:CGRectMake(2, 4, 48, 48)];
         
         _infoLabel.font = [UIFont boldSystemFontOfSize:11];
         
         _infoLabel.backgroundColor = [UIColor clearColor];
         _mainLabel.backgroundColor = [UIColor clearColor];
         
-        _infoLabel.automaticallyAddLinksForType = NSTextCheckingTypeLink;
         _mainLabel.automaticallyAddLinksForType = NSTextCheckingTypeLink;
-        [_infoLabel setUnderlineLinks:NO];
         [_mainLabel setUnderlineLinks:YES];
+        
+        [self.iconView.imageView removeFromSuperview];
+        [self.iconView.titleLabel removeFromSuperview];
+        [self.iconView.inputAccessoryView removeFromSuperview];
+        [self.iconView.inputView removeFromSuperview];
+
+        [self.infoLabel.inputAccessoryView removeFromSuperview];
+        [self.infoLabel.inputView removeFromSuperview];
+
+        [self.mainLabel.inputAccessoryView removeFromSuperview];
+        [self.mainLabel.inputView removeFromSuperview];
+        
+        [self.accessoryView removeFromSuperview];
+        [self.backgroundView removeFromSuperview];
+        [self.detailTextLabel removeFromSuperview];
+        [self.textLabel removeFromSuperview];
+        [self.imageView removeFromSuperview];
+        [self.editingAccessoryView removeFromSuperview];
+        [self.inputAccessoryView removeFromSuperview];
+        [self.inputView removeFromSuperview];
+        [self.multipleSelectionBackgroundView removeFromSuperview];
+        [self.selectedBackgroundView removeFromSuperview];
+        
+        CALayer *iconLayer = [CALayer layer];
+        iconLayer.name = @"Icon";
+        iconLayer.frame = CGRectMake(0, 0, 48, 48);
+        
+        if ( [[NSUserDefaults standardUserDefaults] integerForKey:@"IconCornerRounding"] == 1 ) {
+            
+            //角を丸める
+            [iconLayer setMasksToBounds:YES];
+            [iconLayer setCornerRadius:6.0f];
+        }
+        
+        [self.iconView.layer addSublayer:iconLayer];
+
+        iconLayer = nil;
         
         [self addSubview:_infoLabel];
         [self addSubview:_mainLabel];
@@ -69,11 +104,11 @@ static NSInteger const kAttributedLabelTag = 100;
     
     //NSLog(@"%@: dealloc", NSStringFromClass([self class]));
     
-    [self setIconView:nil];
-    [self setInfoLabel:nil];
-    [self setMainLabel:nil];
+//    [self setIconView:nil];
+//    [self setInfoLabel:nil];
+//    [self setMainLabel:nil];
     
-    [super dealloc];
+//    [super dealloc];
 }
 
 @end

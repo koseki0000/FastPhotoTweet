@@ -13,6 +13,7 @@
 #import "InternetConnection.h"
 #import "ADBlock.h"
 #import "UIViewSubViewRemover.h"
+#import "SSTextField.h"
 
 @interface WebViewExController : UIViewController <UIWebViewDelegate, UIActionSheetDelegate, UITextFieldDelegate, NSXMLParserDelegate> {
     
@@ -52,8 +53,8 @@
 
 @property (weak, nonatomic) IBOutlet WebViewEx *wv;
 @property (weak, nonatomic) IBOutlet UIToolbar *topBar;
-@property (weak, nonatomic) IBOutlet UITextField *urlField;
-@property (weak, nonatomic) IBOutlet UITextField *searchField;
+@property (weak, nonatomic) IBOutlet SSTextField *urlField;
+@property (weak, nonatomic) IBOutlet SSTextField *searchField;
 @property (weak, nonatomic) IBOutlet UIBarButtonItem *searchButton;
 @property (weak, nonatomic) IBOutlet UIToolbar *bottomBar;
 @property (weak, nonatomic) IBOutlet UIBarButtonItem *composeButton;
