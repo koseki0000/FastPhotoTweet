@@ -140,6 +140,20 @@
     NSMutableDictionary *replacedTweet = [NSMutableDictionary dictionaryWithDictionary:tweet];
     [replacedTweet setObject:text forKey:@"text"];
     
+    if ( [replacedTweet objectForKey:@"event"] == nil ) {
+        
+        [replacedTweet setObject:[NSString stringWithFormat:@"%@ - %@ [%@]",
+                                  [[replacedTweet objectForKey:@"user"] objectForKey:@"screen_name"],
+                                  [TWParser JSTDate:[replacedTweet objectForKey:@"created_at"]],
+                                  [TWParser client:[replacedTweet objectForKey:@"source"]]]
+                          forKey:@"info_text"];
+        
+        [replacedTweet setObject:[NSString stringWithFormat:@"%@_%@",
+                                  [[replacedTweet objectForKey:@"user"] objectForKey:@"screen_name"],
+                                  [TWIconBigger normal:[[[replacedTweet objectForKey:@"user"] objectForKey:@"profile_image_url"] lastPathComponent]]]
+                          forKey:@"search_name"];
+    }
+    
     return [TWEntities truncateUselessData:replacedTweet];
 }
 

@@ -8,6 +8,7 @@
 #import <Foundation/Foundation.h>
 #import "JSON.h"
 #import "TWParser.h"
+#import "TWIconBigger.h"
 #import "EmptyCheck.h"
 #import "NSStringAdditions.h"
 

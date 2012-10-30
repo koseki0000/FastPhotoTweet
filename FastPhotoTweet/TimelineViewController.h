@@ -31,6 +31,7 @@
 #import "ActivityGrayView.h"
 #import "ImageWindow.h"
 #import "SSTextField.h"
+#import "NSDictionary+DataExtraction.h"
 
 #import "Three20UI/TTTableHeaderDragRefreshView.h"
 #import "Three20Style/TTDefaultStyleSheet.h"
@@ -58,7 +59,6 @@
     
     int selectRow;
     int longPressControl;
-    int timelineScroll;
 }
 
 @property (retain, nonatomic) AppDelegate *appDelegate;
@@ -90,7 +90,6 @@
 @property (retain, nonatomic) UIImage *startImage;
 @property (retain, nonatomic) UIImage *stopImage;
 @property (retain, nonatomic) UIImage *listImage;
-@property (retain, nonatomic) UIImage *defaultActionButtonImage;
 
 @property (retain, nonatomic) UIAlertView *alertSearch;
 @property (retain, nonatomic) SSTextField *alertSearchText;

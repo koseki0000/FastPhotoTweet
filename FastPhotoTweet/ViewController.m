@@ -310,7 +310,7 @@
             //NSLog(@"newVersion");
             
             [ShowAlert title:[NSString stringWithFormat:@"FastPhotoTweet %@", APP_VERSION]
-                     message:@"・WebView、TwilogSearch等でSwipeShiftCaret機能が使えるようになりました。・\n更新時にクラッシュする問題を修正(仮)\n・その他多数の動作改善とバグ修正"];
+                     message:@"・Timeline回りの省メモリ化、高速化"];
             
             information = [[[NSMutableDictionary alloc] initWithDictionary:[d dictionaryForKey:@"Information"]] autorelease];
             [information setValue:[NSNumber numberWithInt:1] forKey:APP_VERSION];

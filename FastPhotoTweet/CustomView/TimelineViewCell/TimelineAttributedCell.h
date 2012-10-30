@@ -19,4 +19,6 @@
 @property (strong, nonatomic) OHAttributedLabel *mainLabel;
 @property (strong, nonatomic) TitleButton *iconView;
 
+- (void)setProperties;
+
 @end

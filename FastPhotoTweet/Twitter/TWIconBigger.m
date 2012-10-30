@@ -11,19 +11,18 @@
 
 + (NSString *)normal:(NSString *)normalUrl {
     
-    if ( [normalUrl isEqualToString:@""] ) return @"";
+    if ( normalUrl == nil || [normalUrl isEqualToString:@""] ) return @"";
     
     NSString *biggerUrl = nil;
     
     @try {
         
-        NSString *extension = [normalUrl pathExtension];
-        NSString *planeFileName = [normalUrl substringWithRange:NSMakeRange( 0, normalUrl.length - extension.length )];
+        NSString *planeFileName = [normalUrl substringWithRange:NSMakeRange( 0, normalUrl.length - [normalUrl pathExtension].length )];
         
         if ( [planeFileName hasSuffix:@"_normal."] ) {
             
             planeFileName = [planeFileName substringWithRange:NSMakeRange(0, planeFileName.length - 8)];
-            biggerUrl = [NSString stringWithFormat:@"%@_bigger.%@", planeFileName, extension];
+            biggerUrl = [NSString stringWithFormat:@"%@_bigger.%@", planeFileName, [normalUrl pathExtension]];
             
         }else if ( [planeFileName hasSuffix:@"_normal"] ) {
             

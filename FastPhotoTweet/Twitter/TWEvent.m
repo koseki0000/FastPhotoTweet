@@ -22,8 +22,8 @@
         
         //リクエストの作成
         TWRequest *postRequest = [[TWRequest alloc] initWithURL:[NSURL URLWithString:tReqURL]
-                                                      parameters:nil 
-                                                   requestMethod:TWRequestMethodPOST];
+                                                     parameters:nil
+                                                  requestMethod:TWRequestMethodPOST];
         
         //リクエストにアカウントを設定
         [postRequest setAccount:[TWAccounts selectAccount:accountIndex]];
@@ -50,8 +50,8 @@
         
         //リクエストの作成
         TWRequest *postRequest = [[TWRequest alloc] initWithURL:[NSURL URLWithString:tReqURL]
-                                                      parameters:nil 
-                                                   requestMethod:TWRequestMethodPOST];
+                                                     parameters:nil
+                                                  requestMethod:TWRequestMethodPOST];
         
         //リクエストにアカウントを設定
         [postRequest setAccount:[TWAccounts selectAccount:accountIndex]];
@@ -60,7 +60,7 @@
          ^( NSData *responseData, NSHTTPURLResponse *urlResponse, NSError *error ) {
              
              dispatch_async(dispatch_get_main_queue(), ^{
-                                  
+                 
                  [ActivityIndicator visible:NO];
              });
          }];
@@ -84,8 +84,8 @@
         
         //リクエストの作成
         TWRequest *postRequest = [[TWRequest alloc] initWithURL:[NSURL URLWithString:tReqURL]
-                                                      parameters:nil 
-                                                   requestMethod:TWRequestMethodPOST];
+                                                     parameters:nil
+                                                  requestMethod:TWRequestMethodPOST];
         
         //リクエストにアカウントを設定
         [postRequest setAccount:[TWAccounts selectAccount:accountIndex]];
@@ -115,16 +115,16 @@
         
         //リクエストの作成
         TWRequest *postRequest = [[TWRequest alloc] initWithURL:[NSURL URLWithString:tReqURL]
-                                                      parameters:nil 
-                                                   requestMethod:TWRequestMethodGET];
+                                                     parameters:nil
+                                                  requestMethod:TWRequestMethodGET];
         
         //リクエストにアカウントを設定
         [postRequest setAccount:[TWAccounts currentAccount]];
         
         //投稿結果通知を作成
         NSMutableDictionary *resultProfile = [NSMutableDictionary dictionary];
-        NSNotification *notification =[NSNotification notificationWithName:@"GetProfile" 
-                                                                    object:self 
+        NSNotification *notification =[NSNotification notificationWithName:@"GetProfile"
+                                                                    object:self
                                                                   userInfo:resultProfile];
         
         [postRequest performRequestWithHandler:
@@ -167,7 +167,7 @@
     NSLog(@"getTweet");
     
     if ( [TWAccounts currentAccount] != nil ) {
-     
+        
         //ステータスバーに処理中表示
         [ActivityIndicator visible:YES];
         
@@ -176,16 +176,16 @@
         
         //リクエストの作成
         TWRequest *postRequest = [[TWRequest alloc] initWithURL:[NSURL URLWithString:tReqURL]
-                                                      parameters:nil 
-                                                   requestMethod:TWRequestMethodGET];
+                                                     parameters:nil
+                                                  requestMethod:TWRequestMethodGET];
         
         //リクエストにアカウントを設定
         [postRequest setAccount:[TWAccounts currentAccount]];
         
         //投稿結果通知を作成
         NSMutableDictionary *resultProfile = [NSMutableDictionary dictionary];
-        NSNotification *notification =[NSNotification notificationWithName:@"GetTweet" 
-                                                                    object:self 
+        NSNotification *notification =[NSNotification notificationWithName:@"GetTweet"
+                                                                    object:self
                                                                   userInfo:resultProfile];
         
         [postRequest performRequestWithHandler:
@@ -202,7 +202,7 @@
                  if ( result != nil ) {
                      
                      if ( [result objectForKey:@"error"] == nil ) {
-                     
+                         
                          [resultProfile setObject:@"Success" forKey:@"Result"];
                          [resultProfile setObject:result forKey:@"Tweet"];
                          
@@ -239,16 +239,16 @@
         
         //リクエストの作成
         TWRequest *postRequest = [[TWRequest alloc] initWithURL:[NSURL URLWithString:tReqURL]
-                                                      parameters:nil
-                                                   requestMethod:TWRequestMethodPOST];
+                                                     parameters:nil
+                                                  requestMethod:TWRequestMethodPOST];
         
         //リクエストにアカウントを設定
         [postRequest setAccount:[TWAccounts currentAccount]];
         
         //投稿結果通知を作成
         NSMutableDictionary *resultDestroy = [NSMutableDictionary dictionary];
-        NSNotification *notification =[NSNotification notificationWithName:@"Destroy" 
-                                                                    object:self 
+        NSNotification *notification =[NSNotification notificationWithName:@"Destroy"
+                                                                    object:self
                                                                   userInfo:resultDestroy];
         [postRequest performRequestWithHandler:
          ^( NSData *responseData, NSHTTPURLResponse *urlResponse, NSError *error ) {

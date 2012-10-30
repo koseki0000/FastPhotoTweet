@@ -13,6 +13,7 @@
 
 #define DATE_FORMAT @"HH:mm:ss"
 #define BLANK @""
+#define OFFSET 64800
 
 @implementation TWParser
 
@@ -31,22 +32,14 @@
         //トリム開始位置を変更
         if ( [tweetData rangeOfString:@","].location != NSNotFound ) from = 17;
         
-        //時刻部分を抜き出す
-        NSString *date = [tweetData substringWithRange:NSMakeRange(from, 8)];
-        
         //時刻フォーマットを指定
         NSDateFormatter *inputDateFormatter = [[NSDateFormatter alloc] init];
         [inputDateFormatter setDateFormat:DATE_FORMAT];
         
-        //時刻を指定フォーマットに合わせる
-        NSDate *inputDate = [inputDateFormatter dateFromString:date];
-        
         //JSTタイムゾーンを適用し、時刻部分を抜き出す
-        jstDate = [[[NSDate dateWithTimeInterval:64800 sinceDate:inputDate] description] substringWithRange:NSMakeRange(11, 8)];
+        jstDate = [[[NSDate dateWithTimeInterval:OFFSET sinceDate:[inputDateFormatter dateFromString:[tweetData substringWithRange:NSMakeRange(from, 8)]]] description] substringWithRange:NSMakeRange(11, 8)];
         
-        inputDate = nil;
         inputDateFormatter = nil;
-        date = nil;
         tweetData = nil;
         
     }@catch ( NSException *e ) {
