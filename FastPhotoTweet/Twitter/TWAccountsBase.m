@@ -16,12 +16,13 @@ static TWAccountsBase *sharedObject = nil;
 
 + (TWAccountsBase *)manager {
     
-    @synchronized(self) {
+    if ( sharedObject == nil ) {
         
-        if ( sharedObject == nil ) {
+        static dispatch_once_t onceToken;
+        dispatch_once(&onceToken, ^{
             
             [[self alloc] init];
-        }
+        });
     }
     
     return sharedObject;
@@ -29,15 +30,16 @@ static TWAccountsBase *sharedObject = nil;
 
 + (id)allocWithZone:(NSZone *)zone {
     
-    @synchronized(self) {
+    if ( sharedObject == nil ) {
         
-        if ( sharedObject == nil ) {
+        static dispatch_once_t onceToken;
+        dispatch_once(&onceToken, ^{
             
             sharedObject = [super allocWithZone:zone];
             [TWAccountsBase getTwitterAccounts];
-            
-            return sharedObject;
-        }
+        });
+        
+        return sharedObject;
     }
     
     return nil;

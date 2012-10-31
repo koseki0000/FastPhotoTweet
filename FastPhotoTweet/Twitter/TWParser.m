@@ -32,14 +32,16 @@
         //トリム開始位置を変更
         if ( [tweetData rangeOfString:@","].location != NSNotFound ) from = 17;
         
-        //時刻フォーマットを指定
-        NSDateFormatter *inputDateFormatter = [[NSDateFormatter alloc] init];
-        [inputDateFormatter setDateFormat:DATE_FORMAT];
+        @autoreleasepool {
+            
+            //時刻フォーマットを指定
+            NSDateFormatter __autoreleasing *inputDateFormatter = [[NSDateFormatter alloc] init];
+            [inputDateFormatter setDateFormat:DATE_FORMAT];
+            
+            //JSTタイムゾーンを適用し、時刻部分を抜き出す
+            jstDate = [[[NSDate dateWithTimeInterval:OFFSET sinceDate:[inputDateFormatter dateFromString:[tweetData substringWithRange:NSMakeRange(from, 8)]]] description] substringWithRange:NSMakeRange(11, 8)];
+        }
         
-        //JSTタイムゾーンを適用し、時刻部分を抜き出す
-        jstDate = [[[NSDate dateWithTimeInterval:OFFSET sinceDate:[inputDateFormatter dateFromString:[tweetData substringWithRange:NSMakeRange(from, 8)]]] description] substringWithRange:NSMakeRange(11, 8)];
-        
-        inputDateFormatter = nil;
         tweetData = nil;
         
     }@catch ( NSException *e ) {
@@ -64,7 +66,10 @@
     
     @try {
         
-        if ( tweetData == nil )return BLANK;
+        if ( ![tweetData isKindOfClass:[NSString class]] &&
+             ![tweetData isKindOfClass:[NSMutableString class]]) return BLANK;
+        
+        if ( tweetData == nil || [tweetData isEqualToString:@""] )return BLANK;
         
         if ( [tweetData isEqualToString:@"web"] ) return @"web";
         
@@ -107,62 +112,57 @@
     
     NSMutableDictionary *mTweet = [NSMutableDictionary dictionaryWithDictionary:tweet];
     
-    NSMutableDictionary *rtStatus = [NSMutableDictionary dictionaryWithDictionary:[mTweet objectForKey:@"retweeted_status"]];
-    NSMutableDictionary *rtStatusUser = [NSMutableDictionary dictionaryWithDictionary:[[mTweet objectForKey:@"retweeted_status"] objectForKey:@"user"]];
-    
-    [rtStatus removeObjectForKey:@"contributors"];
-    [rtStatus removeObjectForKey:@"coordinates"];
-    [rtStatus removeObjectForKey:@"geo"];
-    [rtStatus removeObjectForKey:@"truncated"];
-    [rtStatus removeObjectForKey:@"place"];
-    
-    [rtStatusUser removeObjectForKey:@"contributors_enabled"];
-    [rtStatusUser removeObjectForKey:@"default_profile"];
-    [rtStatusUser removeObjectForKey:@"default_profile_image"];
-    [rtStatusUser removeObjectForKey:@"follow_request_sent"];
-    [rtStatusUser removeObjectForKey:@"geo_enabled"];
-    [rtStatusUser removeObjectForKey:@"friends_count"];
-    [rtStatusUser removeObjectForKey:@"is_translator"];
-    [rtStatusUser removeObjectForKey:@"listed_count"];
-    [rtStatusUser removeObjectForKey:@"notifications"];
-    [rtStatusUser removeObjectForKey:@"profile_background_color"];
-    [rtStatusUser removeObjectForKey:@"profile_background_image_url"];
-    [rtStatusUser removeObjectForKey:@"profile_background_image_url_https"];
-    [rtStatusUser removeObjectForKey:@"profile_background_tile"];
-    [rtStatusUser removeObjectForKey:@"profile_image_url_https"];
-    [rtStatusUser removeObjectForKey:@"profile_link_color"];
-    [rtStatusUser removeObjectForKey:@"profile_sidebar_border_color"];
-    [rtStatusUser removeObjectForKey:@"profile_sidebar_fill_color"];
-    [rtStatusUser removeObjectForKey:@"profile_text_color"];
-    [rtStatusUser removeObjectForKey:@"profile_use_background_image"];
-    [rtStatusUser removeObjectForKey:@"time_zone"];
-    [rtStatusUser removeObjectForKey:@"utc_offset"];
-    [rtStatusUser removeObjectForKey:@"verified"];
-    [rtStatusUser removeObjectForKey:@"statuses_count"];
-    
-    [rtStatus setObject:rtStatusUser forKey:@"user"];
-    [mTweet setObject:rtStatus forKey:@"retweeted_status"];
-    
-    NSString *originalText =  [[mTweet objectForKey:@"retweeted_status"] objectForKey:@"text"];
-    NSString *postUser =     [[[mTweet objectForKey:@"retweeted_status"] objectForKey:@"user"] objectForKey:@"screen_name"];
-    NSString *postUserIcon = [[[mTweet objectForKey:@"retweeted_status"] objectForKey:@"user"] objectForKey:@"profile_image_url"];
-    NSString *rtUser = [[tweet objectForKey:@"user"] objectForKey:@"screen_name"];
-    
-    NSMutableDictionary *user = [NSMutableDictionary dictionaryWithDictionary:[mTweet objectForKey:@"user"]];
-    [user setObject:postUser forKey:@"screen_name"];
-    [user setObject:postUserIcon forKey:@"profile_image_url"];
-    
-    [mTweet setObject:[NSString stringWithFormat:@"%@\nRetweeted by @%@", originalText, rtUser] forKey:@"text"];
-    [mTweet setObject:user forKey:@"user"];
-    [mTweet setObject:rtUser forKey:@"rt_user"];
-    
-    rtStatus = nil;
-    rtStatusUser = nil;
-    originalText = nil;
-    postUser = nil;
-    postUserIcon = nil;
-    rtUser = nil;
-    user = nil;
+    @autoreleasepool {
+        
+        NSMutableDictionary __autoreleasing *rtStatus = [NSMutableDictionary dictionaryWithDictionary:[mTweet objectForKey:@"retweeted_status"]];
+        NSMutableDictionary __autoreleasing *rtStatusUser = [NSMutableDictionary dictionaryWithDictionary:[[mTweet objectForKey:@"retweeted_status"] objectForKey:@"user"]];
+        
+        [rtStatus removeObjectForKey:@"contributors"];
+        [rtStatus removeObjectForKey:@"coordinates"];
+        [rtStatus removeObjectForKey:@"geo"];
+        [rtStatus removeObjectForKey:@"truncated"];
+        [rtStatus removeObjectForKey:@"place"];
+        
+        [rtStatusUser removeObjectForKey:@"contributors_enabled"];
+        [rtStatusUser removeObjectForKey:@"default_profile"];
+        [rtStatusUser removeObjectForKey:@"default_profile_image"];
+        [rtStatusUser removeObjectForKey:@"follow_request_sent"];
+        [rtStatusUser removeObjectForKey:@"geo_enabled"];
+        [rtStatusUser removeObjectForKey:@"friends_count"];
+        [rtStatusUser removeObjectForKey:@"is_translator"];
+        [rtStatusUser removeObjectForKey:@"listed_count"];
+        [rtStatusUser removeObjectForKey:@"notifications"];
+        [rtStatusUser removeObjectForKey:@"profile_background_color"];
+        [rtStatusUser removeObjectForKey:@"profile_background_image_url"];
+        [rtStatusUser removeObjectForKey:@"profile_background_image_url_https"];
+        [rtStatusUser removeObjectForKey:@"profile_background_tile"];
+        [rtStatusUser removeObjectForKey:@"profile_image_url_https"];
+        [rtStatusUser removeObjectForKey:@"profile_link_color"];
+        [rtStatusUser removeObjectForKey:@"profile_sidebar_border_color"];
+        [rtStatusUser removeObjectForKey:@"profile_sidebar_fill_color"];
+        [rtStatusUser removeObjectForKey:@"profile_text_color"];
+        [rtStatusUser removeObjectForKey:@"profile_use_background_image"];
+        [rtStatusUser removeObjectForKey:@"time_zone"];
+        [rtStatusUser removeObjectForKey:@"utc_offset"];
+        [rtStatusUser removeObjectForKey:@"verified"];
+        [rtStatusUser removeObjectForKey:@"statuses_count"];
+        
+        [rtStatus setObject:rtStatusUser forKey:@"user"];
+        [mTweet setObject:rtStatus forKey:@"retweeted_status"];
+        
+        NSString __autoreleasing *originalText =  [[mTweet objectForKey:@"retweeted_status"] objectForKey:@"text"];
+        NSString __autoreleasing *postUser =     [[[mTweet objectForKey:@"retweeted_status"] objectForKey:@"user"] objectForKey:@"screen_name"];
+        NSString __autoreleasing *postUserIcon = [[[mTweet objectForKey:@"retweeted_status"] objectForKey:@"user"] objectForKey:@"profile_image_url"];
+        NSString __autoreleasing *rtUser = [[tweet objectForKey:@"user"] objectForKey:@"screen_name"];
+        
+        NSMutableDictionary __autoreleasing *user = [NSMutableDictionary dictionaryWithDictionary:[mTweet objectForKey:@"user"]];
+        [user setObject:postUser forKey:@"screen_name"];
+        [user setObject:postUserIcon forKey:@"profile_image_url"];
+        
+        [mTweet setObject:[NSString stringWithFormat:@"%@\nRetweeted by @%@", originalText, rtUser] forKey:@"text"];
+        [mTweet setObject:user forKey:@"user"];
+        [mTweet setObject:rtUser forKey:@"rt_user"];
+    }
     
     return [NSDictionary dictionaryWithDictionary:mTweet];
 }

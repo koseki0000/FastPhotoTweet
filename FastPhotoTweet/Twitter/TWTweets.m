@@ -31,11 +31,20 @@
 #pragma mark - Timeline
 
 + (void)saveCurrentTimeline:(NSMutableArray *)currentTimeline {
+
+    dispatch_queue_t queue = dispatch_get_global_queue(DISPATCH_QUEUE_PRIORITY_DEFAULT, 0);
+    dispatch_semaphore_t semaphore = dispatch_semaphore_create(1);
     
-    @synchronized(self) {
+    dispatch_async(queue, ^{
         
-        [[TWTweetsBase manager].timelines setObject:currentTimeline forKey:[TWAccounts currentAccountName]];
-    }
+        dispatch_semaphore_wait(semaphore, DISPATCH_TIME_FOREVER);
+        
+        [[TWTweetsBase manager].timelines setObject:currentTimeline
+                                             forKey:[TWAccounts currentAccountName]];
+        
+        dispatch_semaphore_signal(semaphore);
+        dispatch_release(semaphore);
+    });
 }
 
 + (NSMutableArray *)currentTimeline {
@@ -54,10 +63,18 @@
 
 + (void)saveSinceID:(NSString *)tweetID {
     
-    @synchronized(self) {
+    dispatch_queue_t queue = dispatch_get_global_queue(DISPATCH_QUEUE_PRIORITY_DEFAULT, 0);
+    dispatch_semaphore_t semaphore = dispatch_semaphore_create(1);
+    
+    dispatch_async(queue, ^{
+        
+        dispatch_semaphore_wait(semaphore, DISPATCH_TIME_FOREVER);
         
         [[TWTweetsBase manager].sinceIDs setObject:tweetID forKey:[TWAccounts currentAccountName]];
-    }
+        
+        dispatch_semaphore_signal(semaphore);
+        dispatch_release(semaphore);
+    });
 }
 
 + (void)saveSinceID:(NSString *)tweetID forAccountName:(NSString *)accountName {

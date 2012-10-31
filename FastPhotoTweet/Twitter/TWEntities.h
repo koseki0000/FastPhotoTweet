@@ -11,6 +11,7 @@
 #import "TWIconBigger.h"
 #import "EmptyCheck.h"
 #import "NSStringAdditions.h"
+#import "NSDictionary+DataExtraction.h"
 
 @interface TWEntities : NSObject
 

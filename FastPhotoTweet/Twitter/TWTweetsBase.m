@@ -14,12 +14,13 @@ static TWTweetsBase *sharedObject = nil;
 
 + (TWTweetsBase *)manager {
     
-    @synchronized(self) {
+    if ( sharedObject == nil ) {
         
-        if ( sharedObject == nil ) {
+        static dispatch_once_t onceToken;
+        dispatch_once(&onceToken, ^{
             
             [[self alloc] init];
-        }
+        });
     }
     
     return sharedObject;
@@ -27,9 +28,10 @@ static TWTweetsBase *sharedObject = nil;
 
 + (id)allocWithZone:(NSZone *)zone {
     
-    @synchronized(self) {
+    if ( sharedObject == nil ) {
         
-        if ( sharedObject == nil ) {
+        static dispatch_once_t onceToken;
+        dispatch_once(&onceToken, ^{
             
             sharedObject = [super allocWithZone:zone];
             
@@ -44,9 +46,9 @@ static TWTweetsBase *sharedObject = nil;
                 [sharedObject.timelines setObject:[NSMutableArray array] forKey:account.username];
                 [sharedObject.sinceIDs setObject:@"" forKey:account.username];
             }
-            
-            return sharedObject;
-        }
+        });
+        
+        return sharedObject;
     }
     
     return nil;

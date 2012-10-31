@@ -152,6 +152,20 @@
                                   [[replacedTweet objectForKey:@"user"] objectForKey:@"screen_name"],
                                   [TWIconBigger normal:[[[replacedTweet objectForKey:@"user"] objectForKey:@"profile_image_url"] lastPathComponent]]]
                           forKey:@"search_name"];
+        
+    }else if ( [tweet objectForKey:@"event"] != nil &&
+              [[tweet stringForKey:@"event"] isEqualToString:@"favorite"] ) {
+        
+        [replacedTweet setObject:[NSString stringWithFormat:@"%@ - %@ [%@]",
+                                  [[[replacedTweet objectForKey:@"target_object"] objectForKey:@"user"] objectForKey:@"screen_name"],
+                                  [TWParser JSTDate:[[replacedTweet objectForKey:@"target_object"] objectForKey:@"created_at"]],
+                                  [TWParser client:[[replacedTweet objectForKey:@"target_object"] objectForKey:@"source"]]]
+                          forKey:@"info_text"];
+        
+        [replacedTweet setObject:[NSString stringWithFormat:@"%@_%@",
+                                  [[[replacedTweet objectForKey:@"target_object"] objectForKey:@"user"] objectForKey:@"screen_name"],
+                                  [TWIconBigger normal:[[[[replacedTweet objectForKey:@"target_object"] objectForKey:@"user"] objectForKey:@"profile_image_url"] lastPathComponent]]]
+                          forKey:@"search_name"];
     }
     
     return [TWEntities truncateUselessData:replacedTweet];

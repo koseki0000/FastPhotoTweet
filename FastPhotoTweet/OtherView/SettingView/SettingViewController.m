@@ -12,7 +12,7 @@
 //セクション0の項目数 (画像関連設定)
 #define SECTION_0 9
 //セクション1の項目数 (投稿関連設定)
-#define SECTION_1 13
+#define SECTION_1 11
 //セクション2の項目数 (その他の設定)
 #define SECTION_2 6
 //セクション2の項目数 (タイムライン設定)
@@ -33,8 +33,6 @@
 #define IMAGE_GET_FULL  @"画像共有サービスフルサイズ取得"
 #define NOWPLAYING_IMAGE  @"NowPlaying画像投稿先"
 //投稿関連設定
-#define NOWPLAYING_FASTTWEET  @"NowPlaying時はFastTweetを行う"
-#define NOWPLAYING_CALLBACK @"NowPlaying時はCallBackを行う"
 #define NOWPLAYING_CUSTOM @"NowPlayingにカスタム書式を使用"
 #define NOWPLAYING_CUSTOM_EDIT @"カスタム書式を編集"
 #define NOWPLAYING_DUPLICATE_NAME @"曲名とアルバム名が同じな場合サブ書式を使用"
@@ -94,10 +92,9 @@
         //設定項目名を持った可変長配列を生成
         settingArray = [NSMutableArray arrayWithObjects:IMAGE_RESIZE,  IMAGE_RESIZE_MAX,  IMAGE_FORMAT,  NO_RESIZE_RETINA, 
                                                         IMAGE_SERVICE,  IMAGE_SOURCE,  IMAGE_REPEATED,  IMAGE_GET_FULL, 
-                                                        NOWPLAYING_IMAGE,  NOWPLAYING_FASTTWEET,  NOWPLAYING_CALLBACK,
-                                                        NOWPLAYING_CUSTOM, NOWPLAYING_CUSTOM_EDIT, NOWPLAYING_DUPLICATE_NAME,
-                                                        NOWPLAYING_SUB_STYLE, NOWPLAYING_ARTWORK, TOHA_SEARCH,
-                                                        WEB_PAGE_SHARE_STYLE, WEB_PAGE_SHARE_CURSOR, WEB_PAGE_QUOTE_STYLE,
+                                                        NOWPLAYING_IMAGE, NOWPLAYING_CUSTOM, NOWPLAYING_CUSTOM_EDIT,
+                                                        NOWPLAYING_DUPLICATE_NAME, NOWPLAYING_SUB_STYLE, NOWPLAYING_ARTWORK,
+                                                        TOHA_SEARCH, WEB_PAGE_SHARE_STYLE, WEB_PAGE_SHARE_CURSOR, WEB_PAGE_QUOTE_STYLE,
                                                         WEB_PAGE_QUOTE_CURSOR, SWITCH_APP, ACTIVE_INPUT, SEARCH_WORD_RESET,
                                                         PASTE_BOARD_URL, USER_AGENT, USER_AGENT_RESET, SWIPE_SHIFT_CARET,
                                                         ENTER_BACKGROUND_US, BECOME_ACTIVE_US, RELOAD_US, NG_OPEN,
@@ -293,32 +290,8 @@
             result = @"Twitpic";
         }
         
-    //NowPlaying時はFastPostを行う
-    }else if ( settingState == 9 ) {
-        
-        if ( [d boolForKey:@"NowPlayingFastPost"] ) {
-            
-            result = @"ON";
-            
-        }else {
-            
-            result = @"OFF";
-        }
-        
-    //NowPlaying時はCallBackを行う
-    }else if ( settingState == 10 ) {
-        
-        if ( [d boolForKey:@"NowPlayingCallBack"] ) {
-            
-            result = @"ON";
-            
-        }else {
-            
-            result = @"OFF";
-        }
-        
     //NowPlayingにカスタム書式を使用
-    }else if ( settingState == 11 ) {
+    }else if ( settingState == 9 ) {
         
         if ( [d boolForKey:@"NowPlayingEdit"] ) {
             
@@ -330,12 +303,12 @@
         }
         
     //カスタム書式を編集
-    }else if ( settingState == 12 ) {
+    }else if ( settingState == 10 ) {
         
         //空のまま
         
     //曲名とアルバム名が同じな場合サブ書式を使用
-    }else if ( settingState == 13 ) {
+    }else if ( settingState == 11 ) {
         
         if ( [d integerForKey:@"NowPlayingEditSub"] == 0 ) {
             
@@ -351,12 +324,12 @@
         }
         
     //サブ書式を編集
-    }else if ( settingState == 14 ) {
+    }else if ( settingState == 12 ) {
         
         //空のまま
     
     //NowPlaying時にアートワークを投稿
-    }else if ( settingState == 15 ) {    
+    }else if ( settingState == 13 ) {
         
         if ( [d boolForKey:@"NowPlayingArtWork"] ) {
             
@@ -368,7 +341,7 @@
         }
     
     //とは検索
-    }else if ( settingState == 16 ) {
+    }else if ( settingState == 14 ) {
         
         if ( [d boolForKey:@"TohaSearch"] ) {
             
@@ -380,10 +353,10 @@
         }
     
     //Webページ投稿書式変更
-    }else if ( settingState == 17 ) {
+    }else if ( settingState == 15 ) {
     
     //Webページ投稿書式セット後カーソル位置
-    }else if ( settingState == 18 ) {
+    }else if ( settingState == 16 ) {
         
         if ( [d boolForKey:@"WebPagePostCursorPosition"] ) {
             
@@ -394,9 +367,9 @@
             result = @"末尾";
         }
     
-//  }else if ( settingState == 19 ) {
+//  }else if ( settingState == 17 ) {
         
-    }else if ( settingState == 20 ) {
+    }else if ( settingState == 18 ) {
         
         if ( [d boolForKey:@"QuoteCursorPosition"] ) {
             
@@ -408,7 +381,7 @@
         }
         
     //投稿後アプリ切替
-    }else if ( settingState == 21 ) {
+    }else if ( settingState == 19 ) {
         
         NSString *scheme = [d objectForKey:@"CallBackScheme"];
         
@@ -478,7 +451,7 @@
         }
         
     //アプリがアクティブになった際入力可能状態にする
-    }else if ( settingState == 22 ) {
+    }else if ( settingState == 20 ) {
         
         if ( [d boolForKey:@"ShowKeyboard"] ) {
             
@@ -489,7 +462,7 @@
             result = @"OFF";
         }
     
-    }else if ( settingState == 23 ) {
+    }else if ( settingState == 21 ) {
         
         if ( [d boolForKey:@"ClearBrowserSearchField"] ) {
             
@@ -500,7 +473,7 @@
             result = @"OFF";
         }
     
-    }else if ( settingState == 24 ) {
+    }else if ( settingState == 22 ) {
         
         if ( [d boolForKey:@"OpenPasteBoardURL"] ) {
             
@@ -511,7 +484,7 @@
             result = @"OFF";
         }
     
-    }else if ( settingState == 25 ) {
+    }else if ( settingState == 23 ) {
 
         if ( [[d objectForKey:@"UserAgent"] isEqualToString:@"FireFox"] ) {
             
@@ -526,7 +499,7 @@
             result = @"iPhone";
         }
     
-    }else if ( settingState == 26 ) {
+    }else if ( settingState == 24 ) {
         
         if ( [[d objectForKey:@"UserAgentReset"] isEqualToString:@"FireFox"] ) {
             
@@ -545,7 +518,7 @@
             result = @"OFF";
         }
         
-    }else if ( settingState == 27 ) {
+    }else if ( settingState == 25 ) {
         
         if ( [d boolForKey:@"SwipeShiftCaret"] ) {
             
@@ -556,7 +529,7 @@
             result = @"OFF";
         }
         
-    }else if ( settingState == 28 ) {
+    }else if ( settingState == 26 ) {
         
         if ( [d boolForKey:@"EnterBackgroundUSDisConnect"] ) {
             
@@ -567,7 +540,7 @@
             result = @"OFF";
         }
         
-    }else if ( settingState == 29 ) {
+    }else if ( settingState == 27 ) {
         
         if ( [d boolForKey:@"BecomeActiveUSConnect"] ) {
             
@@ -578,7 +551,7 @@
             result = @"OFF";
         }
         
-    }else if ( settingState == 30 ) {
+    }else if ( settingState == 28 ) {
         
         if ( [d boolForKey:@"ReloadAfterUSConnect"] ) {
             
@@ -589,9 +562,9 @@
             result = @"OFF";
         }
         
-//    }else if ( settingState == 31 ) {
+//    }else if ( settingState == 29 ) {
         
-    }else if ( settingState == 32 ) {
+    }else if ( settingState == 30 ) {
 
         if ( [d boolForKey:@"MyTweetNG"] ) {
             
@@ -602,7 +575,7 @@
             result = @"OFF";
         }
         
-    }else if ( settingState == 33 ) {
+    }else if ( settingState == 31 ) {
         
         if ( [d integerForKey:@"IconCornerRounding"] == 1 ) {
             
@@ -613,7 +586,7 @@
             result = @"OFF";
         }
         
-    }else if ( settingState == 34 ) {
+    }else if ( settingState == 32 ) {
         
         if ( [d boolForKey:@"USNoAutoLock"] ) {
             
@@ -826,30 +799,6 @@
         actionSheetNo = actionSheetNo + SECTION_0;
         
         if ( indexPath.row == 0 ) {
-        
-            //NowPlaying時はFastPostを行う
-            sheet = [[UIActionSheet alloc]
-                     initWithTitle:NOWPLAYING_FASTTWEET
-                     delegate:self
-                     cancelButtonTitle:@"Cancel"
-                     destructiveButtonTitle:nil
-                     otherButtonTitles:@"ON", @"OFF", nil];
-            [sheet autorelease];
-            [sheet showInView:self.view];
-            
-        }else if ( indexPath.row == 1 ) {
-            
-            //NowPlaying時はCallBackを行う
-            sheet = [[UIActionSheet alloc]
-                     initWithTitle:NOWPLAYING_CALLBACK
-                     delegate:self
-                     cancelButtonTitle:@"Cancel"
-                     destructiveButtonTitle:nil
-                     otherButtonTitles:@"ON", @"OFF", nil];
-            [sheet autorelease];
-            [sheet showInView:self.view];
-            
-        }else if ( indexPath.row == 2 ) {
             
             //NowPlayingにカスタム書式を使用
             sheet = [[UIActionSheet alloc]
@@ -861,7 +810,7 @@
             [sheet autorelease];
             [sheet showInView:self.view];
         
-        }else if ( indexPath.row == 3 ) {
+        }else if ( indexPath.row == 1 ) {
             
             //カスタム書式を編集
             alertTextNo = 0;
@@ -893,7 +842,7 @@
             
             return;
             
-        }else if ( indexPath.row == 4 ) {
+        }else if ( indexPath.row == 2 ) {
             
             //曲名とアルバム名が同じな場合サブ書式を使用
             sheet = [[UIActionSheet alloc]
@@ -905,7 +854,7 @@
             [sheet autorelease];
             [sheet showInView:self.view];
             
-        }else if ( indexPath.row == 5 ) {
+        }else if ( indexPath.row == 3 ) {
             
             //サブ書式を編集
             alertTextNo = 1;
@@ -937,7 +886,7 @@
             
             return;
         
-        }else if ( indexPath.row == 6 ) {
+        }else if ( indexPath.row == 4 ) {
             
             //NowPlaying時にアートワークを投稿
             sheet = [[UIActionSheet alloc]
@@ -949,7 +898,7 @@
             [sheet autorelease];
             [sheet showInView:self.view];
         
-        }else if ( indexPath.row == 7 ) {
+        }else if ( indexPath.row == 5 ) {
             
             //とは検索
             sheet = [[UIActionSheet alloc]
@@ -961,7 +910,7 @@
             [sheet autorelease];
             [sheet showInView:self.view];
         
-        }else if ( indexPath.row == 8 ) {
+        }else if ( indexPath.row == 6 ) {
             
             //Webページ投稿書式変更
             alertTextNo = 2;
@@ -999,7 +948,7 @@
             
             return;
         
-        }else if ( indexPath.row == 9 ) {
+        }else if ( indexPath.row == 7 ) {
             
             //Webページ投稿書式セット後カーソル位置
             sheet = [[UIActionSheet alloc]
@@ -1011,7 +960,7 @@
             [sheet autorelease];
             [sheet showInView:self.view];
         
-        }else if ( indexPath.row == 10 ) {
+        }else if ( indexPath.row == 8 ) {
             
             //引用投稿書式変更
             alertTextNo = 3;
@@ -1049,7 +998,7 @@
             
             return;
             
-        }else if ( indexPath.row == 11 ) {
+        }else if ( indexPath.row == 9 ) {
             
             //引用投稿書式セット後カーソル位置
             sheet = [[UIActionSheet alloc]
@@ -1061,7 +1010,7 @@
             [sheet autorelease];
             [sheet showInView:self.view];
             
-        }else if ( indexPath.row == 12 ) {
+        }else if ( indexPath.row == 10 ) {
             
             sheet = [[UIActionSheet alloc]
                      initWithTitle:SWITCH_APP
@@ -1496,28 +1445,14 @@
         
     }else if ( actionSheetNo == 9 ) {
         if ( buttonIndex == 0 ) {
-            [d setBool:YES forKey:@"NowPlayingFastPost"];
-        }else if ( buttonIndex == 1 ) {
-            [d setBool:NO forKey:@"NowPlayingFastPost"];
-        }
-        
-    }else if ( actionSheetNo == 10 ) {
-        if ( buttonIndex == 0 ) {
-            [d setBool:YES forKey:@"NowPlayingCallBack"];
-        }else if ( buttonIndex == 1 ) {
-            [d setBool:NO forKey:@"NowPlayingCallBack"];
-        }
-    
-    }else if ( actionSheetNo == 11 ) {
-        if ( buttonIndex == 0 ) {
             [d setBool:YES forKey:@"NowPlayingEdit"];
         }else if ( buttonIndex == 1 ) {
             [d setBool:NO forKey:@"NowPlayingEdit"];
         }
     
-//  }else if ( actionSheetNo == 12 ) {
+//  }else if ( actionSheetNo == 10 ) {
     
-    }else if ( actionSheetNo == 13 ) {
+    }else if ( actionSheetNo == 11 ) {
         if ( buttonIndex == 0 ) {
             [d setInteger:0 forKey:@"NowPlayingEditSub"];
         }else if ( buttonIndex == 1 ) {
@@ -1526,9 +1461,9 @@
             [d setInteger:2 forKey:@"NowPlayingEditSub"];
         }
         
-//  }else if ( actionSheetNo == 14 ) {
+//  }else if ( actionSheetNo == 12 ) {
         
-    }else if ( actionSheetNo == 15 ) {
+    }else if ( actionSheetNo == 13 ) {
         
         if ( buttonIndex == 0 ) {
             [d setBool:YES forKey:@"NowPlayingArtWork"];
@@ -1536,25 +1471,25 @@
             [d setBool:NO forKey:@"NowPlayingArtWork"];
         }
     
-    }else if ( actionSheetNo == 16 ) {
+    }else if ( actionSheetNo == 14 ) {
         if ( buttonIndex == 0 ) {
             [d setBool:YES forKey:@"TohaSearch"];
         }else if ( buttonIndex == 1 ) {
             [d setBool:NO forKey:@"TohaSearch"];
         }
     
-//  }else if ( actionSheetNo == 17 ) {
+//  }else if ( actionSheetNo == 15 ) {
         
-    }else if ( actionSheetNo == 18 ) {
+    }else if ( actionSheetNo == 16 ) {
         if ( buttonIndex == 0 ) {
             [d setBool:YES forKey:@"WebPagePostCursorPosition"];
         }else if ( buttonIndex == 1 ) {
             [d setBool:NO forKey:@"WebPagePostCursorPosition"];
         }
         
-//  }else if ( actionSheetNo == 19 ) {
+//  }else if ( actionSheetNo == 17 ) {
         
-    }else if ( actionSheetNo == 20 ) {
+    }else if ( actionSheetNo == 18 ) {
         
         if ( buttonIndex == 0 ) {
             [d setBool:YES forKey:@"QuoteCursorPosition"];
@@ -1562,7 +1497,7 @@
             [d setBool:NO forKey:@"QuoteCursorPosition"];
         }
         
-    }else if ( actionSheetNo == 21 ) {
+    }else if ( actionSheetNo == 19 ) {
         
         if ( buttonIndex == 0 ) {
             [d setObject:@"FPT" forKey:@"CallBackScheme"];
@@ -1596,21 +1531,21 @@
             [d setObject:@"reeder://" forKey:@"CallBackScheme"];
         }
         
-    }else if ( actionSheetNo == 22 ) {
+    }else if ( actionSheetNo == 20 ) {
         if ( buttonIndex == 0 ) {
             [d setBool:YES forKey:@"ShowKeyboard"];
         }else if ( buttonIndex == 1 ) {
             [d setBool:NO forKey:@"ShowKeyboard"];
         }
     
-    }else if ( actionSheetNo == 23 ) {
+    }else if ( actionSheetNo == 21 ) {
         if ( buttonIndex == 0 ) {
             [d setBool:YES forKey:@"ClearBrowserSearchField"];
         }else if ( buttonIndex == 1 ) {
             [d setBool:NO forKey:@"ClearBrowserSearchField"];
         }
         
-    }else if ( actionSheetNo == 24 ) {
+    }else if ( actionSheetNo == 22 ) {
         if ( buttonIndex == 0 ) {
             
             [d setBool:YES forKey:@"OpenPasteBoardURL"];
@@ -1625,7 +1560,7 @@
             [d setBool:NO forKey:@"OpenPasteBoardURL"];
         }
         
-    }else if ( actionSheetNo == 25 ) {
+    }else if ( actionSheetNo == 23 ) {
         if ( buttonIndex == 0 ) {
             [d setObject:@"FireFox" forKey:@"UserAgent"];
         }else if ( buttonIndex == 1 ) {
@@ -1634,7 +1569,7 @@
             [d setObject:@"iPhone" forKey:@"UserAgent"];
         }
     
-    }else if ( actionSheetNo == 26 ) {
+    }else if ( actionSheetNo == 24 ) {
         
         if ( buttonIndex == 0 ) {
             [d setObject:@"OFF" forKey:@"UserAgentReset"];
@@ -1646,7 +1581,7 @@
             [d setObject:@"iPhone" forKey:@"UserAgentReset"];
         }
     
-    }else if ( actionSheetNo == 27 ) {
+    }else if ( actionSheetNo == 25 ) {
         
         if ( buttonIndex == 0 ) {
             [d setBool:YES forKey:@"SwipeShiftCaret"];
@@ -1654,37 +1589,37 @@
             [d setBool:NO forKey:@"SwipeShiftCaret"];
         }
         
-    }else if ( actionSheetNo == 28 ) {
+    }else if ( actionSheetNo == 26 ) {
         if ( buttonIndex == 0 ) {
             [d setBool:YES forKey:@"EnterBackgroundUSDisConnect"];
         }else if ( buttonIndex == 1 ) {
             [d setBool:NO forKey:@"EnterBackgroundUSDisConnect"];
         }
         
-    }else if ( actionSheetNo == 29 ) {
+    }else if ( actionSheetNo == 27 ) {
         if ( buttonIndex == 0 ) {
             [d setBool:YES forKey:@"BecomeActiveUSConnect"];
         }else if ( buttonIndex == 1 ) {
             [d setBool:NO forKey:@"BecomeActiveUSConnect"];
         }
         
-    }else if ( actionSheetNo == 30 ) {
+    }else if ( actionSheetNo == 28 ) {
         if ( buttonIndex == 0 ) {
             [d setBool:YES forKey:@"ReloadAfterUSConnect"];
         }else if ( buttonIndex == 1 ) {
             [d setBool:NO forKey:@"ReloadAfterUSConnect"];
         }
         
-//    }else if ( actionSheetNo == 31 ) {
+//    }else if ( actionSheetNo == 29 ) {
     
-    }else if ( actionSheetNo == 32 ) {
+    }else if ( actionSheetNo == 30 ) {
         if ( buttonIndex == 0 ) {
             [d setBool:YES forKey:@"MyTweetNG"];
         }else if ( buttonIndex == 1 ) {
             [d setBool:NO forKey:@"MyTweetNG"];
         }
     
-    }else if ( actionSheetNo == 33 ) {
+    }else if ( actionSheetNo == 31 ) {
         
         if ( buttonIndex == 0 ) {
             [d setInteger:2 forKey:@"IconCornerRounding"];
@@ -1694,7 +1629,7 @@
         
         [ShowAlert title:@"設定変更完了" message:@"設定を有効にするにはアプリケーションを再起動してください。"];
         
-    }else if ( actionSheetNo == 34 ) {
+    }else if ( actionSheetNo == 32 ) {
         if ( buttonIndex == 0 ) {
             [d setBool:YES forKey:@"USNoAutoLock"];
         }else if ( buttonIndex == 1 ) {

@@ -25,89 +25,77 @@
             //空ではない
             if ( [obj isKindOfClass:[NSString class]] ) {
                 
-                NSString *str = (NSString *)obj;
-                if ( ![str isEqualToString:@""] ) {
+                if ( ![((NSString *)obj) isEqualToString:@""] ) {
                     
                     result = YES;
                 }
                 
             }else if ( [obj isKindOfClass:[NSMutableString class]] ) {
                 
-                NSMutableString *mStr = (NSMutableString *)obj;
-                if ( ![mStr isEqualToString:@""] ) {
+                if ( ![((NSMutableString *)obj) isEqualToString:@""] ) {
                     
                     result = YES;
                 }
                 
             }else if ( [obj isKindOfClass:[NSArray class]] ) {
                 
-                NSArray *array = (NSArray *)obj;
-                if ( array.count != 0 ) {
+                if ( ((NSArray *)obj).count != 0 ) {
                     
                     result = YES;
                 }
                 
             }else if ( [obj isKindOfClass:[NSMutableArray class]] ) {
                 
-                NSMutableArray *mArray = (NSMutableArray *)obj;
-                if ( mArray.count != 0 ) {
+                if ( ((NSMutableArray *)obj).count != 0 ) {
                     
                     result = YES;
                 }
                 
             }else if ( [obj isKindOfClass:[NSSet class]] ) {
                 
-                NSSet *set = (NSSet *)obj;
-                if ( set.count != 0 ) {
+                if ( ((NSSet *)obj).count != 0 ) {
                     
                     result = YES;
                 }
                 
             }else if ( [obj isKindOfClass:[NSMutableSet class]] ) {
                 
-                NSMutableSet *mSet = (NSMutableSet *)obj;
-                
-                if ( mSet.count != 0 ) {
+                if ( ((NSMutableSet *)obj).count != 0 ) {
                     
                     result = YES;
                 }
                 
             }else if ( [obj isKindOfClass:[NSDictionary class]] ) {
                 
-                NSDictionary *dic = (NSDictionary *)obj;
-                if ( dic.count != 0 ) {
+                if ( ((NSDictionary *)obj).count != 0 ) {
                     
                     result = YES;
                 }
                 
             }else if ( [obj isKindOfClass:[NSMutableDictionary class]] ) {
                 
-                NSMutableDictionary *mDic = (NSMutableDictionary *)obj;
-                if ( mDic.count != 0 ) {
+                if ( ((NSMutableDictionary *)obj).count != 0 ) {
                     
                     result = YES;
                 }
                 
             }else if ( [obj isKindOfClass:[NSData class]] ) {
                 
-                NSData *data = (NSData *)obj;
-                if ( data.length > 0 ) {
+                if ( ((NSData *)obj).length > 0 ) {
                     
                     result = YES;
                 }
                 
             }else if ( [obj isKindOfClass:[NSMutableData class]] ) {
                 
-                NSMutableData *mData = (NSMutableData *)obj;
-                if ( mData.length > 0 ) {
+                if ( ((NSMutableData *)obj).length > 0 ) {
                     
                     result = YES;
                 }
                 
             }else if ( [obj isKindOfClass:[NSURL class]] ) {
                 
-                NSURL *url = (NSURL *)obj;
-                if ( ![url.absoluteString isEqualToString:@""] ) {
+                if ( ![((NSURL *)obj).absoluteString isEqualToString:@""] ) {
                     
                     result = YES;
                 }

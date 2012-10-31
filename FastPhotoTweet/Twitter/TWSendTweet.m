@@ -11,236 +11,278 @@
 
 @implementation TWSendTweet
 
-+ (oneway void)post:(NSArray *)postData {
++ (void)post:(NSString *)text withInReplyToID:(NSString *)tweetID {
     
-    NSAutoreleasePool *pool = [[NSAutoreleasePool alloc] init];
+    NSLog(@"Tweet only Text");
     
-    @try {
+    if ( ![TWTweetComposeViewController canSendTweet] ) return;
+    
+    if ( [TWAccounts currentAccount] == nil ) {
         
-        NSUserDefaults *d = [NSUserDefaults standardUserDefaults];
+        [ShowAlert error:@"アカウントが取得できませんでした。"];
+        return;
+    }
+    
+    if ( text == nil ) return;
+    
+    text = [DeleteWhiteSpace string:text];
+    
+    AppDelegate *appDelegate = (AppDelegate *)[[UIApplication sharedApplication] delegate];
+    
+    NSMutableArray *tempMArray = [NSMutableArray array];
+    [tempMArray addObject:text];
+    if ( tweetID != nil && ![tweetID isEqualToString:@""] ) [tempMArray addObject:tweetID];
+    [tempMArray insertObject:[NSNumber numberWithInt:[[NSUserDefaults standardUserDefaults] integerForKey:@"UseAccount"]] atIndex:0];
+    [tempMArray insertObject:[TWAccounts currentAccountName] atIndex:1];
+    [appDelegate.postError addObject:(NSArray *)tempMArray];
+    
+    dispatch_async(dispatch_get_main_queue(), ^{
         
-        //Tweet可能な状態か判別
-        if ( [TWTweetComposeViewController canSendTweet] ) {
-            
-            //Twitterアカウントの確認
-            if ( [TWAccounts currentAccount] == nil ) {
-                
-                //アカウントデータが空
-                [ShowAlert error:@"アカウントが取得できませんでした。"];
-                
-                return;
-            }
-            
-            //0:画像つき投稿 1:文字のみ
-            int postMode = 0;
-            NSString *postText = nil;
-            NSString *inReplyToId = nil;
-            UIImage *image = [[[UIImage alloc] init] autorelease];
-            
-            //投稿しようとしているPostを保存
-            AppDelegate *appDelegate = (AppDelegate *)[[UIApplication sharedApplication] delegate];
-            NSMutableArray *tempMArray = [NSMutableArray arrayWithArray:postData];
-            [tempMArray insertObject:[NSNumber numberWithInt:[d integerForKey:@"UseAccount"]] atIndex:0];
-            [tempMArray insertObject:[TWAccounts currentAccount].username atIndex:1];
-            [appDelegate.postError addObject:(NSArray *)tempMArray];
-            
-            //画像のチェック
-            if ( postData.count == 2 ) {
-                
-                //imageが空なら文字のみ投稿
-                //文字データのチェック
-                if ( [EmptyCheck check:[postData objectAtIndex:0]] ) {
-                    
-                    //文字のみの投稿モードを設定
-                    postMode = 1;
-                    
-                }else {
-                    
-                    //NSLog(@"PostTextEmpty");
-                    
-                    [ShowAlert error:@"文字が入力されていません。"];
-                    return;
-                }
-            }
-            
-            postText = [postData objectAtIndex:0];
-            inReplyToId = [postData objectAtIndex:1];
-            
-            //ステータスバーに処理中表示
-            [ActivityIndicator on];
-            
-            //リクエストURLを指定
-            NSString *tReqURL;
-            if ( postMode == 0 ) {
-                
-                tReqURL = [NSString stringWithFormat:@"https://upload.twitter.com/%@/statuses/update_with_media.json?include_entities=true", API_VERSION];
-                image = [postData objectAtIndex:2];
-                
-            }else if ( postMode == 1 ) {
-                tReqURL = [NSString stringWithFormat:@"https://api.twitter.com/%@/statuses/update.json?include_entities=true", API_VERSION];
-                tReqURL = @"https://api.twitter.com/1/statuses/update.json?include_entities=true";
-            }
-            
-            //リクエストの作成
-            TWRequest *postRequest = [[[TWRequest alloc] initWithURL:[NSURL URLWithString:tReqURL] 
-                                                          parameters:nil 
-                                                       requestMethod:TWRequestMethodPOST] autorelease];
-            
-            if ( postMode == 0 ) {
-                
-                //画像をリサイズするか判定
-                if ( [d boolForKey:@"ResizeImage"] ) {
-                    
-                    //リサイズを行う
-                    image = [ResizeImage aspectResize:image];
-                }
-                
-                //UIImageをNSDataに変換
-                NSData *imageData = [EncodeImage image:image];
-                
-                //画像を追加
-                [postRequest addMultiPartData:imageData 
-                                     withName:@"media[]" 
-                                         type:@"multipart/form-data"];
-            }
-            
-            //テキストを追加
-            [postRequest addMultiPartData:[postText dataUsingEncoding:NSUTF8StringEncoding]
-                                 withName:@"status" 
-                                     type:@"multipart/form-data"];
-            
-            if ( [EmptyCheck check:inReplyToId] ) {
-            
-                //InReplyToIdを追加
-                [postRequest addMultiPartData:[inReplyToId dataUsingEncoding:NSUTF8StringEncoding]
-                                     withName:@"in_reply_to_status_id"
-                                         type:@"multipart/form-data"];
-            }
-            
-            //リクエストにアカウントを設定
-            [postRequest setAccount:[TWAccounts currentAccount]];
-            
-            //投稿結果通知を作成
-            NSMutableDictionary *postResult = [NSMutableDictionary dictionary];
-            NSNotification *postNotification =[NSNotification notificationWithName:@"PostDone" 
-                                                                            object:self 
-                                                                          userInfo:postResult];
-
-            [postRequest performRequestWithHandler:
-             ^( NSData *responseData, NSHTTPURLResponse *urlResponse, NSError *error ) {
+        [ActivityIndicator on];
+    });
+    
+    NSString *tReqURL = [NSString stringWithFormat:@"https://api.twitter.com/%@/statuses/update.json", API_VERSION];
+    
+    NSMutableDictionary *params = [[[NSMutableDictionary alloc] init] autorelease];
+    [params setObject:@"1" forKey:@"include_entities"];
+    [params setObject:text forKey:@"status"];
+    
+    if (  tweetID != nil &&
+        ![tweetID isEqualToString:@""] ) {
+        
+        [params setObject:tweetID forKey:@"in_reply_to_status_id"];
+    }
+    
+    TWRequest *postRequest = [[[TWRequest alloc] initWithURL:[NSURL URLWithString:tReqURL]
+                                                  parameters:params
+                                               requestMethod:TWRequestMethodPOST] autorelease];
+    
+    postRequest.account = [TWAccounts currentAccount];
+    
+    [postRequest performRequestWithHandler:
+     ^( NSData *responseData, NSHTTPURLResponse *urlResponse, NSError *error ) {
+         
+         NSLog(@"Receive Tweet Response");
+         
+         if ( !error ) {
+             
+             if ( responseData != nil ) {
                  
                  dispatch_async(dispatch_get_main_queue(), ^{
                      
-                     //レスポンスのデータをNSStringに変換後JSONをDictionaryに格納
-                     NSString *responseDataString = [[[NSString alloc] initWithData:responseData encoding:NSUTF8StringEncoding] autorelease];
-                     NSDictionary *result = [responseDataString JSONValue];
+                     id result = [NSJSONSerialization JSONObjectWithData:responseData
+                                                                 options:NSJSONReadingMutableLeaves
+                                                                   error:nil];
                      
-                     //NSLog(@"responseDataString: %@", responseDataString);
-                     //NSLog(@"ResultText: %@", [result objectForKey:@"text"]);
-                     //NSLog(@"Result: %@", result);
+                     NSMutableDictionary *postResult = [NSMutableDictionary dictionary];
+                     NSNotification *postNotification =[NSNotification notificationWithName:@"PostDone"
+                                                                                     object:self
+                                                                                   userInfo:postResult];
                      
-                     result = [[TWEntities replaceTcoAll:@[result]] objectAtIndex:0];
-                     
-                     BOOL media = NO;
-                     NSString *entities = [[result objectForKey:@"entities"] objectForKey:@"media"];
-                     
-                     //投稿完了したPostが文字のみか画像付きか判定
-                     if ( [EmptyCheck check:entities] ) {
+                     if ( result != nil ) {
                          
-                         //画像付き
-                         media = YES;
-                     }
-                     
-                     //Postしたテキストのt.coを展開
-                     NSString *text = [result objectForKey:@"text"];
-                     //NSLog(@"text: %@", text);
-                     
-                     if ( error != nil ) {
-                         
-                         //NSLog(@"PostNSError: %@", error);
-                         
-                         //エラー
-                         NSString *errorText = [result objectForKey:@"error"];
-                         
-                         //エラー文が取得出来た場合は表示
-                         if ( [EmptyCheck check:errorText] ) {
+                         if ( [result isKindOfClass:[NSDictionary class]] ) {
                              
-                             [ShowAlert error:errorText];
-                         }
-                         
-                         //通知にエラーをセット
-                         if ( media ) {
+                             NSDictionary *resultDic = [NSDictionary dictionaryWithDictionary:result];
                              
-                             [postResult setObject:@"PhotoError" forKey:@"PostResult"];
-                             
-                         }else {
-                             
-                             [postResult setObject:@"Error" forKey:@"PostResult"];
-                         }
-                         
-                         //通知を実行
-                         //NSLog(@"PostErrorNotification: %@", errorText);
-                         [[NSNotificationCenter defaultCenter] postNotification:postNotification];
-                         
-                     } else {
-                         
-                         if ( ![EmptyCheck check:text] ) {
-                             
-                             NSString *errorText = [result objectForKey:@"error"];
-                             
-                             if ( ![EmptyCheck check:errorText] ) {
+                             if ( [resultDic objectForKey:@"error"] == nil &&
+                                  [resultDic objectForKey:@"text"] != nil ) {
                                  
-                                 errorText = @"不明なエラーです。";
-                             }
-                             
-                             //textが空の場合は失敗してる
-                             [ShowAlert error:errorText];
-                             
-                             [postResult setObject:@"Error" forKey:@"PostResult"];
-                             
-                             [[NSNotificationCenter defaultCenter] postNotification:postNotification];
-                             
-                         }else {
-                             
-                             //通知に成功をセット
-                             if ( media ) {
+                                 [postResult setObject:@"Success" forKey:@"PostResult"];
+                                 [postResult setObject:[TWEntities openTco:resultDic] forKey:@"SuccessText"];
                                  
-                                 [postResult setObject:@"PhotoSuccess" forKey:@"PostResult"];
-                                 [postResult setObject:text forKey:@"SuccessText"];
+                             }else if ( [resultDic objectForKey:@"error"] != nil ||
+                                        [resultDic objectForKey:@"text"] == nil ) {
+                                 
+                                 if ( [resultDic objectForKey:@"error"] != nil ) {
+                                     
+                                     [ShowAlert error:[resultDic objectForKey:@"error"]];
+                                     
+                                 }else {
+                                     
+                                     [ShowAlert error:@"原因不明のエラー"];
+                                 }
+                                 
+                                 [postResult setObject:@"Error" forKey:@"PostResult"];
                                  
                              }else {
                                  
-                                 [postResult setObject:@"Success" forKey:@"PostResult"];
-                                 [postResult setObject:text forKey:@"SuccessText"];
+                                 [postResult setObject:@"Error" forKey:@"PostResult"];
+                                 [ShowAlert error:@"不明のエラー"];
                              }
                              
-                             //通知を実行
-                             //NSLog(@"PostSuccessNotification");
-                             [[NSNotificationCenter defaultCenter] postNotification:postNotification];
+                         }else {
+                             
+                             [postResult setObject:@"Error" forKey:@"PostResult"];
+                             [ShowAlert error:@"不明なレスポンスタイプ"];
                          }
                      }
                      
-                     //ステータスバーの処理中表示オフ
+                     [[NSNotificationCenter defaultCenter] postNotification:postNotification];
                      [ActivityIndicator off];
                  });
-             }];
-            
-            //NSLog(@"Post sended: %@", twAccount.username);
-            
-        }else {
-            
-            //何らかの理由でTweet不可だった場合
-            [ShowAlert unknownError];
-        }
+             }
+             
+         }else {
+             
+             [ShowAlert error:error.description];
+         }
+     }];
+    
+    NSLog(@"Tweet Request Sended");
+}
+
++ (void)post:(NSString *)text withInReplyToID:(NSString *)tweetID andImage:(UIImage *)image {
+    
+    NSLog(@"Tweet with Media");
+    
+    if ( ![TWTweetComposeViewController canSendTweet] ) return;
+    
+    if ( [TWAccounts currentAccount] == nil ) {
         
-    }@catch ( NSException *e ) {
-        
-        [ShowAlert unknownError];
-        
-    }@finally {
-        
-        [pool drain];
+        [ShowAlert error:@"アカウントが取得できませんでした。"];
+        return;
     }
+    
+    if ( image == nil ) {
+        
+        [TWSendTweet post:text withInReplyToID:tweetID];
+        return;
+    }
+
+    if (( text == nil || [text isEqualToString:@""] ) &&
+        image != nil ) {
+        
+        text = @"";
+    }
+    
+    text = [DeleteWhiteSpace string:text];
+    
+    AppDelegate *appDelegate = (AppDelegate *)[[UIApplication sharedApplication] delegate];
+    
+    NSMutableArray *tempMArray = [NSMutableArray array];
+    [tempMArray addObject:text];
+    if ( tweetID != nil && ![tweetID isEqualToString:@""] ) [tempMArray addObject:tweetID];
+    [tempMArray insertObject:[NSNumber numberWithInt:[[NSUserDefaults standardUserDefaults] integerForKey:@"UseAccount"]] atIndex:0];
+    [tempMArray insertObject:[TWAccounts currentAccountName] atIndex:1];
+    [appDelegate.postError addObject:(NSArray *)tempMArray];
+    
+    dispatch_async(dispatch_get_main_queue(), ^{
+        
+        [ActivityIndicator on];
+    });
+    
+    //画像をリサイズするか判定
+    if ( [[NSUserDefaults standardUserDefaults] boolForKey:@"ResizeImage"] ) {
+        
+        //リサイズを行う
+        image = [ResizeImage aspectResize:image];
+    }
+    
+    NSString *tReqURL = [NSString stringWithFormat:@"https://upload.twitter.com/%@/statuses/update_with_media.json?include_entities=true", API_VERSION];
+    
+    TWRequest *postRequest = [[[TWRequest alloc] initWithURL:[NSURL URLWithString:tReqURL]
+                                                  parameters:nil
+                                               requestMethod:TWRequestMethodPOST] autorelease];
+    
+    [postRequest addMultiPartData:[text dataUsingEncoding:NSUTF8StringEncoding]
+                         withName:@"status"
+                             type:@"multipart/form-data"];
+    
+    [postRequest addMultiPartData:[EncodeImage image:image]
+                         withName:@"media[]"
+                             type:@"multipart/form-data"];
+    
+    if (  tweetID != nil &&
+        ![tweetID isEqualToString:@""] ) {
+        
+        [postRequest addMultiPartData:[tweetID dataUsingEncoding:NSUTF8StringEncoding]
+                             withName:@"in_reply_to_status_id"
+                                 type:@"multipart/form-data"];
+        
+    }
+    
+    postRequest.account = [TWAccounts currentAccount];
+    
+    [postRequest performRequestWithHandler:
+     ^( NSData *responseData, NSHTTPURLResponse *urlResponse, NSError *error ) {
+         
+         NSLog(@"Receive Tweet with Media Response");
+         
+         if ( !error ) {
+             
+             if ( responseData != nil ) {
+                 
+                 dispatch_async(dispatch_get_main_queue(), ^{
+                     
+                     id result = [NSJSONSerialization JSONObjectWithData:responseData
+                                                                 options:NSJSONReadingMutableLeaves
+                                                                   error:nil];
+                     
+                     NSMutableDictionary *postResult = [NSMutableDictionary dictionary];
+                     NSNotification *postNotification =[NSNotification notificationWithName:@"PostDone"
+                                                                                     object:self
+                                                                                   userInfo:postResult];
+                     
+                     if ( result != nil ) {
+                         
+                         if ( [result isKindOfClass:[NSDictionary class]] ) {
+                             
+                             NSDictionary *resultDic = [NSDictionary dictionaryWithDictionary:result];
+                             
+                             if ( [resultDic objectForKey:@"error"] != nil ||
+                                  [resultDic objectForKey:@"text"] == nil ) {
+                                 
+                                 if ( [resultDic objectForKey:@"error"] != nil ) {
+                                     
+                                     [ShowAlert error:[resultDic objectForKey:@"error"]];
+                                     
+                                 }else {
+                                     
+                                     [ShowAlert error:@"原因不明のエラー"];
+                                 }
+                                 
+                                 [postResult setObject:@"PhotoError" forKey:@"PostResult"];
+                                 
+                             }else if ( [result objectForKey:@"error"] == nil &&
+                                        [result objectForKey:@"text"] != nil ) {
+                                 
+                                 [postResult setObject:@"PhotoSuccess" forKey:@"PostResult"];
+                                 [postResult setObject:[TWEntities openTco:resultDic] forKey:@"SuccessText"];
+                                 
+                             }else {
+                                 
+                                 [postResult setObject:@"PhotoError" forKey:@"PostResult"];
+                                 [ShowAlert error:@"不明なエラー"];
+                             }
+                             
+                         }else {
+                             
+                             [postResult setObject:@"Error" forKey:@"PostResult"];
+                             [ShowAlert error:@"不明なレスポンスタイプ"];
+                         }
+                      
+                         [ActivityIndicator off];
+                         [[NSNotificationCenter defaultCenter] postNotification:postNotification];
+                         
+                     }else {
+                         
+                         NSLog(@"perser error");
+                     }
+                 });
+                 
+             }else {
+                 
+                 NSLog(@"responseData is nil");
+             }
+             
+         }else {
+             
+             [ShowAlert error:error.description];
+         }
+     }];
+    
+    NSLog(@"Tweet with Media Request Sended");
 }
 
 @end

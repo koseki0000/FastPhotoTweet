@@ -71,9 +71,9 @@
                              object:nil];
     
     //投稿完了通知を受け取る設定
-    [notificationCenter addObserver:self 
-                           selector:@selector(postDone:) 
-                               name:@"PostDone" 
+    [notificationCenter addObserver:self
+                           selector:@selector(postDone:)
+                               name:@"PostDone"
                              object:nil];
     
     [notificationCenter addObserver:self
@@ -129,36 +129,36 @@
         ACAccountStore *accountStore = [[[ACAccountStore alloc] init] autorelease];
         ACAccountType *accountType = [accountStore accountTypeWithAccountTypeIdentifier:ACAccountTypeIdentifierTwitter];
         
-        [accountStore requestAccessToAccountsWithType:accountType 
+        [accountStore requestAccessToAccountsWithType:accountType
                                 withCompletionHandler:^( BOOL granted, NSError *error ) {
-            
-             dispatch_sync(dispatch_get_main_queue(), ^{
-                 
-                 if ( granted ) {
-                     
-                     if ( [TWAccounts accountCount] > 0 ) {
-
-                         twAccount = [TWAccounts currentAccount];
-                         
-                         //入力可能状態にする
-                         [postText becomeFirstResponder];
-                         
-                         //更新情報の表示
-                         [self showInfomation];
-                         
-                     } else {
-                         
-                         twAccount = nil;
-                         [ShowAlert error:@"Twitterアカウントが見つかりませんでした。"];
-                     }
-                                     } else {
-                     
-                     twAccount = nil;
-                     [ShowAlert error:@"Twitterのアカウントへのアクセスが拒否されました。"];
-                 }
-             });
-         }];
-;
+                                    
+                                    dispatch_sync(dispatch_get_main_queue(), ^{
+                                        
+                                        if ( granted ) {
+                                            
+                                            if ( [TWAccounts accountCount] > 0 ) {
+                                                
+                                                twAccount = [TWAccounts currentAccount];
+                                                
+                                                //入力可能状態にする
+                                                [postText becomeFirstResponder];
+                                                
+                                                //更新情報の表示
+                                                [self showInfomation];
+                                                
+                                            } else {
+                                                
+                                                twAccount = nil;
+                                                [ShowAlert error:@"Twitterアカウントが見つかりませんでした。"];
+                                            }
+                                        } else {
+                                            
+                                            twAccount = nil;
+                                            [ShowAlert error:@"Twitterのアカウントへのアクセスが拒否されました。"];
+                                        }
+                                    });
+                                }];
+        ;
         
     } else {
         
@@ -256,9 +256,9 @@
     
     //下部バーに位置と高さを設定する
     bottomBar.frame = CGRectMake(0,
-                                bottomBarY,
-                                SCREEN_WIDTH,
-                                TOOL_BAR_HEIGHT);
+                                 bottomBarY,
+                                 SCREEN_WIDTH,
+                                 TOOL_BAR_HEIGHT);
 }
 
 - (void)showInfomation {
@@ -275,13 +275,13 @@
     }
     
     while ( check ) {
-                
+        
         if ( [[d dictionaryForKey:@"Information"] valueForKey:@"FirstRun"] == 0 ) {
             
             //NSLog(@"FirstRun");
             
-            [ShowAlert title:@"ようこそ" 
-                message:@"FastPhotoTweetへようこそ\nアプリ内やタスクスイッチャーから様々なTweetを素早くTwitterに投稿する事が出来ます。"];
+            [ShowAlert title:@"ようこそ"
+                     message:@"FastPhotoTweetへようこそ\nアプリ内やタスクスイッチャーから様々なTweetを素早くTwitterに投稿する事が出来ます。"];
             
             information = [[[NSMutableDictionary alloc] initWithDictionary:[d dictionaryForKey:@"Information"]] autorelease];
             [information setValue:[NSNumber numberWithInt:1] forKey:@"FirstRun"];
@@ -310,7 +310,7 @@
             //NSLog(@"newVersion");
             
             [ShowAlert title:[NSString stringWithFormat:@"FastPhotoTweet %@", APP_VERSION]
-                     message:@"・Timeline回りの省メモリ化、高速化"];
+                     message:@"・Post処理を一新\n・ふぁぼられ通知が機能していない問題を修正\n・Timelineとアカウント切替時の信頼性が向上\n・メモリ管理の改善"];
             
             information = [[[NSMutableDictionary alloc] initWithDictionary:[d dictionaryForKey:@"Information"]] autorelease];
             [information setValue:[NSNumber numberWithInt:1] forKey:APP_VERSION];
@@ -334,80 +334,81 @@
 
 - (IBAction)pushPostButton:(id)sender {
     
-    //iOSバージョン判定
-    if ( [appDelegate ios5Check] ) {
-
-        //Internet接続のチェック
-        if ( [InternetConnection enable] ) {
+    @autoreleasepool {
+        
+        //iOSバージョン判定
+        if ( [appDelegate ios5Check] ) {
             
-            NSString *text = [[[NSString alloc] initWithString:postText.text] autorelease];
-            
-            if ( imagePreview.image == nil && ![EmptyCheck check:text] ) {
+            //Internet接続のチェック
+            if ( [InternetConnection enable] ) {
                 
-                [ShowAlert error:@"文字が入力されていません。"];
-                return;
-            }
-            
-            //画像が設定されていない場合
-            if ( imagePreview.image == nil ) {
+                NSString *text = [[[NSString alloc] initWithString:postText.text] autorelease];
                 
-                @autoreleasepool {
+                if ( imagePreview.image == nil &&
+                    ![EmptyCheck check:text] ) {
                     
-                    //文字列をバックグラウンドプロセスで投稿
-                    NSArray *postData = [NSArray arrayWithObjects:[DeleteWhiteSpace string:text], inReplyToId, nil];
-                    [TWSendTweet performSelectorInBackground:@selector(post:) withObject:postData];
+                    [ShowAlert error:@"文字が入力されていません。"];
+                    return;
                 }
                 
-                //入力欄を空にする
-                postText.text = BLANK;
-             
-            //画像が設定されている場合
-            }else {
-                
-                //画像投稿先がTwitterの場合
-                if ( [[d objectForKey:@"PhotoService"] isEqualToString:@"Twitter"] ||
-                    ( nowPlayingMode && [d  integerForKey:@"NowPlayingPhotoService"] == 1 )) {
-                    
-                    @autoreleasepool {
+                dispatch_queue_t globalQueue = dispatch_get_global_queue( DISPATCH_QUEUE_PRIORITY_DEFAULT, 0 );
+                dispatch_async( globalQueue, ^{
+                    dispatch_queue_t syncQueue = dispatch_queue_create( "info.ktysne.fastphototweet", NULL );
+                    dispatch_sync( syncQueue, ^{
                         
-                        //文字列と画像をバックグラウンドプロセスで投稿
-                        NSArray *postData = [NSArray arrayWithObjects:[DeleteWhiteSpace string:text], inReplyToId, imagePreview.image, nil];
-                        [TWSendTweet performSelectorInBackground:@selector(post:) withObject:postData];
-                    }
-                
-                //画像投稿先がimg.urかTwitpicもしくは画像の再投稿
-                }else {
-                    
-                    @autoreleasepool {
+                        dispatch_async(dispatch_get_main_queue(), ^ {
+                            
+                            postButton.enabled = NO;
+                            [self callback];
+                        });
                         
-                        //文字列をバックグラウンドプロセスで投稿
-                        NSArray *postData = [NSArray arrayWithObjects:[DeleteWhiteSpace string:text], inReplyToId, nil];
-                        [TWSendTweet performSelectorInBackground:@selector(post:) withObject:postData];
-                    }
-                }
-                
-                //入力欄と画像プレビューを空にする
-                postText.text = BLANK;
-                imagePreview.image = nil;
-                
-                if ( [EmptyCheck check:inReplyToId] ) {
-                    
-                    [inReplyToId release];
-                    
-                    inReplyToId = BLANK;
-                }
+                        //画像が設定されていない場合
+                        if ( imagePreview.image == nil ) {
+                            
+                            [TWSendTweet post:text
+                              withInReplyToID:inReplyToId];
+                            
+                        }else {
+                            
+                            //画像投稿先がTwitterの場合
+                            if ( [[d objectForKey:@"PhotoService"] isEqualToString:@"Twitter"] ||
+                                ( nowPlayingMode && [d  integerForKey:@"NowPlayingPhotoService"] == 1 )) {
+                                
+                                //文字列と画像をバックグラウンドプロセスで投稿
+                                [TWSendTweet post:text
+                                  withInReplyToID:inReplyToId
+                                         andImage:imagePreview.image];
+                                
+                            }else {
+                                
+                                //画像投稿先がimg.urかTwitpicもしくは画像の再投稿
+                                
+                                [TWSendTweet post:text
+                                  withInReplyToID:inReplyToId];
+                            }
+                        }
+                        
+                        dispatch_async(dispatch_get_main_queue(), ^ {
+                            
+                            //入力欄を空にする
+                            postText.text = BLANK;
+                            [inReplyToId release];
+                            inReplyToId = BLANK;
+                            imagePreview.image = nil;
+                            
+                            //とは検索機能ONかつ条件にマッチ
+                            if ( [d boolForKey:@"TohaSearch"] &&
+                                 [RegularExpression boolWithRegExp:text
+                                                     regExpPattern:@".+とは$"] ) {
+                                    
+                                    [self tohaSearch:text];
+                                }
+                            
+                            postButton.enabled = YES;
+                        });
+                    });
+                });
             }
-            
-            //とは検索機能ONかつ条件にマッチ
-            if ( [d boolForKey:@"TohaSearch"] && [RegularExpression boolWithRegExp:text regExpPattern:@".+とは"] ) {
-            
-                [self tohaSearch:text];
-                
-                //とは検索機能時はコールバックしないためreturn
-                return;
-            }
-            
-            [self callback];
         }
     }
 }
@@ -437,6 +438,7 @@
     artWorkUploading = NO;
     postText.text = BLANK;
     imagePreview.image = nil;
+    postButton.enabled = YES;
     
     if ( [EmptyCheck check:inReplyToId] ) {
         
@@ -501,7 +503,7 @@
         [d integerForKey:@"ImageSource"] == 2 ) {
         
         if ( [d boolForKey:@"RepeatedPost"] ) {
-        
+            
             //連続投稿確認がON
             
             actionSheetNo = 2;
@@ -674,7 +676,7 @@
                           delay:0.0f
                         options:UIViewAnimationOptionTransitionNone
                      animations:^{
-     
+                         
                          self.view.frame = viewRect;
                          sv.frame = svRect;
                          imagePreview.frame = imagePreviewRect;
@@ -685,7 +687,7 @@
                          appDelegate.tabBarController.tabBar.userInteractionEnabled = YES;
                          
                          if ( clearView != nil ) {
-                          
+                             
                              [clearView removeFromSuperview];
                              clearView = nil;
                          }
@@ -698,7 +700,7 @@
 #pragma mark - Notification
 
 - (void)postDone:(NSNotification *)center {
-
+    
     //NSLog(@"postDone: %@", center.userInfo);
     
     NSString *result = [center.userInfo objectForKey:@"PostResult"];
@@ -708,7 +710,7 @@
         //投稿成功
         NSString *successText = [center.userInfo objectForKey:@"SuccessText"];
         
-        //再投稿リストから投稿成功したものを探し削除        
+        //再投稿リストから投稿成功したものを探し削除
         int arrayIndex = 0;
         BOOL find = NO;
         for ( NSArray *temp in appDelegate.postError ) {
@@ -759,7 +761,7 @@
     }
     
     if ( appDelegate.pboardURLOpenTweet ) {
-     
+        
         appDelegate.pboardURLOpenTweet = NO;
         return;
     }
@@ -811,7 +813,7 @@
     
     //Tweetタブを開いていない場合は終了
     if ( appDelegate.tabBarController.selectedIndex != 0 ||
-         appDelegate.browserOpenMode ) return;
+        appDelegate.browserOpenMode ) return;
     
     appDelegate.startupUrlList = [NSArray arrayWithObject:[notification.userInfo objectForKey:@"pboardURL"]];
     [self pushBrowserButton:nil];
@@ -841,7 +843,7 @@
         picPicker.sourceType = UIImagePickerControllerSourceTypeCamera;
         
     }else if ( [d integerForKey:@"ImageSource"] == 2 && !repeatedPost ) {
-    
+        
         actionSheetNo = 1;
         
         UIActionSheet *sheet = [[UIActionSheet alloc]
@@ -865,9 +867,9 @@
 }
 
 - (void)imagePickerController:(UIImagePickerController *)picPicker
-        didFinishPickingImage:(UIImage *)image 
+        didFinishPickingImage:(UIImage *)image
                   editingInfo:(NSDictionary *)editingInfo {
-
+    
     showImagePicker = NO;
     
     if ( iconUploadMode ) {
@@ -926,7 +928,7 @@
 }
 
 - (void)imagePickerControllerDidCancel:(UIImagePickerController *)picPicker {
- 
+    
     //画像選択がキャンセルされた場合
     //モーダルビューを閉じる
     showImagePicker = NO;
@@ -1031,7 +1033,7 @@
         postText.text = [NSString stringWithFormat:@"%@ %@ ", postText.text, imageURL];
         
         //連続するスペースを1つにする
-        postText.text = [ReplaceOrDelete replaceWordReturnStr:postText.text 
+        postText.text = [ReplaceOrDelete replaceWordReturnStr:postText.text
                                                   replaceWord:@"  "
                                                  replacedWord:@" "];
         
@@ -1051,11 +1053,6 @@
         }
         
         if ( artWorkUploading ) artWorkUploading = NO;
-        
-        if ( nowPlayingMode && [d boolForKey:@"NowPlayingFastPost"] ) {
-            
-            [self pushPostButton:nil];
-        }
         
     }@catch ( NSException *e ) {
         
@@ -1104,9 +1101,9 @@
         //NSLog(@"pBoardType: %d", pBoardType);
         
         if ( buttonIndex == 0 ) {
-
+            
             [self tweetNotification:pBoardType];
-        
+            
         }else if ( buttonIndex == 1 ) {
             
             [self fasttweetNotification:pBoardType];
@@ -1122,9 +1119,9 @@
         }else if ( buttonIndex == 4 ) {
             
             if ( pBoardType == 0 ) {
-
+                
                 if ( !appDelegate.browserOpenMode ) {
-                 
+                    
                     appDelegate.startupUrlList = [NSArray arrayWithObject:[CreateSearchURL google:pboard.string]];
                     
                     [self pushBrowserButton:nil];
@@ -1132,7 +1129,7 @@
             }
             
         }else if ( buttonIndex == 5 ) {
-
+            
             if ( !appDelegate.browserOpenMode ) {
                 
                 //NSLog(@"Open Browser");
@@ -1200,14 +1197,14 @@
         [self showImagePicker];
         
     }else if ( actionSheetNo == 3 ) {
-    
+        
         if ( buttonIndex == 0 ) {
             
-            UIImageWriteToSavedPhotosAlbum(errorImage, 
-                                           self, 
+            UIImageWriteToSavedPhotosAlbum(errorImage,
+                                           self,
                                            @selector(savingImageIsFinished:didFinishSavingWithError:contextInfo:),
                                            nil);
-
+            
         }else {
             
             errorImage = nil;
@@ -1226,18 +1223,18 @@
         }else if ( buttonIndex == 2 ) {
             
             postText.text = [HankakuKana kanaHiragana:postText.text];
-        
+            
         }
-    
+        
     }else if ( actionSheetNo == 6 ) {
         
         if ( buttonIndex == 0 ) {
             
             [self uploadImage:imagePreview.image];
         }
-    
+        
     }else if ( actionSheetNo == 7 ) {
-    
+        
         if ( buttonIndex == 0 ) {
             
             if ( [[d objectForKey:@"PhotoService"] isEqualToString:@"Twitter"] ) {
@@ -1248,7 +1245,7 @@
                 
                 [self uploadImage:imagePreview.image];
             }
-
+            
         }else if ( buttonIndex == 1 ) {
             
             imagePreview.image = nil;
@@ -1304,9 +1301,9 @@
                                                                                       SCREEN_WIDTH - (SCREEN_WIDTH / 8),
                                                                                       SCREEN_HEIGHT - TAB_BAR_HEIGHT - (TOOL_BAR_HEIGHT * 2));
                                                       
-//                                                      NSLog(@"self.view.frame: %@", NSStringFromCGRect(self.view.frame));
-//                                                      NSLog(@"sv.frame: %@", NSStringFromCGRect(sv.frame));
-//                                                      NSLog(@"imagePreview.frame: %@", NSStringFromCGRect(imagePreview.frame));
+                                                      //                                                      NSLog(@"self.view.frame: %@", NSStringFromCGRect(self.view.frame));
+                                                      //                                                      NSLog(@"sv.frame: %@", NSStringFromCGRect(sv.frame));
+                                                      //                                                      NSLog(@"imagePreview.frame: %@", NSStringFromCGRect(imagePreview.frame));
                                                   }
                                   
                                                   completion:nil
@@ -1328,7 +1325,7 @@
             picPicker.sourceType = UIImagePickerControllerSourceTypePhotoLibrary;
             picPicker.delegate = self;
             [self presentModalViewController:picPicker animated:YES];
-        
+            
         }else if ( buttonIndex == 1 ) {
             
             actionSheetNo = 10;
@@ -1342,7 +1339,7 @@
             [sheet autorelease];
             [sheet showInView:appDelegate.tabBarController.self.view];
         }
-    
+        
     }else if ( actionSheetNo == 10 ) {
         
         int sec = 0;
@@ -1372,9 +1369,9 @@
         [[UIApplication sharedApplication] scheduleLocalNotification:localPush];
         
     }else if ( actionSheetNo == 11 ) {
-
-        if ( buttonIndex == 0 ) {
         
+        if ( buttonIndex == 0 ) {
+            
             //キー情報作成のために再生情報を取得
             MPMusicPlayerController *player = [MPMusicPlayerController iPodMusicPlayer];
             NSString *songTitle = [player.nowPlayingItem valueForProperty:MPMediaItemPropertyTitle];
@@ -1391,7 +1388,7 @@
             NSString *deleteUrl = [dic objectForKey:keyName];
             
             //入力欄から対象URLを削除
-            postText.text = [ReplaceOrDelete deleteWordReturnStr:postText.text 
+            postText.text = [ReplaceOrDelete deleteWordReturnStr:postText.text
                                                       deleteWord:deleteUrl];
             
             //対象キーを削除
@@ -1446,7 +1443,7 @@
 #pragma mark - ViewControl
 
 - (void)textViewDidChange:(UITextView *)textView {
-
+    
     //TextViewの内容が変更された時に呼ばれる
     
     //文字数をカウントしてラベルに反映
@@ -1563,44 +1560,39 @@
     
     //NSLog(@"Callback Start");
     
-    if (( ![d boolForKey:@"CallBack"] && ![d boolForKey:@"NowPlayingCallBack"] ) ||
-        ( ![d boolForKey:@"CallBack"] && [d boolForKey:@"NowPlayingCallBack"] && !nowPlayingMode )) {
-        
-        nowPlayingMode = NO;
-        
-        return;
-    }
-    
     nowPlayingMode = NO;
     
     BOOL canOpen = NO;
     
-    //CallbackSchemeが空でない
-    if ( [EmptyCheck check:[d objectForKey:@"CallBackScheme"]] ) {
+    if ( [d boolForKey:@"CallBack"] ) {
         
-        if ( [[d objectForKey:@"CallBackScheme"] isEqualToString:@"FPT"] ) {
+        //CallbackSchemeが空でない
+        if ( [EmptyCheck check:[d objectForKey:@"CallBackScheme"]] ) {
             
-            [postText resignFirstResponder];
-            self.tabBarController.selectedIndex = 1;
-            
-        }else {
-            
-            //CallbackSchemeがアクセス可能な物がテスト
-            canOpen = [[UIApplication sharedApplication] canOpenURL:[NSURL URLWithString:[d objectForKey:@"CallBackScheme"]]];
-            
-            //コールバックスキームが開けない
-            if ( !canOpen ) {
+            if ( [[d objectForKey:@"CallBackScheme"] isEqualToString:@"FPT"] ) {
                 
-                //NSLog(@"Can't callBack");
+                [postText resignFirstResponder];
+                self.tabBarController.selectedIndex = 1;
                 
-                [ShowAlert error:@"コールバックスキームが有効でありません。"];
-                
-                //コールバックスキームを開くことが出来る
             }else {
                 
-                //NSLog(@"CallBack");
+                //CallbackSchemeがアクセス可能な物がテスト
+                canOpen = [[UIApplication sharedApplication] canOpenURL:[NSURL URLWithString:[d objectForKey:@"CallBackScheme"]]];
                 
-                [[UIApplication sharedApplication] openURL:[NSURL URLWithString:[d objectForKey:@"CallBackScheme"]]];
+                //コールバックスキームが開けない
+                if ( !canOpen ) {
+                    
+                    //NSLog(@"Can't callBack");
+                    
+                    [ShowAlert error:@"コールバックスキームが有効でありません。"];
+                    
+                    //コールバックスキームを開くことが出来る
+                }else {
+                    
+                    //NSLog(@"CallBack");
+                    
+                    [[UIApplication sharedApplication] openURL:[NSURL URLWithString:[d objectForKey:@"CallBackScheme"]]];
+                }
             }
         }
     }
@@ -1897,11 +1889,11 @@
                 NSString *pboardString = nil;
                 NSError *error = nil;
                 
-                NSDataDetector *linkDetector = [NSDataDetector dataDetectorWithTypes:NSTextCheckingTypeLink 
+                NSDataDetector *linkDetector = [NSDataDetector dataDetectorWithTypes:NSTextCheckingTypeLink
                                                                                error:&error];
                 
-                NSArray *matches = [linkDetector matchesInString:pboard.string 
-                                                         options:0 
+                NSArray *matches = [linkDetector matchesInString:pboard.string
+                                                         options:0
                                                            range:NSMakeRange(0, [pboard.string  length])];
                 
                 if ( !error ) {
@@ -1930,8 +1922,8 @@
                 
                 NSURLRequest *request = [NSURLRequest requestWithURL:[NSURL URLWithString:pboardString]];
                 
-                NSData *response = [NSURLConnection sendSynchronousRequest:request 
-                                                         returningResponse:nil 
+                NSData *response = [NSURLConnection sendSynchronousRequest:request
+                                                         returningResponse:nil
                                                                      error:&error];
                 
                 int encodingList[] = {
@@ -1994,7 +1986,7 @@
                     [postText becomeFirstResponder];
                     [ActivityIndicator visible:NO];
                 });
-			});            
+			});
         });
         
     }@catch ( NSException *e ) {
@@ -2008,7 +2000,7 @@
 }
 
 - (void)nowPlayingNotification {
- 
+    
     nowPlayingMode = YES;
     
     NSString *nowPlayingText = [self nowPlaying];
@@ -2023,31 +2015,32 @@
         if ( [d boolForKey:@"NowPlayingFastPost"] && !artWorkUploading ) {
             
             @autoreleasepool {
-            
-                if ( [[d objectForKey:@"PhotoService"] isEqualToString:@"Twitter"] ) {
                 
+                if ( [[d objectForKey:@"PhotoService"] isEqualToString:@"Twitter"] ) {
+                    
                     if ( imagePreview.image != nil ) {
                         
-                        NSArray *postData = [NSArray arrayWithObjects:[DeleteWhiteSpace string:nowPlayingText], inReplyToId, imagePreview.image, nil];
-                        [TWSendTweet performSelectorInBackground:@selector(post:) withObject:postData];
+                        [TWSendTweet post:nowPlayingText
+                          withInReplyToID:inReplyToId
+                                 andImage:imagePreview.image];
                         
                     }else {
                         
-                        NSArray *postData = [NSArray arrayWithObjects:[DeleteWhiteSpace string:nowPlayingText], inReplyToId, nil];
-                        [TWSendTweet performSelectorInBackground:@selector(post:) withObject:postData];
+                        [TWSendTweet post:nowPlayingText
+                          withInReplyToID:inReplyToId];
                     }
                     
                 }else {
                     
-                    NSArray *postData = [NSArray arrayWithObjects:[DeleteWhiteSpace string:nowPlayingText], inReplyToId, nil];
-                    [TWSendTweet performSelectorInBackground:@selector(post:) withObject:postData];
+                    [TWSendTweet post:nowPlayingText
+                      withInReplyToID:inReplyToId];
                 }
                 
                 imagePreview.image = nil;
             }
             
             //CallBack、またはNowPlaying限定CallBackが有効
-            if ( [d boolForKey:@"CallBack"] || [d boolForKey:@"NowPlayingCallBack"] ) {
+            if ( [d boolForKey:@"CallBack"] ) {
                 
                 //NSLog(@"Callback Enable");
                 
@@ -2074,7 +2067,7 @@
         //再生中でなかった場合
         [ShowAlert error:@"iPod再生中に使用してください。"];
         
-    //140字を超えていた場合
+        //140字を超えていた場合
     }else {
         
         //NSLog(@"SongTitleOverCapacity");
@@ -2097,7 +2090,7 @@
         //NSLog(@"pBoardType Text");
         
         @try {
-         
+            
             //ペーストボード内容をPost入力欄にコピー
             postText.text = pboard.string;
             
@@ -2141,8 +2134,8 @@
                     
                     //投稿処理
                     NSString *text = [[[NSString alloc] initWithString:pboard.string] autorelease];
-                    NSArray *postData = [NSArray arrayWithObjects:[DeleteWhiteSpace string:text], inReplyToId, nil];
-                    [TWSendTweet performSelectorInBackground:@selector(post:) withObject:postData];
+                    [TWSendTweet post:text
+                      withInReplyToID:inReplyToId];
                 }
                 
                 //コールバックが有効な場合
@@ -2154,7 +2147,7 @@
                     [self callback];
                 }
                 
-            //投稿不可能な場合
+                //投稿不可能な場合
             }else {
                 
                 //ペーストボード内容をPost入力欄にコピー
@@ -2178,8 +2171,8 @@
         
         UIImage *image = pboard.image;
         
-        if ( [[d objectForKey:@"PhotoService"] isEqualToString:@"img.ur"] || 
-             [[d objectForKey:@"PhotoService"] isEqualToString:@"Twitpic"] ) {
+        if ( [[d objectForKey:@"PhotoService"] isEqualToString:@"img.ur"] ||
+            [[d objectForKey:@"PhotoService"] isEqualToString:@"Twitpic"] ) {
             
             //画像アップロード開始
             [self uploadImage:image];
@@ -2209,14 +2202,14 @@
         
         //タブ切り替え時の動作
         if ( [EmptyCheck check:appDelegate.tabChangeFunction] ) {
-         
+            
             //NSLog(@"Function: %@", appDelegate.tabChangeFunction);
-                        
+            
             if ( [appDelegate.tabChangeFunction isEqualToString:@"Post"] ) {
                 
                 //入力可能状態にする
                 [postText becomeFirstResponder];
-            
+                
             }else if ( [appDelegate.tabChangeFunction isEqualToString:@"Reply"] ) {
                 
                 NSDictionary *postData = appDelegate.postData;
@@ -2226,7 +2219,7 @@
                 
                 [postText becomeFirstResponder];
                 [appDelegate.postData removeAllObjects];
-            
+                
             }else if ( [appDelegate.tabChangeFunction isEqualToString:@"Edit"] ) {
                 
                 NSDictionary *postData = appDelegate.postData;
@@ -2275,7 +2268,7 @@
                     
                     [postText setSelectedRange:NSMakeRange(postText.text.length, 0)];
                 }
-            
+                
             }else if ( [appDelegate.postTextType isEqualToString:@"Quote"] ) {
                 
                 if ( [d boolForKey:@"QuoteCursorPosition"] ) {

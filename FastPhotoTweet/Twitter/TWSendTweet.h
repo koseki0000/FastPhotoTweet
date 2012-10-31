@@ -16,6 +16,7 @@
 
 @interface TWSendTweet : NSObject
 
-+ (oneway void)post:(NSArray *)postData;
++ (void)post:(NSString *)text withInReplyToID:(NSString *)tweetID;
++ (void)post:(NSString *)text withInReplyToID:(NSString *)tweetID andImage:(UIImage *)image;
 
 @end
