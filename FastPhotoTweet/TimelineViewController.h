@@ -139,7 +139,7 @@
 - (void)getIconWithSequential;
 - (void)changeAccount:(NSNotification *)notification;
 - (void)getInReplyToChain:(NSDictionary *)tweetData;
-- (void)scrollTimelineForNewTweet;
+- (void)scrollTimelineForNewTweet:(NSString *)tweetID;
 - (void)scrollTimelineToTop:(BOOL)animation;
 - (void)refreshTimelineCell:(NSNumber *)index;
 - (void)copyTweetInUrl:(NSArray *)urlList;

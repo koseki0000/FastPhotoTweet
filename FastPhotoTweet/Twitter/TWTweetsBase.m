@@ -38,13 +38,9 @@ static TWTweetsBase *sharedObject = nil;
             sharedObject.timelines = [NSMutableDictionary dictionary];
             [sharedObject.timelines retain];
             
-            sharedObject.sinceIDs = [NSMutableDictionary dictionary];
-            [sharedObject.sinceIDs retain];
-            
             for ( ACAccount *account in [TWAccountsBase manager].twitterAccounts ) {
                 
                 [sharedObject.timelines setObject:[NSMutableArray array] forKey:account.username];
-                [sharedObject.sinceIDs setObject:@"" forKey:account.username];
             }
         });
         
@@ -81,7 +77,6 @@ static TWTweetsBase *sharedObject = nil;
 - (void)dealloc {
     
     [self setTimelines:nil];
-    [self setSinceIDs:nil];
     
     [super dealloc];
 }

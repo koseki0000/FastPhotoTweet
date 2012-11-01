@@ -103,7 +103,7 @@
 
 + (void)getProfile:(NSString *)screenName {
     
-    NSLog(@"getProfile");
+    NSLog(@"getProfile: %@", screenName);
     
     if ( [TWAccounts currentAccount] != nil ) {
         

@@ -453,29 +453,6 @@
             _timelineArray = [TWTweets currentTimeline];
         }
         
-        if ( _timelineArray.count != 0 ) {
-            
-            //差分取得用にタイムライン最上部のTweetのIDを取得する
-            BOOL find = NO;
-            int i = 0;
-            
-            for ( NSDictionary *obj in _timelineArray ) {
-                
-                if ( [obj objectForKey:@"id_str"] != nil ) {
-                    
-                    find = YES;
-                    break;
-                }
-                
-                i++;
-            }
-            
-            if ( find ) {
-                
-                [TWTweets saveSinceID:[[_timelineArray objectAtIndex:i] objectForKey:@"id_str"]];
-            }
-        }
-        
         //タイムライン取得
         [TWGetTimeline homeTimeline];
         
@@ -570,11 +547,15 @@
                         //NG判定を行う
                         newTweet = [TWNgTweet ngAll:newTweet];
                         
-                        if ( [EmptyCheck check:newTweet] ) {
+                        if ( [newTweet isNotEmpty] ) {
+                            
+                            NSString *scrollTweetID = nil;
+                            
+                            if ( [_timelineArray isNotEmpty] ) scrollTweetID = [[_timelineArray objectAtIndex:0] objectForKey:@"id_str"];
                             
                             _timelineArray = [_timelineArray appendOnlyNewToTop:newTweet returnMutable:YES];
                             
-                            [self checkTimelineCount];
+                            //[self checkTimelineCount];
                             
                             //NSLog(@"%@", _timelineArray);
                             
@@ -591,7 +572,7 @@
                                 [_timeline reloadData];
                                 
                                 //新着取得前の最新までスクロール
-                                [self scrollTimelineForNewTweet];
+                                [self scrollTimelineForNewTweet:scrollTweetID];
                                 
                                 if ( [_d boolForKey:@"ReloadAfterUSConnect"] && !userStream ) {
                                     
@@ -885,7 +866,7 @@
 
 - (void)getIconWithTweetArray:(NSMutableArray *)tweetArray {
     
-    //NSLog(@"getIconWithTweetArray");
+    NSLog(@"getIconWithTweetArray[%d]", tweetArray.count);
     
     NSMutableSet *addUser = [NSMutableSet set];
     NSMutableSet *addIconUrls = [NSMutableSet setWithArray:_iconUrls];
@@ -896,23 +877,25 @@
             
             //アイコンのユーザー名
             NSString __autoreleasing *screenName = [[dic objectForKey:@"user"] objectForKey:@"screen_name"];
+            NSLog(@"screenName: %@", screenName);
             
-            if ( ![EmptyCheck string:screenName] ) {
+            if ( [screenName isEmpty] ) {
                 
                 screenName = [dic objectForKey:@"screen_name"];
+                NSLog(@"screenName: %@", screenName);
             }
             
             //biggerサイズのURL
             NSString __autoreleasing *biggerUrl = [TWIconBigger normal:[[dic objectForKey:@"user"] objectForKey:@"profile_image_url"]];
             
-            if ( ![EmptyCheck string:biggerUrl] ) {
+            if ( [biggerUrl isEmpty] ) {
                 
-                //URLをbiggersサイズに変換する
                 biggerUrl = [TWIconBigger normal:[dic objectForKey:@"profile_image_url"]];
             }
             
             //検索用の名前
             NSString __autoreleasing *searchName = [NSString stringWithFormat:@"%@_%@", screenName, [biggerUrl lastPathComponent]];
+            NSLog(@"searchName: %@", searchName);
             
             if ( [_appDelegate iconExist:searchName] ) {
                 
@@ -921,7 +904,12 @@
                 
                 if ( image != nil ) {
                     
+                    NSLog(@"Image find");
+                    
                     [_icons setObject:image forKey:searchName];
+                    
+                    NSLog(@"screenName: %@", screenName);
+                    NSLog(@"currentAccountName: %@", [TWAccounts currentAccountName]);
                     
                     //自分のアイコンの場合は上部バーに設定
                     if ( [screenName isEqualToString:[TWAccounts currentAccountName]] ) {
@@ -938,10 +926,10 @@
                 if ( [_icons objectForKey:searchName] == nil ) {
                     
                     //各情報が空でないかチェック
-                    if ( [EmptyCheck string:screenName] &&
-                         [EmptyCheck string:biggerUrl] &&
-                         [EmptyCheck string:[biggerUrl lastPathComponent]] &&
-                         [EmptyCheck string:searchName] ) {
+                    if ( [screenName isNotEmpty] &&
+                         [biggerUrl isNotEmpty] &&
+                         [[biggerUrl lastPathComponent] isNotEmpty] &&
+                         [searchName isNotEmpty] ) {
                         
                         NSMutableDictionary __autoreleasing *tempDic = BLANK_M_DIC;
                         //ユーザー名を設定
@@ -1177,11 +1165,11 @@
     
     NSLog(@"getInReplyToChain: %@", inReplyToId);
     
-    if ( ![EmptyCheck check:inReplyToId] || [inReplyToId isEqualToString:@"END"] ) {
+    if ( [inReplyToId isEmpty] || [inReplyToId isEqualToString:@"END"] ) {
         
         //InReplyToIDがもうない場合は表示を行う
         
-        if ( [EmptyCheck check:_inReplyTo] && _inReplyTo.count > 1 ) {
+        if ( [inReplyToId isEmpty] && _inReplyTo.count > 1 ) {
             
             NSLog(@"InReplyTo GET END");
             
@@ -1230,7 +1218,7 @@
             
             NSString *searchTweetID = [searchTweet objectForKey:@"id_str"];
             
-            if ( [EmptyCheck check:searchTweetID] ) {
+            if ( [searchTweetID isNotEmpty] ) {
                 
                 if ( [searchTweetID isEqualToString:inReplyToId] ) {
                     
@@ -1465,14 +1453,13 @@
 //
 //}
 
-- (void)scrollTimelineForNewTweet {
+- (void)scrollTimelineForNewTweet:(NSString *)tweetID {
     
     //Tweetがない場合はスクロールしない
-    if ( _timelineArray == nil ||
-         _timelineArray.count == 0 ) return;
+    if ( [_timelineArray isEmpty] ) return;
     
     //スクロールするIDがない場合は終了
-    if ( ![EmptyCheck check:[TWTweets currentSinceID]] ) return;
+    if ( [tweetID isEmpty] ) return;
     
     //スクロールするインデックスを検索
     int index = 0;
@@ -1480,7 +1467,7 @@
     for ( NSDictionary *tweet in [TWTweets currentTimeline] ) {
         
         if ( [tweet objectForKey:@"id_str"] != nil &&
-            [[tweet objectForKey:@"id_str"] isEqualToString:[TWTweets currentSinceID]] ) {
+            [[tweet objectForKey:@"id_str"] isEqualToString:tweetID] ) {
             
             find = YES;
             break;
@@ -1689,7 +1676,7 @@
         
     }else if ( _timelineSegment.selectedSegmentIndex == 3 ) {
         
-        if ( [EmptyCheck check:_appDelegate.listAll] ) {
+        if ( [_appDelegate.listAll isNotEmpty] ) {
             
             [self finishLoad];
             return;
@@ -2000,7 +1987,7 @@
     
     dispatch_async(dispatch_get_main_queue(), ^ {
         
-        [self checkTimelineCount];
+        //[self checkTimelineCount];
         
         //タイムラインに追加
         [_timelineArray insertObject:receiveData atIndex:0];
@@ -2011,14 +1998,8 @@
         [_timeline insertRowsAtIndexPaths:@[[NSIndexPath indexPathForRow:0 inSection:0]] withRowAnimation:UITableViewRowAnimationTop];
     });
     
-    //IDを記憶
-    if ( [receiveData objectForKey:@"id_str"] != nil ) {
-        
-        [TWTweets saveSinceID:[receiveData objectForKey:@"id_str"]];
-        
-        //アイコン保存
-        [self getIconWithTweetArray:[NSMutableArray arrayWithArray:newTweet]];
-    }
+    //アイコン保存
+    [self getIconWithTweetArray:[NSMutableArray arrayWithArray:newTweet]];
 }
 
 #pragma mark - SearchStream
@@ -2147,7 +2128,7 @@
             
             if ( newTweet != nil ) {
                 
-                [self checkTimelineCount];
+                //[self checkTimelineCount];
                 
                 //タイムラインに追加
                 [_timelineArray insertObject:newTweet atIndex:0];
@@ -2580,7 +2561,7 @@
                     
                     NSString *hashTag = [RegularExpression strWithRegExp:[_selectTweet objectForKey:@"text"] regExpPattern:@"((?:\\A|\\z|[\x0009-\x000D\x0020\xC2\x85\u00A0\u1680\u180E\u2000-\u200A\u2028\u2029\u202F\u205F\u3000]|[\\[\\]［］()（）{}｛｝‘’“”\"\'｟｠⸨⸩「」｢｣『』〚〛⟦⟧〔〕❲❳〘〙⟬⟭〈〉〈〉⟨⟩《》⟪⟫<>＜＞«»‹›【】〖〗]|。|、|\\.|!))(#|＃)([a-z0-9_\u00C0-\u00D6\u00D8-\u00F6\u00F8-\u00FF\u0400-\u04FF\u0500-\u0527\u1100-\u11FF\u3130-\u3185\uA960-\uA97F\uAC00-\uD7AF\uD7B0-\uD7FF\u30A1-\u30FA\uFF66-\uFF9D\uFF10-\uFF19\uFF21-\uFF3A\uFF41-\uFF5A\u3041-\u3096\u3400-\u4DBF\u4E00-\u9FFF\u020000-\u02A6DF\u02A700-\u02B73F\u02B740-\u02B81F\u02F800-\u02FA1F\u30FC\u3005]*[a-z_\u00C0-\u00D6\u00D8-\u00F6\u00F8-\u00FF\u0400-\u04FF\u0500-\u0527\u1100-\u11FF\u3130-\u3185\uA960-\uA97F\uAC00-\uD7AF\uD7B0-\uD7FF\u30A1-\u30FA\uFF66-\uFF9D\uFF10-\uFF19\uFF21-\uFF3A\uFF41-\uFF5A\u3041-\u3096\u3400-\u4DBF\u4E00-\u9FFF\u020000-\u02A6DF\u02A700-\u02B73F\u02B740-\u02B81F\u02F800-\u02FA1F\u30FC\u3005][a-z0-9_\u00C0-\u00D6\u00D8-\u00F6\u00F8-\u00FF\u0400-\u04FF\u0500-\u0527\u1100-\u11FF\u3130-\u3185\uA960-\uA97F\uAC00-\uD7AF\uD7B0-\uD7FF\u30A1-\u30FA\uFF66-\uFF9D\uFF10-\uFF19\uFF21-\uFF3A\uFF41-\uFF5A\u3041-\u3096\u3400-\u4DBF\u4E00-\u9FFF\u020000-\u02A6DF\u02A700-\u02B73F\u02B740-\u02B81F\u02F800-\u02FA1F\u30FC\u3005]*)(?=(?:\\A|\\z|[\x0009-\x000D\x0020\xC2\x85\u00A0\u1680\u180E\u2000-\u200A\u2028\u2029\u202F\u205F\u3000]|[\\[\\]［］()（）{}｛｝‘’“”\"\'｟｠⸨⸩「」｢｣『』〚〛⟦⟧〔〕❲❳〘〙⟬⟭〈〉〈〉⟨⟩《》⟪⟫<>＜＞«»‹›【】〖〗]|。|、|\\.|!))"];
                     
-                    if ( [EmptyCheck string:hashTag] ) {
+                    if ( [hashTag isNotEmpty] ) {
                         
                         NSMutableDictionary *addDic = BLANK_M_DIC;
                         
@@ -2652,7 +2633,7 @@
                     
                     NSString *inReplyToId = [_selectTweet objectForKey:@"in_reply_to_status_id_str"];
                     
-                    if ( [EmptyCheck check:inReplyToId] ) {
+                    if ( [inReplyToId isNotEmpty] ) {
                         
                         NSLog(@"InReplyTo GET START");
                         
@@ -2781,14 +2762,6 @@
                     
                     if ( buttonIndex == 0 ) {
                         
-                        //SinceIDを削除
-                        [[TWTweets sinceIDs] removeAllObjects];
-                        
-                        for ( ACAccount *account in [TWAccountsBase manager].twitterAccounts ) {
-                            
-                            [[TWTweets sinceIDs] setObject:@"" forKey:account.username];
-                        }
-                        
                         //タイムラインを保存
                         [TWTweets saveCurrentTimeline:_timelineArray];
                         
@@ -2798,7 +2771,6 @@
                         for ( ACAccount *account in [TWAccounts twitterAccounts] ) {
                             
                             [[TWTweets timelines] setObject:[NSMutableArray array] forKey:account.username];
-                            [[TWTweets sinceIDs] setObject:@"" forKey:account.username];
                         }
                         
                         _appDelegate.listId = BLANK;
@@ -3129,7 +3101,7 @@
 
 - (void)openTwitterService:(NSString *)username serviceType:(int)serviceType {
     
-    if ( ![EmptyCheck string:username] ) return;
+    if ( [username isEmpty] ) return;
     
     _appDelegate.reOpenUrl = BLANK;
     
@@ -3642,6 +3614,10 @@
         [tempDic setObject:biggerUrl forKey:@"profile_image_url"];
         [tempDic setObject:searchName forKey:@"SearchName"];
         
+        NSLog(@"-------------------------------");
+        NSLog(@"screenName: %@", screenName);
+        NSLog(@"-------------------------------");
+        
         [self getIconWithTweetArray:[NSMutableArray arrayWithObject:tempDic]];
         
     }else {
@@ -3853,12 +3829,12 @@
     
     _accountIconView.image = nil;
     
-    if ( _icons == nil || _icons.count == 0 ) {
+    if ( [_icons isEmpty] ) {
+        
+        NSLog(@"icon file 0");
         
         //アイコンが1つもない場合は自分のアイコンがないので保存を行う
         [TWEvent getProfile:[TWAccounts currentAccountName]];
-        
-        NSLog(@"icon file 0");
         
         return;
     }
@@ -3870,7 +3846,8 @@
     
     for ( string in [_icons allKeys] ) {
         
-        if ( [RegularExpression boolWithRegExp:string regExpPattern:[NSString stringWithFormat:@"%@_", [TWAccounts currentAccountName]]] ) {
+        if ( [RegularExpression boolWithRegExp:string
+                                 regExpPattern:[NSString stringWithFormat:@"%@_", [TWAccounts currentAccountName]]] ) {
             
             NSLog(@"icon find");
 
@@ -3909,7 +3886,7 @@
     
     [TWTweets saveCurrentTimeline:_timelineArray];
     
-    if ( [EmptyCheck string:_appDelegate.listId] ) {
+    if ( [_appDelegate.listId isNotEmpty] ) {
         
         _timelineArray = [_allLists objectForKey:_appDelegate.listId];
         
@@ -3965,7 +3942,7 @@
         }
     }
     
-    if ( listMode && [EmptyCheck string:_appDelegate.listId] ) {
+    if ( listMode && [_appDelegate.listId isNotEmpty] ) {
         
         if ( userStream ) [self closeStream];
         
@@ -3994,7 +3971,7 @@
     
     //NSLog(@"viewWillAppear");
     
-    if ( ![_lastUpdateAccount isEqualToString:[TWAccounts currentAccountName]] && [EmptyCheck string:_lastUpdateAccount] ) {
+    if ( ![_lastUpdateAccount isEqualToString:[TWAccounts currentAccountName]] && [_lastUpdateAccount isNotEmpty] ) {
         
         viewWillAppear = YES;
         

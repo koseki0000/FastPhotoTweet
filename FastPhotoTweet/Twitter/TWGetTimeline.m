@@ -49,10 +49,9 @@
         [params setObject:@"1" forKey:@"include_rts"];
         
         //差分取得
-        if (  [TWTweets currentSinceID] != nil &&
-            ![[TWTweets currentSinceID] isEqualToString:BLANK] ) {
+        if ( [[TWTweets topTweetID] isNotEmpty] ) {
             
-            [params setObject:[TWTweets currentSinceID] forKey:@"since_id"];
+            [params setObject:[TWTweets topTweetID] forKey:@"since_id"];
         }
         
         //リクエストを作成

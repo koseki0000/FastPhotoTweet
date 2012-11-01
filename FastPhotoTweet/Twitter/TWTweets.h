@@ -7,19 +7,17 @@
 //
 
 #import "TWTweetsBase.h"
+#import "NSObject+EmptyCheck.h"
+#import "NSDictionary+DataExtraction.h"
 
 @interface TWTweets : TWTweetsBase
 
 + (TWTweets *)manager;
 + (NSMutableDictionary *)timelines;
-+ (NSMutableDictionary *)sinceIDs;
 
 + (void)saveCurrentTimeline:(NSMutableArray *)currentTimeline;
 + (NSMutableArray *)currentTimeline;
 + (NSMutableArray *)saveCurrentTimelineAndChangeAccount:(NSMutableArray *)currentTimeline forChangeAccountName:(NSString *)accontName;
-
-+ (void)saveSinceID:(NSString *)tweetID;
-+ (void)saveSinceID:(NSString *)tweetID forAccountName:(NSString *)accountName;
-+ (NSString *)currentSinceID;
++ (NSString *)topTweetID;
 
 @end

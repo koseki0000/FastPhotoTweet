@@ -9,7 +9,6 @@
 #import "TWTweets.h"
 
 #define BLANK @""
-#define API_VERSION @"1"
 
 @implementation TWTweets
 
@@ -21,11 +20,6 @@
 + (NSMutableDictionary *)timelines {
     
     return [TWTweetsBase manager].timelines;
-}
-
-+ (NSMutableDictionary *)sinceIDs {
-    
-    return [TWTweetsBase manager].sinceIDs;
 }
 
 #pragma mark - Timeline
@@ -59,32 +53,25 @@
     return [[TWTweetsBase manager].timelines objectForKey:accontName];
 }
 
-#pragma mark - SinceIDs
-
-+ (void)saveSinceID:(NSString *)tweetID {
++ (NSString *)topTweetID {
     
-    dispatch_queue_t queue = dispatch_get_global_queue(DISPATCH_QUEUE_PRIORITY_DEFAULT, 0);
-    dispatch_semaphore_t semaphore = dispatch_semaphore_create(1);
+    NSString *tweetID = nil;
     
-    dispatch_async(queue, ^{
+    if ( [[TWTweets currentTimeline] isNotEmpty] ) {
+    
+        BOOL reTweet = [[[[[TWTweets currentTimeline] objectAtIndex:0] objectForKey:@"retweeted_status"] objectForKey:@"id"] boolValue];
         
-        dispatch_semaphore_wait(semaphore, DISPATCH_TIME_FOREVER);
-        
-        [[TWTweetsBase manager].sinceIDs setObject:tweetID forKey:[TWAccounts currentAccountName]];
-        
-        dispatch_semaphore_signal(semaphore);
-        dispatch_release(semaphore);
-    });
-}
-
-+ (void)saveSinceID:(NSString *)tweetID forAccountName:(NSString *)accountName {
+        if ( reTweet ) {
+            
+            tweetID = [[[[TWTweets currentTimeline] objectAtIndex:0] objectForKey:@"retweeted_status"] objectForKey:@"id_str"];
+            
+        }else {
+         
+            tweetID = [[[TWTweets currentTimeline] objectAtIndex:0] objectForKey:@"id_str"];
+        }
+    }
     
-    [self saveSinceID:tweetID forAccountName:accountName];
-}
-
-+ (NSString *)currentSinceID {
-    
-    return [[TWTweetsBase manager].sinceIDs objectForKey:[TWAccounts currentAccountName]];
+    return tweetID;
 }
 
 @end
