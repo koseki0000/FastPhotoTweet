@@ -570,25 +570,9 @@
                         //NG判定を行う
                         newTweet = [TWNgTweet ngAll:newTweet];
                         
-                        if ( _timelineArray.count != 0 && newTweet.count != 0 ) {
-                            
-                            //重複する場合は削除
-                            if ( [[[newTweet objectAtIndex:newTweet.count - 1] objectForKey:@"id_str"] isEqualToString:[[_timelineArray objectAtIndex:0] objectForKey:@"id_str"]] ) {
-                                
-                                NSMutableArray __autoreleasing *tempArray = [NSMutableArray arrayWithArray:newTweet];
-                                [tempArray removeObjectAtIndex:newTweet.count - 1];
-                                newTweet = [NSArray arrayWithArray:tempArray];
-                            }
-                        }
-                        
                         if ( [EmptyCheck check:newTweet] ) {
                             
-                            int index = 0;
-                            for ( id tweet in newTweet ) {
-                                
-                                [_timelineArray insertObject:tweet atIndex:index];
-                                index++;
-                            }
+                            _timelineArray = [_timelineArray appendOnlyNewToTop:newTweet returnMutable:YES];
                             
                             [self checkTimelineCount];
                             
@@ -2777,7 +2761,6 @@
                 [self openTwitterService:_alertSearchUserName serviceType:buttonIndex];
                 
             }else if ( actionSheet.tag == 2 ) {
-                
                 
                 longPressControl = 0;
                 
