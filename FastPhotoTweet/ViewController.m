@@ -310,7 +310,7 @@
             //NSLog(@"newVersion");
             
             [ShowAlert title:[NSString stringWithFormat:@"FastPhotoTweet %@", APP_VERSION]
-                     message:@"・Post処理を一新\n・ふぁぼられ通知が機能していない問題を修正\n・Timelineとアカウント切替時の信頼性が向上\n・メモリ管理の改善"];
+                     message:@"・安定性の向上"];
             
             information = [[[NSMutableDictionary alloc] initWithDictionary:[d dictionaryForKey:@"Information"]] autorelease];
             [information setValue:[NSNumber numberWithInt:1] forKey:APP_VERSION];

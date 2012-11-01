@@ -866,7 +866,7 @@
 
 - (void)getIconWithTweetArray:(NSMutableArray *)tweetArray {
     
-    NSLog(@"getIconWithTweetArray[%d]", tweetArray.count);
+//    NSLog(@"getIconWithTweetArray[%d]", tweetArray.count);
     
     NSMutableSet *addUser = [NSMutableSet set];
     NSMutableSet *addIconUrls = [NSMutableSet setWithArray:_iconUrls];
@@ -877,25 +877,22 @@
             
             //アイコンのユーザー名
             NSString __autoreleasing *screenName = [[dic objectForKey:@"user"] objectForKey:@"screen_name"];
-            NSLog(@"screenName: %@", screenName);
             
-            if ( [screenName isEmpty] ) {
-                
+            if ( ![EmptyCheck string:screenName] ) {
+            
                 screenName = [dic objectForKey:@"screen_name"];
-                NSLog(@"screenName: %@", screenName);
             }
             
             //biggerサイズのURL
             NSString __autoreleasing *biggerUrl = [TWIconBigger normal:[[dic objectForKey:@"user"] objectForKey:@"profile_image_url"]];
             
-            if ( [biggerUrl isEmpty] ) {
-                
+            if ( ![EmptyCheck string:biggerUrl] ) {
+            
                 biggerUrl = [TWIconBigger normal:[dic objectForKey:@"profile_image_url"]];
             }
             
             //検索用の名前
             NSString __autoreleasing *searchName = [NSString stringWithFormat:@"%@_%@", screenName, [biggerUrl lastPathComponent]];
-            NSLog(@"searchName: %@", searchName);
             
             if ( [_appDelegate iconExist:searchName] ) {
                 
@@ -904,12 +901,7 @@
                 
                 if ( image != nil ) {
                     
-                    NSLog(@"Image find");
-                    
                     [_icons setObject:image forKey:searchName];
-                    
-                    NSLog(@"screenName: %@", screenName);
-                    NSLog(@"currentAccountName: %@", [TWAccounts currentAccountName]);
                     
                     //自分のアイコンの場合は上部バーに設定
                     if ( [screenName isEqualToString:[TWAccounts currentAccountName]] ) {
@@ -1165,11 +1157,11 @@
     
     NSLog(@"getInReplyToChain: %@", inReplyToId);
     
-    if ( [inReplyToId isEmpty] || [inReplyToId isEqualToString:@"END"] ) {
+    if ( ![EmptyCheck check:inReplyToId] || [inReplyToId isEqualToString:@"END"] ) {
         
         //InReplyToIDがもうない場合は表示を行う
         
-        if ( [inReplyToId isEmpty] && _inReplyTo.count > 1 ) {
+        if ( [EmptyCheck check:_inReplyTo] && _inReplyTo.count > 1 ) {
             
             NSLog(@"InReplyTo GET END");
             
@@ -1456,10 +1448,12 @@
 - (void)scrollTimelineForNewTweet:(NSString *)tweetID {
     
     //Tweetがない場合はスクロールしない
-    if ( [_timelineArray isEmpty] ) return;
+    if ( _timelineArray == nil ||
+         _timelineArray.count == 0 ) return;
     
     //スクロールするIDがない場合は終了
-    if ( [tweetID isEmpty] ) return;
+    if ( tweetID == nil ||
+        [tweetID isEqualToString:@""] ) return;
     
     //スクロールするインデックスを検索
     int index = 0;
@@ -1990,12 +1984,13 @@
         //[self checkTimelineCount];
         
         //タイムラインに追加
-        [_timelineArray insertObject:receiveData atIndex:0];
+        _timelineArray = [_timelineArray appendOnlyNewToTop:newTweet returnMutable:YES];
         
         //タイムラインを保存
         [TWTweets saveCurrentTimeline:_timelineArray];
         
-        [_timeline insertRowsAtIndexPaths:@[[NSIndexPath indexPathForRow:0 inSection:0]] withRowAnimation:UITableViewRowAnimationTop];
+        [_timeline insertRowsAtIndexPaths:@[[NSIndexPath indexPathForRow:0 inSection:0]]
+                         withRowAnimation:UITableViewRowAnimationTop];
     });
     
     //アイコン保存
@@ -2082,12 +2077,6 @@
     
     @try {
         
-        //重複する場合は無視
-        if ( _timelineArray.count != 0 ) {
-            
-            if ( [[receiveData objectForKey:@"id_str"] isEqualToString:[[_timelineArray objectAtIndex:0] objectForKey:@"id_str"]] ) return;
-        }
-        
         [_searchStreamTemp addObject:receiveData];
         
     }@catch ( NSException *e ) {}
@@ -2131,7 +2120,7 @@
                 //[self checkTimelineCount];
                 
                 //タイムラインに追加
-                [_timelineArray insertObject:newTweet atIndex:0];
+                _timelineArray = [_timelineArray appendOnlyNewToTop:@[newTweet] returnMutable:YES];
                 [_timeline insertRowsAtIndexPaths:@[[NSIndexPath indexPathForRow:0 inSection:0]] withRowAnimation:UITableViewRowAnimationTop];
                 
                 //アイコン保存
@@ -2149,7 +2138,7 @@
         @try {
             
             NSError *error = nil;
-            NSMutableDictionary __autoreleasing *receiveData = [NSMutableDictionary dictionaryWithDictionary:
+            NSMutableDictionary *receiveData = [NSMutableDictionary dictionaryWithDictionary:
                                                                 [NSJSONSerialization JSONObjectWithData:data
                                                                                                 options:NSJSONReadingMutableLeaves
                                                                                                   error:&error]];
@@ -2180,7 +2169,7 @@
                 dispatch_async(dispatch_get_main_queue(), ^ {
                     
                     //SearchStreamの場合
-                    [self searchStreamReceiveTweet:[[TWEntities replaceTcoAll:@[receiveData]] objectAtIndex:0]];
+                    [self searchStreamReceiveTweet:receiveData];
                 });
                 
                 return;
@@ -3101,7 +3090,8 @@
 
 - (void)openTwitterService:(NSString *)username serviceType:(int)serviceType {
     
-    if ( [username isEmpty] ) return;
+    if ( username == nil ||
+        [username isEqualToString:@""] ) return;
     
     _appDelegate.reOpenUrl = BLANK;
     
@@ -3513,9 +3503,6 @@
         
         [self performSelectorInBackground:@selector(openSearchStream:) withObject:_alertSearchText.text];
     }
-    
-    [self setAlertSearchText:nil];
-    [self setAlertSearch:nil];
 }
 
 #pragma mark - UIWebViewEx
@@ -3551,7 +3538,7 @@
 
 #pragma mark - UITextField
 
-- (BOOL)textFieldShouldReturn:(UITextField *)sender {
+- (BOOL)textFieldShouldReturn:(SSTextField *)sender {
     
     //NSLog(@"Textfield Enter: %@", sender.text);
     
@@ -3578,17 +3565,14 @@
         
     }else if ( sender.tag == 3 ) {
         
-        [self openSearchStream:_alertSearchText.text];
+        [self performSelectorInBackground:@selector(openSearchStream:) withObject:_alertSearchText.text];
     }
     
     //キーボードを閉じる
-    [sender resignFirstResponder];
+    [_alertSearchText resignFirstResponder];
     
     //アラートを閉じる
     [_alertSearch dismissWithClickedButtonIndex:0 animated:YES];
-    
-    [self setAlertSearchText:nil];
-    [self setAlertSearch:nil];
     
     return YES;
 }
@@ -3613,10 +3597,6 @@
         [tempDic setObject:screenName forKey:@"screen_name"];
         [tempDic setObject:biggerUrl forKey:@"profile_image_url"];
         [tempDic setObject:searchName forKey:@"SearchName"];
-        
-        NSLog(@"-------------------------------");
-        NSLog(@"screenName: %@", screenName);
-        NSLog(@"-------------------------------");
         
         [self getIconWithTweetArray:[NSMutableArray arrayWithObject:tempDic]];
         
@@ -3829,7 +3809,8 @@
     
     _accountIconView.image = nil;
     
-    if ( [_icons isEmpty] ) {
+    if ( _icons == nil ||
+         _icons.count == 0 ) {
         
         NSLog(@"icon file 0");
         
