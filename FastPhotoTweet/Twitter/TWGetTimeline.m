@@ -36,8 +36,8 @@
         [ActivityIndicator on];
         
         //タイムライン取得リクエストURL作成
-        NSString *urlString = [NSString stringWithFormat:@"https://api.twitter.com/%@/statuses/home_timeline.json", API_VERSION];
-        NSURL *reqUrl = [NSURL URLWithString:urlString];
+        NSString *urlString = [[NSString alloc] initWithFormat:@"https://api.twitter.com/%@/statuses/home_timeline.json", API_VERSION];
+        NSURL *reqUrl = [[NSURL alloc] initWithString:urlString];
         
         //リクエストパラメータを作成
         NSMutableDictionary *params = [[NSMutableDictionary alloc] init];
@@ -63,8 +63,9 @@
         [request setAccount:requestAccount];
         
         //Timeline取得結果通知を作成
-        NSMutableDictionary *result = [NSMutableDictionary dictionary];
+        NSMutableDictionary *result = [[NSMutableDictionary alloc] init];
         [result setObject:@"Timeline" forKey:@"Type"];
+        
         NSNotification *notification =[NSNotification notificationWithName:@"GetTimeline"
                                                                     object:self
                                                                   userInfo:result];
@@ -77,11 +78,13 @@
              NSLog(@"HomeTimeline receive response");
              
              if ( responseData ) {
-                 
+                  
                  NSError *jsonError = nil;
-                 NSMutableArray *timeline = (NSMutableArray *)[NSJSONSerialization JSONObjectWithData:responseData
-                                                                                              options:NSJSONReadingMutableLeaves
-                                                                                                error:&jsonError];
+                 NSMutableArray *timeline =
+                 [NSMutableArray arrayWithArray:
+                  [NSJSONSerialization JSONObjectWithData:responseData
+                                                  options:NSJSONReadingMutableLeaves
+                                                    error:&jsonError]];
                  
                  [result setObject:requestAccount.username forKey:@"Account"];
                  

@@ -64,7 +64,6 @@ static NSInteger const kAttributedLabelTag = 100;
     [self.iconView.titleLabel removeFromSuperview];
     [self.iconView.inputAccessoryView removeFromSuperview];
     [self.iconView.inputView removeFromSuperview];
-    
     [self.infoLabel.inputAccessoryView removeFromSuperview];
     [self.infoLabel.inputView removeFromSuperview];
     
@@ -96,7 +95,6 @@ static NSInteger const kAttributedLabelTag = 100;
     [self.iconView.layer addSublayer:iconLayer];
     
     iconLayer = nil;
-    
     [self addSubview:_infoLabel];
     [self addSubview:_mainLabel];
     [self addSubview:_iconView];

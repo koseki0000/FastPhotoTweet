@@ -39,7 +39,8 @@
             [inputDateFormatter setDateFormat:DATE_FORMAT];
             
             //JSTタイムゾーンを適用し、時刻部分を抜き出す
-            jstDate = [[[NSDate dateWithTimeInterval:OFFSET sinceDate:[inputDateFormatter dateFromString:[tweetData substringWithRange:NSMakeRange(from, 8)]]] description] substringWithRange:NSMakeRange(11, 8)];
+            jstDate = [[[NSDate dateWithTimeInterval:OFFSET
+                                           sinceDate:[inputDateFormatter dateFromString:[tweetData substringWithRange:NSMakeRange(from, 8)]]] description] substringWithRange:NSMakeRange(11, 8)];
         }
         
         tweetData = nil;
@@ -110,12 +111,12 @@
 
 + (NSDictionary *)rtText:(NSDictionary *)tweet {
     
-    NSMutableDictionary *mTweet = [NSMutableDictionary dictionaryWithDictionary:tweet];
+    NSMutableDictionary *mTweet = [[NSMutableDictionary alloc] initWithDictionary:tweet];
     
     @autoreleasepool {
         
-        NSMutableDictionary __autoreleasing *rtStatus = [NSMutableDictionary dictionaryWithDictionary:[mTweet objectForKey:@"retweeted_status"]];
-        NSMutableDictionary __autoreleasing *rtStatusUser = [NSMutableDictionary dictionaryWithDictionary:[[mTweet objectForKey:@"retweeted_status"] objectForKey:@"user"]];
+        NSMutableDictionary *rtStatus = [[NSMutableDictionary alloc] initWithDictionary:[mTweet objectForKey:@"retweeted_status"]];
+        NSMutableDictionary *rtStatusUser = [[NSMutableDictionary alloc] initWithDictionary:[[mTweet objectForKey:@"retweeted_status"] objectForKey:@"user"]];
         
         [rtStatus removeObjectForKey:@"contributors"];
         [rtStatus removeObjectForKey:@"coordinates"];
@@ -150,12 +151,12 @@
         [rtStatus setObject:rtStatusUser forKey:@"user"];
         [mTweet setObject:rtStatus forKey:@"retweeted_status"];
         
-        NSString __autoreleasing *originalText =  [[mTweet objectForKey:@"retweeted_status"] objectForKey:@"text"];
-        NSString __autoreleasing *postUser =     [[[mTweet objectForKey:@"retweeted_status"] objectForKey:@"user"] objectForKey:@"screen_name"];
-        NSString __autoreleasing *postUserIcon = [[[mTweet objectForKey:@"retweeted_status"] objectForKey:@"user"] objectForKey:@"profile_image_url"];
-        NSString __autoreleasing *rtUser = [[tweet objectForKey:@"user"] objectForKey:@"screen_name"];
+        NSString *originalText =  [[mTweet objectForKey:@"retweeted_status"] objectForKey:@"text"];
+        NSString *postUser =     [[[mTweet objectForKey:@"retweeted_status"] objectForKey:@"user"] objectForKey:@"screen_name"];
+        NSString *postUserIcon = [[[mTweet objectForKey:@"retweeted_status"] objectForKey:@"user"] objectForKey:@"profile_image_url"];
+        NSString *rtUser = [[tweet objectForKey:@"user"] objectForKey:@"screen_name"];
         
-        NSMutableDictionary __autoreleasing *user = [NSMutableDictionary dictionaryWithDictionary:[mTweet objectForKey:@"user"]];
+        NSMutableDictionary *user = [[NSMutableDictionary alloc] initWithDictionary:[mTweet objectForKey:@"user"]];
         [user setObject:postUser forKey:@"screen_name"];
         [user setObject:postUserIcon forKey:@"profile_image_url"];
         
