@@ -18,6 +18,15 @@
 + (void)saveCurrentTimeline:(NSMutableArray *)currentTimeline;
 + (NSMutableArray *)currentTimeline;
 + (NSMutableArray *)saveCurrentTimelineAndChangeAccount:(NSMutableArray *)currentTimeline forChangeAccountName:(NSString *)accontName;
+
 + (NSString *)topTweetID;
++ (NSMutableDictionary *)sinceIDs;
++ (void)saveSinceID:(NSString *)sinceID;
 
 @end
+
+typedef enum {
+    TimelineRequestStatsSended,
+    TimelineRequestStatsFailed,
+    TimelineRequestStatsSuccess
+}TimelineRequestStats;

@@ -12,6 +12,7 @@
 @interface TWTweetsBase : NSObject
 
 @property (retain, nonatomic) NSMutableDictionary *timelines;
+@property (retain, nonatomic) NSMutableDictionary *sinceIDs;
 
 + (TWTweetsBase *)manager;
 

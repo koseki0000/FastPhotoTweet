@@ -553,7 +553,7 @@
                             
                             if ( [_timelineArray isNotEmpty] ) scrollTweetID = [[_timelineArray objectAtIndex:0] objectForKey:@"id_str"];
                             
-                            _timelineArray = [_timelineArray appendOnlyNewToTop:newTweet returnMutable:YES];
+                            _timelineArray = [_timelineArray appendOnlyNewToTop:newTweet forXPath:@"id_str" returnMutable:YES];
                             
                             //[self checkTimelineCount];
                             

@@ -2,10 +2,11 @@
 //  NSArray+AppendUtil.h
 //  FastPhotoTweet
 //
-//  Created by @peace3884 on 12/11/01.
+//  Created by @peace3884 12/11/02.
 //
 
 #import <Foundation/Foundation.h>
+#import "NSDictionary+XPath.h"
 
 @interface NSArray (NSArrayAppendUtil)
 
@@ -14,6 +15,9 @@
 
 - (id)appendOnlyNewToTop:(id)unitArray returnMutable:(BOOL)returnMutable;
 - (id)appendOnlyNewToBottom:(id)unitArray returnMutable:(BOOL)returnMutable;
+
+- (id)appendOnlyNewToTop:(id)dictionariesArray forXPath:(NSString *)xpath separator:(NSString *)separator returnMutable:(BOOL)returnMutable;
+- (id)appendOnlyNewToTop:(id)dictionariesArray forXPath:(NSString *)xpath returnMutable:(BOOL)returnMutable;
 
 + (BOOL)checkClass:(id)object;
 

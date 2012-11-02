@@ -114,7 +114,7 @@
 - (void)showImagePicker;
 - (void)showActionMenu;
 - (void)callback;
-- (void)countText;
+- (oneway void)countText;
 - (void)tohaSearch:(NSString *)text;
 - (oneway void)uploadImage:(UIImage *)image;
 - (oneway void)uploadNowPlayingImage:(UIImage *)image uploadType:(int)uploadType;

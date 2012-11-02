@@ -2,7 +2,7 @@
 //  NSObject+EmptyCheck.h
 //  FastPhotoTweet
 //
-//  Created by @peace3884 on 12/11/01.
+//  Created by @peace3884 12/11/02.
 //
 
 #import <Foundation/Foundation.h>

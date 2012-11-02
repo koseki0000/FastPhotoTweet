@@ -1450,7 +1450,7 @@
     [self countText];
 }
 
-- (void)countText {
+- (oneway void)countText {
     
     //t.coを考慮した文字数カウントを行う
     int num = [TWCharCounter charCounter:postText.text];
