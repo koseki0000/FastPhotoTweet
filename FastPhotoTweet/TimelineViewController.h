@@ -55,6 +55,7 @@
     BOOL searchStream;
     BOOL isLoading;
     BOOL iconWorking;
+    BOOL firstLoad;
     
     int selectRow;
     int longPressControl;
@@ -143,9 +144,10 @@
 - (void)getInReplyToChain:(NSDictionary *)tweetData;
 - (void)scrollTimelineForNewTweet:(NSString *)tweetID;
 - (void)scrollTimelineToTop:(BOOL)animation;
+- (void)scrollTimelineToBottom:(BOOL)animation;
 - (void)refreshTimelineCell:(NSNumber *)index;
 - (void)copyTweetInUrl:(NSArray *)urlList;
-- (void)checkTimelineCount;
+- (void)checkTimelineCount:(BOOL)animated;
 - (void)pushIcon:(UIButton *)sender;
 - (void)openTimelineURL:(NSNotification *)notification;
 - (void)openTimelineImage:(NSNotification *)notification;

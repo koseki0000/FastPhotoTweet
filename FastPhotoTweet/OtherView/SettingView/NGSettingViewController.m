@@ -63,6 +63,8 @@
     }
     
     ngSettingArray = [NSMutableArray arrayWithArray:[d objectForKey:@"NGWord"]];
+    
+    [addedNgSettings flashScrollIndicators];
 }
 
 #pragma mark - IBAction

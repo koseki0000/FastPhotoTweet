@@ -52,7 +52,6 @@
 								<int key="NSvFlags">292</int>
 								<string key="NSFrame">{{10, 54}, {300, 44}}</string>
 								<reference key="NSSuperview" ref="841874726"/>
-								<reference key="NSWindow"/>
 								<reference key="NSNextKeyView" ref="275980819"/>
 								<string key="NSReuseIdentifierKey">_NS:9</string>
 								<bool key="IBUIOpaque">NO</bool>
@@ -91,7 +90,6 @@
 								<int key="NSvFlags">274</int>
 								<string key="NSFrame">{{0, 252}, {320, 208}}</string>
 								<reference key="NSSuperview" ref="841874726"/>
-								<reference key="NSWindow"/>
 								<reference key="NSNextKeyView"/>
 								<string key="NSReuseIdentifierKey">_NS:9</string>
 								<object class="NSColor" key="IBUIBackgroundColor">
@@ -117,7 +115,6 @@
 								<int key="NSvFlags">292</int>
 								<string key="NSFrame">{{206, 218}, {94, 27}}</string>
 								<reference key="NSSuperview" ref="841874726"/>
-								<reference key="NSWindow"/>
 								<reference key="NSNextKeyView" ref="1003190722"/>
 								<string key="NSReuseIdentifierKey">_NS:9</string>
 								<bool key="IBUIOpaque">NO</bool>
@@ -130,7 +127,6 @@
 								<int key="NSvFlags">290</int>
 								<string key="NSFrameSize">{320, 44}</string>
 								<reference key="NSSuperview" ref="841874726"/>
-								<reference key="NSWindow"/>
 								<reference key="NSNextKeyView" ref="134018693"/>
 								<string key="NSReuseIdentifierKey">_NS:9</string>
 								<string key="targetRuntimeIdentifier">IBCocoaTouchFramework</string>
@@ -143,7 +139,7 @@
 										<reference key="IBUINavigationBar" ref="717349897"/>
 										<string key="IBUITitle">NG設定</string>
 										<object class="IBUIBarButtonItem" key="IBUILeftBarButtonItem" id="131133542">
-											<string key="IBUITitle">閉じる</string>
+											<string key="IBUITitle">戻る</string>
 											<string key="targetRuntimeIdentifier">IBCocoaTouchFramework</string>
 											<int key="IBUIStyle">1</int>
 											<reference key="IBUINavigationItem" ref="826792400"/>
@@ -164,7 +160,6 @@
 								<int key="NSvFlags">292</int>
 								<string key="NSFrame">{{20, 181}, {280, 31}}</string>
 								<reference key="NSSuperview" ref="841874726"/>
-								<reference key="NSWindow"/>
 								<reference key="NSNextKeyView" ref="1006597531"/>
 								<string key="NSReuseIdentifierKey">_NS:9</string>
 								<bool key="IBUIOpaque">NO</bool>
@@ -203,7 +198,6 @@
 								<int key="NSvFlags">292</int>
 								<string key="NSFrame">{{20, 142}, {280, 31}}</string>
 								<reference key="NSSuperview" ref="841874726"/>
-								<reference key="NSWindow"/>
 								<reference key="NSNextKeyView" ref="282213923"/>
 								<string key="NSReuseIdentifierKey">_NS:9</string>
 								<bool key="IBUIOpaque">NO</bool>
@@ -233,7 +227,6 @@
 								<int key="NSvFlags">292</int>
 								<string key="NSFrame">{{20, 103}, {280, 31}}</string>
 								<reference key="NSSuperview" ref="841874726"/>
-								<reference key="NSWindow"/>
 								<reference key="NSNextKeyView" ref="260912809"/>
 								<string key="NSReuseIdentifierKey">_NS:9</string>
 								<bool key="IBUIOpaque">NO</bool>
@@ -262,7 +255,6 @@
 								<int key="NSvFlags">292</int>
 								<string key="NSFrame">{{20, 221}, {76, 21}}</string>
 								<reference key="NSSuperview" ref="841874726"/>
-								<reference key="NSWindow"/>
 								<reference key="NSNextKeyView" ref="70479809"/>
 								<string key="NSReuseIdentifierKey">_NS:9</string>
 								<bool key="IBUIOpaque">NO</bool>
@@ -292,7 +284,6 @@
 						</array>
 						<string key="NSFrameSize">{320, 460}</string>
 						<reference key="NSSuperview" ref="191373211"/>
-						<reference key="NSWindow"/>
 						<reference key="NSNextKeyView" ref="717349897"/>
 						<string key="NSReuseIdentifierKey">_NS:9</string>
 						<bool key="IBUIClipsSubviews">YES</bool>
@@ -302,7 +293,6 @@
 				</array>
 				<string key="NSFrame">{{0, 20}, {320, 460}}</string>
 				<reference key="NSSuperview"/>
-				<reference key="NSWindow"/>
 				<reference key="NSNextKeyView" ref="841874726"/>
 				<object class="NSColor" key="IBUIBackgroundColor">
 					<int key="NSColorSpace">2</int>
@@ -652,106 +642,7 @@
 			<nil key="sourceID"/>
 			<int key="maxID">159</int>
 		</object>
-		<object class="IBClassDescriber" key="IBDocument.Classes">
-			<array class="NSMutableArray" key="referencedPartialClassDescriptions">
-				<object class="IBPartialClassDescription">
-					<string key="className">NGSettingViewController</string>
-					<string key="superclassName">UIViewController</string>
-					<dictionary class="NSMutableDictionary" key="actions">
-						<string key="changeSegment:">UISegmentedControl</string>
-						<string key="doneButtonVisible:">UITextField</string>
-						<string key="pushAddButton:">UIBarButtonItem</string>
-						<string key="pushCloseButton:">UIBarButtonItem</string>
-						<string key="upView:">id</string>
-					</dictionary>
-					<dictionary class="NSMutableDictionary" key="actionInfosByName">
-						<object class="IBActionInfo" key="changeSegment:">
-							<string key="name">changeSegment:</string>
-							<string key="candidateClassName">UISegmentedControl</string>
-						</object>
-						<object class="IBActionInfo" key="doneButtonVisible:">
-							<string key="name">doneButtonVisible:</string>
-							<string key="candidateClassName">UITextField</string>
-						</object>
-						<object class="IBActionInfo" key="pushAddButton:">
-							<string key="name">pushAddButton:</string>
-							<string key="candidateClassName">UIBarButtonItem</string>
-						</object>
-						<object class="IBActionInfo" key="pushCloseButton:">
-							<string key="name">pushCloseButton:</string>
-							<string key="candidateClassName">UIBarButtonItem</string>
-						</object>
-						<object class="IBActionInfo" key="upView:">
-							<string key="name">upView:</string>
-							<string key="candidateClassName">id</string>
-						</object>
-					</dictionary>
-					<dictionary class="NSMutableDictionary" key="outlets">
-						<string key="addButton">UIBarButtonItem</string>
-						<string key="addedNgSettings">UITableView</string>
-						<string key="closeButton">UIBarButtonItem</string>
-						<string key="exclusionUserField">UITextField</string>
-						<string key="ngTypeSegment">UISegmentedControl</string>
-						<string key="ngWordField">UITextField</string>
-						<string key="regexpLabel">UILabel</string>
-						<string key="regexpSwitch">UISwitch</string>
-						<string key="sv">UIScrollView</string>
-						<string key="topBar">UINavigationBar</string>
-						<string key="userField">UITextField</string>
-					</dictionary>
-					<dictionary class="NSMutableDictionary" key="toOneOutletInfosByName">
-						<object class="IBToOneOutletInfo" key="addButton">
-							<string key="name">addButton</string>
-							<string key="candidateClassName">UIBarButtonItem</string>
-						</object>
-						<object class="IBToOneOutletInfo" key="addedNgSettings">
-							<string key="name">addedNgSettings</string>
-							<string key="candidateClassName">UITableView</string>
-						</object>
-						<object class="IBToOneOutletInfo" key="closeButton">
-							<string key="name">closeButton</string>
-							<string key="candidateClassName">UIBarButtonItem</string>
-						</object>
-						<object class="IBToOneOutletInfo" key="exclusionUserField">
-							<string key="name">exclusionUserField</string>
-							<string key="candidateClassName">UITextField</string>
-						</object>
-						<object class="IBToOneOutletInfo" key="ngTypeSegment">
-							<string key="name">ngTypeSegment</string>
-							<string key="candidateClassName">UISegmentedControl</string>
-						</object>
-						<object class="IBToOneOutletInfo" key="ngWordField">
-							<string key="name">ngWordField</string>
-							<string key="candidateClassName">UITextField</string>
-						</object>
-						<object class="IBToOneOutletInfo" key="regexpLabel">
-							<string key="name">regexpLabel</string>
-							<string key="candidateClassName">UILabel</string>
-						</object>
-						<object class="IBToOneOutletInfo" key="regexpSwitch">
-							<string key="name">regexpSwitch</string>
-							<string key="candidateClassName">UISwitch</string>
-						</object>
-						<object class="IBToOneOutletInfo" key="sv">
-							<string key="name">sv</string>
-							<string key="candidateClassName">UIScrollView</string>
-						</object>
-						<object class="IBToOneOutletInfo" key="topBar">
-							<string key="name">topBar</string>
-							<string key="candidateClassName">UINavigationBar</string>
-						</object>
-						<object class="IBToOneOutletInfo" key="userField">
-							<string key="name">userField</string>
-							<string key="candidateClassName">UITextField</string>
-						</object>
-					</dictionary>
-					<object class="IBClassDescriptionSource" key="sourceIdentifier">
-						<string key="majorKey">IBProjectSource</string>
-						<string key="minorKey">./Classes/NGSettingViewController.h</string>
-					</object>
-				</object>
-			</array>
-		</object>
+		<object class="IBClassDescriber" key="IBDocument.Classes"/>
 		<int key="IBDocument.localizationMode">0</int>
 		<string key="IBDocument.TargetRuntimeIdentifier">IBCocoaTouchFramework</string>
 		<bool key="IBDocument.PluginDeclaredDependenciesTrackSystemTargetVersion">YES</bool>

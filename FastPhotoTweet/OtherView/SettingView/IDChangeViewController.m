@@ -67,6 +67,8 @@
         [topBar setRightBarButtonItem:nil animated:NO];
     }
     
+    [tv flashScrollIndicators];
+    
     //NSLog(@"IDChangeView viewDidLoad");
 }
 

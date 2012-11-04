@@ -16,7 +16,7 @@
 //セクション2の項目数 (その他の設定)
 #define SECTION_2 6
 //セクション2の項目数 (タイムライン設定)
-#define SECTION_3 7
+#define SECTION_3 11
 
 //セクション3の項目数 (ライセンス)
 #define SECTION_4 2
@@ -61,6 +61,10 @@
 #define MY_TWEET_NG @"自分のTweetもNGを行う"
 #define ICON_CORNER @"アイコンの角を丸める"
 #define US_NO_AUTO_LOCK @"UserStream接続中は自動ロックを無効化する"
+#define TIMELINE_LOAD @"Timeline読み込み数"
+#define MENTIONS_LOAD @"Mentions読み込み数"
+#define FAVORITES_LOAD @"Favorites読み込み数"
+#define TIMELINE_FIRSTLOAD @"Timeline初回読み込み後表示位置"
 
 #define NAME_LICENSE @"ライセンス"
 #define SPECIAL_THANKS @"スペシャルサンクス"
@@ -90,15 +94,16 @@
         appDelegate.addTwitpicAccountName = BLANK;
         
         //設定項目名を持った可変長配列を生成
-        settingArray = [NSMutableArray arrayWithObjects:IMAGE_RESIZE,  IMAGE_RESIZE_MAX,  IMAGE_FORMAT,  NO_RESIZE_RETINA, 
-                                                        IMAGE_SERVICE,  IMAGE_SOURCE,  IMAGE_REPEATED,  IMAGE_GET_FULL, 
-                                                        NOWPLAYING_IMAGE, NOWPLAYING_CUSTOM, NOWPLAYING_CUSTOM_EDIT,
-                                                        NOWPLAYING_DUPLICATE_NAME, NOWPLAYING_SUB_STYLE, NOWPLAYING_ARTWORK,
-                                                        TOHA_SEARCH, WEB_PAGE_SHARE_STYLE, WEB_PAGE_SHARE_CURSOR, WEB_PAGE_QUOTE_STYLE,
-                                                        WEB_PAGE_QUOTE_CURSOR, SWITCH_APP, ACTIVE_INPUT, SEARCH_WORD_RESET,
-                                                        PASTE_BOARD_URL, USER_AGENT, USER_AGENT_RESET, SWIPE_SHIFT_CARET,
-                                                        ENTER_BACKGROUND_US, BECOME_ACTIVE_US, RELOAD_US, NG_OPEN,
-                                                        MY_TWEET_NG, ICON_CORNER, US_NO_AUTO_LOCK, NAME_LICENSE, SPECIAL_THANKS, nil];
+        settingArray =
+        [NSMutableArray arrayWithObjects:
+         IMAGE_RESIZE, IMAGE_RESIZE_MAX, IMAGE_FORMAT, NO_RESIZE_RETINA, IMAGE_SERVICE, IMAGE_SOURCE,
+         IMAGE_REPEATED, IMAGE_GET_FULL, NOWPLAYING_IMAGE, NOWPLAYING_CUSTOM, NOWPLAYING_CUSTOM_EDIT,
+         NOWPLAYING_DUPLICATE_NAME, NOWPLAYING_SUB_STYLE, NOWPLAYING_ARTWORK, TOHA_SEARCH,
+         WEB_PAGE_SHARE_STYLE, WEB_PAGE_SHARE_CURSOR, WEB_PAGE_QUOTE_STYLE, WEB_PAGE_QUOTE_CURSOR,
+         SWITCH_APP, ACTIVE_INPUT, SEARCH_WORD_RESET, PASTE_BOARD_URL, USER_AGENT, USER_AGENT_RESET,
+         SWIPE_SHIFT_CARET, ENTER_BACKGROUND_US, BECOME_ACTIVE_US, RELOAD_US, NG_OPEN, MY_TWEET_NG,
+         ICON_CORNER, US_NO_AUTO_LOCK, TIMELINE_LOAD, MENTIONS_LOAD, FAVORITES_LOAD, TIMELINE_FIRSTLOAD,
+         NAME_LICENSE, SPECIAL_THANKS, nil];
         
         [settingArray retain];
     }
@@ -109,6 +114,8 @@
 - (void)viewDidLoad {
 
     [super viewDidLoad];
+    
+    [tv flashScrollIndicators];
 }
 
 - (void)viewDidAppear:(BOOL)animated {
@@ -596,8 +603,31 @@
             
             result = @"OFF";
         }
-    }
         
+    }else if ( settingState == 33 ) {
+        
+        result = [d objectForKey:@"TimelineLoadCount"];
+        
+    }else if ( settingState == 34 ) {
+        
+        result = [d objectForKey:@"MentionsLoadCount"];
+        
+    }else if ( settingState == 35 ) {
+        
+        result = [d objectForKey:@"FavoritesLoadCount"];
+    
+    }else if ( settingState == 36 ) {
+        
+        if ( [d boolForKey:@"TimelineFirstLoad"] ) {
+            
+            result = @"最下部";
+            
+        }else {
+            
+            result = @"最上部";
+        }
+    }
+    
     return result;
 }
 
@@ -1184,6 +1214,50 @@
                      otherButtonTitles:@"ON", @"OFF", nil];
             [sheet autorelease];
             [sheet showInView:self.view];
+        
+        }else if ( indexPath.row == 7 ) {
+            
+            sheet = [[UIActionSheet alloc]
+                     initWithTitle:TIMELINE_LOAD
+                     delegate:self
+                     cancelButtonTitle:@"Cancel"
+                     destructiveButtonTitle:nil
+                     otherButtonTitles:@"200", @"160", @"120", @"80", @"40", @"20", nil];
+            [sheet autorelease];
+            [sheet showInView:self.view];
+            
+        }else if ( indexPath.row == 8 ) {
+            
+            sheet = [[UIActionSheet alloc]
+                     initWithTitle:MENTIONS_LOAD
+                     delegate:self
+                     cancelButtonTitle:@"Cancel"
+                     destructiveButtonTitle:nil
+                     otherButtonTitles:@"200", @"160", @"120", @"80", @"40", @"20", nil];
+            [sheet autorelease];
+            [sheet showInView:self.view];
+            
+        }else if ( indexPath.row == 9 ) {
+            
+            sheet = [[UIActionSheet alloc]
+                     initWithTitle:FAVORITES_LOAD
+                     delegate:self
+                     cancelButtonTitle:@"Cancel"
+                     destructiveButtonTitle:nil
+                     otherButtonTitles:@"200", @"160", @"120", @"80", @"40", @"20", nil];
+            [sheet autorelease];
+            [sheet showInView:self.view];
+            
+        }else if ( indexPath.row == 10 ) {
+            
+            sheet = [[UIActionSheet alloc]
+                     initWithTitle:TIMELINE_FIRSTLOAD
+                     delegate:self
+                     cancelButtonTitle:@"Cancel"
+                     destructiveButtonTitle:nil
+                     otherButtonTitles:@"最上部", @"最下部", nil];
+            [sheet autorelease];
+            [sheet showInView:self.view];
         }
         
     }else if ( indexPath.section == 4 ) {
@@ -1641,7 +1715,59 @@
         }else if ( buttonIndex == 1 ) {
             [d setBool:NO forKey:@"USNoAutoLock"];
         }
-    
+        
+    }else if ( actionSheetNo == 33 ) {
+        if ( buttonIndex == 0 ) {
+            [d setObject:@"200" forKey:@"TimelineLoadCount"];
+        }else if ( buttonIndex == 1 ) {
+            [d setObject:@"160" forKey:@"TimelineLoadCount"];
+        }else if ( buttonIndex == 2 ) {
+            [d setObject:@"120" forKey:@"TimelineLoadCount"];
+        }else if ( buttonIndex == 3 ) {
+            [d setObject:@"80" forKey:@"TimelineLoadCount"];
+        }else if ( buttonIndex == 4 ) {
+            [d setObject:@"40" forKey:@"TimelineLoadCount"];
+        }else if ( buttonIndex == 5 ) {
+            [d setObject:@"20" forKey:@"TimelineLoadCount"];
+        }
+        
+    }else if ( actionSheetNo == 34 ) {
+        if ( buttonIndex == 0 ) {
+            [d setObject:@"200" forKey:@"MentionsLoadCount"];
+        }else if ( buttonIndex == 1 ) {
+            [d setObject:@"160" forKey:@"MentionsLoadCount"];
+        }else if ( buttonIndex == 2 ) {
+            [d setObject:@"120" forKey:@"MentionsLoadCount"];
+        }else if ( buttonIndex == 3 ) {
+            [d setObject:@"80" forKey:@"MentionsLoadCount"];
+        }else if ( buttonIndex == 4 ) {
+            [d setObject:@"40" forKey:@"MentionsLoadCount"];
+        }else if ( buttonIndex == 5 ) {
+            [d setObject:@"20" forKey:@"MentionsLoadCount"];
+        }
+        
+    }else if ( actionSheetNo == 35 ) {
+        if ( buttonIndex == 0 ) {
+            [d setObject:@"200" forKey:@"FavoritesLoadCount"];
+        }else if ( buttonIndex == 1 ) {
+            [d setObject:@"160" forKey:@"FavoritesLoadCount"];
+        }else if ( buttonIndex == 2 ) {
+            [d setObject:@"120" forKey:@"FavoritesLoadCount"];
+        }else if ( buttonIndex == 3 ) {
+            [d setObject:@"80" forKey:@"FavoritesLoadCount"];
+        }else if ( buttonIndex == 4 ) {
+            [d setObject:@"40" forKey:@"FavoritesLoadCount"];
+        }else if ( buttonIndex == 5 ) {
+            [d setObject:@"20" forKey:@"FavoritesLoadCount"];
+        }
+        
+    }else if ( actionSheetNo == 36 ) {
+        if ( buttonIndex == 0 ) {
+            [d setBool:NO forKey:@"TimelineFirstLoad"];
+        }else if ( buttonIndex == 1 ) {
+            [d setBool:YES forKey:@"TimelineFirstLoad"];
+        }
+        
     }else if ( actionSheetNo == 100 ) {
         if ( buttonIndex == 0 ) {
             

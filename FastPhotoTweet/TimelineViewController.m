@@ -112,6 +112,13 @@
         
         SYNC_MAIN_QUEUE ^{
             
+            _timelineControlButton.image = _startImage;
+            
+            _timelineSegment.frame = CGRectMake(-4,
+                                                _timelineSegment.frame.origin.y,
+                                                _timelineSegment.frame.size.width + 8,
+                                                _timelineSegment.frame.size.height);
+            
             _grayView = [ActivityGrayView grayViewWithTaskName:@"FirstLoad"];
             [self.view addSubview:_grayView];
             
@@ -126,12 +133,7 @@
             //アイコン表示の角を丸める
             [self setMyAccountIconCorner];
             
-            _timelineControlButton.image = _startImage;
-            
-            _timelineSegment.frame = CGRectMake(-5,
-                                                _timelineSegment.frame.origin.y,
-                                                _timelineSegment.frame.size.width + 10,
-                                                _timelineSegment.frame.size.height);
+            [self createPullDownRefreshHeader];
         });
         
         //各種通知設定
@@ -146,7 +148,7 @@
 }
 
 - (void)setDefault {
-    NSLog(@"setDefault");
+
     //各種初期化
     _timelineArray = BLANK_ARRAY;
     _inReplyTo = BLANK_M_ARRAY;
@@ -202,8 +204,6 @@
     
     [self startConnectionCheckTimer];
     self.searchStreamTimer = nil;
-    
-    NSLog(@"setDefault Done");
 }
 
 - (void)setNotifications {
@@ -481,7 +481,11 @@
         
         ASYNC_MAIN_QUEUE ^{
             
-            if ( _timelineArray.count == 0 ) [_grayView start];
+            if ( _timelineArray.count == 0 ) {
+             
+                [_grayView start];
+                firstLoad = YES;
+            }
         });
         
         //タイムライン取得
@@ -578,6 +582,8 @@
                     //タイムラインを保存
                     [TWTweets saveCurrentTimeline:_timelineArray];
                     
+                    [self checkTimelineCount:NO];
+                    
                     ASYNC_MAIN_QUEUE ^{
                         
                         _reloadButton.enabled = YES;
@@ -587,8 +593,18 @@
                         //タイムラインを再読み込み
                         [_timeline reloadData];
                         
-                        //新着取得前の最新までスクロール
-                        [self scrollTimelineForNewTweet:scrollTweetID];
+                        if ( firstLoad && [_d boolForKey:@"TimelineFirstLoad"] ) {
+                            
+                            [self scrollTimelineToBottom:YES];
+                            firstLoad = NO;
+                            
+                        }else {
+                        
+                            //新着取得前の最新までスクロール
+                            [self scrollTimelineForNewTweet:scrollTweetID];
+                        }
+                        
+                        [_timeline flashScrollIndicators];
                         
                         if ( [_d boolForKey:@"ReloadAfterUSConnect"] && !userStream ) {
                             
@@ -679,6 +695,8 @@
             [_timeline reloadData];
             
             [self scrollTimelineToTop:NO];
+            
+            [_timeline flashScrollIndicators];
         });
         
     }else {
@@ -735,6 +753,8 @@
             [_timeline reloadData];
             
             [self scrollTimelineToTop:NO];
+            
+            [_timeline flashScrollIndicators];
         });
     }
 }
@@ -747,7 +767,7 @@
         
         [self finishLoad];
     });
-    
+
     if ( ![[center.userInfo objectForKey:@"Type"] isEqualToString:@"Favorites"] ) return;
     
     //Favoritesタブ以外が選択されている場合は終了
@@ -784,6 +804,8 @@
             [_timeline reloadData];
             
             [self scrollTimelineToTop:NO];
+            
+            [_timeline flashScrollIndicators];
         });
     }
 }
@@ -830,6 +852,8 @@
             [_timeline reloadData];
             
             [self scrollTimelineToTop:NO];
+            
+            [_timeline flashScrollIndicators];
         });
     }
 }
@@ -875,6 +899,8 @@
         [_timeline reloadData];
         
         [self scrollTimelineToTop:NO];
+        
+        [_timeline flashScrollIndicators];
     });
 }
 
@@ -915,13 +941,16 @@
                 
                 [_icons setObject:image forKey:searchName];
                 
-                //自分のアイコンの場合は上部バーに設定
-                if ( [screenName isEqualToString:[TWAccounts currentAccountName]] ) {
+                ASYNC_MAIN_QUEUE ^{
                     
-                    _accountIconView.image = image;
-                }
-                
-                [ActivityIndicator off];
+                    //自分のアイコンの場合は上部バーに設定
+                    if ( [screenName isEqualToString:[TWAccounts currentAccountName]] ) {
+                        
+                        _accountIconView.image = image;
+                    }
+                    
+                    [ActivityIndicator off];
+                });
             }
             
         }else {
@@ -1161,7 +1190,7 @@
     }
 }
 
-- (void)checkTimelineCount {
+- (void)checkTimelineCount:(BOOL)animated {
     
     int max = 400;
     if ( searchStream ) max = 100;
@@ -1175,15 +1204,16 @@
             
             dispatch_semaphore_wait(semaphore, DISPATCH_TIME_FOREVER);
             
-            NSLog(@"checkTimelineCount: %d", _timelineArray.count);
+//          NSLog(@"checkTimelineCount: %d", _timelineArray.count);
             
             [_timelineArray removeLastObject];
             
-            SYNC_MAIN_QUEUE ^{
+            if ( animated ) {
                 
                 [_timeline deleteRowsAtIndexPaths:@[[NSIndexPath indexPathForRow:_timelineArray.count - 1 inSection:0]]
                                  withRowAnimation:UITableViewRowAnimationBottom];
-            });
+            }
+            
             dispatch_semaphore_signal(semaphore);
             dispatch_release(semaphore);
         });
@@ -1536,6 +1566,18 @@
                              animated:animation];
 }
 
+- (void)scrollTimelineToBottom:(BOOL)animation {
+    
+    //Tweetがない場合はスクロールしない
+    if ( _timelineArray == nil ||
+        _timelineArray.count == 0 ) return;
+    
+    //一番下にスクロールする
+    [_timeline scrollToRowAtIndexPath:[NSIndexPath indexPathForRow:_timelineArray.count - 1 inSection:0]
+                     atScrollPosition:UITableViewScrollPositionBottom
+                             animated:animation];
+}
+
 - (void)pushIcon:(TitleButton *)sender {
     
     //    NSLog(@"pushIcon: %d", sender.tag);
@@ -1553,6 +1595,7 @@
                             otherButtonTitles:@"Twilog", @"TwilogSearch", @"favstar", @"Twitpic", @"UserTimeline", @"TwitterSearch", @"TwitterSearch(Stream)", nil];
     
     sheet.tag = 1;
+    alertSearchType = NO;
     
     [sheet showInView:_appDelegate.tabBarController.self.view];
 }
@@ -2037,7 +2080,7 @@
     
     ASYNC_MAIN_QUEUE ^{
         
-        //[self checkTimelineCount];
+        [self checkTimelineCount:YES];
         
         //タイムラインに追加
         _timelineArray = [_timelineArray appendOnlyNewToTop:newTweet returnMutable:YES];
@@ -2177,7 +2220,7 @@
             
             if ( newTweet != nil ) {
                 
-                //[self checkTimelineCount];
+                [self checkTimelineCount:YES];
                 
                 //タイムラインに追加
                 _timelineArray = [_timelineArray appendOnlyNewToTop:@[newTweet] returnMutable:YES];
@@ -3870,8 +3913,11 @@
 
 - (void)getMyAccountIcon {
     
-    _accountIconView.image = nil;
+    ASYNC_MAIN_QUEUE ^{
     
+        _accountIconView.image = nil;
+    });
+        
     if ( _icons == nil ||
          _icons.count == 0 ) {
         
@@ -3895,7 +3941,11 @@
             
             NSLog(@"icon find");
             
-            _accountIconView.image = [_icons objectForKey:string];
+            ASYNC_MAIN_QUEUE ^{
+                
+                _accountIconView.image = [_icons objectForKey:string];
+            });
+            
             find = YES;
             
             break;
@@ -3968,9 +4018,11 @@
 
 - (void)viewDidAppear:(BOOL)animated {
     
+    //NSLog(@"%@: viewDidAppear", NSStringFromClass([self class]));
+    
     [super viewDidAppear:animated];
     
-    //NSLog(@"viewDidAppear");
+    [_timeline flashScrollIndicators];
     
     if ( webBrowserMode ) {
         

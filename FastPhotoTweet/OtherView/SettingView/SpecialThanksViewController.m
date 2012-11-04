@@ -10,6 +10,13 @@
 
 @implementation SpecialThanksViewController
 
+- (void)viewDidLoad {
+    
+    [super viewDidLoad];
+    
+    [_mainText flashScrollIndicators];
+}
+
 - (IBAction)pushBackButton:(id)sender {
     
     [self dismissModalViewControllerAnimated:YES];

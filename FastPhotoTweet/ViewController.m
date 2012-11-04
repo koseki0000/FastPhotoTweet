@@ -259,6 +259,18 @@
         [d setInteger:1 forKey:@"IconCornerRounding"];
     }
     
+    if ( [d objectForKey:@"TimelineLoadCount"] == nil ) {
+        [d setObject:@"80" forKey:@"TimelineLoadCount"];
+    }
+    
+    if ( [d objectForKey:@"MentionsLoadCount"] == nil ) {
+        [d setObject:@"40" forKey:@"MentionsLoadCount"];
+    }
+    
+    if ( [d objectForKey:@"FavoritesLoadCount"] == nil ) {
+        [d setObject:@"40" forKey:@"FavoritesLoadCount"];
+    }
+    
     //設定を即反映
     [d synchronize];
 }
@@ -324,7 +336,7 @@
             //NSLog(@"newVersion");
             
             [ShowAlert title:[NSString stringWithFormat:@"FastPhotoTweet %@", APP_VERSION]
-                     message:@"・Timeline更新時の問題を修正\n・メモリ管理の改善"];
+                     message:@"・速度改善\n・メモリ管理の改善\n・Timeline設定に取得数や初回取得後の表示位置設定を追加\n・Timelineアイコンを押した際の問題を修正\n・その他細かな修正"];
             
             information = [[[NSMutableDictionary alloc] initWithDictionary:[d dictionaryForKey:@"Information"]] autorelease];
             [information setValue:[NSNumber numberWithInt:1] forKey:APP_VERSION];
@@ -348,84 +360,81 @@
 
 - (IBAction)pushPostButton:(id)sender {
     
-    @autoreleasepool {
+    //iOSバージョン判定
+    if ( [appDelegate ios5Check] ) {
         
-        //iOSバージョン判定
-        if ( [appDelegate ios5Check] ) {
+        //Internet接続のチェック
+        if ( [InternetConnection enable] ) {
             
-            //Internet接続のチェック
-            if ( [InternetConnection enable] ) {
+            if ( [TWAccounts accountCount] == 0 ) {
                 
-                if ( [TWAccounts accountCount] == 0 ) {
+                [ShowAlert error:@"Twitterアカウントが見つかりませんでした。"];
+                return;
+            }
+            
+            NSString *text = [[[NSString alloc] initWithString:postText.text] autorelease];
+            
+            if ( imagePreview.image == nil &&
+                ![EmptyCheck check:text] ) {
+                
+                [ShowAlert error:@"文字が入力されていません。"];
+                return;
+            }
+            
+            dispatch_queue_t globalQueue = GLOBAL_QUEUE_DEFAULT;
+            dispatch_async( globalQueue, ^{
+                
+                SYNC_MAIN_QUEUE ^{
                     
-                    [ShowAlert error:@"Twitterアカウントが見つかりませんでした。"];
-                    return;
-                }
+                    postButton.enabled = NO;
+                    [self callback];
+                });
                 
-                NSString *text = [[[NSString alloc] initWithString:postText.text] autorelease];
-                
-                if ( imagePreview.image == nil &&
-                    ![EmptyCheck check:text] ) {
+                //画像が設定されていない場合
+                if ( imagePreview.image == nil ) {
                     
-                    [ShowAlert error:@"文字が入力されていません。"];
-                    return;
-                }
-                
-                dispatch_queue_t globalQueue = GLOBAL_QUEUE_DEFAULT;
-                dispatch_async( globalQueue, ^{
+                    [TWSendTweet post:text
+                      withInReplyToID:inReplyToId];
                     
-                    SYNC_MAIN_QUEUE ^ {
+                }else {
+                    
+                    //画像投稿先がTwitterの場合
+                    if ( [[d objectForKey:@"PhotoService"] isEqualToString:@"Twitter"] ||
+                        ( nowPlayingMode && [d  integerForKey:@"NowPlayingPhotoService"] == 1 )) {
                         
-                        postButton.enabled = NO;
-                        [self callback];
-                    });
-                    
-                    //画像が設定されていない場合
-                    if ( imagePreview.image == nil ) {
-                        
+                        //文字列と画像をバックグラウンドプロセスで投稿
                         [TWSendTweet post:text
-                          withInReplyToID:inReplyToId];
+                          withInReplyToID:inReplyToId
+                                 andImage:imagePreview.image];
                         
                     }else {
                         
-                        //画像投稿先がTwitterの場合
-                        if ( [[d objectForKey:@"PhotoService"] isEqualToString:@"Twitter"] ||
-                            ( nowPlayingMode && [d  integerForKey:@"NowPlayingPhotoService"] == 1 )) {
-                            
-                            //文字列と画像をバックグラウンドプロセスで投稿
-                            [TWSendTweet post:text
-                              withInReplyToID:inReplyToId
-                                     andImage:imagePreview.image];
-                            
-                        }else {
-                            
-                            //画像投稿先がimg.urかTwitpicもしくは画像の再投稿
-                            
-                            [TWSendTweet post:text
-                              withInReplyToID:inReplyToId];
-                        }
+                        //画像投稿先がimg.urかTwitpicもしくは画像の再投稿
+                        
+                        [TWSendTweet post:text
+                          withInReplyToID:inReplyToId];
                     }
+                }
+                
+                SYNC_MAIN_QUEUE ^{
                     
-                    SYNC_MAIN_QUEUE ^ {
-                        
-                        //入力欄を空にする
-                        postText.text = BLANK;
-                        [inReplyToId release];
-                        inReplyToId = BLANK;
-                        imagePreview.image = nil;
-                        
-                        //とは検索機能ONかつ条件にマッチ
-                        if ( [d boolForKey:@"TohaSearch"] &&
-                            [RegularExpression boolWithRegExp:text
-                                                regExpPattern:@".+とは$"] ) {
-                                
-                                [self tohaSearch:text];
-                            }
-                        
-                        postButton.enabled = YES;
-                    });
+                    //入力欄を空にする
+                    postText.text = BLANK;
+                    [inReplyToId release];
+                    inReplyToId = BLANK;
+                    imagePreview.image = nil;
+                    
+                    //とは検索機能ONかつ条件にマッチ
+                    if ( [d boolForKey:@"TohaSearch"] &&
+                        [RegularExpression boolWithRegExp:text
+                                            regExpPattern:@".+とは$"] ) {
+                            
+                            [self tohaSearch:text];
+                        }
+                    
+                    postButton.enabled = YES;
                 });
-            }
+            });
         }
     }
 }
@@ -1317,10 +1326,6 @@
                                                                                       0,
                                                                                       SCREEN_WIDTH - (SCREEN_WIDTH / 8),
                                                                                       SCREEN_HEIGHT - TAB_BAR_HEIGHT - (TOOL_BAR_HEIGHT * 2));
-                                                      
-                                                      //                                                      NSLog(@"self.view.frame: %@", NSStringFromCGRect(self.view.frame));
-                                                      //                                                      NSLog(@"sv.frame: %@", NSStringFromCGRect(sv.frame));
-                                                      //                                                      NSLog(@"imagePreview.frame: %@", NSStringFromCGRect(imagePreview.frame));
                                                   }
                                   
                                                   completion:nil
@@ -1997,7 +2002,7 @@
                 
                 NSString *shareString = [NSString stringWithFormat:@"\"%@\" %@", title, pboardString];
                 
-                dispatch_async(dispatch_get_main_queue(), ^ {
+                dispatch_async(dispatch_get_main_queue(), ^{
                     
                     postText.text = [NSString stringWithFormat:@"%@ ", [DeleteWhiteSpace string:[NSString stringWithFormat:@"%@ %@", postText.text, shareString]]];
                     [postText becomeFirstResponder];

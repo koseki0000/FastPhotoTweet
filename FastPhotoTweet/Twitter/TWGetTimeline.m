@@ -42,7 +42,7 @@
         //リクエストパラメータを作成
         NSMutableDictionary *params = [[NSMutableDictionary alloc] init];
         //取得数
-        [params setObject:@"60" forKey:@"count"];
+        [params setObject:[[NSUserDefaults standardUserDefaults] objectForKey:@"TimelineLoadCount"] forKey:@"count"];
         //エンティティの有効化
         [params setObject:@"1" forKey:@"include_entities"];
         //RT表示
@@ -155,7 +155,7 @@
     //表示するユーザー
     [params setObject:screenName forKey:@"screen_name"];
     //取得数
-    [params setObject:@"60" forKey:@"count"];
+    [params setObject:[[NSUserDefaults standardUserDefaults] objectForKey:@"TimelineLoadCount"] forKey:@"count"];
     //エンティティの有効化
     [params setObject:@"1" forKey:@"include_entities"];
     //RT表示
@@ -275,7 +275,7 @@
         //リクエストパラメータを作成
         NSMutableDictionary *params = [[NSMutableDictionary alloc] init];
         //取得数
-        [params setObject:@"40" forKey:@"count"];
+        [params setObject:[[NSUserDefaults standardUserDefaults] objectForKey:@"MentionsLoadCount"] forKey:@"count"];
         //エンティティの有効化
         [params setObject:@"1" forKey:@"include_entities"];
         
@@ -346,7 +346,7 @@
         //リクエストパラメータを作成
         NSMutableDictionary *params = [[NSMutableDictionary alloc] init];
         //取得数
-        [params setObject:@"40" forKey:@"count"];
+        [params setObject:[[NSUserDefaults standardUserDefaults] objectForKey:@"FavoritesLoadCount"] forKey:@"count"];
         //エンティティの有効化
         [params setObject:@"1" forKey:@"include_entities"];
         
@@ -414,7 +414,7 @@
         //サーチワード
         [params setObject:searchWord forKey:@"q"];
         //取得数
-        [params setObject:@"60" forKey:@"count"];
+        [params setObject:[[NSUserDefaults standardUserDefaults] objectForKey:@"TimelineLoadCount"] forKey:@"count"];
         //エンティティの有効化
         [params setObject:@"1" forKey:@"include_entities"];
         //日本
