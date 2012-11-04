@@ -9,6 +9,7 @@
 #import "TWTweetsBase.h"
 #import "NSObject+EmptyCheck.h"
 #import "NSDictionary+DataExtraction.h"
+#import "NSArray+AppendUtil.h"
 
 @interface TWTweets : TWTweetsBase
 

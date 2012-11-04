@@ -33,6 +33,7 @@
 #import "NSDictionary+DataExtraction.h"
 #import "NSArray+AppendUtil.h"
 #import "NSObject+EmptyCheck.h"
+#import "NSDictionary+XPath.h"
 
 #import "Three20UI/TTTableHeaderDragRefreshView.h"
 #import <Three20UI/TTActivityLabel.h>
@@ -125,6 +126,7 @@
 
 - (IBAction)changeSegment:(UISegmentedControl *)sender;
 
+- (void)setDefault;
 - (void)setNotifications;
 - (void)setTimelineHeight;
 - (void)createPullDownRefreshHeader;

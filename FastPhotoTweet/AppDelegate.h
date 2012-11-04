@@ -42,6 +42,15 @@
 #define LOGS_DIRECTORY [NSHomeDirectory() stringByAppendingPathComponent:@"Documents/Logs"]
 #define FILE_PATH [ICONS_DIRECTORY stringByAppendingPathComponent:searchName]
 
+#define MAIN_QUEUE dispatch_get_main_queue()
+#define ASYNC_MAIN_QUEUE dispatch_async(dispatch_get_main_queue(),
+#define SYNC_MAIN_QUEUE dispatch_sync(dispatch_get_main_queue(),
+#define GLOBAL_QUEUE_DEFAULT dispatch_get_global_queue( DISPATCH_QUEUE_PRIORITY_DEFAULT, 0 )
+#define GLOBAL_QUEUE_HIGH dispatch_get_global_queue( DISPATCH_QUEUE_PRIORITY_HIGH, 0 )
+#define GLOBAL_QUEUE_BACKGROUND dispatch_get_global_queue( DISPATCH_QUEUE_PRIORITY_BACKGROUND, 0 )
+
+#define DISPATCH_AFTER(x) dispatch_after(dispatch_time(DISPATCH_TIME_NOW, x * NSEC_PER_SEC), MAIN_QUEUE,
+
 void uncaughtExceptionHandler(NSException *exception);
 
 @interface AppDelegate : UIResponder <UIApplicationDelegate, UITabBarControllerDelegate> {

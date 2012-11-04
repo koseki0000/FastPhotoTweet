@@ -21,10 +21,10 @@ static NSInteger const kAttributedLabelTag = 100;
     size_t location = 2;
     CGFloat locations[2] = { 0.0, 1.0 };
     CGFloat components[8] = { 1.0,  1.0,  1.0,  1.0,
-                              0.92, 0.92, 0.92, 1.0 };
+        0.92, 0.92, 0.92, 1.0 };
     colorSpace = CGColorSpaceCreateDeviceRGB();
     gradient =   CGGradientCreateWithColorComponents( colorSpace, components,
-                                                      locations, location );
+                                                     locations, location );
     
     CGPoint startPoint = CGPointMake( self.frame.size.width / 2, 0.0 );
     CGPoint endPoint =   CGPointMake( self.frame.size.width / 2, self.frame.size.height );
@@ -81,7 +81,7 @@ static NSInteger const kAttributedLabelTag = 100;
     [self.multipleSelectionBackgroundView removeFromSuperview];
     [self.selectedBackgroundView removeFromSuperview];
     
-    CALayer *iconLayer = [CALayer layer];
+    CALayer *iconLayer = [[CALayer alloc] init];
     iconLayer.name = @"Icon";
     iconLayer.frame = CGRectMake(0, 0, 48, 48);
     
@@ -94,7 +94,6 @@ static NSInteger const kAttributedLabelTag = 100;
     
     [self.iconView.layer addSublayer:iconLayer];
     
-    iconLayer = nil;
     [self addSubview:_infoLabel];
     [self addSubview:_mainLabel];
     [self addSubview:_iconView];

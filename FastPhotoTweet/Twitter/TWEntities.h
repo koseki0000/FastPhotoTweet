@@ -12,6 +12,7 @@
 #import "EmptyCheck.h"
 #import "NSStringAdditions.h"
 #import "NSDictionary+DataExtraction.h"
+#import "NSObject+EmptyCheck.h"
 
 @interface TWEntities : NSObject
 

@@ -19,7 +19,7 @@
 #define SECTION_3 7
 
 //セクション3の項目数 (ライセンス)
-#define SECTION_4 1
+#define SECTION_4 2
 
 //設定項目名
 //画像関連設定
@@ -62,8 +62,8 @@
 #define ICON_CORNER @"アイコンの角を丸める"
 #define US_NO_AUTO_LOCK @"UserStream接続中は自動ロックを無効化する"
 
-//ライセンス
 #define NAME_LICENSE @"ライセンス"
+#define SPECIAL_THANKS @"スペシャルサンクス"
 
 #define BLANK @""
 
@@ -98,7 +98,7 @@
                                                         WEB_PAGE_QUOTE_CURSOR, SWITCH_APP, ACTIVE_INPUT, SEARCH_WORD_RESET,
                                                         PASTE_BOARD_URL, USER_AGENT, USER_AGENT_RESET, SWIPE_SHIFT_CARET,
                                                         ENTER_BACKGROUND_US, BECOME_ACTIVE_US, RELOAD_US, NG_OPEN,
-                                                        MY_TWEET_NG, ICON_CORNER, US_NO_AUTO_LOCK, NAME_LICENSE, nil];
+                                                        MY_TWEET_NG, ICON_CORNER, US_NO_AUTO_LOCK, NAME_LICENSE, SPECIAL_THANKS, nil];
         
         [settingArray retain];
     }
@@ -1191,6 +1191,12 @@
         if ( indexPath.row == 0 ) {
             
             LicenseViewController *dialog = [[[LicenseViewController alloc] init] autorelease];
+            dialog.modalTransitionStyle = UIModalTransitionStyleCoverVertical;
+            [self presentModalViewController:dialog animated:YES];
+            
+        }else if ( indexPath.row == 1 ) {
+            
+            SpecialThanksViewController *dialog = [[[SpecialThanksViewController alloc] init] autorelease];
             dialog.modalTransitionStyle = UIModalTransitionStyleCoverVertical;
             [self presentModalViewController:dialog animated:YES];
         }

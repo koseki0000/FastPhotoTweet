@@ -60,111 +60,122 @@
     
     //NSLog(@"Tweet viewDidLoad");
     
-    [self setBottomBarPosition];
-    
-    NSNotificationCenter *notificationCenter = [NSNotificationCenter defaultCenter];
-    
-    //アプリがアクティブになった場合の通知を受け取る設定
-    [notificationCenter addObserver:self
-                           selector:@selector(becomeActive:)
-                               name:UIApplicationDidBecomeActiveNotification
-                             object:nil];
-    
-    //投稿完了通知を受け取る設定
-    [notificationCenter addObserver:self
-                           selector:@selector(postDone:)
-                               name:@"PostDone"
-                             object:nil];
-    
-    [notificationCenter addObserver:self
-                           selector:@selector(pboardNotification:)
-                               name:@"pboardNotification"
-                             object:nil];
-    
-    //各種初期値をセット
-    d = [NSUserDefaults standardUserDefaults];
-    pboard = [UIPasteboard generalPasteboard];
-    errorImage = nil;
-    appDelegate = (AppDelegate *)[[UIApplication sharedApplication] delegate];
-    postText.text = BLANK;
-    inReplyToId = BLANK;
-    changeAccount = NO;
-    cameraMode = NO;
-    repeatedPost = NO;
-    webBrowserMode = NO;
-    artWorkUploading = NO;
-    showActionSheet = NO;
-    nowPlayingMode = NO;
-    iconUploadMode = NO;
-    actionSheetNo = 0;
-    
-    //アイコン表示の角を丸める
-    CALayer *layer = [iconPreview layer];
-    [layer setMasksToBounds:YES];
-    [layer setCornerRadius:5.0f];
-    
-    postText.layer.borderWidth = 2;
-	postText.layer.borderColor = [[UIColor blackColor] CGColor];
-    
-    //画像プレビュー時用マスク
-    clearView = nil;
-    
-    //処理中を表すビューを生成
-    grayView = [[GrayView alloc] init];
-    [sv addSubview:grayView];
-    
-    //ツールバーにボタンをセット
-    [topBar setItems:TOP_BAR animated:NO];
-    [bottomBar setItems:BOTTOM_BAR animated:NO];
-    
-    //保存されている情報をロード
-    [self loadSettings];
-    
-    //インターネット接続のチェック
-    [InternetConnection enable];
-    
-    //iOSバージョン判定
-    if ( [appDelegate ios5Check] ) {
+    dispatch_queue_t asyncQueue = GLOBAL_QUEUE_DEFAULT;
+    dispatch_async(asyncQueue, ^{
         
-        ACAccountStore *accountStore = [[[ACAccountStore alloc] init] autorelease];
-        ACAccountType *accountType = [accountStore accountTypeWithAccountTypeIdentifier:ACAccountTypeIdentifierTwitter];
+        SYNC_MAIN_QUEUE ^{
+            
+            [self setBottomBarPosition];
+            
+            //アイコン表示の角を丸める
+            [iconPreview.layer setMasksToBounds:YES];
+            [iconPreview.layer setCornerRadius:5.0f];
+            
+            postText.layer.borderWidth = 2;
+            postText.layer.borderColor = [[UIColor blackColor] CGColor];
+            
+            //画像プレビュー時用マスク
+            clearView = nil;
+            
+            //処理中を表すビューを生成
+            grayView = [[GrayView alloc] init];
+            [sv addSubview:grayView];
+            
+            //ツールバーにボタンをセット
+            [topBar setItems:TOP_BAR animated:NO];
+            [bottomBar setItems:BOTTOM_BAR animated:NO];
+            
+            postText.text = BLANK;
+        });
         
-        [accountStore requestAccessToAccountsWithType:accountType
-                                withCompletionHandler:^( BOOL granted, NSError *error ) {
-                                    
-                                    dispatch_sync(dispatch_get_main_queue(), ^{
+        //アプリがアクティブになった場合の通知を受け取る設定
+        [[NSNotificationCenter defaultCenter] addObserver:self
+                                                 selector:@selector(becomeActive:)
+                                                     name:UIApplicationDidBecomeActiveNotification
+                                                   object:nil];
+        
+        //投稿完了通知を受け取る設定
+        [[NSNotificationCenter defaultCenter] addObserver:self
+                                                 selector:@selector(postDone:)
+                                                     name:@"PostDone"
+                                                   object:nil];
+        
+        [[NSNotificationCenter defaultCenter] addObserver:self
+                                                 selector:@selector(pboardNotification:)
+                                                     name:@"pboardNotification"
+                                                   object:nil];
+        
+        //各種初期値をセット
+        d = [NSUserDefaults standardUserDefaults];
+        pboard = [UIPasteboard generalPasteboard];
+        errorImage = nil;
+        appDelegate = (AppDelegate *)[[UIApplication sharedApplication] delegate];
+        inReplyToId = BLANK;
+        changeAccount = NO;
+        cameraMode = NO;
+        repeatedPost = NO;
+        webBrowserMode = NO;
+        artWorkUploading = NO;
+        showActionSheet = NO;
+        nowPlayingMode = NO;
+        iconUploadMode = NO;
+        actionSheetNo = 0;
+        
+        //保存されている情報をロード
+        [self loadSettings];
+        
+        //インターネット接続のチェック
+        [InternetConnection enable];
+        
+        //iOSバージョン判定
+        if ( [appDelegate ios5Check] ) {
+            
+            ACAccountStore *accountStore = [[[ACAccountStore alloc] init] autorelease];
+            ACAccountType *accountType = [accountStore accountTypeWithAccountTypeIdentifier:ACAccountTypeIdentifierTwitter];
+            
+            [accountStore requestAccessToAccountsWithType:accountType
+                                    withCompletionHandler:^( BOOL granted, NSError *error ) {
                                         
-                                        if ( granted ) {
+                                        SYNC_MAIN_QUEUE ^{
                                             
-                                            if ( [TWAccounts accountCount] > 0 ) {
+                                            if ( granted ) {
                                                 
-                                                twAccount = [TWAccounts currentAccount];
-                                                
-                                                //入力可能状態にする
-                                                [postText becomeFirstResponder];
-                                                
-                                                //更新情報の表示
-                                                [self showInfomation];
-                                                
+                                                if ( [TWAccounts accountCount] > 0 ) {
+                                                    
+                                                    twAccount = [TWAccounts currentAccount];
+                                                    
+                                                    //入力可能状態にする
+                                                    [postText becomeFirstResponder];
+                                                    
+                                                    //更新情報の表示
+                                                    [self showInfomation];
+                                                    
+                                                } else {
+                                                    
+                                                    twAccount = nil;
+                                                    [self setPostButton:nil];
+                                                    [ShowAlert error:@"Twitterアカウントが見つかりませんでした。"];
+                                                }
                                             } else {
                                                 
                                                 twAccount = nil;
-                                                [ShowAlert error:@"Twitterアカウントが見つかりませんでした。"];
+                                                [self setPostButton:nil];
+                                                [ShowAlert error:@"Twitterのアカウントへのアクセスが拒否されました。"];
                                             }
-                                        } else {
-                                            
-                                            twAccount = nil;
-                                            [ShowAlert error:@"Twitterのアカウントへのアクセスが拒否されました。"];
-                                        }
-                                    });
-                                }];
-        ;
+                                        });
+                                    }];
+            
+        } else {
+            
+            SYNC_MAIN_QUEUE ^{
+                
+                twAccount = nil;
+                [self setPostButton:nil];
+                [ShowAlert error:@"Twitterのアカウントへのアクセスが拒否されました。"];
+            });
+        }
         
-    } else {
-        
-        twAccount = nil;
-        [ShowAlert error:@"Twitterのアカウントへのアクセスが拒否されました。"];
-    }
+    });
 }
 
 - (void)loadSettings {
@@ -187,8 +198,11 @@
         //NSLog(@"UUID: %@", [d objectForKey:@"UUID"]);
     }
     
-    pboardURLSwitch.on = [d boolForKey:@"PasteBoardCheck"];
-    callbackSwitch.on = [d boolForKey:@"CallBack"];
+    SYNC_MAIN_QUEUE ^{
+       
+        pboardURLSwitch.on = [d boolForKey:@"PasteBoardCheck"];
+        callbackSwitch.on = [d boolForKey:@"CallBack"];
+    });
     
     if ( ![EmptyCheck check:[d objectForKey:@"CallBackScheme"]] ) {
         
@@ -342,6 +356,12 @@
             //Internet接続のチェック
             if ( [InternetConnection enable] ) {
                 
+                if ( [TWAccounts accountCount] == 0 ) {
+                    
+                    [ShowAlert error:@"Twitterアカウントが見つかりませんでした。"];
+                    return;
+                }
+                
                 NSString *text = [[[NSString alloc] initWithString:postText.text] autorelease];
                 
                 if ( imagePreview.image == nil &&
@@ -351,61 +371,58 @@
                     return;
                 }
                 
-                dispatch_queue_t globalQueue = dispatch_get_global_queue( DISPATCH_QUEUE_PRIORITY_DEFAULT, 0 );
+                dispatch_queue_t globalQueue = GLOBAL_QUEUE_DEFAULT;
                 dispatch_async( globalQueue, ^{
-                    dispatch_queue_t syncQueue = dispatch_queue_create( "info.ktysne.fastphototweet", NULL );
-                    dispatch_sync( syncQueue, ^{
+                    
+                    SYNC_MAIN_QUEUE ^ {
                         
-                        dispatch_async(dispatch_get_main_queue(), ^ {
-                            
-                            postButton.enabled = NO;
-                            [self callback];
-                        });
+                        postButton.enabled = NO;
+                        [self callback];
+                    });
+                    
+                    //画像が設定されていない場合
+                    if ( imagePreview.image == nil ) {
                         
-                        //画像が設定されていない場合
-                        if ( imagePreview.image == nil ) {
+                        [TWSendTweet post:text
+                          withInReplyToID:inReplyToId];
+                        
+                    }else {
+                        
+                        //画像投稿先がTwitterの場合
+                        if ( [[d objectForKey:@"PhotoService"] isEqualToString:@"Twitter"] ||
+                            ( nowPlayingMode && [d  integerForKey:@"NowPlayingPhotoService"] == 1 )) {
                             
+                            //文字列と画像をバックグラウンドプロセスで投稿
                             [TWSendTweet post:text
-                              withInReplyToID:inReplyToId];
+                              withInReplyToID:inReplyToId
+                                     andImage:imagePreview.image];
                             
                         }else {
                             
-                            //画像投稿先がTwitterの場合
-                            if ( [[d objectForKey:@"PhotoService"] isEqualToString:@"Twitter"] ||
-                                ( nowPlayingMode && [d  integerForKey:@"NowPlayingPhotoService"] == 1 )) {
-                                
-                                //文字列と画像をバックグラウンドプロセスで投稿
-                                [TWSendTweet post:text
-                                  withInReplyToID:inReplyToId
-                                         andImage:imagePreview.image];
-                                
-                            }else {
-                                
-                                //画像投稿先がimg.urかTwitpicもしくは画像の再投稿
-                                
-                                [TWSendTweet post:text
-                                  withInReplyToID:inReplyToId];
-                            }
+                            //画像投稿先がimg.urかTwitpicもしくは画像の再投稿
+                            
+                            [TWSendTweet post:text
+                              withInReplyToID:inReplyToId];
                         }
+                    }
+                    
+                    SYNC_MAIN_QUEUE ^ {
                         
-                        dispatch_async(dispatch_get_main_queue(), ^ {
-                            
-                            //入力欄を空にする
-                            postText.text = BLANK;
-                            [inReplyToId release];
-                            inReplyToId = BLANK;
-                            imagePreview.image = nil;
-                            
-                            //とは検索機能ONかつ条件にマッチ
-                            if ( [d boolForKey:@"TohaSearch"] &&
-                                 [RegularExpression boolWithRegExp:text
-                                                     regExpPattern:@".+とは$"] ) {
-                                    
-                                    [self tohaSearch:text];
-                                }
-                            
-                            postButton.enabled = YES;
-                        });
+                        //入力欄を空にする
+                        postText.text = BLANK;
+                        [inReplyToId release];
+                        inReplyToId = BLANK;
+                        imagePreview.image = nil;
+                        
+                        //とは検索機能ONかつ条件にマッチ
+                        if ( [d boolForKey:@"TohaSearch"] &&
+                            [RegularExpression boolWithRegExp:text
+                                                regExpPattern:@".+とは$"] ) {
+                                
+                                [self tohaSearch:text];
+                            }
+                        
+                        postButton.enabled = YES;
                     });
                 });
             }

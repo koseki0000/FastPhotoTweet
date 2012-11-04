@@ -12,6 +12,7 @@
 #import "OAuthSetupViewController.h"
 #import "IDChangeViewController.h"
 #import "LicenseViewController.h"
+#import "SpecialThanksViewController.h"
 #import "NGSettingViewController.h"
 #import "AppDelegate.h"
 #import "UIViewSubViewRemover.h"
