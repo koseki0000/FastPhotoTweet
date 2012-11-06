@@ -1252,9 +1252,9 @@
     __block __weak NSString *weakInReplyToId = inReplyToId;
     __block __weak TimelineViewController *weakSelf = self;
     
-    NSLog(@"getInReplyToChain: %@", inReplyToId);
+    NSLog(@"getInReplyToChain: %@", weakInReplyToId);
     
-    if ( ![EmptyCheck check:inReplyToId] || [inReplyToId isEqualToString:@"END"] ) {
+    if ( ![EmptyCheck check:weakInReplyToId] || [weakInReplyToId isEqualToString:@"END"] ) {
         
         //InReplyToIDがもうない場合は表示を行う
         
@@ -2792,7 +2792,11 @@
                 
             }else if ( buttonIndex == 8 ) {
                 
-                [weakSelf.inReplyTo removeAllObjects];
+                if ( weakSelf.inReplyTo != nil || weakSelf.inReplyTo.count != 0 ) {
+                    
+                    [weakSelf setInReplyTo:nil];
+                    weakSelf.inReplyTo = [NSMutableArray array];
+                }
                 
                 NSString *inReplyToId = [weakSelf.selectTweet objectForKey:@"in_reply_to_status_id_str"];
                 
@@ -3688,7 +3692,7 @@
                 _timelineArray = BLANK_M_ARRAY;
                 [_timeline reloadData];
                 
-                [self openSearchStream:_alertSearchText.text];
+                [self openSearchStream: _alertSearchText.text];
             }
         }
     }

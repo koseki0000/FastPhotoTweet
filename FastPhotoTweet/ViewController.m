@@ -335,7 +335,7 @@
             //NSLog(@"newVersion");
             
             [ShowAlert title:[NSString stringWithFormat:@"FastPhotoTweet %@", APP_VERSION]
-                     message:@"・速度改善\n・メモリ管理の改善\n・Timeline設定に取得数や初回取得後の表示位置設定を追加\n・Timelineアイコンを押した際の問題を修正\n・その他細かな修正"];
+                     message:@"・Blocksの循環参照への対応\n・InReplyToの問題を修正\n・SeachStreamの問題を修正"];
             
             information = [[[NSMutableDictionary alloc] initWithDictionary:[d dictionaryForKey:@"Information"]] autorelease];
             [information setValue:[NSNumber numberWithInt:1] forKey:APP_VERSION];
