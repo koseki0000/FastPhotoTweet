@@ -215,37 +215,39 @@ void uncaughtExceptionHandler(NSException *e) {
     uname(&u);
     NSString *hardwareName = [NSString stringWithFormat:@"%s", u.machine];
     
-    if ( [hardwareName hasPrefix:@"iPhone2"] ) {
-        hardwareName = @"iPhone 3GS";
-        reloadInterval = 0.5;
-    }else if ( [hardwareName hasPrefix:@"iPhone3"] ) {
-        hardwareName = @"iPhone 4";
-        reloadInterval = 0.3;
-    }else if ( [hardwareName hasPrefix:@"iPhone4"] ) {
-        hardwareName = @"iPhone 4S";
-        reloadInterval = 0.15;
-    }else if ( [hardwareName hasPrefix:@"iPhone5"] ) {
-        hardwareName = @"iPhone 5";
-        reloadInterval = 0.15;
-    }else if ( [hardwareName hasPrefix:@"iPad1"] ) {
-        hardwareName = @"iPad";
-        reloadInterval = 0.25;
-    }else if ( [hardwareName hasPrefix:@"iPad2"] ) {
-        hardwareName = @"iPad 2gen";
-        reloadInterval = 0.15;
-    }else if ( [hardwareName hasPrefix:@"iPad3"] ) {
-        hardwareName = @"iPad 3gen";
-        reloadInterval = 0.15;
-    }else if ( [hardwareName hasPrefix:@"x86_64"] ||
-               [hardwareName hasPrefix:@"i386"] ) {
-        hardwareName = @"iOS Simulator";
-        reloadInterval = 0.15;
-    }else {
-        hardwareName = @"OtherDevice";
-        reloadInterval = 0.35;
-    }
+//    if ( [hardwareName hasPrefix:@"iPhone2"] ) {
+//        hardwareName = @"iPhone 3GS";
+//        reloadInterval = 0.5;
+//    }else if ( [hardwareName hasPrefix:@"iPhone3"] ) {
+//        hardwareName = @"iPhone 4";
+//        reloadInterval = 0.3;
+//    }else if ( [hardwareName hasPrefix:@"iPhone4"] ) {
+//        hardwareName = @"iPhone 4S";
+//        reloadInterval = 0.15;
+//    }else if ( [hardwareName hasPrefix:@"iPhone5"] ) {
+//        hardwareName = @"iPhone 5";
+//        reloadInterval = 0.15;
+//    }else if ( [hardwareName hasPrefix:@"iPad1"] ) {
+//        hardwareName = @"iPad";
+//        reloadInterval = 0.25;
+//    }else if ( [hardwareName hasPrefix:@"iPad2"] ) {
+//        hardwareName = @"iPad 2gen";
+//        reloadInterval = 0.15;
+//    }else if ( [hardwareName hasPrefix:@"iPad3"] ) {
+//        hardwareName = @"iPad 3gen";
+//        reloadInterval = 0.15;
+//    }else if ( [hardwareName hasPrefix:@"x86_64"] ||
+//               [hardwareName hasPrefix:@"i386"] ) {
+//        hardwareName = @"iOS Simulator";
+//        reloadInterval = 0.3;
+//    }else {
+//        hardwareName = @"OtherDevice";
+//        reloadInterval = 0.35;
+//    }
+//    
+//    NSLog(@"Run with %@@%@", hardwareName, firmwareVersion);
     
-    NSLog(@"Run with %@@%@", hardwareName, firmwareVersion);
+    reloadInterval = 0.3;
     
     return hardwareName;
 }

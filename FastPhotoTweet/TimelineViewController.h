@@ -61,9 +61,7 @@
     int longPressControl;
 }
 
-@property (retain, nonatomic) AppDelegate *appDelegate;
 @property (retain, nonatomic) ActivityGrayView *grayView;
-
 @property (retain, nonatomic) NSMutableArray *timelineArray;
 @property (retain, nonatomic) NSMutableArray *inReplyTo;
 @property (retain, nonatomic) NSMutableArray *reqedUser;
@@ -84,9 +82,6 @@
 @property (retain, nonatomic) NSTimer *connectionCheckTimer;
 @property (retain, nonatomic) NSTimer *onlineCheckTimer;
 @property (strong, nonatomic) NSURLConnection *connection;
-@property (retain, nonatomic) NSUserDefaults *d;
-@property (retain, nonatomic) NSFileManager *fileManager;
-@property (retain, nonatomic) UIPasteboard *pboard;
 @property (retain, nonatomic) UIImage *startImage;
 @property (retain, nonatomic) UIImage *stopImage;
 @property (retain, nonatomic) UIImage *listImage;

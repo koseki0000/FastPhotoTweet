@@ -109,6 +109,8 @@ static NSInteger const kAttributedLabelTag = 100;
     [self setIconView:nil];
     [self setInfoLabel:nil];
     [self setMainLabel:nil];
+    
+//    [super dealloc];
 }
 
 @end
