@@ -5,6 +5,7 @@
 //  Created by @peace3884 on 12/07/08.
 //
 
+#import <CoreFoundation/CoreFoundation.h>
 #import <UIKit/UIKit.h>
 #import <QuartzCore/CALayer.h>
 #import <Twitter/Twitter.h>
@@ -34,32 +35,31 @@
 #import "NSArray+AppendUtil.h"
 #import "NSObject+EmptyCheck.h"
 #import "NSDictionary+XPath.h"
+#import "NSString+RegularExpression.h"
+#import "NSString+WordCollect.h"
 
 #import "Three20UI/TTTableHeaderDragRefreshView.h"
 #import <Three20UI/TTActivityLabel.h>
 #import <Three20Style/Three20Style.h>
 #import <Three20UICommon/Three20UICommon.h>
 
-@interface TimelineViewController : UIViewController <UIActionSheetDelegate, UITextFieldDelegate, UIPickerViewDelegate, UIPickerViewDataSource, UITableViewDelegate, UITableViewDataSource> {
-    
-    BOOL userStream;
-    BOOL openStreamAfter;
-    BOOL userStreamFirstResponse;
-    BOOL webBrowserMode;
-    BOOL otherTweetsMode;
-    BOOL viewWillAppear;
-    BOOL userStreamBuffer;
-    BOOL alertSearchType;
-    BOOL listMode;
-    BOOL pickerVisible;
-    BOOL searchStream;
-    BOOL isLoading;
-    BOOL iconWorking;
-    BOOL firstLoad;
-    
-    int selectRow;
-    int longPressControl;
-}
+@interface TimelineViewController : UIViewController <UIActionSheetDelegate, UITextFieldDelegate, UIPickerViewDelegate, UIPickerViewDataSource, UITableViewDelegate, UITableViewDataSource>
+
+@property BOOL userStream;
+@property BOOL userStreamFirstResponse;
+@property BOOL webBrowserMode;
+@property BOOL otherTweetsMode;
+@property BOOL viewWillAppear;
+@property BOOL alertSearchType;
+@property BOOL listMode;
+@property BOOL pickerVisible;
+@property BOOL searchStream;
+@property BOOL isLoading;
+@property BOOL iconWorking;
+@property BOOL firstLoad;
+
+@property int selectRow;
+@property int longPressControl;
 
 @property (retain, nonatomic) ActivityGrayView *grayView;
 @property (retain, nonatomic) NSMutableArray *timelineArray;
@@ -68,7 +68,8 @@
 @property (retain, nonatomic) NSMutableArray *iconUrls;
 @property (retain, nonatomic) NSMutableArray *currentList;
 @property (retain, nonatomic) NSMutableArray *searchStreamTemp;
-@property (retain, nonatomic) NSMutableDictionary *icons;
+@property CFMutableDictionaryRef icons;
+//@property (retain, nonatomic) NSMutableDictionary *icons;
 @property (retain, nonatomic) NSMutableDictionary *allLists;
 @property (retain, nonatomic) NSArray *mentionsArray;
 @property (retain, nonatomic) NSArray *selectTweetIds;

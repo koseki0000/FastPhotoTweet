@@ -3,12 +3,12 @@
 	<data>
 		<int key="IBDocument.SystemTarget">1536</int>
 		<string key="IBDocument.SystemVersion">11G63</string>
-		<string key="IBDocument.InterfaceBuilderVersion">2843</string>
+		<string key="IBDocument.InterfaceBuilderVersion">2844</string>
 		<string key="IBDocument.AppKitVersion">1138.51</string>
 		<string key="IBDocument.HIToolboxVersion">569.00</string>
 		<object class="NSMutableDictionary" key="IBDocument.PluginVersions">
 			<string key="NS.key.0">com.apple.InterfaceBuilder.IBCocoaTouchPlugin</string>
-			<string key="NS.object.0">1929</string>
+			<string key="NS.object.0">1930</string>
 		</object>
 		<array key="IBDocument.IntegratedClassDependencies">
 			<string>IBProxyObject</string>
@@ -47,7 +47,7 @@
 						<string key="NSFrameSize">{320, 44}</string>
 						<reference key="NSSuperview" ref="191373211"/>
 						<reference key="NSWindow"/>
-						<reference key="NSNextKeyView" ref="45617210"/>
+						<reference key="NSNextKeyView" ref="728342168"/>
 						<string key="NSReuseIdentifierKey">_NS:9</string>
 						<bool key="IBUIOpaque">NO</bool>
 						<bool key="IBUIAutoresizesSubviews">NO</bool>
@@ -181,7 +181,6 @@
 						<string key="NSFrame">{{142, 5}, {36, 36}}</string>
 						<reference key="NSSuperview" ref="191373211"/>
 						<reference key="NSWindow"/>
-						<reference key="NSNextKeyView" ref="728342168"/>
 						<string key="NSReuseIdentifierKey">_NS:9</string>
 						<bool key="IBUIUserInteractionEnabled">NO</bool>
 						<string key="targetRuntimeIdentifier">IBCocoaTouchFramework</string>
@@ -547,8 +546,8 @@
 						<reference key="parent" ref="60583641"/>
 					</object>
 					<object class="IBObjectRecord">
-						<int key="objectID">47</int>
-						<reference key="object" ref="45617210"/>
+						<int key="objectID">53</int>
+						<reference key="object" ref="728342168"/>
 						<reference key="parent" ref="191373211"/>
 					</object>
 					<object class="IBObjectRecord">
@@ -557,8 +556,8 @@
 						<reference key="parent" ref="60583641"/>
 					</object>
 					<object class="IBObjectRecord">
-						<int key="objectID">53</int>
-						<reference key="object" ref="728342168"/>
+						<int key="objectID">47</int>
+						<reference key="object" ref="45617210"/>
 						<reference key="parent" ref="191373211"/>
 					</object>
 				</array>
@@ -589,7 +588,7 @@
 			<nil key="activeLocalization"/>
 			<dictionary class="NSMutableDictionary" key="localizations"/>
 			<nil key="sourceID"/>
-			<int key="maxID">64</int>
+			<int key="maxID">66</int>
 		</object>
 		<object class="IBClassDescriber" key="IBDocument.Classes">
 			<array class="NSMutableArray" key="referencedPartialClassDescriptions">
@@ -651,6 +650,7 @@
 						<string key="closeOtherTweetsButton">UIBarButtonItem</string>
 						<string key="fixedSpace">UIBarButtonItem</string>
 						<string key="flexibleSpace">UIBarButtonItem</string>
+						<string key="iconButton">UIToolbar</string>
 						<string key="postButton">UIBarButtonItem</string>
 						<string key="reloadButton">UIBarButtonItem</string>
 						<string key="timeline">UITableView</string>
@@ -678,6 +678,10 @@
 						<object class="IBToOneOutletInfo" key="flexibleSpace">
 							<string key="name">flexibleSpace</string>
 							<string key="candidateClassName">UIBarButtonItem</string>
+						</object>
+						<object class="IBToOneOutletInfo" key="iconButton">
+							<string key="name">iconButton</string>
+							<string key="candidateClassName">UIToolbar</string>
 						</object>
 						<object class="IBToOneOutletInfo" key="postButton">
 							<string key="name">postButton</string>
@@ -720,6 +724,6 @@
 			<string key="compose.png">{24, 24}</string>
 			<string key="reload.png">{24, 24}</string>
 		</dictionary>
-		<string key="IBCocoaTouchPluginVersion">1929</string>
+		<string key="IBCocoaTouchPluginVersion">1930</string>
 	</data>
 </archive>

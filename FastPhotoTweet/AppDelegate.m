@@ -10,6 +10,8 @@
 #import "TimelineViewController.h"
 #import <Three20UI/TTNavigator.h>
 #import <Three20UINavigator/TTURLMap.h>
+#import <mach/mach.h>
+#import <mach/mach_host.h>
 
 void uncaughtExceptionHandler(NSException *e) {
     

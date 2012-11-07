@@ -67,6 +67,7 @@ void uncaughtExceptionHandler(NSException *exception);
     BOOL debugMode;
 }
 
+@property NSInteger startUpFreeMemory;
 @property (strong, nonatomic) UIWindow *window;
 @property (strong, nonatomic) MainTabBarController *tabBarController;
 
@@ -105,7 +106,6 @@ void uncaughtExceptionHandler(NSException *exception);
 - (BOOL)iconExist:(NSString *)searchName;
 - (NSString *)getPlatformName;
 - (void)memoryStatus;
-
 - (void)startPasteBoardTimer;
 - (void)stopPasteBoardTimer;
 - (void)checkPasteBoard;
