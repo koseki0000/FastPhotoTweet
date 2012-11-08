@@ -5,6 +5,7 @@
 //  Created by @peace3884 on 12/07/08.
 //
 
+#import "Share.h"
 #import <CoreFoundation/CoreFoundation.h>
 #import <UIKit/UIKit.h>
 #import <QuartzCore/CALayer.h>
@@ -64,12 +65,10 @@
 @property (retain, nonatomic) ActivityGrayView *grayView;
 @property (retain, nonatomic) NSMutableArray *timelineArray;
 @property (retain, nonatomic) NSMutableArray *inReplyTo;
-@property (retain, nonatomic) NSMutableArray *reqedUser;
-@property (retain, nonatomic) NSMutableArray *iconUrls;
+//@property (retain, nonatomic) NSMutableArray *reqedUser;
+//@property (retain, nonatomic) NSMutableArray *iconUrls;
 @property (retain, nonatomic) NSMutableArray *currentList;
 @property (retain, nonatomic) NSMutableArray *searchStreamTemp;
-@property CFMutableDictionaryRef icons;
-//@property (retain, nonatomic) NSMutableDictionary *icons;
 @property (retain, nonatomic) NSMutableDictionary *allLists;
 @property (retain, nonatomic) NSArray *mentionsArray;
 @property (retain, nonatomic) NSArray *selectTweetIds;
@@ -135,7 +134,6 @@
 - (void)loadMentions:(NSNotification *)center;
 - (void)loadFavorites:(NSNotification *)center;
 - (void)getIconWithTweetArray:(NSMutableArray *)tweetArray;
-- (void)getIconWithSequential;
 - (void)changeAccount:(NSNotification *)notification;
 - (void)getInReplyToChain:(NSDictionary *)tweetData;
 - (void)scrollTimelineForNewTweet:(NSString *)tweetID;
@@ -170,6 +168,7 @@
 - (void)receiveProfile:(NSNotification *)notification;
 - (void)enterBackground:(NSNotification *)notification;
 - (void)becomeActive:(NSNotification *)notification;
+- (void)imageCachedNotification:(NSNotification *)notification;
 
 - (void)getMyAccountIcon;
 - (void)setMyAccountIconCorner;

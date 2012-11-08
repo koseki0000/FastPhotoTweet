@@ -106,8 +106,11 @@
                  
                  //NSLog(@"Get HomeTimeline done");
                  
-                 //通知を実行
-                 [[NSNotificationCenter defaultCenter] postNotification:notification];
+                 if ( [requestAccount.username isEqualToString:[TWAccounts currentAccountName]] ) {
+                  
+                     //通知を実行
+                     [[NSNotificationCenter defaultCenter] postNotification:notification];
+                 }
                  
                  [ActivityIndicator off];
              }
@@ -221,8 +224,11 @@
                      [result setObject:@"UserTimelineError" forKey:@"Result"];
                  }
                  
-                 //通知を実行
-                 [[NSNotificationCenter defaultCenter] postNotification:notification];
+                 if ( [requestAccount.username isEqualToString:[TWAccounts currentAccountName]] ) {
+                     
+                     //通知を実行
+                     [[NSNotificationCenter defaultCenter] postNotification:notification];
+                 }
                  
              }else if ( [responseJSONData isKindOfClass:[NSDictionary class]] ) {
                  
@@ -308,8 +314,11 @@
                  [result setObject:@"MentionsSuccess" forKey:@"Result"];
                  [result setObject:mentions forKey:@"Mentions"];
                  
-                 //通知を実行
-                 [[NSNotificationCenter defaultCenter] postNotification:notification];
+                 if ( [requestAccount.username isEqualToString:[TWAccounts currentAccountName]] ) {
+                     
+                     //通知を実行
+                     [[NSNotificationCenter defaultCenter] postNotification:notification];
+                 }
                  
                  [ActivityIndicator off];
              }
@@ -373,11 +382,16 @@
                  NSMutableArray *favorites = (NSMutableArray *)[NSJSONSerialization JSONObjectWithData:responseData
                                                                                                options:NSJSONReadingMutableLeaves
                                                                                                  error:&jsonError];
-                 //取得完了を通
+                 
                  [result setObject:@"FavoritesSuccess" forKey:@"Result"];
                  [result setObject:favorites forKey:@"Favorites"];
-                 //通知を実行
-                 [[NSNotificationCenter defaultCenter] postNotification:notification];
+                 
+                 if ( [requestAccount.username isEqualToString:[TWAccounts currentAccountName]] ) {
+                     
+                     //通知を実行
+                     [[NSNotificationCenter defaultCenter] postNotification:notification];
+                 }
+                 
                  [ActivityIndicator off];
              }
          }];
@@ -462,8 +476,11 @@
                      [result setObject:@"SearchSuccess" forKey:@"Result"];
                      [result setObject:[searchResult objectForKey:@"results"] forKey:@"Search"];
                      
-                     //通知を実行
-                     [[NSNotificationCenter defaultCenter] postNotification:notification];
+                     if ( [requestAccount.username isEqualToString:[TWAccounts currentAccountName]] ) {
+                         
+                         //通知を実行
+                         [[NSNotificationCenter defaultCenter] postNotification:notification];
+                     }
                      
                      [ActivityIndicator off];
                  }

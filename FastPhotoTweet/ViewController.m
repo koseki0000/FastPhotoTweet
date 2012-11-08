@@ -1790,10 +1790,8 @@
 
 - (void)setIconPreviewImage {
     
-    twAccount = [TWAccounts currentAccount];
-    
     NSArray *iconsDirectory = [[NSFileManager defaultManager] contentsOfDirectoryAtPath:ICONS_DIRECTORY error:nil];
-    NSString *searchName = [NSString stringWithFormat:@"%@_", twAccount.username];
+    NSString *searchName = [NSString stringWithFormat:@"%@_", [TWAccounts currentAccountName]];
     
     //アイコンが見つかったか
     BOOL find = NO;
