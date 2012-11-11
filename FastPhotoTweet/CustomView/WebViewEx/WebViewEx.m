@@ -11,6 +11,8 @@
 
 #import "WebViewEx.h"
 
+#define D [NSUserDefaults standardUserDefaults]
+
 #define STATUS_BAR 20
 #define TOOL_BAR 44
 
@@ -23,6 +25,10 @@
 #define IPAD_HEIGHT 1024
 #define IPAD_IAD_WIDTH 768
 #define IPAD_IAD_HEIGTH 66
+
+#define FIREFOX_USERAGENT @"Mozilla/5.0 (Macintosh; Intel Mac OS X 10.7; rv:13.0) Gecko/20100101 Firefox/13.0.1"
+#define IPAD_USERAFENT @"Mozilla/5.0 (iPad; CPU OS 5_1_1 like Mac OS X) AppleWebKit/534.46 (KHTML, like Gecko) Version/5.1 Mobile/9B176 Safari/7534.48.3"
+#define IPHONE_USERAGENT @"Mozilla/5.0 (iPhone; CPU iPhone OS 5_1_1 like Mac OS X) AppleWebKit/534.46 (KHTML, like Gecko) Mobile/9B206"
 
 @implementation WebViewEx
 @synthesize URL;
@@ -288,7 +294,7 @@
     
     URL = [NSURL URLWithString:URLString];
     
-    if ( [RegularExpression boolWithRegExp:URLString regExpPattern:@"about:blank|https?://.*"] ) {
+    if ( [URLString boolWithRegExp:@"about:blank|https?://.*"] ) {
         
         //そのままアクセス出来そうなURL
         //NSLog(@"http(s) address");
@@ -321,6 +327,19 @@
             [self loadRequest:URLReq];
         }
     }
+}
+
+- (void)loadRequest:(NSURLRequest *)request {
+
+    NSMutableURLRequest *mRequest = [NSMutableURLRequest requestWithURL:request.URL.absoluteURL];
+    
+    if ( [request.URL.absoluteString rangeOfString:@"pixiv.net"].location != NSNotFound ) {
+        
+        [mRequest setValue:@"http://www.pixiv.net/" forHTTPHeaderField:@"Referer"];
+        [mRequest setHTTPShouldHandleCookies:NO];
+    }
+    
+    [super loadRequest:mRequest];
 }
 
 //選択中の文字が返される

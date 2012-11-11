@@ -7,7 +7,6 @@
 
 #import <UIKit/UIKit.h>
 #import "AppDelegate.h"
-#import "RegularExpression.h"
 #import "DeleteWhiteSpace.h"
 #import "EmptyCheck.h"
 #import "ShowAlert.h"

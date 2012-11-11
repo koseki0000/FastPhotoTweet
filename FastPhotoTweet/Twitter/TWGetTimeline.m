@@ -19,7 +19,7 @@
         ACAccount *requestAccount = [TWAccounts currentAccount];
         
         //アカウントの取得
-        //NSLog(@"Get HomeTimeline: %@", twAccount.username);
+        NSLog(@"Get HomeTimeline: %@", requestAccount.username);
         
         //Twitterアカウントの確認
         if ( requestAccount == nil ) {
@@ -51,6 +51,7 @@
         //差分取得
         if ( [[TWTweets topTweetID] isNotEmpty] ) {
             
+            NSLog(@"Since: %@", [TWTweets topTweetID]);
             [params setObject:[TWTweets topTweetID] forKey:@"since_id"];
         }
         

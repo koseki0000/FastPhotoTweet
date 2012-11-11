@@ -6,8 +6,6 @@
 //
 
 #import "ProtocolCutter.h"
-#import "RegularExpression.h"
-#import "ReplaceOrDelete.h"
 #import "GrayView.h"
 #import "ActivityIndicator.h"
 #import "ShowAlert.h"

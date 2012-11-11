@@ -308,7 +308,15 @@
     
     [self setConnection:nil];
     
-    connection = [[NSURLConnection alloc] initWithRequest:[NSURLRequest requestWithURL:[NSURL URLWithString:self.imageUrl]]
+    //NSLog(@"LoadImage: %@", self.imageUrl);
+    NSMutableURLRequest *request = [NSMutableURLRequest requestWithURL:[NSURL URLWithString:self.imageUrl]];
+    
+    if ( [self.imageUrl rangeOfString:@"pixiv.net"].location != NSNotFound ) {
+        
+        [request setValue:@"http://www.pixiv.net/" forHTTPHeaderField:@"Referer"];
+    }
+    
+    connection = [[NSURLConnection alloc] initWithRequest:request
                                                  delegate:self];
     
     [self startRequest];

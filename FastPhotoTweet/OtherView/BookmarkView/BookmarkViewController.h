@@ -8,7 +8,6 @@
 #import <UIKit/UIKit.h>
 #import "AppDelegate.h"
 #import "EmptyCheck.h"
-#import "RegularExpression.h"
 #import "UIViewSubViewRemover.h"
 
 @interface BookmarkViewController : UIViewController <UIActionSheetDelegate> {

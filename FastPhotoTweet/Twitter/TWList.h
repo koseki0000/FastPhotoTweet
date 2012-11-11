@@ -9,9 +9,9 @@
 #import <Twitter/Twitter.h>
 #import "ActivityIndicator.h"
 #import "ShowAlert.h"
-#import "RegularExpression.h"
 #import "TWEntities.h"
 #import "TWAccounts.h"
+#import "NSString+RegularExpression.h"
 
 @interface TWList : NSObject
 

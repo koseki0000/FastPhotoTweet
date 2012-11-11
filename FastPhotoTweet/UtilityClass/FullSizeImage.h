@@ -7,7 +7,8 @@
 
 #import <Foundation/Foundation.h>
 #import "ShowAlert.h"
-#import "RegularExpression.h"
+#import "NSString+RegularExpression.h"
+#import "NSString+WordCollect.h"
 #import "JSON.h"
 
 @interface FullSizeImage : NSObject

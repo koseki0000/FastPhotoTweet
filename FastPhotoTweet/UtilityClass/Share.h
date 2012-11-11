@@ -12,20 +12,20 @@
 
 + (NSMutableDictionary *)images;
 
-+ (void)cacheImageWithName:(NSString *)imageName;
-+ (void)cacheImageWithName:(NSString *)imageName targetClass:(Class)targetClass;
-+ (void)cacheImageWithNames:(NSArray *)imageNames;
-+ (void)cacheImageWithNames:(NSArray *)imageNames targetClass:(Class)targetClass;
++ (void)cacheImageWithName:(NSString *)imageName doneNotification:(BOOL)notification;
++ (void)cacheImageWithName:(NSString *)imageName targetClass:(Class)targetClass doneNotification:(BOOL)notification;
++ (void)cacheImageWithNames:(NSArray *)imageNames doneNotification:(BOOL)notification;
++ (void)cacheImageWithNames:(NSArray *)imageNames targetClass:(Class)targetClass doneNotification:(BOOL)notification;
 
-+ (void)cacheImageWithContentsOfFile:(NSString *)filePath;
-+ (void)cacheImageWithContentsOfFile:(NSString *)filePath targetClass:(Class)targetClass;
-+ (void)cacheImageWithContentsOfFiles:(NSArray *)filePaths;
-+ (void)cacheImageWithContentsOfFiles:(NSArray *)filePaths targetClass:(Class)targetClass;
++ (void)cacheImageWithContentsOfFile:(NSString *)filePath doneNotification:(BOOL)notification;
++ (void)cacheImageWithContentsOfFile:(NSString *)filePath targetClass:(Class)targetClass doneNotification:(BOOL)notification;
++ (void)cacheImageWithContentsOfFiles:(NSArray *)filePaths doneNotification:(BOOL)notification;
++ (void)cacheImageWithContentsOfFiles:(NSArray *)filePaths targetClass:(Class)targetClass doneNotification:(BOOL)notification;
 
-+ (void)cacheImage:(UIImage *)image forName:(NSString *)imageName;
-+ (void)cacheImage:(UIImage *)image forName:(NSString *)imageName targetClass:(Class)targetClass;
-+ (void)cacheImages:(NSArray *)images forName:(NSArray *)imageNames;
-+ (void)cacheImages:(NSArray *)images forName:(NSArray *)imageNames targetClass:(Class)targetClass;
++ (void)cacheImage:(UIImage *)image forName:(NSString *)imageName doneNotification:(BOOL)notification;
++ (void)cacheImage:(UIImage *)image forName:(NSString *)imageName targetClass:(Class)targetClass doneNotification:(BOOL)notification;
++ (void)cacheImages:(NSArray *)images forName:(NSArray *)imageNames doneNotification:(BOOL)notification;
++ (void)cacheImages:(NSArray *)images forName:(NSArray *)imageNames targetClass:(Class)targetClass doneNotification:(BOOL)notification;
 
 + (void)removeImage:(NSString *)imageName;
 + (void)removeImage:(NSString *)imageName targetClass:(Class)targetClass;

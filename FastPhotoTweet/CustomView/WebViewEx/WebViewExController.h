@@ -14,6 +14,11 @@
 #import "ADBlock.h"
 #import "UIViewSubViewRemover.h"
 #import "SSTextField.h"
+#import "NSString+WordCollect.h"
+#import "NSString+RegularExpression.h"
+#import <MobileCoreServices/MobileCoreServices.h>
+#import "ASIHTTPRequest.h"
+#import <CFNetwork/CFNetwork.h>
 
 @interface WebViewExController : UIViewController <UIWebViewDelegate, UIActionSheetDelegate, UITextFieldDelegate, NSXMLParserDelegate> {
     

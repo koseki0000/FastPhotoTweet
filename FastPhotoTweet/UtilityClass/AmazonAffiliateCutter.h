@@ -6,7 +6,6 @@
 //
 
 #import <Foundation/Foundation.h>
-#import "RegularExpression.h"
 
 @interface AmazonAffiliateCutter : NSObject
 

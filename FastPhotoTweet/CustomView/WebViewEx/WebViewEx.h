@@ -7,9 +7,14 @@
 
 #import <UIKit/UIWebView.h>
 #import "ShowAlert.h"
-#import "RegularExpression.h"
+#import "NSString+RegularExpression.h"
+#import "NSString+WordCollect.h"
 #import "DeleteWhiteSpace.h"
 #import "EmptyCheck.h"
+
+#import <MobileCoreServices/MobileCoreServices.h>
+#import "ASIHTTPRequest.h"
+#import <CFNetwork/CFNetwork.h>
 
 @interface WebViewEx : UIWebView {
     

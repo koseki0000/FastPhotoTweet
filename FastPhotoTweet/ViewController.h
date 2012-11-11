@@ -24,7 +24,6 @@
 #import "OAuthSetupViewController.h"
 #import "WebViewExController.h"
 #import <MediaPlayer/MediaPlayer.h>
-#import "UUIDEncryptor.h"
 #import "ResendViewController.h"
 
 @interface ViewController : UIViewController <UINavigationControllerDelegate, UIImagePickerControllerDelegate, UIActionSheetDelegate> {

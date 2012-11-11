@@ -30,9 +30,7 @@
     
     dispatch_queue_t queue = dispatch_get_global_queue(DISPATCH_QUEUE_PRIORITY_DEFAULT, 0);
     dispatch_semaphore_t semaphore = dispatch_semaphore_create(1);
-    
     dispatch_async(queue, ^{
-        
         dispatch_semaphore_wait(semaphore, DISPATCH_TIME_FOREVER);
         
         [[TWTweetsBase manager].timelines setObject:weakCurrentTimeline
@@ -71,7 +69,7 @@
                 
             }else {
             
-                tweetID = [[[[TWTweets currentTimeline] objectAtIndex:0] objectForKey:@"retweeted_status"] objectForKey:@"id_str"];
+                tweetID = [[[TWTweets currentTimeline] objectAtIndex:0] objectForKey:@"id_str"];
             }
             
             if ( tweetID != nil ) break;
@@ -92,9 +90,7 @@
     
     dispatch_queue_t queue = dispatch_get_global_queue(DISPATCH_QUEUE_PRIORITY_DEFAULT, 0);
     dispatch_semaphore_t semaphore = dispatch_semaphore_create(1);
-    
     dispatch_async(queue, ^{
-        
         dispatch_semaphore_wait(semaphore, DISPATCH_TIME_FOREVER);
         
         [[[TWTweetsBase manager].sinceIDs objectForKey:[TWAccounts currentAccountName]] setObject:weakSinceID forKey:@"SinceID"];

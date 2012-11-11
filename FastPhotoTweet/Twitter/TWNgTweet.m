@@ -134,7 +134,7 @@
             if ( regexp ) {
                 
                 //正規表現を使う場合
-                if ( [RegularExpression boolWithRegExp:text regExpPattern:word] ) match = YES;
+                if ( [text boolWithRegExp:word] ) match = YES;
                 
             }else {
 

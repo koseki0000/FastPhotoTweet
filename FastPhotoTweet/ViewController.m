@@ -335,7 +335,7 @@
             //NSLog(@"newVersion");
             
             [ShowAlert title:[NSString stringWithFormat:@"FastPhotoTweet %@", APP_VERSION]
-                     message:@"・Blocksの循環参照への対応\n・UserStreamのFavoriteイベントでクラッシュする問題を修正\n・画像キャッシュの改善\n・SearchStream開始時に一度RESTでSearchを行うよう変更\n・Timelineのパフォーマンス改善"];
+                     message:@"・Pixiv画像フルサイズ取得の改善\n・ブラウザに｢ブログ広告除去を試みる｣機能を追加\n・その他細かな修正"];
             
             information = [[[NSMutableDictionary alloc] initWithDictionary:[d dictionaryForKey:@"Information"]] autorelease];
             [information setValue:[NSNumber numberWithInt:1] forKey:APP_VERSION];
@@ -425,8 +425,7 @@
                     
                     //とは検索機能ONかつ条件にマッチ
                     if ( [d boolForKey:@"TohaSearch"] &&
-                        [RegularExpression boolWithRegExp:text
-                                            regExpPattern:@".+とは$"] ) {
+                        [text boolWithRegExp:@".+とは$"] ) {
                             
                             [self tohaSearch:text];
                         }
@@ -1058,9 +1057,7 @@
         postText.text = [NSString stringWithFormat:@"%@ %@ ", postText.text, imageURL];
         
         //連続するスペースを1つにする
-        postText.text = [ReplaceOrDelete replaceWordReturnStr:postText.text
-                                                  replaceWord:@"  "
-                                                 replacedWord:@" "];
+        postText.text = [postText.text replaceWord:@"  " replacedWord:@" "];
         
         //文字数カウントを行いラベルに反映
         [self countText];
@@ -1409,8 +1406,7 @@
             NSString *deleteUrl = [dic objectForKey:keyName];
             
             //入力欄から対象URLを削除
-            postText.text = [ReplaceOrDelete deleteWordReturnStr:postText.text
-                                                      deleteWord:deleteUrl];
+            postText.text = [postText.text deleteWord:deleteUrl];
             
             //対象キーを削除
             [dic removeObjectForKey:keyName];
@@ -1744,11 +1740,11 @@
             }
             
             //曲情報を書式に埋め込み
-            resultText = [ReplaceOrDelete replaceWordReturnMStr:resultText replaceWord:@"[st]" replacedWord:songTitle];
-            resultText = [ReplaceOrDelete replaceWordReturnMStr:resultText replaceWord:@"[ar]" replacedWord:songArtist];
-            resultText = [ReplaceOrDelete replaceWordReturnMStr:resultText replaceWord:@"[at]" replacedWord:albumTitle];
-            resultText = [ReplaceOrDelete replaceWordReturnMStr:resultText replaceWord:@"[pc]" replacedWord:playCountStr];
-            resultText = [ReplaceOrDelete replaceWordReturnMStr:resultText replaceWord:@"[rt]" replacedWord:ratingStr];
+            resultText = [resultText replaceMutableWord:@"[st]" replacedWord:songTitle];
+            resultText = [resultText replaceMutableWord:@"[ar]" replacedWord:songArtist];
+            resultText = [resultText replaceMutableWord:@"[at]" replacedWord:albumTitle];
+            resultText = [resultText replaceMutableWord:@"[pc]" replacedWord:playCountStr];
+            resultText = [resultText replaceMutableWord:@"[rt]" replacedWord:ratingStr];
             
         }else {
             
@@ -1980,9 +1976,9 @@
                     return;
                 }
                 
-                NSMutableString *title = [RegularExpression mStrWithRegExp:dataStr regExpPattern:@"<title>.+</title>"];
-                title = [ReplaceOrDelete deleteWordReturnMStr:title deleteWord:@"<title>"];
-                title = [ReplaceOrDelete deleteWordReturnMStr:title deleteWord:@"</title>"];
+                NSMutableString *title = [dataStr mStrWithRegExp:@"<title>.+</title>"];
+                title = [title deleteMutableWord:@"<title>"];
+                title = [title deleteMutableWord:@"</title>"];
                 
                 if ( ![EmptyCheck check:title] ) {
                     

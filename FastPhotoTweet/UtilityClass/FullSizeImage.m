@@ -9,12 +9,15 @@
 
 #define BLANK @""
 
+#define TWITTER_FULL_PATTERN @"https?://(mobile\\.)?twitter\\.com/[_a-zA-Z0-9]{1,15}/status/[0-9]+/photo/1"
+#define PIXIV_FULL_PATTERN @"https?://(www\\.)?(touch\\.)?pixiv\\.net/member_illust\\.php\\?(mode=(medium|big)|illust_id=[0-9]+)&(illust_id=[0-9]+|mode=(medium|big))"
+
 @implementation FullSizeImage
 
 //画像共有サービスのURLを渡すと画像本体のURLを返す
 + (NSString *)urlString:(NSString *)urlString {
     
-    //NSLog(@"originalUrl: %@", urlString);
+    NSLog(@"originalUrl: %@", urlString);
     
     if ( urlString != nil && ![urlString isEqualToString:@""] ) {
         
@@ -84,13 +87,13 @@
             
             urlString = [NSString stringWithFormat:@"http://static.ow.ly/photos/normal/%@.jpg", [urlString lastPathComponent]];
             
-        }else if ( [urlString hasPrefix:@"http://twitpic.com/"] && ![urlString hasPrefix:@"http://twitpic.com/photos/"] &&
-                  ![urlString hasPrefix:@"http://twitpic.com/show"] && ![urlString hasPrefix:@"http://twitpic.com/account"] &&
-                  ![urlString hasPrefix:@"http://twitpic.com/session"] && ![urlString hasPrefix:@"http://twitpic.com/events"] &&
-                  ![urlString hasPrefix:@"http://twitpic.com/faces"] && ![urlString hasPrefix:@"http://twitpic.com/upload"] &&
-                  ![urlString hasPrefix:@"http://twitpic.com/ad_"] && ![urlString hasSuffix:@".do"] &&
+        }else if ( [urlString hasPrefix:@"http://twitpic.com/"] &&          ![urlString hasPrefix:@"http://twitpic.com/photos/"] &&
+                  ![urlString hasPrefix:@"http://twitpic.com/show"] &&      ![urlString hasPrefix:@"http://twitpic.com/account"] &&
+                  ![urlString hasPrefix:@"http://twitpic.com/session"] &&   ![urlString hasPrefix:@"http://twitpic.com/events"] &&
+                  ![urlString hasPrefix:@"http://twitpic.com/faces"] &&     ![urlString hasPrefix:@"http://twitpic.com/upload"] &&
+                  ![urlString hasPrefix:@"http://twitpic.com/ad_"] &&       ![urlString hasSuffix:@".do"] &&
                   ![urlString isEqualToString:@"http://twitpic.com/"] &&
-                  ![RegularExpression boolWithRegExp:urlString regExpPattern:@"http://twitpic.com/[0-9a-zA-Z]+/full$"] ) {
+                  ![urlString boolWithRegExp:@"http://twitpic.com/[0-9a-zA-Z]+/full$"] ) {
             
             urlString = [NSString stringWithFormat:@"http://twitpic.com/show/full/%@", [urlString lastPathComponent]];
             
@@ -104,8 +107,7 @@
             
             urlString = [results objectForKey:@"url"];
             
-        }else if ( [RegularExpression boolWithRegExp:urlString
-                                       regExpPattern:@"https?://(mobile\\.)?twitter\\.com/[_a-zA-Z0-9]{1,15}/status/[0-9]+/photo/1"] ) {
+        }else if ( [urlString boolWithRegExp:TWITTER_FULL_PATTERN] ) {
             
             NSString *originalUrl = urlString;
             
@@ -113,8 +115,7 @@
             
             if ( sourceCode == nil ) return urlString;
             
-            urlString = [RegularExpression strWithRegExp:sourceCode
-                                           regExpPattern:@"https?://p(bs)?\\.twimg\\.com/(media/)?[-_\\.a-zA-Z0-9]+(:large)?"];
+            urlString = [sourceCode strWithRegExp:@"https?://p(bs)?\\.twimg\\.com/(media/)?[-_\\.a-zA-Z0-9]+(:large)?"];
             
             if ( ![urlString hasSuffix:@":large"] ) {
                 
@@ -123,25 +124,21 @@
             
             if ( [urlString isEqualToString:@":large"] ) urlString = originalUrl;
             
-        }else if ( [RegularExpression boolWithRegExp:urlString
-                                       regExpPattern:@"https?://via.me/-[a-zA-Z0-9]+"] ) {
+        }else if ( [urlString boolWithRegExp:@"https?://via.me/-[a-zA-Z0-9]+"] ) {
             
             NSString *sourceCode = [FullSizeImage getSourceCode:urlString];
             
             if ( sourceCode == nil ) return urlString;
             
-            urlString = [RegularExpression strWithRegExp:sourceCode
-                                           regExpPattern:@"https?://(s[0-9]\\.amazonaws\\.com/com\\.clixtr\\.picbounce|img\\.viame-cdn\\.com)/photos/[-a-zA-Z0-9]+/[a-z]600x600\\.(jpe?g|png)"];
+            urlString = [sourceCode strWithRegExp:@"https?://(s[0-9]\\.amazonaws\\.com/com\\.clixtr\\.picbounce|img\\.viame-cdn\\.com)/photos/[-a-zA-Z0-9]+/[a-z]600x600\\.(jpe?g|png)"];
             
-        }else if ( [RegularExpression boolWithRegExp:urlString
-                                       regExpPattern:@"https?://img.ly/[a-zA-Z0-9]+"] ) {
+        }else if ( [urlString boolWithRegExp:@"https?://img.ly/[a-zA-Z0-9]+"] ) {
             
             NSString *sourceCode = [FullSizeImage getSourceCode:urlString];
             
             if ( sourceCode == nil ) return urlString;
             
-            NSString *target = [RegularExpression strWithRegExp:sourceCode
-                                                  regExpPattern:@"href=\"/images/[0-9]+/full\">Show Full View"];
+            NSString *target = [sourceCode strWithRegExp:@"href=\"/images/[0-9]+/full\">Show Full View"];
             
             NSMutableString *tempString = [NSMutableString stringWithString:target];
             
@@ -161,12 +158,36 @@
             
             if ( sourceCode == nil ) return urlString;
             
-            urlString = [RegularExpression strWithRegExp:sourceCode
-                                           regExpPattern:@"https?://s[0-9]\\.amazonaws\\.com/imgly_production/[0-9]+/original\\.(je?pg|png)"];
+            urlString = [sourceCode strWithRegExp:@"https?://s[0-9]\\.amazonaws\\.com/imgly_production/[0-9]+/original\\.(je?pg|png)"];
+        
+        }else if ( [urlString boolWithRegExp:PIXIV_FULL_PATTERN] ) {
+            
+            NSString *originalURL = urlString;
+            urlString = [urlString replaceWord:@"mode=medium" replacedWord:@"mode=big"];
+            NSString *sourceCode = [FullSizeImage getSourceCode:urlString];
+
+            if ( [sourceCode rangeOfString:@"<a href=\"member_illust.php?mode=manga"].location != NSNotFound ) {
+                
+                urlString = originalURL;
+                
+            }else {
+             
+                NSString *fullUrl = [sourceCode strWithRegExp:@"https?://i[0-9]+\\.pixiv\\.net/img[0-9]+/img/[-_a-zA-Z0-9]+/[0-9]+(_s)?\\.(jpe?g|png)"];
+                
+                if ( [fullUrl rangeOfString:@"_s."].location != NSNotFound ) {
+                    
+                    fullUrl = [fullUrl replaceWord:@"_s." replacedWord:@"."];
+                }
+                
+                if ( ![fullUrl isEqualToString:@""] ) {
+                    
+                    urlString = fullUrl;
+                }
+            }
         }
     }
     
-    //NSLog(@"fullUrl: %@", urlString);
+    NSLog(@"fullUrl: %@", urlString);
     
     return urlString;
 }
@@ -175,7 +196,20 @@
     
     NSError *error = nil;
     NSURL *url = [NSURL URLWithString:urlString];
-    NSURLRequest *request = [NSURLRequest requestWithURL:url];
+    NSMutableURLRequest *request = [NSMutableURLRequest requestWithURL:url];
+    
+    if ( [urlString rangeOfString:@"pixiv.net"].location != NSNotFound ) {
+     
+        if ( [urlString rangeOfString:@"touch"].location != NSNotFound ) {
+            
+            [request setValue:@"http://www.touch.pixiv.net/" forHTTPHeaderField:@"Referer"];
+            
+        }else {
+            
+            [request setValue:@"http://www.pixiv.net/" forHTTPHeaderField:@"Referer"];
+        }
+    }
+    
     NSData *response = [NSURLConnection sendSynchronousRequest:request 
                                              returningResponse:nil 
                                                          error:&error];
@@ -225,19 +259,21 @@
               ![urlString hasPrefix:@"http://twitpic.com/faces"] && ![urlString hasPrefix:@"http://twitpic.com/upload"] &&
               ![urlString hasPrefix:@"http://twitpic.com/ad_"] && ![urlString hasSuffix:@".do"] &&
               ![urlString isEqualToString:@"http://twitpic.com/"] &&
-              ![RegularExpression boolWithRegExp:urlString regExpPattern:@"http://twitpic.com/[0-9a-zA-Z]+/full$"] ) {
+              ![urlString boolWithRegExp:@"http://twitpic.com/[0-9a-zA-Z]+/full$"] ) {
         result = YES;
     }else if ( [urlString hasPrefix:@"http://instagr.am/p/"] ) {
         result = YES;
-    }else if ( [RegularExpression boolWithRegExp:urlString regExpPattern:@"https?://(mobile\\.)?twitter\\.com/[_a-zA-Z0-9]{1,15}/status/[0-9]+/photo/1"] ) {
+    }else if ( [urlString boolWithRegExp:TWITTER_FULL_PATTERN] ) {
         result = YES;
-    }else if ( [RegularExpression boolWithRegExp:urlString regExpPattern:@"https?://via.me/-[a-zA-Z0-9]+"] ) {
+    }else if ( [urlString boolWithRegExp:@"https?://via.me/-[a-zA-Z0-9]+"] ) {
         result = YES;
-    }else if ( [RegularExpression boolWithRegExp:urlString regExpPattern:@"https?://img.ly/[a-zA-Z0-9]+"] ) {
+    }else if ( [urlString boolWithRegExp:@"https?://img.ly/[a-zA-Z0-9]+"] ) {
+        result = YES;
+    }else if ( [urlString boolWithRegExp:PIXIV_FULL_PATTERN] ) {
         result = YES;
     }
     
-    if ( [RegularExpression boolWithRegExp:[urlString lowercaseString] regExpPattern:@"\\.(jpe?g|png|gif)"] ) {
+    if ( [[urlString lowercaseString] boolWithRegExp:@"\\.(jpe?g|png|gif)"] ) {
         result = YES;
     }
     
@@ -264,15 +300,17 @@
               ![urlString hasPrefix:@"http://twitpic.com/faces"] && ![urlString hasPrefix:@"http://twitpic.com/upload"] &&
               ![urlString hasPrefix:@"http://twitpic.com/ad_"] && ![urlString hasSuffix:@".do"] &&
               ![urlString isEqualToString:@"http://twitpic.com/"] &&
-              ![RegularExpression boolWithRegExp:urlString regExpPattern:@"http://twitpic.com/[0-9a-zA-Z]+/full$"] ) {
+              ![urlString boolWithRegExp:@"http://twitpic.com/[0-9a-zA-Z]+/full$"] ) {
         result = YES;
     }else if ( [urlString hasPrefix:@"http://instagr.am/p/"] ) {
         result = YES;
-    }else if ( [RegularExpression boolWithRegExp:urlString regExpPattern:@"https?://(mobile\\.)?twitter\\.com/[_a-zA-Z0-9]{1,15}/status/[0-9]+/photo/1"] ) {
+    }else if ( [urlString boolWithRegExp:TWITTER_FULL_PATTERN] ) {
         result = YES;
-    }else if ( [RegularExpression boolWithRegExp:urlString regExpPattern:@"https?://via.me/-[a-zA-Z0-9]+"] ) {
+    }else if ( [urlString boolWithRegExp:@"https?://via.me/-[a-zA-Z0-9]+"] ) {
         result = YES;
-    }else if ( [RegularExpression boolWithRegExp:urlString regExpPattern:@"https?://img.ly/[a-zA-Z0-9]+"] ) {
+    }else if ( [urlString boolWithRegExp:@"https?://img.ly/[a-zA-Z0-9]+"] ) {
+        result = YES;
+    }else if ( [urlString boolWithRegExp:PIXIV_FULL_PATTERN] ) {
         result = YES;
     }
     

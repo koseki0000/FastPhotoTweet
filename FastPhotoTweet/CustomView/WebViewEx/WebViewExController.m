@@ -150,7 +150,6 @@
 - (void)selectOpenUrl {
     
     //NSLog(@"startupUrlList: %@", startupUrlList);
-    //NSLog(@"pboard: %@", [RegularExpression urls:pboard.string]);
     
     if ( appDelegate.tabBarController.selectedIndex == 1 ) {
         
@@ -167,7 +166,7 @@
             //NSLog(@"ペーストボードからURLを開く設定が有効な場合: %@", [d objectForKey:@"LastOpendPasteBoardURL"]);
             
             //ペーストボードのURLを取得
-            urlList = [RegularExpression urls:pboard.string];
+            urlList = [pboard.string urls];
             
             if ( startupUrlList.count == 1 && urlList.count == 0 ) {
                 
@@ -594,8 +593,8 @@
                             destructiveButtonTitle:nil
                             otherButtonTitles:@"開いているページを投稿", @"選択文字を引用して投稿", 
                                               @"選択文字で検索", @"保存", @"ブックマークに登録",
-                                              @"Safariで開く", @"ホームページを変更", @"FastEverで開く", 
-                                              @"PC版UAで開き直す", nil];
+                                              @"ブログ広告除去を試みる", @"ホームページを変更", @"FastEverで開く",
+                                              @"PC版UAで開き直す", @"Safariで開く", nil];
     [sheet showInView:self.view];
     sheet = nil;
 }
@@ -672,8 +671,7 @@
                                                                      encoding:NSShiftJISStringEncoding
                                                                         error:nil];
                 
-                NSString *suggestion = [RegularExpression strWithRegExp:xmlString
-                                                      regExpPattern:@"<suggestion data=\".{1,50}\"/><num_queries"];
+                NSString *suggestion = [xmlString strWithRegExp:@"<suggestion data=\".{1,50}\"/><num_queries"];
                 xmlString = nil;
                 
                 if ( ![EmptyCheck check:suggestion] ) {
@@ -683,8 +681,8 @@
                     return;
                 }
                 
-                suggestion = [ReplaceOrDelete deleteWordReturnStr:suggestion deleteWord:@"<suggestion data=\""];
-                suggestion = [ReplaceOrDelete deleteWordReturnStr:suggestion deleteWord:@"\"/><num_queries"];
+                suggestion = [suggestion deleteWord:@"<suggestion data=\""];
+                suggestion = [suggestion deleteWord:@"\"/><num_queries"];
                 
                 dispatch_async(dispatch_get_main_queue(), ^ {
                     
@@ -827,7 +825,8 @@
             
             NSString *postText = BLANK;
             
-            if ( [RegularExpression boolWithRegExp:urlField.text regExpPattern:@"(https?://)?shindanmaker.com/[0-9]+"] ) {
+            
+            if ( [urlField.text boolWithRegExp:@"(https?://)?shindanmaker.com/[0-9]+"] ) {
                 
                 NSLog(@"Shindanmaker Post");
                 
@@ -838,12 +837,12 @@
                 postText = [[NSString alloc] initWithData:wvData
                                                  encoding:NSUTF8StringEncoding];
                 
-                postText = [ReplaceOrDelete deleteWordReturnStr:postText deleteWord:@"\n"];
-                postText = [ReplaceOrDelete replaceWordReturnStr:postText replaceWord:@"\t" replacedWord:@" "];
-                postText = [ReplaceOrDelete replaceWordReturnStr:postText replaceWord:@"  " replacedWord:@" "];
-                postText = [RegularExpression strWithRegExp:postText regExpPattern:@"this.select...>.{1,140}?<.textarea>"];
-                postText = [ReplaceOrDelete deleteWordReturnStr:postText deleteWord:@"this.select()\">"];
-                postText = [ReplaceOrDelete deleteWordReturnStr:postText deleteWord:@"</textarea>"];
+                postText = [postText deleteWord:@"\n"];
+                postText = [postText replaceWord:@"\t" replacedWord:@" "];
+                postText = [postText replaceWord:@"  " replacedWord:@" "];
+                postText = [postText strWithRegExp:@"this.select...>.{1,140}?<.textarea>"];
+                postText = [postText deleteWord:@"this.select()\">"];
+                postText = [postText deleteWord:@"</textarea>"];
                 
                 //NSLog(@"postText: %@", postText);
                 
@@ -866,9 +865,7 @@
                     [d setObject:postText forKey:@"WebPagePostFormat"];
                 }
                 
-                postText = [ReplaceOrDelete replaceWordReturnStr:postText
-                                                     replaceWord:@"[title]"
-                                                    replacedWord:wv.pageTitle];
+                postText = [postText replaceWord:@"[title]" replacedWord:wv.pageTitle];
                 
                 NSString *copyURL = [[wv.request URL] absoluteString];
                 
@@ -891,9 +888,7 @@
                     }
                 }
                 
-                postText = [ReplaceOrDelete replaceWordReturnStr:postText
-                                                     replaceWord:@"[url]"
-                                                    replacedWord:copyURL];
+                postText = [postText replaceWord:@"[url]" replacedWord:copyURL];
             }
             
             appDelegate.tabBarController.selectedIndex = 0;
@@ -1014,9 +1009,89 @@
             
         }else if ( buttonIndex == 5 ) {
             
-            //Safariで開く
-            [[UIApplication sharedApplication] openURL:[NSURL URLWithString:accessURL]];
-        
+            NSString *useragent = IPHONE_USERAGENT;
+            
+            if ( [[D objectForKey:@"UserAgent"] isEqualToString:@"FireFox"] ) {
+                
+                useragent = FIREFOX_USERAGENT;
+                
+            }else if ( [[D objectForKey:@"UserAgent"] isEqualToString:@"iPad"] ) {
+                
+                useragent = IPAD_USERAFENT;
+            }
+            
+            NSString *adDeleteUrl = [NSString stringWithString:accessURL];
+            NSURL *URL = [NSURL URLWithString:adDeleteUrl];
+            ASIHTTPRequest *httpRequest = [ASIHTTPRequest requestWithURL:URL];
+            [httpRequest setUserAgentString:useragent];
+            
+            [httpRequest setCompletionBlock:^ {
+                
+                NSString *sourceCode = nil;
+                
+                int encodingList[] = {
+                    
+                    NSUTF8StringEncoding,               // UTF-8
+                    NSShiftJISStringEncoding,          // Shift_JIS
+                    NSJapaneseEUCStringEncoding,     // EUC-JP
+                    NSISO2022JPStringEncoding,          // JIS
+                    NSUnicodeStringEncoding,          // Unicode
+                    NSASCIIStringEncoding               // ASCII
+                };
+                
+                int max = sizeof( encodingList ) / sizeof( encodingList[0] );
+                
+                for ( int i = 0; i < max; i++ ) {
+                    
+                    sourceCode = [[NSString alloc] initWithData:httpRequest.responseData encoding:encodingList[i]];
+                    
+                    if ( sourceCode != nil ) break;
+                }
+                
+                if ( sourceCode != nil ) {
+                    
+                    sourceCode = [sourceCode replaceWord:@"width='300' height='250'><a href='http://d.href.asia/nw/d/ck.php"
+                                            replacedWord:@"width='0' height='0'><a href='http://d.href.asia/nw/d/ck.php"];
+                    sourceCode = [sourceCode deleteWord:@"accesstrade.net"];
+                    sourceCode = [sourceCode deleteWord:@"adingo.jp"];
+                    sourceCode = [sourceCode deleteWord:@"searchteria.co.jp/ad"];
+                    sourceCode = [sourceCode deleteWord:@"adlantis"];
+                    sourceCode = [sourceCode deleteWord:@"ad-stir.com"];
+                    sourceCode = [sourceCode deleteWord:@"adpimg.yicha.jp"];
+                    sourceCode = [sourceCode deleteWord:@"static.adroute.focas.jp"];
+                    sourceCode = [sourceCode deleteWord:@"ad.searchteria.co.jp"];
+                    sourceCode = [sourceCode deleteWord:@"ad.maist.jp"];
+                    sourceCode = [sourceCode deleteWord:@"adclr.jp"];
+                    sourceCode = [sourceCode deleteWord:@"blog.fc2.com/adclick"];
+                    sourceCode = [sourceCode deleteWord:@"aimg.fc2.com"];
+                    sourceCode = [sourceCode deleteWord:@"i.amoad.com"];
+                    sourceCode = [sourceCode deleteWord:@"i-mobile.co.jp"];
+                    sourceCode = [sourceCode deleteWord:@"imobile_"];
+                    sourceCode = [sourceCode deleteWord:@"microad.jp"];
+                    sourceCode = [sourceCode deleteWord:@"AdLantisLoader.js"];
+                    sourceCode = [sourceCode deleteWord:@"AdLoader.js"];
+                    sourceCode = [sourceCode deleteWord:@"adstir.js"];
+                    sourceCode = [sourceCode deleteWord:@"adssp.js"];
+                    sourceCode = [sourceCode deleteWord:@"asad.js"];
+                    sourceCode = [sourceCode deleteWord:@"smtad.js"];
+                    sourceCode = [sourceCode deleteWord:@"ads.js"];
+                    sourceCode = [sourceCode deleteWord:@"show_ad"];
+                    sourceCode = [sourceCode deleteWord:@"trigger_liv.js"];
+                    sourceCode = [sourceCode deleteWord:@"ajs.php"];
+                    sourceCode = [sourceCode deleteWord:@"js/ad.js"];
+                    sourceCode = [sourceCode deleteWord:@"Spad.js"];
+                    sourceCode = [sourceCode deleteWord:@"anchovy.js"];
+                    sourceCode = [sourceCode deleteWord:@"bongore.js"];
+                    sourceCode = [sourceCode deleteWord:@"chorizo.js"];
+                    
+                    //NSLog(@"sourceCode: %@", sourceCode);
+                    
+                    [wv loadHTMLString:sourceCode baseURL:URL];
+                }
+            }];
+            
+            [httpRequest startAsynchronous];
+            
         }else if ( buttonIndex == 6 ) {
             
             alertTextNo = 1;
@@ -1069,6 +1144,11 @@
             appDelegate.pcUaMode = YES;
             [d setObject:@"FireFox" forKey:@"UserAgent"];
             [self pushComposeButton:nil];
+        
+        }else if ( buttonIndex == 9 ) {
+            
+            //Safariで開く
+            [[UIApplication sharedApplication] openURL:[NSURL URLWithString:accessURL]];
         }
         
     }else if ( actionSheetNo == 2 || actionSheetNo == 3 || actionSheetNo == 4 || actionSheetNo == 5 || actionSheetNo == 6 ) {
@@ -1139,17 +1219,9 @@
                 }
             }
             
-            postText = [ReplaceOrDelete replaceWordReturnStr:postText 
-                                                 replaceWord:@"[title]" 
-                                                replacedWord:wv.pageTitle];
-            
-            postText = [ReplaceOrDelete replaceWordReturnStr:postText 
-                                                 replaceWord:@"[url]" 
-                                                replacedWord:copyURL];
-            
-            postText = [ReplaceOrDelete replaceWordReturnStr:postText 
-                                                 replaceWord:@"[quote]" 
-                                                replacedWord:wv.selectString];
+            postText = [postText replaceWord:@"[title]" replacedWord:wv.pageTitle];
+            postText = [postText replaceWord:@"[url]" replacedWord:copyURL];
+            postText = [postText replaceWord:@"[quote]" replacedWord:wv.selectString];
             
             appDelegate.postText = postText;
             
@@ -1393,8 +1465,12 @@
 
 /* WebView */
 
-- (BOOL)webView:(UIWebView *)webView shouldStartLoadWithRequest:(NSURLRequest *)request 
- navigationType:(UIWebViewNavigationType)navigationType {
+- (BOOL)webView:(UIWebView *)webView shouldStartLoadWithRequest:(NSURLRequest *)request navigationType:(UIWebViewNavigationType)navigationType {
+    
+//    if ( navigationType == UIWebViewNavigationTypeLinkClicked ) {
+//        
+//        NSLog(@"LinkClicked");
+//    }
     
     if ( [EmptyCheck string:request.URL.absoluteString] ) {
         
@@ -1423,8 +1499,7 @@
     }
     
     //Amazonのアフィリンクの場合無効化して再アクセス
-    if ( [RegularExpression boolWithRegExp:accessURL
-                         regExpPattern:@"https?://(www\\.)?amazon\\.co\\.jp/((exec/obidos|o)/ASIN|dp|gp/product)/[A-Z0-9]{10}.*(/|[\\?&]tag=)[-_a-zA-Z0-9]+-22/?"] ) {
+    if ( [accessURL boolWithRegExp:@"https?://(www\\.)?amazon\\.co\\.jp/((exec/obidos|o)/ASIN|dp|gp/product)/[A-Z0-9]{10}.*(/|[\\?&]tag=)[-_a-zA-Z0-9]+-22/?"] ) {
         
         NSString *affiliateCuttedUrl = [AmazonAffiliateCutter string:accessURL];
         
@@ -1437,7 +1512,7 @@
         }
     }
     
-    if ( [RegularExpression boolWithRegExp:accessURL regExpPattern:@"about:blank|https?://.*"] ) {
+    if ( [accessURL boolWithRegExp:@"about:blank|https?://.*"] ) {
         
         //そのままアクセス出来そうなURL
         //NSLog(@"http(s) address");
@@ -1497,17 +1572,15 @@
     loading = NO;
     [ActivityIndicator off];
     [self updateWebBrowser];
-    
-    //[self adBlock];
 }
 
 - (void)webViewDidStartLoad:(UIWebView *)webView {
-    
+
     if ( [EmptyCheck string:webView.request.URL.absoluteString] ) {
-        
+
         accessURL = webView.request.URL.absoluteString;
     }
-    
+
     loadStartURL = webView.request.URL.absoluteString;
 }
 
@@ -1647,8 +1720,15 @@
         //ファイル名を生成
         saveFileName = [url lastPathComponent]; 
         
+        NSMutableURLRequest *request = [NSMutableURLRequest requestWithURL:[NSURL URLWithString:url]];
+        
+        if ( [request.URL.absoluteString rangeOfString:@"pixiv.net"].location != NSNotFound ) {
+            
+            [request setValue:@"http://www.pixiv.net/" forHTTPHeaderField:@"Referer"];
+            [request setHTTPShouldHandleCookies:NO];
+        }
+        
         //ダウンロードリクエスト開始
-        NSURLRequest *request = [NSURLRequest requestWithURL:[NSURL URLWithString:url]];
         asyncConnection = [[NSURLConnection alloc] initWithRequest:request 
                                                           delegate:self];
         
@@ -1952,17 +2032,17 @@
 
 - (void)adBlock {
     
-    NSLog(@"adBlock");
+//    NSLog(@"adBlock");
+//    NSLog(@"%@", [wv stringByEvaluatingJavaScriptFromString:@"var delads=document.getElementsByTagName(\'div\'); delads.toString();"]);
     
-//    [wv stringByEvaluatingJavaScriptFromString:@"var delads=document.getElementsByTagName(\\'div\\');for(i=0;i<delads.length;i++){if(delads[i].className==\\'_naver_ad_area\\'){delads[i].style.display=none}}"];
-//    [wv stringByEvaluatingJavaScriptFromString:@"var delads=document.getElementsByTagName(\\'div\\');for(i=0;i<delads.length;i++){if(delads[i].className==\\'adlantis_sp_sticky_container\\'){delads[i].style.display=none}}"];
-    
+//    [wv stringByEvaluatingJavaScriptFromString:@"var delads=document.getElementsByTagName(\'div\');for(i=0;i<delads.length;i++){if(delads[i].className==\'_naver_ad_area\'){delads[i].style.display=none}}"];
+//    [wv stringByEvaluatingJavaScriptFromString:@"var delads=document.getElementsByTagName(\'div\');for(i=0;i<delads.length;i++){if(delads[i].className==\\'adlantis_sp_sticky_container\'){delads[i].style.display=none}}"];
     
 //    [wv stringByEvaluatingJavaScriptFromString:
-//     @"var delads=document.getElementsByClassName(\"_naver_ad_area\");for(i=0;i<delads.length;i++){delads[i].style.display=none}"];
-//    
+//     @"var delads=document.getElementsByClassName(\'_naver_ad_area\');for(i=0;i<delads.length;i++){delads[i].style.display=none}"];
+    
 //    [wv stringByEvaluatingJavaScriptFromString:
-//     @"var delads=document.getElementsByClassName(\"adlantis_sp_sticky_container\");for(i=0;i<delads.length;i++){delads[i].style.display=none}"];
+//     @"var delads=document.getElementById(\'ad_cloud_overlay_space\'); alert(delads.length);"];
 }
 
 - (void)setViewSize {

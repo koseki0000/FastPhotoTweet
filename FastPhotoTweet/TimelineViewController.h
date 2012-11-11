@@ -65,16 +65,16 @@
 @property (retain, nonatomic) ActivityGrayView *grayView;
 @property (retain, nonatomic) NSMutableArray *timelineArray;
 @property (retain, nonatomic) NSMutableArray *inReplyTo;
-//@property (retain, nonatomic) NSMutableArray *reqedUser;
-//@property (retain, nonatomic) NSMutableArray *iconUrls;
 @property (retain, nonatomic) NSMutableArray *currentList;
 @property (retain, nonatomic) NSMutableArray *searchStreamTemp;
 @property (retain, nonatomic) NSMutableDictionary *allLists;
+@property (retain, nonatomic) NSMutableSet *requestedUser;
 @property (retain, nonatomic) NSArray *mentionsArray;
 @property (retain, nonatomic) NSArray *selectTweetIds;
 @property (retain, nonatomic) NSArray *tweetInUrls;
 @property (retain, nonatomic) NSDictionary *currentTweet;
 @property (retain, nonatomic) NSDictionary *selectTweet;
+
 @property (retain, nonatomic) NSString *lastUpdateAccount;
 @property (retain, nonatomic) NSString *selectAccount;
 @property (retain, nonatomic) NSString *alertSearchUserName;

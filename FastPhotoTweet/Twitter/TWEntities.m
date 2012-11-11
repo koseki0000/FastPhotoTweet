@@ -26,7 +26,7 @@
         text = [NSMutableString stringWithString:[tweet objectForKey:@"text"]];
         
     }else {
-    
+        
         if ( [[tweet objectForKey:@"target_object"] objectForKey:@"text"] == nil ) return @"";
         
         //イベント系
@@ -43,7 +43,7 @@
     
     //展開するt.coがない場合は何もせず終了
     if ( [[tweet objectForKey:@"entities"] objectForKey:@"urls"] == nil &&
-         [[tweet objectForKey:@"entities"] objectForKey:@"media"] == nil ) return text;
+        [[tweet objectForKey:@"entities"] objectForKey:@"media"] == nil ) return text;
     
     //t.coの展開を行う
     text = [TWEntities replace:tweet text:text entitiesType:@"urls"];
@@ -63,7 +63,7 @@
     //entitiesがない場合はそのままのtext
     if ( [urls isNotEmpty] && [media isNotEmpty] ) {
      
-//        NSLog(@"urls and media is empty");
+        //NSLog(@"urls and media is empty");
         
         [urls release];
         [media release];
@@ -83,8 +83,8 @@
         [entities addObject:mediaUrl];
     }
     
-//    NSLog(@"entities: %@", entities);
-//    NSLog(@"text: %@", text);
+    //NSLog(@"entities: %@", entities);
+    //NSLog(@"text: %@", text);
     
     //全て置換を行う
     for ( NSDictionary *entitiy in entities ) {
@@ -138,32 +138,35 @@
     NSMutableDictionary *replacedTweet = [NSMutableDictionary dictionaryWithDictionary:tweet];
     [replacedTweet setObject:text forKey:@"text"];
     
-    if ( [replacedTweet objectForKey:@"event"] == nil ) {
-        
-        [replacedTweet setObject:[NSString stringWithFormat:@"%@ - %@ [%@]",
-                                  [[replacedTweet objectForKey:@"user"] objectForKey:@"screen_name"],
-                                  [TWParser JSTDate:[replacedTweet objectForKey:@"created_at"]],
-                                  [TWParser client:[replacedTweet objectForKey:@"source"]]]
-                          forKey:@"info_text"];
-        
-        [replacedTweet setObject:[NSString stringWithFormat:@"%@_%@",
-                                  [[replacedTweet objectForKey:@"user"] objectForKey:@"screen_name"],
-                                  [TWIconBigger normal:[[[replacedTweet objectForKey:@"user"] objectForKey:@"profile_image_url"] lastPathComponent]]]
-                          forKey:@"search_name"];
-        
-    }else if ( [tweet objectForKey:@"event"] != nil &&
-              [[tweet stringForKey:@"event"] isEqualToString:@"favorite"] ) {
-        
-        [replacedTweet setObject:[NSString stringWithFormat:@"%@ - %@ [%@]",
-                                  [[[replacedTweet objectForKey:@"target_object"] objectForKey:@"user"] objectForKey:@"screen_name"],
-                                  [TWParser JSTDate:[[replacedTweet objectForKey:@"target_object"] objectForKey:@"created_at"]],
-                                  [TWParser client:[[replacedTweet objectForKey:@"target_object"] objectForKey:@"source"]]]
-                          forKey:@"info_text"];
-        
-        [replacedTweet setObject:[NSString stringWithFormat:@"%@_%@",
-                                  [[[replacedTweet objectForKey:@"target_object"] objectForKey:@"user"] objectForKey:@"screen_name"],
-                                  [TWIconBigger normal:[[[[replacedTweet objectForKey:@"target_object"] objectForKey:@"user"] objectForKey:@"profile_image_url"] lastPathComponent]]]
-                          forKey:@"search_name"];
+    @autoreleasepool {
+     
+        if ( [replacedTweet objectForKey:@"event"] == nil ) {
+            
+            [replacedTweet setObject:[NSString stringWithFormat:@"%@ - %@ [%@]",
+                                      [[replacedTweet objectForKey:@"user"] objectForKey:@"screen_name"],
+                                      [TWParser JSTDate:[replacedTweet objectForKey:@"created_at"]],
+                                      [TWParser client:[replacedTweet objectForKey:@"source"]]]
+                              forKey:@"info_text"];
+            
+            [replacedTweet setObject:[NSString stringWithFormat:@"%@_%@",
+                                      [[replacedTweet objectForKey:@"user"] objectForKey:@"screen_name"],
+                                      [TWIconBigger normal:[[[replacedTweet objectForKey:@"user"] objectForKey:@"profile_image_url"] lastPathComponent]]]
+                              forKey:@"search_name"];
+            
+        }else if ( [tweet objectForKey:@"event"] != nil &&
+                  [[tweet stringForKey:@"event"] isEqualToString:@"favorite"] ) {
+            
+            [replacedTweet setObject:[NSString stringWithFormat:@"%@ - %@ [%@]",
+                                      [[[replacedTweet objectForKey:@"target_object"] objectForKey:@"user"] objectForKey:@"screen_name"],
+                                      [TWParser JSTDate:[[replacedTweet objectForKey:@"target_object"] objectForKey:@"created_at"]],
+                                      [TWParser client:[[replacedTweet objectForKey:@"target_object"] objectForKey:@"source"]]]
+                              forKey:@"info_text"];
+            
+            [replacedTweet setObject:[NSString stringWithFormat:@"%@_%@",
+                                      [[[replacedTweet objectForKey:@"target_object"] objectForKey:@"user"] objectForKey:@"screen_name"],
+                                      [TWIconBigger normal:[[[[replacedTweet objectForKey:@"target_object"] objectForKey:@"user"] objectForKey:@"profile_image_url"] lastPathComponent]]]
+                              forKey:@"search_name"];
+        }
     }
     
     return [TWEntities truncateUselessData:replacedTweet];
@@ -241,34 +244,37 @@
 
 + (NSDictionary *)truncateUselessData:(NSMutableDictionary *)tweet {
     
-    [tweet removeObjectForKey:@"coordinates"];
-    [tweet removeObjectForKey:@"truncated"];
-    [tweet removeObjectForKey:@"contributors"];
-    [tweet removeObjectForKey:@"geo"];
-    [tweet removeObjectForKey:@"possibly_sensitive"];
-    
-    NSMutableDictionary *user = [NSMutableDictionary dictionaryWithDictionary:[tweet objectForKey:@"user"]];
-    
-    [user removeObjectForKey:@"profile_sidebar_border_color"];
-    [user removeObjectForKey:@"profile_sidebar_fill_color"];
-    [user removeObjectForKey:@"profile_background_tile"];
-    [user removeObjectForKey:@"is_translator"];
-    [user removeObjectForKey:@"profile_link_color"];
-    [user removeObjectForKey:@"profile_background_image_url_https"];
-    [user removeObjectForKey:@"description"];
-    [user removeObjectForKey:@"profile_background_image_url"];
-    [user removeObjectForKey:@"profile_background_color"];
-    [user removeObjectForKey:@"profile_image_url_https"];
-    [user removeObjectForKey:@"url"];
-    [user removeObjectForKey:@"geo_enabled"];
-    [user removeObjectForKey:@"verified"];
-    [user removeObjectForKey:@"notifications"];
-    [user removeObjectForKey:@"statuses_count"];
-    [user removeObjectForKey:@"friends_count"];
-    [user removeObjectForKey:@"show_all_inline_media"];
-    [user removeObjectForKey:@"utc_offset"];
-    
-    [tweet setObject:user forKey:@"user"];
+    @autoreleasepool {
+        
+        [tweet removeObjectForKey:@"coordinates"];
+        [tweet removeObjectForKey:@"truncated"];
+        [tweet removeObjectForKey:@"contributors"];
+        [tweet removeObjectForKey:@"geo"];
+        [tweet removeObjectForKey:@"possibly_sensitive"];
+        
+        NSMutableDictionary *user = [NSMutableDictionary dictionaryWithDictionary:[tweet objectForKey:@"user"]];
+        
+        [user removeObjectForKey:@"profile_sidebar_border_color"];
+        [user removeObjectForKey:@"profile_sidebar_fill_color"];
+        [user removeObjectForKey:@"profile_background_tile"];
+        [user removeObjectForKey:@"is_translator"];
+        [user removeObjectForKey:@"profile_link_color"];
+        [user removeObjectForKey:@"profile_background_image_url_https"];
+        [user removeObjectForKey:@"description"];
+        [user removeObjectForKey:@"profile_background_image_url"];
+        [user removeObjectForKey:@"profile_background_color"];
+        [user removeObjectForKey:@"profile_image_url_https"];
+        [user removeObjectForKey:@"url"];
+        [user removeObjectForKey:@"geo_enabled"];
+        [user removeObjectForKey:@"verified"];
+        [user removeObjectForKey:@"notifications"];
+        [user removeObjectForKey:@"statuses_count"];
+        [user removeObjectForKey:@"friends_count"];
+        [user removeObjectForKey:@"show_all_inline_media"];
+        [user removeObjectForKey:@"utc_offset"];
+        
+        [tweet setObject:user forKey:@"user"];
+    }
     
     return [NSDictionary dictionaryWithDictionary:tweet];
 }

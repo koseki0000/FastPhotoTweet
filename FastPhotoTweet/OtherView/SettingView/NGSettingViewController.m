@@ -291,11 +291,6 @@
                                                                    range:NSMakeRange(0, testString.length)];
                 
                 if ( match.numberOfRanges != 0 ) {}
-                
-                if ( error ) {
-                    
-                    [RegularExpression regExpError];
-                }
             }
             
         }else if ( ngTypeSegment.selectedSegmentIndex == 1 ) {

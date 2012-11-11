@@ -326,7 +326,7 @@ void uncaughtExceptionHandler(NSException *e) {
         if ( ![pBoardString isEqualToString:lastCheckPasteBoardURL] ) {
             
             //URLがあるか確認
-            pBoardUrls = [NSArray arrayWithArray:[RegularExpression urls:pBoardString]];
+            pBoardUrls = [NSArray arrayWithArray:[pBoardString urls]];
             
             if ( pBoardUrls.count == 0 ) return;
             
