@@ -19,7 +19,17 @@
 
 - (IBAction)pushBackButton:(id)sender {
     
-    [self dismissModalViewControllerAnimated:YES];
+    AppDelegate *appDelegate = (AppDelegate *)[[UIApplication sharedApplication] delegate];
+    
+    //閉じる
+    if ( [appDelegate.firmwareVersion hasPrefix:@"6"] ) {
+        
+        [self dismissViewControllerAnimated:YES completion:nil];
+        
+    }else {
+        
+        [self dismissModalViewControllerAnimated:YES];
+    }
 }
 
 - (void)dealloc {

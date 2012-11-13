@@ -335,7 +335,7 @@
             //NSLog(@"newVersion");
             
             [ShowAlert title:[NSString stringWithFormat:@"FastPhotoTweet %@", APP_VERSION]
-                     message:@"・Pixiv画像フルサイズ取得の改善\n・ブラウザに｢ブログ広告除去を試みる｣機能を追加\n・その他細かな修正"];
+                     message:@"・ステータスバーオーバーレイ表示の追加\n・NG設定画面の入力欄でもスワイプでカーソル移動が出来るよう修正\n・NG情報再適用機能が動作していない問題を修正\n・ブラウザの広告除去の定義を追加\n・その他細かな修正"];
             
             information = [[[NSMutableDictionary alloc] initWithDictionary:[d dictionaryForKey:@"Information"]] autorelease];
             [information setValue:[NSNumber numberWithInt:1] forKey:APP_VERSION];

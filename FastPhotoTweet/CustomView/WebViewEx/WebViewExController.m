@@ -834,25 +834,25 @@
                                                        returningResponse:nil
                                                                    error:nil];
                 
-                postText = [[NSString alloc] initWithData:wvData
-                                                 encoding:NSUTF8StringEncoding];
+                if ( wvData != nil ) {
                 
-                postText = [postText deleteWord:@"\n"];
-                postText = [postText replaceWord:@"\t" replacedWord:@" "];
-                postText = [postText replaceWord:@"  " replacedWord:@" "];
-                postText = [postText strWithRegExp:@"this.select...>.{1,140}?<.textarea>"];
-                postText = [postText deleteWord:@"this.select()\">"];
-                postText = [postText deleteWord:@"</textarea>"];
-                
-                //NSLog(@"postText: %@", postText);
-                
-                if ( ![EmptyCheck string:postText] ) {
+                    postText = [[NSString alloc] initWithData:wvData
+                                                     encoding:NSUTF8StringEncoding];
                     
+                    postText = [postText deleteWord:@"\n"];
+                    postText = [postText replaceWord:@"\t" replacedWord:@" "];
+                    postText = [postText replaceWord:@"  " replacedWord:@" "];
+                    postText = [postText strWithRegExp:@"this.select...>.{1,140}?<.textarea>"];
+                    postText = [postText deleteWord:@"this.select()\">"];
+                    postText = [postText deleteWord:@"</textarea>"];
+                    
+                }else {
+
                     [ShowAlert error:@"データ取得に失敗しました。"];
                     
                     return;
                 }
-                
+
             }else {
                 
                 if ( [EmptyCheck check:[d objectForKey:@"WebPagePostFormat"]] ) {
@@ -1031,12 +1031,12 @@
                 
                 int encodingList[] = {
                     
-                    NSUTF8StringEncoding,               // UTF-8
-                    NSShiftJISStringEncoding,          // Shift_JIS
-                    NSJapaneseEUCStringEncoding,     // EUC-JP
-                    NSISO2022JPStringEncoding,          // JIS
-                    NSUnicodeStringEncoding,          // Unicode
-                    NSASCIIStringEncoding               // ASCII
+                    NSUTF8StringEncoding,           // UTF-8
+                    NSShiftJISStringEncoding,       // Shift_JIS
+                    NSJapaneseEUCStringEncoding,    // EUC-JP
+                    NSISO2022JPStringEncoding,      // JIS
+                    NSUnicodeStringEncoding,        // Unicode
+                    NSASCIIStringEncoding           // ASCII
                 };
                 
                 int max = sizeof( encodingList ) / sizeof( encodingList[0] );
@@ -1055,6 +1055,8 @@
                     sourceCode = [sourceCode deleteWord:@"accesstrade.net"];
                     sourceCode = [sourceCode deleteWord:@"adingo.jp"];
                     sourceCode = [sourceCode deleteWord:@"searchteria.co.jp/ad"];
+                    sourceCode = [sourceCode deleteWord:@"ad.douga-kan.com"];
+                    sourceCode = [sourceCode deleteWord:@"mo.preaf.jp"];
                     sourceCode = [sourceCode deleteWord:@"adlantis"];
                     sourceCode = [sourceCode deleteWord:@"ad-stir.com"];
                     sourceCode = [sourceCode deleteWord:@"adpimg.yicha.jp"];
@@ -1084,7 +1086,7 @@
                     sourceCode = [sourceCode deleteWord:@"bongore.js"];
                     sourceCode = [sourceCode deleteWord:@"chorizo.js"];
                     
-                    //NSLog(@"sourceCode: %@", sourceCode);
+                    NSLog(@"sourceCode: %@", sourceCode);
                     
                     [wv loadHTMLString:sourceCode baseURL:URL];
                 }

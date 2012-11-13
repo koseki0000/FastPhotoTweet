@@ -9,6 +9,7 @@
 #import <sys/utsname.h>
 #import "MainTabBarController.h"
 #import "Stats.h"
+#import "StatusBarInfo.h"
 
 #define IMGUR_API_KEY   @"6de089e68b55d6e390d246c4bf932901"
 #define TWITPIC_API_KEY @"95cf146048caad3267f95219b379e61c"
@@ -70,6 +71,7 @@ void uncaughtExceptionHandler(NSException *exception);
 @property NSInteger startUpFreeMemory;
 @property (strong, nonatomic) UIWindow *window;
 @property (strong, nonatomic) MainTabBarController *tabBarController;
+@property (retain, nonatomic) StatusBarInfo *statusBarInfo;
 
 @property (nonatomic, retain) NSString *postText;
 @property (nonatomic, retain) NSString *postTextType;

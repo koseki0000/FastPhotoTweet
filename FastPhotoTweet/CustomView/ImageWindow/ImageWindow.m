@@ -376,9 +376,16 @@
     NSLog(@"connectionDidFinishLoading");
     NSLog(@"receiveData.length: %d, maxSize: %.0f", receivedData.length, _maxSize);
     
-    UIImage *image = [UIImage imageWithData:receivedData];
-    
-    [self setImageAtImageView:image];
+    if ( receivedData.length != 34 ) {
+     
+        UIImage *image = [UIImage imageWithData:receivedData];
+        
+        [self setImageAtImageView:image];
+        
+    }else {
+        
+        [ShowAlert error:@"未対応パターンのようです。"];
+    }
 }
 
 - (void) savingImageIsFinished:(UIImage *)image

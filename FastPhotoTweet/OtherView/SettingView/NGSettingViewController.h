@@ -10,6 +10,7 @@
 #import "DeleteWhiteSpace.h"
 #import "EmptyCheck.h"
 #import "ShowAlert.h"
+#import "SSTextField.h"
 
 @interface NGSettingViewController : UIViewController <UITextFieldDelegate, UINavigationBarDelegate> {
     
@@ -23,9 +24,9 @@
 @property (retain, nonatomic) IBOutlet UIBarButtonItem *closeButton;
 @property (retain, nonatomic) IBOutlet UIBarButtonItem *addButton;
 @property (retain, nonatomic) IBOutlet UISegmentedControl *ngTypeSegment;
-@property (retain, nonatomic) IBOutlet UITextField *ngWordField;
-@property (retain, nonatomic) IBOutlet UITextField *userField;
-@property (retain, nonatomic) IBOutlet UITextField *exclusionUserField;
+@property (retain, nonatomic) IBOutlet SSTextField *ngWordField;
+@property (retain, nonatomic) IBOutlet SSTextField *userField;
+@property (retain, nonatomic) IBOutlet SSTextField *exclusionUserField;
 @property (retain, nonatomic) IBOutlet UILabel *regexpLabel;
 @property (retain, nonatomic) IBOutlet UISwitch *regexpSwitch;
 @property (retain, nonatomic) IBOutlet UITableView *addedNgSettings;

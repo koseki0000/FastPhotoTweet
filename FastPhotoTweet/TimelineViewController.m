@@ -63,45 +63,43 @@
     
     NSLog(@"viewDidLoad");
     
-    __block __weak TimelineViewController *weakSelf = self;
-    
     dispatch_queue_t asyncQueue = GLOBAL_QUEUE_DEFAULT;
     dispatch_async(asyncQueue, ^{
         
         SYNC_MAIN_QUEUE ^{
             
-            weakSelf.timelineControlButton.image = weakSelf.startImage;
+            _timelineControlButton.image = _startImage;
             
-            weakSelf.timelineSegment.frame = CGRectMake(-4,
-                                                        weakSelf.timelineSegment.frame.origin.y,
-                                                        weakSelf.timelineSegment.frame.size.width + 8,
-                                                        weakSelf.timelineSegment.frame.size.height);
+            _timelineSegment.frame = CGRectMake(-4,
+                                                        _timelineSegment.frame.origin.y,
+                                                        _timelineSegment.frame.size.width + 8,
+                                                        _timelineSegment.frame.size.height);
             
-            weakSelf.grayView = [ActivityGrayView grayViewWithTaskName:@"FirstLoad"];
-            [weakSelf.view addSubview:weakSelf.grayView];
+            _grayView = [ActivityGrayView grayViewWithTaskName:@"FirstLoad"];
+            [self.view addSubview:_grayView];
             
-            weakSelf.imageWindow = [[ImageWindow alloc] init];
-            [weakSelf.view addSubview:weakSelf.imageWindow];
+            _imageWindow = [[ImageWindow alloc] init];
+            [self.view addSubview:_imageWindow];
             
-            [weakSelf setTimelineHeight];
+            [self setTimelineHeight];
             
             //ツールバーにボタンを設定
-            [weakSelf setTimelineBarItems];
+            [self setTimelineBarItems];
             
             //アイコン表示の角を丸める
-            [weakSelf setMyAccountIconCorner];
+            [self setMyAccountIconCorner];
             
-            [weakSelf createPullDownRefreshHeader];
+            [self createPullDownRefreshHeader];
         });
         
         //各種通知設定
-        [weakSelf setNotifications];
+        [self setNotifications];
         
         //インターネット接続を確認
         if ( [InternetConnection disable] ) return;
         
         //タイムライン生成
-        [weakSelf performSelectorInBackground:@selector(createTimeline) withObject:nil];
+        [self performSelectorInBackground:@selector(createTimeline) withObject:nil];
     });
 }
 
@@ -368,11 +366,9 @@
     
     if ( _reloadButton.isEnabled ) {
         
-        __block __weak TimelineViewController *weakSelf = self;
-        
         DISPATCH_AFTER(0.1) ^{
             
-            [weakSelf pushReloadButton:nil];
+            [self pushReloadButton:nil];
         });
         
     }else {
@@ -425,24 +421,22 @@
         return;
     }
     
-    __block __weak TimelineViewController *weakSelf = self;
-    
     //アクティブアカウントのタイムラインを反映
     if ( _timelineArray != [TWTweets currentTimeline] ) {
         
         ASYNC_MAIN_QUEUE ^{
             
-            weakSelf.timelineArray = [TWTweets currentTimeline];
-            [weakSelf.timeline reloadData];
+            _timelineArray = [TWTweets currentTimeline];
+            [_timeline reloadData];
         });
     }
     
     ASYNC_MAIN_QUEUE ^{
         
-        if ( weakSelf.timelineArray.count == 0 ) {
+        if ( _timelineArray.count == 0 ) {
             
-            [weakSelf.grayView start];
-            weakSelf.firstLoad = YES;
+            [_grayView start];
+            _firstLoad = YES;
         }
     });
     
@@ -454,28 +448,26 @@
     
     @autoreleasepool {
         
-        __block __weak TimelineViewController *weakSelf = self;
-        
         dispatch_queue_t globalQueue = GLOBAL_QUEUE_DEFAULT;
         dispatch_async(globalQueue, ^{
             
-            NSLog(@"loadTimeline[%d], userStream[%@]", weakSelf.timelineArray.count, weakSelf.userStream ? @"ON" : @"OFF");
+            NSLog(@"loadTimeline[%d], userStream[%@]", _timelineArray.count, _userStream ? @"ON" : @"OFF");
             
             ASYNC_MAIN_QUEUE ^{
                 
-                [weakSelf finishLoad];
+                [self finishLoad];
             });
             
             //Timelineタブ以外が選択されている場合は終了
-            if ( weakSelf.timelineSegment.selectedSegmentIndex != 0 ) return;
+            if ( _timelineSegment.selectedSegmentIndex != 0 ) return;
             if ( ![[center.userInfo objectForKey:@"Type"] isEqualToString:@"Timeline"] ) return;
             if ( ![[center.userInfo objectForKey:@"Account"] isEqualToString:[TWAccounts currentAccountName]] ) return;
             
             //自分のアイコンを設定
-            [weakSelf getMyAccountIcon];
+            [self getMyAccountIcon];
             
             //更新アカウントを記憶
-            weakSelf.lastUpdateAccount = [TWAccounts currentAccountName];
+            _lastUpdateAccount = [TWAccounts currentAccountName];
             
             NSString *result = [[NSString alloc] initWithString:[center.userInfo objectForKey:@"Result"]];
             
@@ -491,19 +483,19 @@
                     
                     ASYNC_MAIN_QUEUE ^{
                         
-                        weakSelf.reloadButton.enabled = YES;
+                        _reloadButton.enabled = YES;
                         
-                        if ( weakSelf.viewWillAppear ) {
+                        if ( self.viewWillAppear ) {
                             
-                            weakSelf.viewWillAppear = NO;
-                            [weakSelf.timeline reloadData];
+                            self.viewWillAppear = NO;
+                            [_timeline reloadData];
                         }
                     });
                     
-                    if ( [D boolForKey:@"ReloadAfterUSConnect"] && !weakSelf.userStream ) {
+                    if ( [D boolForKey:@"ReloadAfterUSConnect"] && !_userStream ) {
                         
                         //UserStream接続
-                        [weakSelf pushTimelineControlButton:nil];
+                        [self pushTimelineControlButton:nil];
                     }
                     
                     return;
@@ -515,10 +507,10 @@
                     
                     [ShowAlert error:@"タイムライン取得時にエラーが発生しました。"];
                     
-                    if ( [D boolForKey:@"ReloadAfterUSConnect"] && !weakSelf.userStream ) {
+                    if ( [D boolForKey:@"ReloadAfterUSConnect"] && !_userStream ) {
                         
                         //UserStream接続
-                        [weakSelf pushTimelineControlButton:nil];
+                        [self pushTimelineControlButton:nil];
                     }
                     
                     return;
@@ -531,50 +523,48 @@
                     
                     NSString *scrollTweetID = nil;
                     
-                    if ( [weakSelf.timelineArray isNotEmpty] ) {
+                    if ( [_timelineArray isNotEmpty] ) {
                         
-                        scrollTweetID = [[NSString alloc] initWithString:[[weakSelf.timelineArray objectAtIndex:0] objectForKey:@"id_str"]];
+                        scrollTweetID = [[NSString alloc] initWithString:[[_timelineArray objectAtIndex:0] objectForKey:@"id_str"]];
                     }
                     
-                    weakSelf.timelineArray = [weakSelf.timelineArray appendOnlyNewToTop:newTweet
+                    _timelineArray = [_timelineArray appendOnlyNewToTop:newTweet
                                                                                forXPath:@"id_str"
                                                                           returnMutable:YES];
                     
                     //タイムラインを保存
-                    [TWTweets saveCurrentTimeline:weakSelf.timelineArray];
+                    [TWTweets saveCurrentTimeline:_timelineArray];
                     
-                    [weakSelf checkTimelineCount:NO];
-                    
-                    __block __weak NSString *weakScrollTweetID = scrollTweetID;
+                    [self checkTimelineCount:NO];
                     
                     ASYNC_MAIN_QUEUE ^{
                         
-                        weakSelf.reloadButton.enabled = YES;
+                        _reloadButton.enabled = YES;
                         
                         [ActivityIndicator off];
                         
                         //タイムラインを再読み込み
-                        [weakSelf.timeline reloadData];
+                        [_timeline reloadData];
                         
-                        if ( weakSelf.firstLoad && [D boolForKey:@"TimelineFirstLoad"] ) {
+                        if ( _firstLoad && [D boolForKey:@"TimelineFirstLoad"] ) {
                             
-                            [weakSelf scrollTimelineToBottom:YES];
-                            weakSelf.firstLoad = NO;
+                            [self scrollTimelineToBottom:YES];
+                            _firstLoad = NO;
                             
                         }else {
                             
                             //新着取得前の最新までスクロール
-                            [weakSelf scrollTimelineForNewTweet:weakScrollTweetID];
+                            [self scrollTimelineForNewTweet:scrollTweetID];
                         }
                         
-                        [weakSelf.timeline flashScrollIndicators];
+                        [_timeline flashScrollIndicators];
                         
-                        if ( [D boolForKey:@"ReloadAfterUSConnect"] && !weakSelf.userStream ) {
+                        if ( [D boolForKey:@"ReloadAfterUSConnect"] && !_userStream ) {
                             
                             //UserStream接続
                             DISPATCH_AFTER(0.1) ^{
                                 
-                                [weakSelf pushTimelineControlButton:nil];
+                                [self pushTimelineControlButton:nil];
                             });
                         }
                     });
@@ -585,7 +575,7 @@
                         dispatch_queue_t queue = GLOBAL_QUEUE_DEFAULT;
                         dispatch_async(queue, ^ {
                             
-                            [weakSelf getIconWithTweetArray:[NSMutableArray arrayWithArray:newTweet]];
+                            [self getIconWithTweetArray:[NSMutableArray arrayWithArray:newTweet]];
                             newTweet = nil;
                         });
                     });
@@ -594,25 +584,25 @@
                     
                     ASYNC_MAIN_QUEUE ^{
                         
-                        weakSelf.reloadButton.enabled = YES;
+                        _reloadButton.enabled = YES;
                         
-                        if ( [D boolForKey:@"ReloadAfterUSConnect"] && !weakSelf.userStream ) {
+                        if ( [D boolForKey:@"ReloadAfterUSConnect"] && !_userStream ) {
                             
                             //UserStream接続
                             DISPATCH_AFTER(0.1) ^{
                                 
-                                [weakSelf pushTimelineControlButton:nil];
+                                [self pushTimelineControlButton:nil];
                             });
                         }
                         
                         //タイムライン表示を更新
-                        [weakSelf.timeline reloadData];
+                        [_timeline reloadData];
                     });
                 }
                 
             }else if ( [result isEqualToString:@"TimelineError"] ) {
                 
-                weakSelf.reloadButton.enabled = YES;
+                _reloadButton.enabled = YES;
             }
         });
     }
@@ -622,11 +612,9 @@
     
     NSLog(@"loadUserTimeline");
     
-    __block __weak TimelineViewController *weakSelf = self;
-    
     ASYNC_MAIN_QUEUE ^{
         
-        [weakSelf finishLoad];
+        [self finishLoad];
     });
     
     if ( ![[center.userInfo objectForKey:@"Type"] isEqualToString:@"UserTimeline"] ) return;
@@ -659,21 +647,21 @@
         dispatch_queue_t queue = GLOBAL_QUEUE_DEFAULT;
         dispatch_async(queue, ^ {
             
-            [weakSelf getIconWithTweetArray:[NSMutableArray arrayWithArray:newTweet]];
+            [self getIconWithTweetArray:[NSMutableArray arrayWithArray:newTweet]];
         });
         
         ASYNC_MAIN_QUEUE ^{
             
             [ActivityIndicator off];
             
-            [weakSelf setOtherTweetsBarItems];
+            [self setOtherTweetsBarItems];
             
             //タイムラインを再読み込み
-            [weakSelf.timeline reloadData];
+            [_timeline reloadData];
             
-            [weakSelf scrollTimelineToTop:NO];
+            [self scrollTimelineToTop:NO];
             
-            [weakSelf.timeline flashScrollIndicators];
+            [_timeline flashScrollIndicators];
         });
         
     }else {
@@ -686,11 +674,9 @@
     
     NSLog(@"loadMentions");
     
-    __block __weak TimelineViewController *weakSelf = self;
-    
     ASYNC_MAIN_QUEUE ^{
         
-        [weakSelf finishLoad];
+        [self finishLoad];
     });
     
     if ( ![[center.userInfo objectForKey:@"Type"] isEqualToString:@"Mentions"] ) return;
@@ -723,7 +709,7 @@
         dispatch_queue_t queue = GLOBAL_QUEUE_DEFAULT;
         dispatch_async(queue, ^ {
             
-            [weakSelf getIconWithTweetArray:[NSMutableArray arrayWithArray:newTweet]];
+            [self getIconWithTweetArray:[NSMutableArray arrayWithArray:newTweet]];
         });
         
         ASYNC_MAIN_QUEUE ^{
@@ -731,11 +717,11 @@
             [ActivityIndicator off];
             
             //タイムラインを再読み込み
-            [weakSelf.timeline reloadData];
+            [_timeline reloadData];
             
-            [weakSelf scrollTimelineToTop:NO];
+            [self scrollTimelineToTop:NO];
             
-            [weakSelf.timeline flashScrollIndicators];
+            [_timeline flashScrollIndicators];
         });
     }
 }
@@ -744,11 +730,9 @@
     
     NSLog(@"loadFavorites");
     
-    __block __weak TimelineViewController *weakSelf = self;
-    
     ASYNC_MAIN_QUEUE ^{
         
-        [weakSelf finishLoad];
+        [self finishLoad];
     });
     
     if ( ![[center.userInfo objectForKey:@"Type"] isEqualToString:@"Favorites"] ) return;
@@ -780,7 +764,7 @@
         dispatch_queue_t queue = GLOBAL_QUEUE_DEFAULT;
         dispatch_async(queue, ^ {
             
-            [weakSelf getIconWithTweetArray:[NSMutableArray arrayWithArray:newTweet]];
+            [self getIconWithTweetArray:[NSMutableArray arrayWithArray:newTweet]];
         });
         
         ASYNC_MAIN_QUEUE ^{
@@ -788,11 +772,11 @@
             [ActivityIndicator off];
             
             //タイムラインを再読み込み
-            [weakSelf.timeline reloadData];
+            [_timeline reloadData];
             
-            [weakSelf scrollTimelineToTop:NO];
+            [self scrollTimelineToTop:NO];
             
-            [weakSelf.timeline flashScrollIndicators];
+            [_timeline flashScrollIndicators];
         });
     }
 }
@@ -801,11 +785,9 @@
     
     NSLog(@"loadSearch");
     
-    __block __weak TimelineViewController *weakSelf = self;
-    
     ASYNC_MAIN_QUEUE ^{
         
-        [weakSelf finishLoad];
+        [self finishLoad];
     });
     
     if ( ![[center.userInfo objectForKey:@"Type"] isEqualToString:@"Search"] ) return;
@@ -830,7 +812,7 @@
         dispatch_queue_t queue = GLOBAL_QUEUE_DEFAULT;
         dispatch_async(queue, ^ {
             
-            [weakSelf getIconWithTweetArray:[NSMutableArray arrayWithArray:newTweet]];
+            [self getIconWithTweetArray:[NSMutableArray arrayWithArray:newTweet]];
         });
         
         [ActivityIndicator off];
@@ -842,11 +824,11 @@
             [ActivityIndicator off];
             
             //タイムラインを再読み込み
-            [weakSelf.timeline reloadData];
+            [_timeline reloadData];
             
-            [weakSelf scrollTimelineToTop:NO];
+            [self scrollTimelineToTop:NO];
             
-            [weakSelf.timeline flashScrollIndicators];
+            [_timeline flashScrollIndicators];
         });
     }
 }
@@ -855,11 +837,9 @@
     
     NSLog(@"loadList");
     
-    __block __weak TimelineViewController *weakSelf = self;
-    
     ASYNC_MAIN_QUEUE ^{
         
-        [weakSelf finishLoad];
+        [self finishLoad];
     });
     
     if ( ![[center.userInfo objectForKey:@"Type"] isEqualToString:@"List"] ) return;
@@ -887,7 +867,7 @@
     dispatch_queue_t queue = GLOBAL_QUEUE_DEFAULT;
     dispatch_async(queue, ^ {
         
-        [weakSelf getIconWithTweetArray:[NSMutableArray arrayWithArray:weakSelf.timelineArray]];
+        [self getIconWithTweetArray:[NSMutableArray arrayWithArray:_timelineArray]];
     });
     
     ASYNC_MAIN_QUEUE ^{
@@ -895,11 +875,11 @@
         [ActivityIndicator off];
         
         //タイムラインを再読み込み
-        [weakSelf.timeline reloadData];
+        [_timeline reloadData];
         
-        [weakSelf scrollTimelineToTop:NO];
+        [self scrollTimelineToTop:NO];
         
-        [weakSelf.timeline flashScrollIndicators];
+        [_timeline flashScrollIndicators];
     });
 }
 
@@ -907,7 +887,6 @@
 
     //NSLog(@"getIconWithTweetArray[%d]", tweetArray.count);
     
-    __block __weak TimelineViewController *weakSelf = self;
     NSMutableDictionary *userList = [NSMutableDictionary dictionary];
     
     //重複ユーザーを消す
@@ -960,7 +939,6 @@
                 
                 //アイコンファイルを読み込み
                 UIImage *image = [[UIImage alloc] initWithContentsOfFile:FILE_PATH];
-                __block __weak UIImage *weakImage = image;
                 
                 if ( image != nil ) {
                     
@@ -991,7 +969,7 @@
                         
                         ASYNC_MAIN_QUEUE ^{
                         
-                            weakSelf.accountIconView.image = weakImage;
+                            _accountIconView.image = image;
                         });
                     }
                     
@@ -1038,11 +1016,9 @@
                             
                             if ( [screenName isEqualToString:[TWAccounts currentAccountName]] ) {
                                 
-                                __block __weak NSString *weakScreeName = screenName;
-                                
                                 ASYNC_MAIN_QUEUE ^{
                                     
-                                    weakSelf.accountIconView.image = [[Share images] imageForKey:weakScreeName];
+                                    _accountIconView.image = [[Share images] imageForKey:screenName];
                                 });
                             }
                             
@@ -1097,12 +1073,10 @@
     _timelineArray = [TWTweets currentTimeline];
     [_timeline reloadData];
     
-    __block __weak TimelineViewController *weakSelf = self;
-    
     //リロードする
     DISPATCH_AFTER(0.1) ^{
         
-        [weakSelf createTimeline];
+        [self createTimeline];
     });
 }
 
@@ -1115,13 +1089,11 @@
     
     //NSLog(@"refreshTimelineCell: %d", i);
     
-    __block __weak TimelineViewController *weakSelf = self;
-    
     ASYNC_MAIN_QUEUE ^{
     
         NSIndexPath *indexPath = [NSIndexPath indexPathForRow:i inSection:0];
         NSArray *indexPaths = [NSArray arrayWithObject:indexPath];
-        [weakSelf.timeline reloadRowsAtIndexPaths:indexPaths withRowAnimation:UITableViewRowAnimationNone];
+        [_timeline reloadRowsAtIndexPaths:indexPaths withRowAnimation:UITableViewRowAnimationNone];
     });
 }
 
@@ -1221,22 +1193,20 @@
     int max = 400;
     if ( _searchStream ) max = 100;
     
-    __block __weak TimelineViewController *weakSelf = self;
-    
-    if ( weakSelf.timelineArray.count > max ) {
+    if ( _timelineArray.count > max ) {
         
         dispatch_queue_t queue = GLOBAL_QUEUE_DEFAULT;
         dispatch_semaphore_t semaphore = dispatch_semaphore_create(1);
         dispatch_sync(queue, ^{
             dispatch_semaphore_wait(semaphore, DISPATCH_TIME_FOREVER);
             
-            while ( weakSelf.timelineArray.count > max ) {
+            while ( _timelineArray.count > max ) {
                 
-                [weakSelf.timelineArray removeLastObject];
+                [_timelineArray removeLastObject];
                 
                 if ( animated ) {
                     
-                    [weakSelf.timeline deleteRowsAtIndexPaths:@[[NSIndexPath indexPathForRow:weakSelf.timelineArray.count - 1 inSection:0]]
+                    [_timeline deleteRowsAtIndexPaths:@[[NSIndexPath indexPathForRow:_timelineArray.count - 1 inSection:0]]
                                              withRowAnimation:UITableViewRowAnimationBottom];
                 }
             }
@@ -1252,12 +1222,10 @@
 - (void)getInReplyToChain:(NSDictionary *)tweetData {
     
     NSString *inReplyToId = [tweetData objectForKey:@"in_reply_to_status_id_str"];
-    __block __weak NSString *weakInReplyToId = inReplyToId;
-    __block __weak TimelineViewController *weakSelf = self;
     
-    NSLog(@"getInReplyToChain: %@", weakInReplyToId);
+    NSLog(@"getInReplyToChain: %@", inReplyToId);
     
-    if ( ![EmptyCheck check:weakInReplyToId] || [weakInReplyToId isEqualToString:@"END"] ) {
+    if ( ![EmptyCheck check:inReplyToId] || [inReplyToId isEqualToString:@"END"] ) {
         
         //InReplyToIDがもうない場合は表示を行う
         
@@ -1274,25 +1242,25 @@
                 ASYNC_MAIN_QUEUE ^{
                     
                     //t.coを展開
-                    weakSelf.inReplyTo = [TWEntities replaceTcoAll:weakSelf.inReplyTo];
+                    _inReplyTo = [TWEntities replaceTcoAll:_inReplyTo];
                     
-                    [weakSelf setOtherTweetsBarItems];
+                    [self setOtherTweetsBarItems];
                     
-                    weakSelf.timelineArray = BLANK_M_ARRAY;
-                    [weakSelf.timeline reloadData];
+                    _timelineArray = BLANK_M_ARRAY;
+                    [_timeline reloadData];
                     
-                    for ( NSDictionary *tweet in weakSelf.inReplyTo ) {
+                    for ( NSDictionary *tweet in _inReplyTo ) {
                         
                         //タイムラインに追加
-                        [weakSelf.timelineArray insertObject:tweet atIndex:0];
-                        [weakSelf.timeline insertRowsAtIndexPaths:@[[NSIndexPath indexPathForRow:0 inSection:0]] withRowAnimation:UITableViewRowAnimationRight];
+                        [_timelineArray insertObject:tweet atIndex:0];
+                        [_timeline insertRowsAtIndexPaths:@[[NSIndexPath indexPathForRow:0 inSection:0]] withRowAnimation:UITableViewRowAnimationRight];
                     }
                     
                     //タイムラインからアイコンのURLを取得
                     dispatch_queue_t queue = GLOBAL_QUEUE_DEFAULT;
                     dispatch_async(queue, ^ {
                        
-                        [weakSelf getIconWithTweetArray:[NSMutableArray arrayWithArray:weakSelf.timelineArray]];
+                        [self getIconWithTweetArray:[NSMutableArray arrayWithArray:_timelineArray]];
                     });
                 });
             });
@@ -1308,17 +1276,17 @@
             BOOL find = NO;
             NSDictionary *findTweet = BLANK_DIC;
             
-            for ( NSDictionary *searchTweet in weakSelf.timelineArray ) {
+            for ( NSDictionary *searchTweet in _timelineArray ) {
                 
                 NSString *searchTweetID = [[NSString alloc] initWithString:[searchTweet objectForKey:@"id_str"]];
                 
                 if ( [searchTweetID isNotEmpty] ) {
                     
-                    if ( [searchTweetID isEqualToString:weakInReplyToId] ) {
+                    if ( [searchTweetID isEqualToString:inReplyToId] ) {
                         
                         find = YES;
                         findTweet = searchTweet;
-                        [weakSelf.inReplyTo insertObject:findTweet atIndex:0];
+                        [_inReplyTo insertObject:findTweet atIndex:0];
                     }
                 }
                 
@@ -1329,13 +1297,13 @@
                 
                 NSLog(@"InReplyTo TL");
                 
-                [weakSelf getInReplyToChain:findTweet];
+                [self getInReplyToChain:findTweet];
                 
             }else {
                 
                 NSLog(@"InReplyTo REST");
                 
-                [TWEvent getTweet:weakInReplyToId];
+                [TWEvent getTweet:inReplyToId];
             }
         });
     }
@@ -1547,19 +1515,16 @@
 
 - (void)scrollTimelineForNewTweet:(NSString *)tweetID {
     
-    __block __weak NSString *weakTweetID = tweetID;
-    __block __weak TimelineViewController *weakSelf = self;
-    
     dispatch_queue_t globalQueue = GLOBAL_QUEUE_DEFAULT;
     dispatch_async(globalQueue, ^{
         
         //Tweetがない場合はスクロールしない
-        if ( weakSelf.timelineArray == nil ||
-            weakSelf.timelineArray.count == 0 ) return;
+        if ( _timelineArray == nil ||
+            _timelineArray.count == 0 ) return;
         
         //スクロールするIDがない場合は終了
-        if ( weakTweetID == nil ||
-            [weakTweetID isEqualToString:@""] ) return;
+        if ( tweetID == nil ||
+            [tweetID isEqualToString:@""] ) return;
         
         //スクロールするインデックスを検索
         int index = 0;
@@ -1567,7 +1532,7 @@
         for ( NSDictionary *tweet in [TWTweets currentTimeline] ) {
             
             if ( [tweet objectForKey:@"id_str"] != nil &&
-                [[tweet objectForKey:@"id_str"] isEqualToString:weakTweetID] ) {
+                [[tweet objectForKey:@"id_str"] isEqualToString:tweetID] ) {
                 
                 find = YES;
                 break;
@@ -1578,13 +1543,13 @@
         
         if ( find ) {
             
-            if ( weakSelf.timelineArray.count < index ||
-                [weakSelf.timelineArray objectAtIndex:index] == nil ) return;
+            if ( _timelineArray.count < index ||
+                [_timelineArray objectAtIndex:index] == nil ) return;
             
             ASYNC_MAIN_QUEUE ^{
                 
                 //スクロールする
-                [weakSelf.timeline scrollToRowAtIndexPath:[NSIndexPath indexPathForRow:index inSection:0] atScrollPosition:UITableViewScrollPositionBottom animated:YES];
+                [_timeline scrollToRowAtIndexPath:[NSIndexPath indexPathForRow:index inSection:0] atScrollPosition:UITableViewScrollPositionBottom animated:YES];
             });
         }
     });
@@ -1765,11 +1730,9 @@
         _timelineControlButton.enabled = NO;
         _userStreamFirstResponse = NO;
         
-        __block __weak TimelineViewController *weakSelf = self;
-        
         DISPATCH_AFTER(0.6) ^{
            
-            [weakSelf openStream];
+            [self openStream];
         });
         
     }else {
@@ -1825,8 +1788,6 @@
 
 - (void)openStream {
     
-    __block __weak TimelineViewController *weakSelf = self;
-    
     dispatch_queue_t userStreamQueue = GLOBAL_QUEUE_BACKGROUND;
     dispatch_async(userStreamQueue, ^{
         
@@ -1845,20 +1806,17 @@
             [request setAccount:[TWAccounts currentAccount]];
             
             //接続開始
-            weakSelf.connection = [NSURLConnection connectionWithRequest:request.signedURLRequest delegate:weakSelf];
-            [weakSelf.connection start];
+            _connection = [NSURLConnection connectionWithRequest:request.signedURLRequest delegate:self];
+            [_connection start];
             
             // 終わるまでループさせる
-            while ( weakSelf.userStream ) {
+            while ( _userStream ) {
                 
                 @autoreleasepool {
                  
-//                    NSLog(@"RunLoop");
                     [[NSRunLoop currentRunLoop] runMode:NSDefaultRunLoopMode beforeDate:[NSDate dateWithTimeIntervalSinceNow:0.25]];
                 }
             }
-            
-//            NSLog(@"RunLoop End");
         }
     });
 }
@@ -1886,7 +1844,6 @@
     
     if ( _timelineArray.count == 0 ) return;
     
-    __block __weak TimelineViewController *weakSelf = self;
     __block int index = 0;
     __block BOOL find = NO;
     
@@ -1897,7 +1854,7 @@
         NSString *deleteTweetId = [[NSString alloc] initWithString:[[[receiveData objectForKey:@"delete"] objectForKey:@"status"] objectForKey:@"id_str"]];
         
         //削除されたTweetを検索
-        for ( NSDictionary *tweet in weakSelf.timelineArray ) {
+        for ( NSDictionary *tweet in _timelineArray ) {
             
             if ( [[tweet objectForKey:@"id_str"] isEqualToString:deleteTweetId] ) {
                 
@@ -1914,12 +1871,12 @@
         SYNC_MAIN_QUEUE ^{
             
             //見つかった物を削除
-            [weakSelf.timelineArray removeObjectAtIndex:index];
+            [_timelineArray removeObjectAtIndex:index];
             
             //タイムラインを保存
-            [TWTweets saveCurrentTimeline:weakSelf.timelineArray];
+            [TWTweets saveCurrentTimeline:_timelineArray];
             
-            [weakSelf.timeline deleteRowsAtIndexPaths:@[[NSIndexPath indexPathForRow:index inSection:0]] withRowAnimation:UITableViewRowAnimationFade];
+            [_timeline deleteRowsAtIndexPaths:@[[NSIndexPath indexPathForRow:index inSection:0]] withRowAnimation:UITableViewRowAnimationFade];
         });
     }
 }
@@ -1929,26 +1886,23 @@
     //自分のふぁぼりイベント
     NSString *favedTweetId = [[NSString alloc] initWithString:[[receiveData objectForKey:@"target_object"] objectForKey:@"id_str"]];
     
-    __block __weak TimelineViewController *weakSelf = self;
-    __block __weak NSString *weakFavedTweetId = favedTweetId;
-    
     int index = 0;
-    for ( NSDictionary *tweet in weakSelf.timelineArray ) {
+    for ( NSDictionary *tweet in _timelineArray ) {
         
-        if ( [[tweet objectForKey:@"id_str"] isEqualToString:weakFavedTweetId] ) {
+        if ( [[tweet objectForKey:@"id_str"] isEqualToString:favedTweetId] ) {
             
             NSMutableDictionary *favedTweet = [[NSMutableDictionary alloc] initWithDictionary:tweet];
             [favedTweet setObject:@"1" forKey:@"favorited"];
             
             SYNC_MAIN_QUEUE ^{
                 
-                [weakSelf.timelineArray replaceObjectAtIndex:index withObject:favedTweet];
+                [_timelineArray replaceObjectAtIndex:index withObject:favedTweet];
                 
                 //タイムラインを保存
-                [TWTweets saveCurrentTimeline:weakSelf.timelineArray];
+                [TWTweets saveCurrentTimeline:_timelineArray];
                 
                 //TL更新
-                [weakSelf.timeline reloadRowsAtIndexPaths:@[[NSIndexPath indexPathForRow:index inSection:0]] withRowAnimation:UITableViewRowAnimationLeft];
+                [_timeline reloadRowsAtIndexPaths:@[[NSIndexPath indexPathForRow:index inSection:0]] withRowAnimation:UITableViewRowAnimationLeft];
             });
             
             break;
@@ -1963,26 +1917,23 @@
     //自分のふぁぼり外しイベント
     NSString *favedTweetId = [[NSString alloc] initWithString:[[receiveData objectForKey:@"target_object"] objectForKey:@"id_str"]];
     
-    __block __weak TimelineViewController *weakSelf = self;
-    __block __weak NSString *weakFavedTweetId = favedTweetId;
-    
     int index = 0;
-    for ( NSDictionary *tweet in weakSelf.timelineArray ) {
+    for ( NSDictionary *tweet in _timelineArray ) {
         
-        if ( [[tweet objectForKey:@"id_str"] isEqualToString:weakFavedTweetId] ) {
+        if ( [[tweet objectForKey:@"id_str"] isEqualToString:favedTweetId] ) {
             
             NSMutableDictionary *favedTweet = [[NSMutableDictionary alloc] initWithDictionary:tweet];
             [favedTweet setObject:@"0" forKey:@"favorited"];
             
             SYNC_MAIN_QUEUE ^{
                 
-                [weakSelf.timelineArray replaceObjectAtIndex:index withObject:favedTweet];
+                [_timelineArray replaceObjectAtIndex:index withObject:favedTweet];
                 
                 //タイムラインを保存
-                [TWTweets saveCurrentTimeline:weakSelf.timelineArray];
+                [TWTweets saveCurrentTimeline:_timelineArray];
                 
                 //TL更新
-                [weakSelf.timeline reloadRowsAtIndexPaths:@[[NSIndexPath indexPathForRow:index inSection:0]] withRowAnimation:UITableViewRowAnimationRight];
+                [_timeline reloadRowsAtIndexPaths:@[[NSIndexPath indexPathForRow:index inSection:0]] withRowAnimation:UITableViewRowAnimationRight];
             });
             
             break;
@@ -2044,8 +1995,6 @@
     
     //NSLog(@"favDic: %@", favDic);
     
-    __block __weak TimelineViewController *weakSelf = self;
-    
     if ( [[Share images] objectForKey:favUser] == nil ) {
         
         NSMutableDictionary *tempDic = [[NSMutableDictionary alloc] init];
@@ -2056,39 +2005,37 @@
         dispatch_queue_t queue = GLOBAL_QUEUE_DEFAULT;
         dispatch_async(queue, ^ {
             
-            [weakSelf getIconWithTweetArray:[NSMutableArray arrayWithArray:@[tempDic]]];
+            [self getIconWithTweetArray:[NSMutableArray arrayWithArray:@[tempDic]]];
         });
     }
     
     SYNC_MAIN_QUEUE ^{
         
         //タイムラインに追加
-        weakSelf.timelineArray = [weakSelf.timelineArray appendToTop:@[favDic] returnMutable:YES];
+        _timelineArray = [_timelineArray appendToTop:@[favDic] returnMutable:YES];
         
         //タイムラインを保存
-        [TWTweets saveCurrentTimeline:weakSelf.timelineArray];
+        [TWTweets saveCurrentTimeline:_timelineArray];
         
         //タイムラインを更新
-        [weakSelf.timeline insertRowsAtIndexPaths:@[[NSIndexPath indexPathForRow:0 inSection:0]]
+        [_timeline insertRowsAtIndexPaths:@[[NSIndexPath indexPathForRow:0 inSection:0]]
                                  withRowAnimation:UITableViewRowAnimationTop];
     });
 }
 
 - (void)userStreamReceiveTweet:(NSDictionary *)receiveData newTweet:(NSArray *)newTweet {
     
-    __block __weak TimelineViewController *weakSelf = self;
-    
     SYNC_MAIN_QUEUE ^{
         
-        [weakSelf checkTimelineCount:YES];
+        [self checkTimelineCount:YES];
         
         //タイムラインに追加
-        weakSelf.timelineArray = [weakSelf.timelineArray appendOnlyNewToTop:newTweet returnMutable:YES];
+        _timelineArray = [_timelineArray appendOnlyNewToTop:newTweet returnMutable:YES];
         
         //タイムラインを保存
-        [TWTweets saveCurrentTimeline:weakSelf.timelineArray];
+        [TWTweets saveCurrentTimeline:_timelineArray];
         
-        [weakSelf.timeline insertRowsAtIndexPaths:@[[NSIndexPath indexPathForRow:0 inSection:0]]
+        [_timeline insertRowsAtIndexPaths:@[[NSIndexPath indexPathForRow:0 inSection:0]]
                                  withRowAnimation:UITableViewRowAnimationTop];
     });
     
@@ -2096,15 +2043,13 @@
     dispatch_queue_t queue = GLOBAL_QUEUE_DEFAULT;
     dispatch_async(queue, ^ {
         
-        [weakSelf getIconWithTweetArray:[NSMutableArray arrayWithArray:newTweet]];
+        [self getIconWithTweetArray:[NSMutableArray arrayWithArray:newTweet]];
     });
 }
 
 #pragma mark - SearchStream
 
 - (void)openSearchStream:(NSString *)searchWord {
-    
-    __block __weak TimelineViewController *weakSelf = self;
     
     dispatch_queue_t userStreamQueue = GLOBAL_QUEUE_BACKGROUND;
     dispatch_async(userStreamQueue, ^{
@@ -2115,7 +2060,7 @@
             
             if ( [D boolForKey:@"USNoAutoLock"] ) [[UIApplication sharedApplication] setIdleTimerDisabled:YES];
             
-            [weakSelf setOtherTweetsBarItems];
+            [self setOtherTweetsBarItems];
             
             //リクエストパラメータを作成
             NSMutableDictionary *params = [[NSMutableDictionary alloc] init];
@@ -2138,16 +2083,16 @@
             [request setAccount:[TWAccounts currentAccount]];
             
             //接続開始
-            weakSelf.connection = [NSURLConnection connectionWithRequest:request.signedURLRequest delegate:self];
-            [weakSelf.connection start];
+            _connection = [NSURLConnection connectionWithRequest:request.signedURLRequest delegate:self];
+            [_connection start];
             
             [params removeAllObjects];
             
-            [weakSelf.searchStreamTemp removeAllObjects];
-            [weakSelf startSearchStreamTimer];
+            [_searchStreamTemp removeAllObjects];
+            [self startSearchStreamTimer];
             
             // 終わるまでループさせる
-            while ( weakSelf.searchStream ) {
+            while ( _searchStream ) {
                 
                 @autoreleasepool {
                 
@@ -2227,29 +2172,27 @@
     
     if ( _searchStreamTemp.count != 0 ) {
         
-        __block __weak TimelineViewController *weakSelf = self;
-        
         dispatch_queue_t queue = GLOBAL_QUEUE_DEFAULT;
         dispatch_async(queue, ^{
             
             SYNC_MAIN_QUEUE ^{
                 
-                NSDictionary *newTweet = [[NSDictionary alloc] initWithDictionary:[weakSelf.searchStreamTemp objectAtIndex:0]];
-                [weakSelf.searchStreamTemp removeObjectAtIndex:0];
+                NSDictionary *newTweet = [[NSDictionary alloc] initWithDictionary:[_searchStreamTemp objectAtIndex:0]];
+                [_searchStreamTemp removeObjectAtIndex:0];
                 
                 if ( newTweet != nil ) {
                     
-                    [weakSelf checkTimelineCount:YES];
+                    [self checkTimelineCount:YES];
                     
                     //タイムラインに追加
-                    weakSelf.timelineArray = [weakSelf.timelineArray appendOnlyNewToTop:@[newTweet] returnMutable:YES];
-                    [weakSelf.timeline insertRowsAtIndexPaths:@[[NSIndexPath indexPathForRow:0 inSection:0]] withRowAnimation:UITableViewRowAnimationTop];
+                    _timelineArray = [_timelineArray appendOnlyNewToTop:@[newTweet] returnMutable:YES];
+                    [_timeline insertRowsAtIndexPaths:@[[NSIndexPath indexPathForRow:0 inSection:0]] withRowAnimation:UITableViewRowAnimationTop];
                     
                     //アイコン保存
                     dispatch_queue_t queue = GLOBAL_QUEUE_DEFAULT;
                     dispatch_async(queue, ^ {
                         
-                        [weakSelf getIconWithTweetArray:[NSMutableArray arrayWithArray:@[newTweet]]];
+                        [self getIconWithTweetArray:[NSMutableArray arrayWithArray:@[newTweet]]];
                     });
                 }
             });
@@ -2293,12 +2236,10 @@
         
         if ( _searchStream ) {
             
-            __block __weak TimelineViewController *weakSelf = self;
-            
             ASYNC_MAIN_QUEUE ^{
                 
                 //SearchStreamの場合
-                [weakSelf searchStreamReceiveTweet:[[TWEntities replaceTcoAll:@[receiveData]] objectAtIndex:0]];
+                [self searchStreamReceiveTweet:[[TWEntities replaceTcoAll:@[receiveData]] objectAtIndex:0]];
             });
             
             return;
@@ -2576,14 +2517,12 @@
         }
     }
     
-    __block __weak TimelineViewController *weakSelf = self;
-    
     ASYNC_MAIN_QUEUE ^{
         
-        if ( weakSelf.timelineSegment.selectedSegmentIndex != 0 &&
-            weakSelf.timelineSegment.selectedSegmentIndex != 3 ) {
+        if ( _timelineSegment.selectedSegmentIndex != 0 &&
+            _timelineSegment.selectedSegmentIndex != 3 ) {
             
-            [weakSelf.grayView start];
+            [_grayView start];
         }
     });
 }
@@ -2592,14 +2531,12 @@
 
 - (void)actionSheet:(UIActionSheet *)actionSheet clickedButtonAtIndex:(NSInteger)buttonIndex {
     
-    __block __weak TimelineViewController *weakSelf = self;
-    
     dispatch_queue_t globalQueue = GLOBAL_QUEUE_DEFAULT;
     dispatch_async(globalQueue, ^{
         
-        NSString *tweetId = [weakSelf.selectTweet objectForKey:@"id_str"];
-        NSString *screenName = [[weakSelf.selectTweet objectForKey:@"user"] objectForKey:@"screen_name"];
-        NSString *text = [weakSelf.selectTweet objectForKey:@"text"];
+        NSString *tweetId = [_selectTweet objectForKey:@"id_str"];
+        NSString *screenName = [[_selectTweet objectForKey:@"user"] objectForKey:@"screen_name"];
+        NSString *text = [_selectTweet objectForKey:@"text"];
         
         if ( actionSheet.tag == 0 ) {
             
@@ -2625,18 +2562,18 @@
                     APP_DELEGATE.reOpenUrl = BLANK;
                     
                     //開くべきURLがある場合ブラウザを開く
-                    [weakSelf openBrowser];
+                    [self openBrowser];
                 }
                 
             }else if ( buttonIndex == 1 ) {
                 
                 SYNC_MAIN_QUEUE ^{
                     
-                    if ( weakSelf.otherTweetsMode ) [weakSelf pushCloseOtherTweetsButton:nil];
+                    if ( _otherTweetsMode ) [self pushCloseOtherTweetsButton:nil];
                     
                     [APP_DELEGATE.postData removeAllObjects];
                     
-                    NSString *inReplyToId = [[NSString alloc] initWithString:[weakSelf.selectTweet objectForKey:@"id_str"]];
+                    NSString *inReplyToId = [[NSString alloc] initWithString:[_selectTweet objectForKey:@"id_str"]];
                     
                     if ( screenName == nil || inReplyToId == nil ) return;
                     
@@ -2644,12 +2581,12 @@
                     [APP_DELEGATE.postData setObject:inReplyToId forKey:@"InReplyToId"];
                     
                     APP_DELEGATE.tabChangeFunction = @"Reply";
-                    weakSelf.tabBarController.selectedIndex = 0;
+                    self.tabBarController.selectedIndex = 0;
                 });
                 
             }else if ( buttonIndex == 2 ) {
                 
-                BOOL favorited = [[weakSelf.selectTweet objectForKey:@"favorited"] boolValue];
+                BOOL favorited = [[_selectTweet objectForKey:@"favorited"] boolValue];
                 
                 if ( favorited ) {
                     
@@ -2674,13 +2611,13 @@
                     
                     DISPATCH_AFTER(0.1) ^{
                         
-                        [weakSelf showPickerView];
+                        [self showPickerView];
                     });
                 });
                 
             }else if ( buttonIndex == 6 ) {
                 
-                NSString *hashTag = [[weakSelf.selectTweet stringForKey:@"text"] strWithRegExp:@"((?:\\A|\\z|[\x0009-\x000D\x0020\xC2\x85\u00A0\u1680\u180E\u2000-\u200A\u2028\u2029\u202F\u205F\u3000]|[\\[\\]［］()（）{}｛｝‘’“”\"\'｟｠⸨⸩「」｢｣『』〚〛⟦⟧〔〕❲❳〘〙⟬⟭〈〉〈〉⟨⟩《》⟪⟫<>＜＞«»‹›【】〖〗]|。|、|\\.|!))(#|＃)([a-z0-9_\u00C0-\u00D6\u00D8-\u00F6\u00F8-\u00FF\u0400-\u04FF\u0500-\u0527\u1100-\u11FF\u3130-\u3185\uA960-\uA97F\uAC00-\uD7AF\uD7B0-\uD7FF\u30A1-\u30FA\uFF66-\uFF9D\uFF10-\uFF19\uFF21-\uFF3A\uFF41-\uFF5A\u3041-\u3096\u3400-\u4DBF\u4E00-\u9FFF\u020000-\u02A6DF\u02A700-\u02B73F\u02B740-\u02B81F\u02F800-\u02FA1F\u30FC\u3005]*[a-z_\u00C0-\u00D6\u00D8-\u00F6\u00F8-\u00FF\u0400-\u04FF\u0500-\u0527\u1100-\u11FF\u3130-\u3185\uA960-\uA97F\uAC00-\uD7AF\uD7B0-\uD7FF\u30A1-\u30FA\uFF66-\uFF9D\uFF10-\uFF19\uFF21-\uFF3A\uFF41-\uFF5A\u3041-\u3096\u3400-\u4DBF\u4E00-\u9FFF\u020000-\u02A6DF\u02A700-\u02B73F\u02B740-\u02B81F\u02F800-\u02FA1F\u30FC\u3005][a-z0-9_\u00C0-\u00D6\u00D8-\u00F6\u00F8-\u00FF\u0400-\u04FF\u0500-\u0527\u1100-\u11FF\u3130-\u3185\uA960-\uA97F\uAC00-\uD7AF\uD7B0-\uD7FF\u30A1-\u30FA\uFF66-\uFF9D\uFF10-\uFF19\uFF21-\uFF3A\uFF41-\uFF5A\u3041-\u3096\u3400-\u4DBF\u4E00-\u9FFF\u020000-\u02A6DF\u02A700-\u02B73F\u02B740-\u02B81F\u02F800-\u02FA1F\u30FC\u3005]*)(?=(?:\\A|\\z|[\x0009-\x000D\x0020\xC2\x85\u00A0\u1680\u180E\u2000-\u200A\u2028\u2029\u202F\u205F\u3000]|[\\[\\]［］()（）{}｛｝‘’“”\"\'｟｠⸨⸩「」｢｣『』〚〛⟦⟧〔〕❲❳〘〙⟬⟭〈〉〈〉⟨⟩《》⟪⟫<>＜＞«»‹›【】〖〗]|。|、|\\.|!))"];
+                NSString *hashTag = [[_selectTweet stringForKey:@"text"] strWithRegExp:@"((?:\\A|\\z|[\x0009-\x000D\x0020\xC2\x85\u00A0\u1680\u180E\u2000-\u200A\u2028\u2029\u202F\u205F\u3000]|[\\[\\]［］()（）{}｛｝‘’“”\"\'｟｠⸨⸩「」｢｣『』〚〛⟦⟧〔〕❲❳〘〙⟬⟭〈〉〈〉⟨⟩《》⟪⟫<>＜＞«»‹›【】〖〗]|。|、|\\.|!))(#|＃)([a-z0-9_\u00C0-\u00D6\u00D8-\u00F6\u00F8-\u00FF\u0400-\u04FF\u0500-\u0527\u1100-\u11FF\u3130-\u3185\uA960-\uA97F\uAC00-\uD7AF\uD7B0-\uD7FF\u30A1-\u30FA\uFF66-\uFF9D\uFF10-\uFF19\uFF21-\uFF3A\uFF41-\uFF5A\u3041-\u3096\u3400-\u4DBF\u4E00-\u9FFF\u020000-\u02A6DF\u02A700-\u02B73F\u02B740-\u02B81F\u02F800-\u02FA1F\u30FC\u3005]*[a-z_\u00C0-\u00D6\u00D8-\u00F6\u00F8-\u00FF\u0400-\u04FF\u0500-\u0527\u1100-\u11FF\u3130-\u3185\uA960-\uA97F\uAC00-\uD7AF\uD7B0-\uD7FF\u30A1-\u30FA\uFF66-\uFF9D\uFF10-\uFF19\uFF21-\uFF3A\uFF41-\uFF5A\u3041-\u3096\u3400-\u4DBF\u4E00-\u9FFF\u020000-\u02A6DF\u02A700-\u02B73F\u02B740-\u02B81F\u02F800-\u02FA1F\u30FC\u3005][a-z0-9_\u00C0-\u00D6\u00D8-\u00F6\u00F8-\u00FF\u0400-\u04FF\u0500-\u0527\u1100-\u11FF\u3130-\u3185\uA960-\uA97F\uAC00-\uD7AF\uD7B0-\uD7FF\u30A1-\u30FA\uFF66-\uFF9D\uFF10-\uFF19\uFF21-\uFF3A\uFF41-\uFF5A\u3041-\u3096\u3400-\u4DBF\u4E00-\u9FFF\u020000-\u02A6DF\u02A700-\u02B73F\u02B740-\u02B81F\u02F800-\u02FA1F\u30FC\u3005]*)(?=(?:\\A|\\z|[\x0009-\x000D\x0020\xC2\x85\u00A0\u1680\u180E\u2000-\u200A\u2028\u2029\u202F\u205F\u3000]|[\\[\\]［］()（）{}｛｝‘’“”\"\'｟｠⸨⸩「」｢｣『』〚〛⟦⟧〔〕❲❳〘〙⟬⟭〈〉〈〉⟨⟩《》⟪⟫<>＜＞«»‹›【】〖〗]|。|、|\\.|!))"];
                 
                 if ( [hashTag isNotEmpty] ) {
                     
@@ -2697,15 +2634,15 @@
                     [D setObject:ngWordArray forKey:@"NGWord"];
                     
                     //タイムラインにNGワードを適用
-                    weakSelf.timelineArray = [NSMutableArray arrayWithArray:[TWNgTweet ngWord:[NSArray arrayWithArray:weakSelf.timelineArray]]];
+                    _timelineArray = [NSMutableArray arrayWithArray:[TWNgTweet ngWord:[NSArray arrayWithArray:_timelineArray]]];
                     
                     //タイムラインを保存
-                    [TWTweets saveCurrentTimeline:weakSelf.timelineArray];
+                    [TWTweets saveCurrentTimeline:_timelineArray];
                     
                     ASYNC_MAIN_QUEUE ^{
                         
                         //リロード
-                        [weakSelf.timeline reloadData];
+                        [_timeline reloadData];
                     });
                     
                 }else {
@@ -2720,7 +2657,7 @@
                 
                 NSMutableDictionary *addDic = [[NSMutableDictionary alloc] initWithDictionary:BLANK_M_DIC];
                 
-                NSString *clientName = [[NSString alloc] initWithString:[TWParser client:[weakSelf.selectTweet objectForKey:@"source"]]];
+                NSString *clientName = [[NSString alloc] initWithString:[TWParser client:[_selectTweet objectForKey:@"source"]]];
                 
                 //NGクライアント設定を読み込む
                 NSMutableArray *ngClientArray = [[NSMutableArray alloc] initWithArray:[D objectForKey:@"NGClient"]];
@@ -2740,35 +2677,35 @@
                 [D setObject:ngClientArray forKey:@"NGClient"];
                 
                 //タイムラインにNGワードを適用
-                weakSelf.timelineArray = [NSMutableArray arrayWithArray:[TWNgTweet ngClient:[NSArray arrayWithArray:weakSelf.timelineArray]]];
+                _timelineArray = [NSMutableArray arrayWithArray:[TWNgTweet ngClient:[NSArray arrayWithArray:_timelineArray]]];
                 
                 //タイムラインを保存
-                [TWTweets saveCurrentTimeline:weakSelf.timelineArray];
+                [TWTweets saveCurrentTimeline:_timelineArray];
                 
                 ASYNC_MAIN_QUEUE ^{
                     
                     //リロード
-                    [weakSelf.timeline reloadData];
+                    [_timeline reloadData];
                 });
                 
             }else if ( buttonIndex == 8 ) {
                 
-                if ( weakSelf.inReplyTo != nil || weakSelf.inReplyTo.count != 0 ) {
+                if ( _inReplyTo != nil || _inReplyTo.count != 0 ) {
                     
-                    [weakSelf setInReplyTo:nil];
-                    weakSelf.inReplyTo = [NSMutableArray array];
+                    [self setInReplyTo:nil];
+                    _inReplyTo = [NSMutableArray array];
                 }
                 
-                NSString *inReplyToId = [weakSelf.selectTweet objectForKey:@"in_reply_to_status_id_str"];
+                NSString *inReplyToId = [_selectTweet objectForKey:@"in_reply_to_status_id_str"];
                 
                 if ( [inReplyToId isNotEmpty] ) {
                     
                     NSLog(@"InReplyTo GET START");
                     
-                    weakSelf.otherTweetsMode = YES;
+                    _otherTweetsMode = YES;
                     
-                    [weakSelf.inReplyTo addObject:weakSelf.selectTweet];
-                    [weakSelf getInReplyToChain:weakSelf.selectTweet];
+                    [_inReplyTo addObject:_selectTweet];
+                    [self getInReplyToChain:_selectTweet];
                     
                 }else {
                     
@@ -2784,7 +2721,7 @@
                     
                     UIActionSheet *sheet = [[UIActionSheet alloc]
                                             initWithTitle:@"Tweetをコピー"
-                                            delegate:weakSelf
+                                            delegate:self
                                             cancelButtonTitle:@"Cancel"
                                             destructiveButtonTitle:nil
                                             otherButtonTitles:@"STOT形式", @"本文", @"TweetへのURL", @"Tweet内のURL", nil];
@@ -2795,7 +2732,7 @@
                 
             }else if ( buttonIndex == 10 ) {
                 
-                if ( [[[weakSelf.selectTweet objectForKey:@"user"] objectForKey:@"screen_name"] isEqualToString:[TWAccounts currentAccountName]] ) {
+                if ( [[[_selectTweet objectForKey:@"user"] objectForKey:@"screen_name"] isEqualToString:[TWAccounts currentAccountName]] ) {
                     
                     [TWEvent destroy:tweetId];
                     
@@ -2809,11 +2746,11 @@
                 
             }else if ( buttonIndex == 11 ) {
                 
-                if ( [[[weakSelf.selectTweet objectForKey:@"user"] objectForKey:@"screen_name"] isEqualToString:[TWAccounts currentAccountName]] ) {
+                if ( [[[_selectTweet objectForKey:@"user"] objectForKey:@"screen_name"] isEqualToString:[TWAccounts currentAccountName]] ) {
                     
                     [APP_DELEGATE.postData removeAllObjects];
                     
-                    NSString *inReplyToId = [weakSelf.selectTweet objectForKey:@"in_reply_to_status_id_str"];
+                    NSString *inReplyToId = [_selectTweet objectForKey:@"in_reply_to_status_id_str"];
                     
                     if  ( text == nil || inReplyToId == nil ) return;
                     
@@ -2822,24 +2759,24 @@
                     
                     APP_DELEGATE.tabChangeFunction = @"Edit";
                     
-                    NSString *tweetId = [weakSelf.selectTweet objectForKey:@"id_str"];
+                    NSString *tweetId = [_selectTweet objectForKey:@"id_str"];
                     [TWEvent destroy:tweetId];
                     
                     ASYNC_MAIN_QUEUE ^{
                         
-                        if ( !weakSelf.userStream ) {
+                        if ( !_userStream ) {
                             
                             //削除
-                            [weakSelf.timelineArray removeObjectAtIndex:weakSelf.selectRow];
+                            [_timelineArray removeObjectAtIndex:_selectRow];
                             
                             //タイムラインを保存
-                            [TWTweets saveCurrentTimeline:weakSelf.timelineArray];
+                            [TWTweets saveCurrentTimeline:_timelineArray];
                             
-                            NSIndexPath *indexPath = [NSIndexPath indexPathForRow:weakSelf.selectRow inSection:0];
-                            [weakSelf.timeline deleteRowsAtIndexPaths:@[indexPath] withRowAnimation:UITableViewRowAnimationBottom];
+                            NSIndexPath *indexPath = [NSIndexPath indexPathForRow:_selectRow inSection:0];
+                            [_timeline deleteRowsAtIndexPaths:@[indexPath] withRowAnimation:UITableViewRowAnimationBottom];
                         }
                         
-                        weakSelf.tabBarController.selectedIndex = 0;
+                        self.tabBarController.selectedIndex = 0;
                     });
                     
                 }else {
@@ -2852,46 +2789,46 @@
                 
             }else if ( buttonIndex == 12 ) {
                 
-                NSMutableArray *ids = [[NSMutableArray alloc] initWithArray:[[weakSelf.selectTweet objectForKey:@"text"] twitterIds]];
-                [ids insertObject:[NSString stringWithFormat:@"@%@", [[weakSelf.selectTweet objectForKey:@"user"] objectForKey:@"screen_name"]] atIndex:0];
+                NSMutableArray *ids = [[NSMutableArray alloc] initWithArray:[[_selectTweet objectForKey:@"text"] twitterIds]];
+                [ids insertObject:[NSString stringWithFormat:@"@%@", [[_selectTweet objectForKey:@"user"] objectForKey:@"screen_name"]] atIndex:0];
                 
-                weakSelf.selectTweetIds = ids.deleteDuplicate;
+                _selectTweetIds = ids.deleteDuplicate;
                 
                 if ( ids.count == 0 ) return;
                 
                 ASYNC_MAIN_QUEUE ^{
                     
-                    [weakSelf showTwitterAccountSelectActionSheet:weakSelf.selectTweetIds];
+                    [self showTwitterAccountSelectActionSheet:_selectTweetIds];
                 });
             }
             
         }else if ( actionSheet.tag == 1 ) {
             
-            [weakSelf openTwitterService:weakSelf.alertSearchUserName serviceType:buttonIndex];
+            [self openTwitterService:_alertSearchUserName serviceType:buttonIndex];
             
         }else if ( actionSheet.tag == 2 ) {
             
-            weakSelf.longPressControl = 0;
+            _longPressControl = 0;
             
             if ( buttonIndex != 3 && buttonIndex != 4 ) {
                 
                 ASYNC_MAIN_QUEUE ^{
                     
-                    [weakSelf.grayView forceEnd];
-                    [weakSelf closeStream];
+                    [_grayView forceEnd];
+                    [self closeStream];
                     
                     //タイムラインからログを削除
-                    [weakSelf.timelineArray removeAllObjects];
-                    weakSelf.timelineArray = nil;
-                    weakSelf.timelineArray = BLANK_M_ARRAY;
+                    [_timelineArray removeAllObjects];
+                    _timelineArray = nil;
+                    _timelineArray = BLANK_M_ARRAY;
                     
-                    [weakSelf.timeline reloadData];
+                    [_timeline reloadData];
                 });
                 
                 if ( buttonIndex == 0 ) {
                     
                     //タイムラインを保存
-                    [TWTweets saveCurrentTimeline:weakSelf.timelineArray];
+                    [TWTweets saveCurrentTimeline:_timelineArray];
                     
                 }else if ( buttonIndex == 1 || buttonIndex == 2 ) {
                     
@@ -2907,22 +2844,22 @@
                     APP_DELEGATE.listAll = nil;
                     APP_DELEGATE.listAll = BLANK_ARRAY;
                     
-                    [weakSelf.requestedUser removeAllObjects];
+                    [_requestedUser removeAllObjects];
                     
                     [[Share images] removeAllObjects];
                     
                     //タイムラインログを削除
-                    weakSelf.mentionsArray = nil;
-                    weakSelf.mentionsArray = BLANK_ARRAY;
-                    [weakSelf.allLists removeAllObjects];
-                    weakSelf.allLists = nil;
-                    weakSelf.allLists = BLANK_M_DIC;
+                    _mentionsArray = nil;
+                    _mentionsArray = BLANK_ARRAY;
+                    [_allLists removeAllObjects];
+                    _allLists = nil;
+                    _allLists = BLANK_M_DIC;
                     
                     if ( buttonIndex == 2 ) {
                         
                         ASYNC_MAIN_QUEUE ^{
                             
-                            weakSelf.accountIconView.image = nil;
+                            _accountIconView.image = nil;
                         });
                         
                         //アイコンファイルを削除
@@ -2934,56 +2871,56 @@
                                                  attributes:nil
                                                       error:nil];
                     }
-                    
-                }else if ( buttonIndex == 3 ) {
-                    
-                    //NG情報を再適用
-                    
-                    //NG判定を行う
-                    ASYNC_MAIN_QUEUE ^{
-                        
-                        weakSelf.timelineArray = [TWNgTweet ngAll:weakSelf.timelineArray];
-                        [TWTweets saveCurrentTimeline:weakSelf.timelineArray];
-                        [weakSelf.timeline reloadData];
-                    });
-                    
-                }else {
-                    
-                    //キャンセル
-                    return;
                 }
+                
+            }else if ( buttonIndex == 3 ) {
+                
+                //NG情報を再適用
+                
+                //NG判定を行う
+                ASYNC_MAIN_QUEUE ^{
+                    
+                    _timelineArray = [TWNgTweet ngAll:_timelineArray];
+                    [TWTweets saveCurrentTimeline:_timelineArray];
+                    [_timeline reloadData];
+                });
+                
+            }else {
+                
+                //キャンセル
+                return;
             }
             
         }else if ( actionSheet.tag == 3 ) {
             
-            if ( buttonIndex == weakSelf.selectTweetIds.count ) {
+            if ( buttonIndex == _selectTweetIds.count ) {
                 
                 NSLog(@"buttonIndex == _selectTweetIds.count");
                 
-                weakSelf.selectAccount = BLANK;
-                weakSelf.selectTweetIds = nil;
-                weakSelf.selectTweetIds = BLANK_ARRAY;
+                _selectAccount = BLANK;
+                _selectTweetIds = nil;
+                _selectTweetIds = BLANK_ARRAY;
                 return;
             }
             
             ASYNC_MAIN_QUEUE ^{
                 
-                weakSelf.selectAccount = [weakSelf.selectTweetIds objectAtIndex:buttonIndex];
+                _selectAccount = [_selectTweetIds objectAtIndex:buttonIndex];
                 
-                if ( [weakSelf.selectAccount hasPrefix:@"@"] ) {
+                if ( [_selectAccount hasPrefix:@"@"] ) {
                     
                     //@から始まっている場合取り除く
-                    weakSelf.selectAccount = [weakSelf.selectAccount substringFromIndex:1];
+                    _selectAccount = [_selectAccount substringFromIndex:1];
                 }
                 
                 //前後の空白文字を取り除く
-                weakSelf.selectAccount = [DeleteWhiteSpace string:weakSelf.selectAccount];
+                _selectAccount = [DeleteWhiteSpace string:_selectAccount];
                 
-                weakSelf.alertSearchUserName = weakSelf.selectAccount;
+                _alertSearchUserName = _selectAccount;
                 
                 UIActionSheet *sheet = [[UIActionSheet alloc]
-                                        initWithTitle:weakSelf.selectAccount
-                                        delegate:weakSelf
+                                        initWithTitle:_selectAccount
+                                        delegate:self
                                         cancelButtonTitle:@"Cancel"
                                         destructiveButtonTitle:nil
                                         otherButtonTitles:@"外部サービスやユーザー情報を開く", @"フォロー関連", nil];
@@ -2998,27 +2935,27 @@
                 
                 ASYNC_MAIN_QUEUE ^{
                     
-                    [weakSelf pushActionButton:nil];
+                    [self pushActionButton:nil];
                 });
                 
                 //後処理
-                weakSelf.selectAccount = BLANK;
-                weakSelf.selectTweetIds = nil;
-                weakSelf.selectTweetIds = BLANK_ARRAY;
+                _selectAccount = BLANK;
+                _selectTweetIds = nil;
+                _selectTweetIds = BLANK_ARRAY;
                 
             }else if ( buttonIndex == 1 ) {
                 
                 ASYNC_MAIN_QUEUE ^{
                     
-                    if ( [weakSelf.selectAccount isEqualToString:[TWAccounts currentAccountName]] ) {
+                    if ( [_selectAccount isEqualToString:[TWAccounts currentAccountName]] ) {
                         
                         [ShowAlert error:@"それはあなたです！"];
                         
                     }else {
                         
                         UIActionSheet *sheet = [[UIActionSheet alloc]
-                                                initWithTitle:weakSelf.selectAccount
-                                                delegate:weakSelf
+                                                initWithTitle:_selectAccount
+                                                delegate:self
                                                 cancelButtonTitle:@"Cancel"
                                                 destructiveButtonTitle:@"スパム報告"
                                                 otherButtonTitles:@"ブロック", @"ブロック解除", @"フォロー", @"フォロー解除", nil];
@@ -3034,37 +2971,37 @@
             if ( buttonIndex == 0 ) {
                 
                 //スパム報告
-                [TWFriends reportSpam:weakSelf.selectAccount];
+                [TWFriends reportSpam:_selectAccount];
                 
             }else if ( buttonIndex == 1 ) {
                 
                 //ブロック
-                [TWFriends block:weakSelf.selectAccount];
+                [TWFriends block:_selectAccount];
                 
             }else if ( buttonIndex == 2 ) {
                 
                 //ブロック解除
-                [TWFriends unblock:weakSelf.selectAccount];
+                [TWFriends unblock:_selectAccount];
                 
             }else if ( buttonIndex == 3 ) {
                 
                 //フォロー
-                [TWFriends follow:weakSelf.selectAccount];
+                [TWFriends follow:_selectAccount];
                 
             }else if ( buttonIndex == 4 ) {
                 
                 //フォロー解除
-                [TWFriends unfollow:weakSelf.selectAccount];
+                [TWFriends unfollow:_selectAccount];
             }
             
         }else if ( actionSheet.tag == 6 ) {
             
             //公式RTであるか
-            if ( [[weakSelf.selectTweet objectForKey:@"retweeted_status"] objectForKey:@"id"] ) {
+            if ( [[_selectTweet objectForKey:@"retweeted_status"] objectForKey:@"id"] ) {
                 
-                text = [TWEntities openTcoWithReTweet:weakSelf.selectTweet];
-                screenName = [[[weakSelf.selectTweet objectForKey:@"retweeted_status"] objectForKey:@"user"] objectForKey:@"screen_name"];
-                tweetId = [[weakSelf.selectTweet objectForKey:@"retweeted_status"] objectForKey:@"id_str"];
+                text = [TWEntities openTcoWithReTweet:_selectTweet];
+                screenName = [[[_selectTweet objectForKey:@"retweeted_status"] objectForKey:@"user"] objectForKey:@"screen_name"];
+                tweetId = [[_selectTweet objectForKey:@"retweeted_status"] objectForKey:@"id_str"];
             }
             
             if ( buttonIndex == 0 ) {
@@ -3092,8 +3029,8 @@
                 ASYNC_MAIN_QUEUE ^{
                     
                     //Tweet内のURL
-                    weakSelf.tweetInUrls = [text urls];
-                    [weakSelf copyTweetInUrl:weakSelf.tweetInUrls];
+                    _tweetInUrls = [text urls];
+                    [self copyTweetInUrl:_tweetInUrls];
                 });
             }
             
@@ -3106,15 +3043,15 @@
                 
                 NSLog(@"Tweet in URL copy cancel");
                 
-                weakSelf.tweetInUrls = BLANK_ARRAY;
+                _tweetInUrls = BLANK_ARRAY;
                 
                 return;
             }
             
-            NSLog(@"Copy URL: %@", [weakSelf.tweetInUrls objectAtIndex:buttonIndex]);
+            NSLog(@"Copy URL: %@", [_tweetInUrls objectAtIndex:buttonIndex]);
             
-            [P_BOARD setString:[weakSelf.tweetInUrls objectAtIndex:buttonIndex]];
-            weakSelf.tweetInUrls = BLANK_ARRAY;
+            [P_BOARD setString:[_tweetInUrls objectAtIndex:buttonIndex]];
+            _tweetInUrls = BLANK_ARRAY;
         }
     });
 }
@@ -3238,30 +3175,28 @@
         
     }else if ( serviceType == 1 ) {
         
-        __block __weak TimelineViewController *weakSelf = self;
-        
         ASYNC_MAIN_QUEUE ^{
             
-            weakSelf.alertSearch = nil;
-            weakSelf.alertSearch = [[UIAlertView alloc] initWithTitle:@"TwilogSearch"
+            _alertSearch = nil;
+            _alertSearch = [[UIAlertView alloc] initWithTitle:@"TwilogSearch"
                                                               message:@"\n"
-                                                             delegate:weakSelf
+                                                             delegate:self
                                                     cancelButtonTitle:@"キャンセル"
                                                     otherButtonTitles:@"確定", nil];
             
-            weakSelf.alertSearch.tag = 0;
+            _alertSearch.tag = 0;
             
-            weakSelf.alertSearchText = nil;
-            weakSelf.alertSearchText = [[SSTextField alloc] initWithFrame:CGRectMake(12, 40, 260, 25)];
-            [weakSelf.alertSearchText setBackgroundColor:[UIColor whiteColor]];
-            weakSelf.alertSearchText.contentVerticalAlignment = UIControlContentVerticalAlignmentCenter;
-            weakSelf.alertSearchText.delegate = weakSelf;
-            weakSelf.alertSearchText.text = BLANK;
-            weakSelf.alertSearchText.tag = 0;
+            _alertSearchText = nil;
+            _alertSearchText = [[SSTextField alloc] initWithFrame:CGRectMake(12, 40, 260, 25)];
+            [_alertSearchText setBackgroundColor:[UIColor whiteColor]];
+            _alertSearchText.contentVerticalAlignment = UIControlContentVerticalAlignmentCenter;
+            _alertSearchText.delegate = self;
+            _alertSearchText.text = BLANK;
+            _alertSearchText.tag = 0;
             
-            [weakSelf.alertSearch addSubview:weakSelf.alertSearchText];
-            [weakSelf.alertSearch show];
-            [weakSelf.alertSearchText becomeFirstResponder];
+            [_alertSearch addSubview:_alertSearchText];
+            [_alertSearch show];
+            [_alertSearchText becomeFirstResponder];
         });
         
         return;
@@ -3278,32 +3213,30 @@
         
     }else if ( serviceType == 4 ) {
         
-        __block __weak TimelineViewController *weakSelf = self;
-        
         ASYNC_MAIN_QUEUE ^{
             
-            if ( weakSelf.alertSearchType ) {
+            if ( _alertSearchType ) {
                 
-                weakSelf.alertSearch = nil;
-                weakSelf.alertSearch = [[UIAlertView alloc] initWithTitle:@"ID入力 (screen_name)"
+                _alertSearch = nil;
+                _alertSearch = [[UIAlertView alloc] initWithTitle:@"ID入力 (screen_name)"
                                                                   message:@"\n"
-                                                                 delegate:weakSelf
+                                                                 delegate:self
                                                         cancelButtonTitle:@"キャンセル"
                                                         otherButtonTitles:@"確定", nil];
                 
-                weakSelf.alertSearch.tag = 1;
+                _alertSearch.tag = 1;
                 
                 self.alertSearchText = nil;
-                weakSelf.alertSearchText = [[SSTextField alloc] initWithFrame:CGRectMake(12, 40, 260, 25)];
-                [weakSelf.alertSearchText setBackgroundColor:[UIColor whiteColor]];
-                weakSelf.alertSearchText.contentVerticalAlignment = UIControlContentVerticalAlignmentCenter;
-                weakSelf.alertSearchText.delegate = weakSelf;
-                weakSelf.alertSearchText.text = BLANK;
-                weakSelf.alertSearchText.tag = 1;
+                _alertSearchText = [[SSTextField alloc] initWithFrame:CGRectMake(12, 40, 260, 25)];
+                [_alertSearchText setBackgroundColor:[UIColor whiteColor]];
+                _alertSearchText.contentVerticalAlignment = UIControlContentVerticalAlignmentCenter;
+                _alertSearchText.delegate = self;
+                _alertSearchText.text = BLANK;
+                _alertSearchText.tag = 1;
                 
-                [weakSelf.alertSearch addSubview:weakSelf.alertSearchText];
-                [weakSelf.alertSearch show];
-                [weakSelf.alertSearchText becomeFirstResponder];
+                [_alertSearch addSubview:_alertSearchText];
+                [_alertSearch show];
+                [_alertSearchText becomeFirstResponder];
                 
             }else {
                 
@@ -3315,34 +3248,32 @@
         
     }else if ( serviceType == 5 ) {
         
-        __block __weak TimelineViewController *weakSelf = self;
-        
         ASYNC_MAIN_QUEUE ^{
             
-            weakSelf.otherTweetsMode = YES;
+            _otherTweetsMode = YES;
             
-            if ( weakSelf.alertSearchType ) {
+            if ( _alertSearchType ) {
                 
-                weakSelf.alertSearch = nil;
-                weakSelf.alertSearch = [[UIAlertView alloc] initWithTitle:@"Twitter Search"
+                _alertSearch = nil;
+                _alertSearch = [[UIAlertView alloc] initWithTitle:@"Twitter Search"
                                                                   message:@"\n"
-                                                                 delegate:weakSelf
+                                                                 delegate:self
                                                         cancelButtonTitle:@"キャンセル"
                                                         otherButtonTitles:@"確定", nil];
                 
-                weakSelf.alertSearch.tag = 2;
+                _alertSearch.tag = 2;
                 
-                weakSelf.alertSearchText = nil;
-                weakSelf.alertSearchText = [[SSTextField alloc] initWithFrame:CGRectMake(12, 40, 260, 25)];
-                [weakSelf.alertSearchText setBackgroundColor:[UIColor whiteColor]];
-                weakSelf.alertSearchText.contentVerticalAlignment = UIControlContentVerticalAlignmentCenter;
-                weakSelf.alertSearchText.delegate = weakSelf;
-                weakSelf.alertSearchText.text = BLANK;
-                weakSelf.alertSearchText.tag = 2;
+                _alertSearchText = nil;
+                _alertSearchText = [[SSTextField alloc] initWithFrame:CGRectMake(12, 40, 260, 25)];
+                [_alertSearchText setBackgroundColor:[UIColor whiteColor]];
+                _alertSearchText.contentVerticalAlignment = UIControlContentVerticalAlignmentCenter;
+                _alertSearchText.delegate = self;
+                _alertSearchText.text = BLANK;
+                _alertSearchText.tag = 2;
                 
-                [weakSelf.alertSearch addSubview:weakSelf.alertSearchText];
-                [weakSelf.alertSearch show];
-                [weakSelf.alertSearchText becomeFirstResponder];
+                [_alertSearch addSubview:_alertSearchText];
+                [_alertSearch show];
+                [_alertSearchText becomeFirstResponder];
                 
             }else {
                 
@@ -3355,40 +3286,38 @@
         
     }else if ( serviceType == 6 ) {
         
-        __block __weak TimelineViewController *weakSelf = self;
-        
         ASYNC_MAIN_QUEUE ^{
             
             //UserStreamを切断
-            if ( username ) [weakSelf closeStream];
+            if ( username ) [self closeStream];
             
-            if ( weakSelf.timelineSegment.selectedSegmentIndex == 0 ) {
+            if ( _timelineSegment.selectedSegmentIndex == 0 ) {
                 
-                [TWTweets saveCurrentTimeline:weakSelf.timelineArray];
+                [TWTweets saveCurrentTimeline:_timelineArray];
             }
             
-            weakSelf.searchStream =YES;
+            _searchStream =YES;
             
-            weakSelf.alertSearch = nil;
-            weakSelf.alertSearch = [[UIAlertView alloc] initWithTitle:@"Twitter Search(Stream)"
+            _alertSearch = nil;
+            _alertSearch = [[UIAlertView alloc] initWithTitle:@"Twitter Search(Stream)"
                                                               message:@"\n"
-                                                             delegate:weakSelf
+                                                             delegate:self
                                                     cancelButtonTitle:@"キャンセル"
                                                     otherButtonTitles:@"確定", nil];
             
-            weakSelf.alertSearch.tag = 3;
+            _alertSearch.tag = 3;
             
-            weakSelf.alertSearchText = nil;
-            weakSelf.alertSearchText = [[SSTextField alloc] initWithFrame:CGRectMake(12, 40, 260, 25)];
-            [weakSelf.alertSearchText setBackgroundColor:[UIColor whiteColor]];
-            weakSelf.alertSearchText.contentVerticalAlignment = UIControlContentVerticalAlignmentCenter;
-            weakSelf.alertSearchText.delegate = weakSelf;
-            weakSelf.alertSearchText.text = BLANK;
-            weakSelf.alertSearchText.tag = 3;
+            _alertSearchText = nil;
+            _alertSearchText = [[SSTextField alloc] initWithFrame:CGRectMake(12, 40, 260, 25)];
+            [_alertSearchText setBackgroundColor:[UIColor whiteColor]];
+            _alertSearchText.contentVerticalAlignment = UIControlContentVerticalAlignmentCenter;
+            _alertSearchText.delegate = self;
+            _alertSearchText.text = BLANK;
+            _alertSearchText.tag = 3;
             
-            [weakSelf.alertSearch addSubview:weakSelf.alertSearchText];
-            [weakSelf.alertSearch show];
-            [weakSelf.alertSearchText becomeFirstResponder];
+            [_alertSearch addSubview:_alertSearchText];
+            [_alertSearch show];
+            [_alertSearchText becomeFirstResponder];
         });
         
         return;
@@ -3645,11 +3574,9 @@
                 _timelineArray = BLANK_M_ARRAY;
                 [_timeline reloadData];
                 
-                __block __weak TimelineViewController *weakSelf = self;
-                
                 DISPATCH_AFTER(0.6) ^{
                    
-                    [weakSelf openSearchStream: weakSelf.alertSearchText.text];
+                    [self openSearchStream: _alertSearchText.text];
                 });
             }
         }
@@ -3722,11 +3649,9 @@
             _timelineArray = BLANK_M_ARRAY;
             [_timeline reloadData];
             
-            __block __weak TimelineViewController *weakSelf = self;
-            
             DISPATCH_AFTER(0.6) ^{
                 
-                [weakSelf openSearchStream: weakSelf.alertSearchText.text];
+                [self openSearchStream: _alertSearchText.text];
             });
         }
     }
@@ -3763,7 +3688,6 @@
             
             [tempDic setObject:searchName forKey:@"SearchName"];
             
-            __block __weak TimelineViewController *weakSelf = self;
             __block __weak ASIHTTPRequest *request = [ASIHTTPRequest requestWithURL:[NSURL URLWithString:[TWIconBigger normal:[result objectForKey:@"profile_image_url"]]]];
             request.userInfo = [NSDictionary dictionaryWithDictionary:tempDic];
             
@@ -3772,7 +3696,7 @@
                 NSString *savePath = [ICONS_DIRECTORY stringByAppendingPathComponent:[request.userInfo objectForKey:@"SearchName"]];
                 [request.responseData writeToFile:savePath atomically:YES];
                 [Share cacheImage:[UIImage imageWithData:request.responseData] forName:screenName doneNotification:NO];
-                weakSelf.accountIconView.image = [UIImage imageWithData:request.responseData];
+                _accountIconView.image = [UIImage imageWithData:request.responseData];
             }];
             
             [request startAsynchronous];
@@ -3845,17 +3769,15 @@
     
     if ( find ) {
         
-        __block __weak TimelineViewController *weakSelf = self;
-        
         ASYNC_MAIN_QUEUE ^{
             
             //見つかった物を削除
-            [weakSelf.timelineArray removeObjectAtIndex:index];
+            [_timelineArray removeObjectAtIndex:index];
             
             //タイムラインを保存
-            [TWTweets saveCurrentTimeline:weakSelf.timelineArray];
+            [TWTweets saveCurrentTimeline:_timelineArray];
             
-            [weakSelf.timeline deleteRowsAtIndexPaths:@[[NSIndexPath indexPathForRow:index inSection:0]] withRowAnimation:UITableViewRowAnimationBottom];
+            [_timeline deleteRowsAtIndexPaths:@[[NSIndexPath indexPathForRow:index inSection:0]] withRowAnimation:UITableViewRowAnimationBottom];
         });
     }
 }
@@ -4144,7 +4066,7 @@
     if ( ![_lastUpdateAccount isEqualToString:[TWAccounts currentAccountName]] &&
         [_lastUpdateAccount isNotEmpty] ) {
         
-        _viewWillAppear = YES;
+        self.viewWillAppear = YES;
         
         if ( _userStream ) [self closeStream];
         

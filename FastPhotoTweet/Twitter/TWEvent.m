@@ -33,6 +33,11 @@
              
              dispatch_async(dispatch_get_main_queue(), ^{
                  
+                 NSNotification *statusBarNotification = [NSNotification notificationWithName:@"AddStatusBarTask"
+                                                                                       object:self
+                                                                                     userInfo:@{@"Task" : @"Favorited"}];
+                 [[NSNotificationCenter defaultCenter] postNotification:statusBarNotification];
+                 
                  [ActivityIndicator visible:NO];
              });
          }];
@@ -60,6 +65,11 @@
          ^( NSData *responseData, NSHTTPURLResponse *urlResponse, NSError *error ) {
              
              dispatch_async(dispatch_get_main_queue(), ^{
+                 
+                 NSNotification *statusBarNotification = [NSNotification notificationWithName:@"AddStatusBarTask"
+                                                                                       object:self
+                                                                                     userInfo:@{@"Task" : @"ReTweeted"}];
+                 [[NSNotificationCenter defaultCenter] postNotification:statusBarNotification];
                  
                  [ActivityIndicator visible:NO];
              });
@@ -94,6 +104,11 @@
          ^( NSData *responseData, NSHTTPURLResponse *urlResponse, NSError *error ) {
              
              dispatch_async(dispatch_get_main_queue(), ^{
+                 
+                 NSNotification *statusBarNotification = [NSNotification notificationWithName:@"AddStatusBarTask"
+                                                                                       object:self
+                                                                                     userInfo:@{@"Task" : @"UnFavorited"}];
+                 [[NSNotificationCenter defaultCenter] postNotification:statusBarNotification];
                  
                  [ActivityIndicator visible:NO];
              });
@@ -270,6 +285,11 @@
                      
                      [resultDestroy setObject:@"Error" forKey:@"Result"];
                  }
+                 
+                 NSNotification *statusBarNotification = [NSNotification notificationWithName:@"AddStatusBarTask"
+                                                                                       object:self
+                                                                                     userInfo:@{@"Task" : @"Deleted"}];
+                 [[NSNotificationCenter defaultCenter] postNotification:statusBarNotification];
                  
                  [[NSNotificationCenter defaultCenter] postNotification:notification];
                  

@@ -18,8 +18,6 @@
         if ( [(NSArray *)unitArray isEmpty] ) return self;
         
         __block NSMutableArray *tempArray = nil;
-        __block __weak NSArray *weakSelf = self;
-        __block __weak id weakUnitArray = unitArray;
         
         dispatch_queue_t semaphoreQueue = dispatch_get_global_queue(DISPATCH_QUEUE_PRIORITY_DEFAULT, 0);
         dispatch_semaphore_t semaphore = dispatch_semaphore_create(1);
@@ -28,10 +26,10 @@
             
             dispatch_semaphore_wait(semaphore, DISPATCH_TIME_FOREVER);
         
-            tempArray = [NSMutableArray arrayWithArray:weakSelf];
+            tempArray = [NSMutableArray arrayWithArray:self];
             
             int i = 0;
-            for ( id item in weakUnitArray ) {
+            for ( id item in unitArray ) {
                 
                 [tempArray insertObject:item atIndex:i];
                 i++;
@@ -56,8 +54,6 @@
         if ( [(NSArray *)unitArray isEmpty] ) return self;
         
         __block NSMutableArray *tempArray = nil;
-        __block __weak NSArray *weakSelf = self;
-        __block __weak id weakUnitArray = unitArray;
         
         dispatch_queue_t semaphoreQueue = dispatch_get_global_queue(DISPATCH_QUEUE_PRIORITY_DEFAULT, 0);
         dispatch_semaphore_t semaphore = dispatch_semaphore_create(1);
@@ -66,9 +62,9 @@
             
             dispatch_semaphore_wait(semaphore, DISPATCH_TIME_FOREVER);
             
-            tempArray = [NSMutableArray arrayWithArray:weakSelf];
+            tempArray = [NSMutableArray arrayWithArray:self];
             
-            for ( id item in weakUnitArray ) {
+            for ( id item in unitArray ) {
                 
                 [tempArray addObject:item];
             }
@@ -92,8 +88,6 @@
         if ( [(NSArray *)unitArray isEmpty] ) return self;
         
         __block NSMutableArray *tempArray = nil;
-        __block __weak NSArray *weakSelf = self;
-        __block __weak id weakUnitArray = unitArray;
         
         dispatch_queue_t semaphoreQueue = dispatch_get_global_queue(DISPATCH_QUEUE_PRIORITY_DEFAULT, 0);
         dispatch_semaphore_t semaphore = dispatch_semaphore_create(1);
@@ -102,13 +96,13 @@
             
             dispatch_semaphore_wait(semaphore, DISPATCH_TIME_FOREVER);
             
-            tempArray = [NSMutableArray arrayWithArray:weakSelf];
+            tempArray = [NSMutableArray arrayWithArray:self];
             
             int i = 0;
-            for ( id item in weakUnitArray ) {
+            for ( id item in unitArray ) {
                 
                 BOOL notHave = YES;
-                for ( id myItem in weakSelf ) {
+                for ( id myItem in self ) {
                     
                     if ( [myItem isEqual:item] ) {
                      
@@ -143,8 +137,6 @@
         if ( [(NSArray *)unitArray isEmpty] ) return self;
         
         __block NSMutableArray *tempArray = nil;
-        __block __weak NSArray *weakSelf = self;
-        __block __weak id weakUnitArray = unitArray;
         
         dispatch_queue_t semaphoreQueue = dispatch_get_global_queue(DISPATCH_QUEUE_PRIORITY_DEFAULT, 0);
         dispatch_semaphore_t semaphore = dispatch_semaphore_create(1);
@@ -153,12 +145,12 @@
             
             dispatch_semaphore_wait(semaphore, DISPATCH_TIME_FOREVER);
             
-            tempArray = [NSMutableArray arrayWithArray:weakSelf];
+            tempArray = [NSMutableArray arrayWithArray:self];
             
-            for ( id item in weakUnitArray ) {
+            for ( id item in unitArray ) {
                 
                 BOOL notHave = YES;
-                for ( id myItem in weakSelf ) {
+                for ( id myItem in self ) {
                     
                     if ( [myItem isEqual:item] ) {
                         
@@ -189,9 +181,6 @@
         if ( [(NSArray *)dictionariesArray isEmpty] ) return self;
         
         __block NSMutableArray *tempArray = nil;
-        __block __weak NSArray *weakSelf = self;
-        __block __weak id weakDictionariesArray = dictionariesArray;
-        __block __weak NSString *weakXPath = xpath;
         
         dispatch_queue_t semaphoreQueue = dispatch_get_global_queue(DISPATCH_QUEUE_PRIORITY_DEFAULT, 0);
         dispatch_semaphore_t semaphore = dispatch_semaphore_create(1);
@@ -201,7 +190,7 @@
             dispatch_semaphore_wait(semaphore, DISPATCH_TIME_FOREVER);
             
             BOOL isOnlyDictionary = YES;
-            for ( id item in weakDictionariesArray ) {
+            for ( id item in dictionariesArray ) {
                 
                 if (!( [item isKindOfClass:[NSDictionary class]] ||
                        [item isKindOfClass:[NSMutableDictionary class]] )) {
@@ -211,7 +200,7 @@
                 }
             }
             
-            for ( id item in weakSelf ) {
+            for ( id item in self ) {
                 
                 if (!( [item isKindOfClass:[NSDictionary class]] ||
                        [item isKindOfClass:[NSMutableDictionary class]] )) {
@@ -223,16 +212,16 @@
             
             if ( isOnlyDictionary ) {
              
-                tempArray = [NSMutableArray arrayWithArray:weakSelf];
+                tempArray = [NSMutableArray arrayWithArray:self];
                 
                 int i = 0;
-                for ( NSDictionary *item in weakDictionariesArray ) {
+                for ( NSDictionary *item in dictionariesArray ) {
                     
                     BOOL notHave = YES;
-                    for ( NSDictionary *myItem in weakSelf ) {
+                    for ( NSDictionary *myItem in self ) {
                         
-                        id targetMyItem = [myItem objectForXPath:weakXPath separator:separator];
-                        id targetItem = [item objectForXPath:weakXPath separator:separator];
+                        id targetMyItem = [myItem objectForXPath:xpath separator:separator];
+                        id targetItem = [item objectForXPath:xpath separator:separator];
                         
                         if ( [targetMyItem isNotEmpty] &&
                              [targetItem isNotEmpty] ) {

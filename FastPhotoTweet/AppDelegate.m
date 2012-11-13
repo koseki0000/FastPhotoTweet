@@ -84,7 +84,8 @@ void uncaughtExceptionHandler(NSException *e) {
         [D setObject:@"http://www.google.co.jp/" forKey:@"HomePageURL"];
     }
     
-//    [self setNavigatorMap];
+    _statusBarInfo = [[StatusBarInfo alloc] initWithShowTime:@2.0 checkInterval:@1.0];
+    [self.window addSubview:_statusBarInfo];
     
     //各種初期化
     pboard = [UIPasteboard generalPasteboard];

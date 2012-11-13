@@ -79,10 +79,16 @@
                                                                                      object:self
                                                                                    userInfo:postResult];
                      
+                     NSMutableDictionary *userInfo = [NSMutableDictionary dictionary];
+                     NSNotification *statusBarNotification = [NSNotification notificationWithName:@"AddStatusBarTask"
+                                                                                           object:self
+                                                                                         userInfo:userInfo];
+                     
                      if ( result != nil ) {
                          
                          if ( [result isKindOfClass:[NSDictionary class]] ) {
                              
+                             //@{@"Task" : @"Tweet sended"}
                              NSDictionary *resultDic = [NSDictionary dictionaryWithDictionary:result];
                              
                              if ( [resultDic objectForKey:@"error"] == nil &&
@@ -90,6 +96,7 @@
                                  
                                  [postResult setObject:@"Success" forKey:@"PostResult"];
                                  [postResult setObject:[TWEntities openTco:resultDic] forKey:@"SuccessText"];
+                                 [userInfo setObject:@"Tweet Sended" forKey:@"Task"];
                                  
                              }else if ( [resultDic objectForKey:@"error"] != nil ||
                                         [resultDic objectForKey:@"text"] == nil ) {
@@ -97,27 +104,25 @@
                                  if ( [resultDic objectForKey:@"error"] != nil ) {
                                      
                                      [ShowAlert error:[resultDic objectForKey:@"error"]];
-                                     
-                                 }else {
-                                     
-                                     [ShowAlert error:@"原因不明のエラー"];
                                  }
                                  
                                  [postResult setObject:@"Error" forKey:@"PostResult"];
+                                 [userInfo setObject:@"Tweet Error" forKey:@"Task"];
                                  
                              }else {
                                  
                                  [postResult setObject:@"Error" forKey:@"PostResult"];
-                                 [ShowAlert error:@"不明のエラー"];
+                                 [userInfo setObject:@"Tweet Error" forKey:@"Task"];
                              }
-                             
+                         
                          }else {
                              
                              [postResult setObject:@"Error" forKey:@"PostResult"];
-                             [ShowAlert error:@"不明なレスポンスタイプ"];
+                             [userInfo setObject:@"Tweet Error" forKey:@"Task"];
                          }
                      }
                      
+                     [[NSNotificationCenter defaultCenter] postNotification:statusBarNotification];
                      [[NSNotificationCenter defaultCenter] postNotification:postNotification];
                      [ActivityIndicator off];
                  });
@@ -224,6 +229,11 @@
                                                                                      object:self
                                                                                    userInfo:postResult];
                      
+                     NSMutableDictionary *userInfo = [NSMutableDictionary dictionary];
+                     NSNotification *statusBarNotification = [NSNotification notificationWithName:@"AddStatusBarTask"
+                                                                                           object:self
+                                                                                         userInfo:userInfo];
+                     
                      if ( result != nil ) {
                          
                          if ( [result isKindOfClass:[NSDictionary class]] ) {
@@ -236,12 +246,9 @@
                                  if ( [resultDic objectForKey:@"error"] != nil ) {
                                      
                                      [ShowAlert error:[resultDic objectForKey:@"error"]];
-                                     
-                                 }else {
-                                     
-                                     [ShowAlert error:@"原因不明のエラー"];
                                  }
                                  
+                                 [userInfo setObject:@"Tweet Error" forKey:@"Task"];
                                  [postResult setObject:@"PhotoError" forKey:@"PostResult"];
                                  
                              }else if ( [result objectForKey:@"error"] == nil &&
@@ -249,26 +256,28 @@
                                  
                                  [postResult setObject:@"PhotoSuccess" forKey:@"PostResult"];
                                  [postResult setObject:[TWEntities openTco:resultDic] forKey:@"SuccessText"];
+                                 [userInfo setObject:@"Tweet Sended" forKey:@"Task"];
                                  
                              }else {
                                  
                                  [postResult setObject:@"PhotoError" forKey:@"PostResult"];
-                                 [ShowAlert error:@"不明なエラー"];
+                                 [userInfo setObject:@"Tweet Error" forKey:@"Task"];
                              }
                              
                          }else {
                              
                              [postResult setObject:@"Error" forKey:@"PostResult"];
-                             [ShowAlert error:@"不明なレスポンスタイプ"];
+                            [userInfo setObject:@"Tweet Error" forKey:@"Task"];
                          }
                       
-                         [ActivityIndicator off];
-                         [[NSNotificationCenter defaultCenter] postNotification:postNotification];
-                         
                      }else {
                          
                          NSLog(@"perser error");
                      }
+                     
+                     [[NSNotificationCenter defaultCenter] postNotification:statusBarNotification];
+                     [[NSNotificationCenter defaultCenter] postNotification:postNotification];
+                     [ActivityIndicator off];
                  });
                  
              }else {
