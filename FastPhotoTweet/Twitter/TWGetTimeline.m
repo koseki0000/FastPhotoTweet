@@ -67,6 +67,8 @@
         NSMutableDictionary *result = [[NSMutableDictionary alloc] init];
         [result setObject:@"Timeline" forKey:@"Type"];
         
+        __block __weak NSMutableDictionary *weakResult = result;
+        
         NSNotification *notification =[NSNotification notificationWithName:@"GetTimeline"
                                                                     object:self
                                                                   userInfo:result];
@@ -87,7 +89,7 @@
                                                   options:NSJSONReadingMutableLeaves
                                                     error:&jsonError]];
                  
-                 [result setObject:requestAccount.username forKey:@"Account"];
+                 [weakResult setObject:requestAccount.username forKey:@"Account"];
                  
                  //NSLog(@"timeline: %@", timeline);
                  
@@ -97,12 +99,12 @@
                      timeline = [TWEntities replaceTcoAll:timeline];
                      
                      //取得完了を通知
-                     [result setObject:@"TimelineSuccess" forKey:@"Result"];
-                     [result setObject:timeline forKey:@"Timeline"];
+                     [weakResult setObject:@"TimelineSuccess" forKey:@"Result"];
+                     [weakResult setObject:timeline forKey:@"Timeline"];
                      
                  }else {
                      
-                     [result setObject:@"TimelineError" forKey:@"Result"];
+                     [weakResult setObject:@"TimelineError" forKey:@"Result"];
                  }
                  
                  //NSLog(@"Get HomeTimeline done");
@@ -115,6 +117,8 @@
                  
                  [ActivityIndicator off];
              }
+             
+             weakResult = nil;
          }];
         
         NSLog(@"HomeTimeline request sended");
@@ -176,6 +180,9 @@
     //Timeline取得結果通知を作成
     NSMutableDictionary *result = [NSMutableDictionary dictionary];
     [result setObject:@"UserTimeline" forKey:@"Type"];
+    
+    __block __weak NSMutableDictionary *weakResult = result;
+    
     NSNotification *notification =[NSNotification notificationWithName:@"GetUserTimeline"
                                                                 object:self
                                                               userInfo:result];
@@ -197,7 +204,7 @@
                  
                  //                         NSLog(@"userTimeline: %@", userTimeline);
                  
-                 [result setObject:requestAccount.username forKey:@"Account"];
+                 [weakResult setObject:requestAccount.username forKey:@"Account"];
                  
                  if ( userTimeline != nil && userTimeline.count != 0 ) {
                      
@@ -207,8 +214,8 @@
                      userTimeline = [TWEntities replaceTcoAll:userTimeline];
                      
                      //取得完了を通知
-                     [result setObject:@"UserTimelineSuccess" forKey:@"Result"];
-                     [result setObject:userTimeline forKey:@"UserTimeline"];
+                     [weakResult setObject:@"UserTimelineSuccess" forKey:@"Result"];
+                     [weakResult setObject:userTimeline forKey:@"UserTimeline"];
                      
                  }else {
                      
@@ -222,7 +229,7 @@
                      if ( userTimeline == nil ) NSLog(@"timeline == nil");
                      if ( userTimeline.count == 0 ) NSLog(@"timeline.count == 0");
                      
-                     [result setObject:@"UserTimelineError" forKey:@"Result"];
+                     [weakResult setObject:@"UserTimelineError" forKey:@"Result"];
                  }
                  
                  if ( [requestAccount.username isEqualToString:[TWAccounts currentAccountName]] ) {
@@ -248,6 +255,8 @@
              
              NSLog(@"responseData nil");
          }
+         
+         weakResult = nil;
      }];
     
     //NSLog(@"UserTimeline request sended");
@@ -297,6 +306,9 @@
         //Mentions取得結果通知を作成
         NSMutableDictionary *result = [NSMutableDictionary dictionary];
         [result setObject:@"Mentions" forKey:@"Type"];
+        
+        __block __weak NSMutableDictionary *weakResult = result;
+        
         NSNotification *notification =[NSNotification notificationWithName:@"GetMentions"
                                                                     object:self
                                                                   userInfo:result];
@@ -312,8 +324,8 @@
                                                                                                 error:&jsonError];
                  
                  //取得完了を通知
-                 [result setObject:@"MentionsSuccess" forKey:@"Result"];
-                 [result setObject:mentions forKey:@"Mentions"];
+                 [weakResult setObject:@"MentionsSuccess" forKey:@"Result"];
+                 [weakResult setObject:mentions forKey:@"Mentions"];
                  
                  if ( [requestAccount.username isEqualToString:[TWAccounts currentAccountName]] ) {
                      
@@ -323,6 +335,8 @@
                  
                  [ActivityIndicator off];
              }
+             
+             weakResult = nil;
          }];
         
         //NSLog(@"Mentions request sended");
@@ -371,6 +385,9 @@
         //Mentions取得結果通知を作成
         NSMutableDictionary *result = [NSMutableDictionary dictionary];
         [result setObject:@"Favorites" forKey:@"Type"];
+        
+        __block __weak NSMutableDictionary *weakResult = result;
+        
         NSNotification *notification =[NSNotification notificationWithName:@"GetFavorites"
                                                                     object:self
                                                                   userInfo:result];
@@ -384,8 +401,8 @@
                                                                                                options:NSJSONReadingMutableLeaves
                                                                                                  error:&jsonError];
                  
-                 [result setObject:@"FavoritesSuccess" forKey:@"Result"];
-                 [result setObject:favorites forKey:@"Favorites"];
+                 [weakResult setObject:@"FavoritesSuccess" forKey:@"Result"];
+                 [weakResult setObject:favorites forKey:@"Favorites"];
                  
                  if ( [requestAccount.username isEqualToString:[TWAccounts currentAccountName]] ) {
                      
@@ -395,6 +412,8 @@
                  
                  [ActivityIndicator off];
              }
+             
+             weakResult = nil;
          }];
         
         //NSLog(@"Favorites request sended");
@@ -446,6 +465,9 @@
         //Mentions取得結果通知を作成
         NSMutableDictionary *result = [NSMutableDictionary dictionary];
         [result setObject:@"Search" forKey:@"Type"];
+        
+        __block __weak NSMutableDictionary *weakResult = result;
+        
         NSNotification *notification =[NSNotification notificationWithName:@"GetSearch"
                                                                     object:self
                                                                   userInfo:result];
@@ -453,39 +475,38 @@
         [request performRequestWithHandler:
          ^( NSData *responseData, NSHTTPURLResponse *urlResponse, NSError *error ) {
              
-             dispatch_async(dispatch_get_main_queue(), ^{
+             if ( responseData ) {
                  
-                 if ( responseData ) {
+                 NSError *jsonError = nil;
+                 NSDictionary *searchResult = [NSJSONSerialization JSONObjectWithData:responseData
+                                                                              options:NSJSONReadingMutableLeaves
+                                                                                error:&jsonError];
+                 
+                 //NSLog(@"searchResult: %@", searchResult);
+                 
+                 //レスポンスを整形する
+                 NSArray *results = [TWGetTimeline fixTwitterSearchResponse:[searchResult objectForKey:@"results"]];
+                 
+                 //t.coを全て展開する
+                 results = [TWEntities replaceTcoAll:results];
+                 searchResult = @{ @"results" : results };
+                 
+                 //NSLog(@"searchResult: %@", searchResult);
+                 
+                 //取得完了を通知
+                 [weakResult setObject:@"SearchSuccess" forKey:@"Result"];
+                 [weakResult setObject:[searchResult objectForKey:@"results"] forKey:@"Search"];
+                 
+                 if ( [requestAccount.username isEqualToString:[TWAccounts currentAccountName]] ) {
                      
-                     NSError *jsonError = nil;
-                     NSDictionary *searchResult = [NSJSONSerialization JSONObjectWithData:responseData
-                                                                                  options:NSJSONReadingMutableLeaves
-                                                                                    error:&jsonError];
-                     
-                     //NSLog(@"searchResult: %@", searchResult);
-                     
-                     //レスポンスを整形する
-                     NSArray *results = [TWGetTimeline fixTwitterSearchResponse:[searchResult objectForKey:@"results"]];
-                     
-                     //t.coを全て展開する
-                     results = [TWEntities replaceTcoAll:results];
-                     searchResult = @{ @"results" : results };
-                     
-                     //NSLog(@"searchResult: %@", searchResult);
-                     
-                     //取得完了を通知
-                     [result setObject:@"SearchSuccess" forKey:@"Result"];
-                     [result setObject:[searchResult objectForKey:@"results"] forKey:@"Search"];
-                     
-                     if ( [requestAccount.username isEqualToString:[TWAccounts currentAccountName]] ) {
-                         
-                         //通知を実行
-                         [[NSNotificationCenter defaultCenter] postNotification:notification];
-                     }
-                     
-                     [ActivityIndicator off];
+                     //通知を実行
+                     [[NSNotificationCenter defaultCenter] postNotification:notification];
                  }
-             });
+                 
+                 [ActivityIndicator off];
+             }
+             
+             weakResult = nil;
          }];
         
         //NSLog(@"Favorites request sended");

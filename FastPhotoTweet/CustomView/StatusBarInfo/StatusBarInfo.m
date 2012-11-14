@@ -5,6 +5,7 @@
 #import "StatusBarInfo.h"
 
 #define DISPATCH_AFTER(x) dispatch_after(dispatch_time(DISPATCH_TIME_NOW, x * NSEC_PER_SEC), dispatch_get_main_queue(),
+#define NOTIFICATION [NSNotificationCenter defaultCenter]
 
 @implementation StatusBarInfo
 
@@ -14,8 +15,10 @@
     
     if ( self ) {
         
+        UIColor *blue = [UIColor colorWithRed:0.4 green:0.8 blue:1.0 alpha:1.0];
+        
         self.windowLevel = UIWindowLevelStatusBar + 1.0f;
-        self.backgroundColor = [UIColor blackColor];
+        self.backgroundColor = blue;
         self.hidden = NO;
         self.alpha = 1.0;
         
@@ -23,7 +26,7 @@
         
         _textLabel = [[UILabel alloc] initWithFrame:CGRectMake(0, 0, 320, 20)];
         [self addSubview:_textLabel];
-        _textLabel.backgroundColor = [UIColor blackColor];
+        _textLabel.backgroundColor = blue;
         _textLabel.textColor = [UIColor whiteColor];
         _textLabel.font = [UIFont systemFontOfSize:14];
         _textLabel.textAlignment = UITextAlignmentCenter;
@@ -36,7 +39,6 @@
         
         [self setNotifications];
         [self startTimer:nil];
-        [self startWaitTask:nil];
     }
     
     return self;
@@ -44,30 +46,35 @@
 
 - (void)setNotifications {
     
-    [[NSNotificationCenter defaultCenter] addObserver:self
-                                             selector:@selector(startWaitTask:)
-                                                 name:@"StartWaitStatusBarTask"
-                                               object:nil];
+    [NOTIFICATION addObserver:self
+                     selector:@selector(addTask:)
+                         name:@"AddStatusBarTask"
+                       object:nil];
     
-    [[NSNotificationCenter defaultCenter] addObserver:self
-                                             selector:@selector(stopWaitTask:)
-                                                 name:@"StopWaitStatusBarTask"
-                                               object:nil];
+    [NOTIFICATION addObserver:self
+                     selector:@selector(startWaitTask:)
+                         name:@"StartWaitStatusBarTask"
+                       object:nil];
     
-    [[NSNotificationCenter defaultCenter] addObserver:self
-                                             selector:@selector(startTimer:)
-                                                 name:@"StartStatusBarTimer"
-                                               object:nil];
+    [NOTIFICATION addObserver:self
+                     selector:@selector(stopWaitTask:)
+                         name:@"StopWaitStatusBarTask"
+                       object:nil];
     
-    [[NSNotificationCenter defaultCenter] addObserver:self
-                                             selector:@selector(stopTimer:)
-                                                 name:@"StopStatusBarTimer"
-                                               object:nil];
+    [NOTIFICATION addObserver:self
+                     selector:@selector(startTimer:)
+                         name:@"StartStatusBarTimer"
+                       object:nil];
+    
+    [NOTIFICATION addObserver:self
+                     selector:@selector(stopTimer:)
+                         name:@"StopStatusBarTimer"
+                       object:nil];
 }
 
 - (void)startTimer:(NSNotification *)notification {
     
-    [self stopTimer:nil];
+    NSLog(@"startTimer");
     
     _timer = [NSTimer scheduledTimerWithTimeInterval:[_checkInterval floatValue]
                                               target:self
@@ -79,26 +86,37 @@
 
 - (void)stopTimer:(NSNotification *)notification {
     
+    NSLog(@"stopTimer");
+    
     if ( _timer.isValid ) [_timer invalidate];
-    if ( _timer != nil ) _timer = nil;
 }
 
 - (void)startWaitTask:(NSNotification *)notification {
     
-    [[NSNotificationCenter defaultCenter] addObserver:self
-                                             selector:@selector(addTask:)
-                                                 name:@"AddStatusBarTask"
-                                               object:nil];
+    NSLog(@"startWaitTask");
+    
+    [NOTIFICATION addObserver:self
+                     selector:@selector(startWaitTask:)
+                         name:@"StartWaitStatusBarTask"
+                       object:nil];
 }
 
 - (void)stopWaitTask:(NSNotification *)notification {
     
-    [[NSNotificationCenter defaultCenter] removeObserver:self];
+    NSLog(@"stopWaitTask");
+    
+    [NOTIFICATION removeObserver:self];
+    
+    [NOTIFICATION addObserver:self
+                     selector:@selector(startWaitTask:)
+                         name:@"StartWaitStatusBarTask"
+                       object:nil];
+    [self stopTimer:nil];
 }
 
 - (void)addTask:(NSNotification *)notification {
     
-    //NSLog(@"addTask: %@", notification.userInfo);
+    NSLog(@"addTask: %@", notification.userInfo);
     
     if( [notification.userInfo objectForKey:@"Task"] != nil ) {
         
@@ -109,7 +127,11 @@
 
 - (void)checkTask {
     
+//    NSLog(@"checkTask");
+    
     if ( _tasks.count != 0 ) {
+        
+        NSLog(@"Find Task");
         
         [self showTask:[_tasks objectAtIndex:0]];
         [_tasks removeObjectAtIndex:0];
@@ -123,7 +145,7 @@
     [self stopTimer:nil];
     
     if ( task != nil ) {
-    
+        
         _textLabel.text = task;
         self.frame = CGRectMake(0, -20, 320, 20);
         self.alpha = 1.0;
@@ -134,7 +156,7 @@
                              self.frame = CGRectMake(0, 0, 320, 20);
                          }
                          completion:^(BOOL completion) {
-                          
+                             
                              DISPATCH_AFTER([_showTime floatValue]) ^{
                                  
                                  [self hideTask];
