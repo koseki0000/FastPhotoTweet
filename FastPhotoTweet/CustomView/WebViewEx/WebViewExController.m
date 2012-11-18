@@ -511,13 +511,20 @@
         appDelegate.startupUrlList = BLANK_ARRAY;
         appDelegate.reOpenUrl = accessURL;
         
-        if ( [appDelegate.firmwareVersion hasPrefix:@"6"] ) {
-            
-            [self dismissViewControllerAnimated:YES completion:nil];
+        if ( appDelegate.tabBarController.selectedIndex == 0 ) {
+         
+            if ( [appDelegate.firmwareVersion hasPrefix:@"6"] ) {
+                
+                [self dismissViewControllerAnimated:YES completion:nil];
+                
+            }else {
+                
+                [self dismissModalViewControllerAnimated:YES];
+            }
             
         }else {
-            
-            [self dismissModalViewControllerAnimated:YES];
+         
+            [self.navigationController popViewControllerAnimated:YES];
         }
     }
 }
@@ -544,13 +551,20 @@
         appDelegate.startupUrlList = BLANK_ARRAY;
         appDelegate.reOpenUrl = BLANK;
         
-        if ( [appDelegate.firmwareVersion hasPrefix:@"6"] ) {
-        
-            [self dismissViewControllerAnimated:YES completion:nil];
+        if ( appDelegate.tabBarController.selectedIndex == 0 ) {
+            
+            if ( [appDelegate.firmwareVersion hasPrefix:@"6"] ) {
+                
+                [self dismissViewControllerAnimated:YES completion:nil];
+                
+            }else {
+                
+                [self dismissModalViewControllerAnimated:YES];
+            }
             
         }else {
             
-            [self dismissModalViewControllerAnimated:YES];
+            [self.navigationController popViewControllerAnimated:YES];
         }
     }
 }
@@ -1086,7 +1100,7 @@
                     sourceCode = [sourceCode deleteWord:@"bongore.js"];
                     sourceCode = [sourceCode deleteWord:@"chorizo.js"];
                     
-                    NSLog(@"sourceCode: %@", sourceCode);
+//                    NSLog(@"sourceCode: %@", sourceCode);
                     
                     [wv loadHTMLString:sourceCode baseURL:URL];
                 }

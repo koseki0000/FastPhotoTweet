@@ -35,7 +35,7 @@
         @autoreleasepool {
             
             //時刻フォーマットを指定
-            NSDateFormatter __autoreleasing *inputDateFormatter = [[NSDateFormatter alloc] init];
+            __autoreleasing NSDateFormatter *inputDateFormatter = [[NSDateFormatter alloc] init];
             [inputDateFormatter setDateFormat:DATE_FORMAT];
             
             //JSTタイムゾーンを適用し、時刻部分を抜き出す
@@ -154,16 +154,9 @@
         [mTweet setObject:rtStatus forKey:@"retweeted_status"];
         
         NSString *originalText =  [[mTweet objectForKey:@"retweeted_status"] objectForKey:@"text"];
-        NSString *postUser =     [[[mTweet objectForKey:@"retweeted_status"] objectForKey:@"user"] objectForKey:@"screen_name"];
-        NSString *postUserIcon = [[[mTweet objectForKey:@"retweeted_status"] objectForKey:@"user"] objectForKey:@"profile_image_url"];
         NSString *rtUser = [[tweet objectForKey:@"user"] objectForKey:@"screen_name"];
         
-        NSMutableDictionary *user = [[NSMutableDictionary alloc] initWithDictionary:[mTweet objectForKey:@"user"]];
-        [user setObject:postUser forKey:@"screen_name"];
-        [user setObject:postUserIcon forKey:@"profile_image_url"];
-        
         [mTweet setObject:[NSString stringWithFormat:@"%@\nRetweeted by @%@", originalText, rtUser] forKey:@"text"];
-        [mTweet setObject:user forKey:@"user"];
         [mTweet setObject:rtUser forKey:@"rt_user"];
     }
     

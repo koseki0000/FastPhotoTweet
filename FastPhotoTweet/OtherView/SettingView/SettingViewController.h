@@ -34,11 +34,7 @@
 }
 
 @property (retain, nonatomic) IBOutlet UITableView *tv;
-@property (retain, nonatomic) IBOutlet UINavigationBar *bar;
-@property (retain, nonatomic) IBOutlet UIBarButtonItem *saveButton;
 
 - (NSString *)getSettingState:(int)settingState;
-
-- (IBAction)pushDoneButton:(id)sender;
 
 @end

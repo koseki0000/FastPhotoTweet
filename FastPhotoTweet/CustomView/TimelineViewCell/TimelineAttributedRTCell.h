@@ -1,8 +1,8 @@
 //
-//  TimelineAttributedCell.h
+//  TimelineAttributedRTCell.h
 //  FastPhotoTweet
 //
-//  Created by @peace3884 on 12/10/19.
+//  Created by @peace3884 on 12/11/18.
 //
 //
 
@@ -13,7 +13,7 @@
 #import "NSAttributedString+Attributes.h"
 #import "UIViewSubViewRemover.h"
 
-@interface TimelineAttributedCell : UITableViewCell
+@interface TimelineAttributedRTCell : UITableViewCell
 
 @property (strong, nonatomic) UILabel *infoLabel;
 @property (strong, nonatomic) OHAttributedLabel *mainLabel;

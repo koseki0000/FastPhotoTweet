@@ -2,7 +2,7 @@
 //  SpecialThanksViewController.m
 //  FastPhotoTweet
 //
-//  Created by m.s.s02968 on 12/11/04.
+//  Created by @peace3884 on 12/11/04.
 //
 //
 
@@ -19,17 +19,7 @@
 
 - (IBAction)pushBackButton:(id)sender {
     
-    AppDelegate *appDelegate = (AppDelegate *)[[UIApplication sharedApplication] delegate];
-    
-    //閉じる
-    if ( [appDelegate.firmwareVersion hasPrefix:@"6"] ) {
-        
-        [self dismissViewControllerAnimated:YES completion:nil];
-        
-    }else {
-        
-        [self dismissModalViewControllerAnimated:YES];
-    }
+    [self.navigationController popViewControllerAnimated:YES];
 }
 
 - (void)dealloc {

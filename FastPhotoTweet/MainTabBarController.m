@@ -9,14 +9,19 @@
 
 @implementation MainTabBarController
 
+- (BOOL)shouldAutorotateToInterfaceOrientation:(UIInterfaceOrientation)interfaceOrientation {
+    
+    return [self.selectedViewController shouldAutorotateToInterfaceOrientation:interfaceOrientation];
+}
+
 - (BOOL)shouldAutorotate {
     
-    return NO;
+    return self.selectedViewController.shouldAutorotate;
 }
 
 - (NSUInteger)supportedInterfaceOrientations {
     
-    return UIInterfaceOrientationMaskPortrait;
+    return self.selectedViewController.supportedInterfaceOrientations;
 }
 
 @end

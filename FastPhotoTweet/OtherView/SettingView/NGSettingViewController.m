@@ -16,8 +16,6 @@
 
 @implementation NGSettingViewController
 @synthesize sv;
-@synthesize topBar;
-@synthesize closeButton;
 @synthesize addButton;
 @synthesize ngTypeSegment;
 @synthesize ngWordField;
@@ -34,7 +32,13 @@
     self = [super initWithNibName:nibNameOrNil bundle:nibBundleOrNil];
     
     if ( self ) {
-
+        
+        addButton = [[UIBarButtonItem alloc] initWithTitle:@"登録"
+                                                     style:UIBarButtonItemStyleBordered
+                                                    target:self
+                                                    action:@selector(pushAddButton:)];
+        addButton.enabled = NO;
+        self.navigationItem.rightBarButtonItem = addButton;
     }
     
     return self;
@@ -198,6 +202,9 @@
             
         }else if ( ngTypeSegment.selectedSegmentIndex == 1 ) {
             
+            ngWordField.text = [ngWordField.text deleteWhiteSpace];
+            ngWordField.text = [ngWordField.text deleteWord:@"@"];
+            
             //NGネーム設定を読み込む
             NSMutableArray *ngNameArray = [NSMutableArray arrayWithArray:[d objectForKey:@"NGName"]];
             
@@ -242,22 +249,7 @@
 
 - (IBAction)pushCloseButton:(UIBarButtonItem *)sender {
     
-    AppDelegate *appDelegate = (AppDelegate *)[[UIApplication sharedApplication] delegate];
-    
-    //閉じる
-    if ( [appDelegate.firmwareVersion hasPrefix:@"6"] ) {
-        
-        [self dismissViewControllerAnimated:YES completion:nil];
-        
-    }else {
-        
-        [self dismissModalViewControllerAnimated:YES];
-    }
-}
-
-- (IBAction)upView:(id)sender {
-    
-    [sv setContentOffset:CGPointMake(0, 100) animated:YES];
+    [self.navigationController popViewControllerAnimated:YES];
 }
 
 #pragma mark - TextField
@@ -267,7 +259,6 @@
     if ( ![EmptyCheck string:sender.text] ) {
         
         [sender resignFirstResponder];
-        [sv setContentOffset:CGPointMake(0, 0) animated:YES];
         
         return YES;
     }
@@ -308,7 +299,6 @@
     }
     
     [sender resignFirstResponder];
-    [sv setContentOffset:CGPointMake(0, 0) animated:YES];
     
     return YES;
 }
@@ -519,8 +509,6 @@
 
 - (void)viewDidUnload {
     
-    [self setTopBar:nil];
-    [self setCloseButton:nil];
     [self setNgTypeSegment:nil];
     [self setNgWordField:nil];
     [self setUserField:nil];

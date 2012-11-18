@@ -6,8 +6,9 @@
 //
 
 #import "AppDelegate.h"
-#import "ViewController.h"
+#import "TweetViewController.h"
 #import "TimelineViewController.h"
+#import "TimelineNavigationController.h"
 #import <Three20UI/TTNavigator.h>
 #import <Three20UINavigator/TTURLMap.h>
 #import <mach/mach.h>
@@ -84,7 +85,12 @@ void uncaughtExceptionHandler(NSException *e) {
         [D setObject:@"http://www.google.co.jp/" forKey:@"HomePageURL"];
     }
     
-    _statusBarInfo = [[StatusBarInfo alloc] initWithShowTime:@2.0 checkInterval:@1.0];
+    _statusBarInfo = [[StatusBarInfo alloc] initWithShowTime:@2.0
+                                           taskCheckInterval:@1.0
+                                           animationDuration:@0.3
+                                               animationType:StatusBarInfoAnimationTypeTopInToFadeOut
+                                             backgroundColor:[UIColor colorWithRed:0.4 green:0.8 blue:1.0 alpha:1.0]
+                                                   textColor:[UIColor whiteColor]];
     [self.window addSubview:_statusBarInfo];
     
     //各種初期化
@@ -130,11 +136,18 @@ void uncaughtExceptionHandler(NSException *e) {
     
     self.window = [[UIWindow alloc] initWithFrame:[[UIScreen mainScreen] bounds]];
     
-    UIViewController *mainView = [[ViewController alloc] initWithNibName:@"ViewController" bundle:nil];
-    UIViewController *timelineView = [[TimelineViewController alloc] initWithNibName:@"TimelineViewController" bundle:nil];
+    UIViewController *mainView = [[TweetViewController alloc] initWithNibName:NSStringFromClass([TweetViewController class])
+                                                                       bundle:nil];
+    UIViewController *timelineView = [[TimelineViewController alloc] initWithNibName:NSStringFromClass([TimelineViewController class])
+                                                                              bundle:nil];
+    timelineView.title = @"Timeline";
+    
+    TimelineNavigationController *timelineNavigation = [[TimelineNavigationController alloc] initWithRootViewController:timelineView];
+    timelineNavigation.viewControllers = @[timelineView];
+    timelineNavigation.navigationBarHidden = YES;
     
     self.tabBarController = [[MainTabBarController alloc] init];
-    self.tabBarController.viewControllers = [NSArray arrayWithObjects:mainView, timelineView, nil];
+    self.tabBarController.viewControllers = [NSArray arrayWithObjects:mainView, timelineNavigation, nil];
     self.window.rootViewController = self.tabBarController;
     
     [self.window makeKeyAndVisible];
@@ -179,25 +192,19 @@ void uncaughtExceptionHandler(NSException *e) {
 
 #pragma mark - System
 
-//- (oneway void)setNavigatorMap {
-//    
-//    TTNavigator *navigator = [TTNavigator navigator];
-//    TTURLMap *map = navigator.URLMap;
-//    [map from:@"*" toViewController:[TimelineViewController class] selector:@selector(openTimelineURL:)];
-//}
-
 - (BOOL)ios5Check {
     
     BOOL result = NO;
     
-    if ( [[[UIDevice currentDevice] systemVersion] floatValue] < 5.0 ) {
+    if ( [[[UIDevice currentDevice] systemVersion] hasPrefix:@"5"] ||
+         [[[UIDevice currentDevice] systemVersion] hasPrefix:@"6"] ) {
         
-        //iOS5以前
-        [ShowAlert error:@"Twitter APIはiOS5以降で使用できます。最新OSに更新してください。"];
+        result = YES;
         
     }else {
         
-        result = YES;
+        //iOS5以前
+        [ShowAlert error:@"Twitter APIはiOS5以降で使用できます。最新OSに更新してください。"];
     }
     
     return result;

@@ -34,18 +34,8 @@
 }
 
 - (IBAction)pushCloseButton:(id)sender {
-    
-    AppDelegate *appDelegate = (AppDelegate *)[[UIApplication sharedApplication] delegate];
-    
-    //閉じる
-    if ( [appDelegate.firmwareVersion hasPrefix:@"6"] ) {
-        
-        [self dismissViewControllerAnimated:YES completion:nil];
-        
-    }else {
-        
-        [self dismissModalViewControllerAnimated:YES];
-    }
+
+    [self.navigationController popViewControllerAnimated:YES];
 }
 
 - (IBAction)debug:(id)sender {

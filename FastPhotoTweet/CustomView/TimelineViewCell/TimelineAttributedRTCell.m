@@ -1,16 +1,16 @@
 //
-//  TimelineAttributedCell.m
+//  TimelineAttributedRTCell.m
 //  FastPhotoTweet
 //
-//  Created by @peace3884 on 12/10/19.
+//  Created by @peace3884 on 12/11/18.
 //
 //
 
-#import "TimelineAttributedCell.h"
+#import "TimelineAttributedRTCell.h"
 
 static NSInteger const kAttributedLabelTag = 100;
 
-@implementation TimelineAttributedCell
+@implementation TimelineAttributedRTCell
 
 - (void)drawRect:(CGRect)rect {
     
@@ -47,9 +47,12 @@ static NSInteger const kAttributedLabelTag = 100;
     
     _infoLabel = [[UILabel alloc] initWithFrame:CGRectMake(54, 2,  264, 14)];
     _mainLabel = [[OHAttributedLabel alloc] initWithFrame:CGRectMake(54, 19, 264, 31)];
-    _iconView = [[TitleButton alloc] initWithFrame:CGRectMake(2, 4, 48, 48)];
+    _iconView = [[TitleButton alloc] initWithFrame:CGRectMake(2, 4, 48, 54)];
     
     _infoLabel.font = [UIFont boldSystemFontOfSize:11];
+    
+    _infoLabel.textColor = [UIColor colorWithRed:0.0 green:0.4 blue:0.0 alpha:1.0];
+    _mainLabel.textColor = [UIColor colorWithRed:0.0 green:0.4 blue:0.0 alpha:1.0];
     
     _infoLabel.backgroundColor = [UIColor clearColor];
     _mainLabel.backgroundColor = [UIColor clearColor];
@@ -78,18 +81,35 @@ static NSInteger const kAttributedLabelTag = 100;
     [self.multipleSelectionBackgroundView removeFromSuperview];
     [self.selectedBackgroundView removeFromSuperview];
     
-    CALayer *iconLayer = [[CALayer alloc] init];
-    iconLayer.name = @"Icon";
-    iconLayer.frame = CGRectMake(0, 0, 48, 48);
+    CALayer *userIconLayer = [[CALayer alloc] init];
+    userIconLayer.name = @"UserIcon";
+    userIconLayer.frame = CGRectMake(0, 0, 34, 34);
+    
+    CALayer *rtUserIconLayer = [[CALayer alloc] init];
+    rtUserIconLayer.name = @"RTUserIcon";
+    rtUserIconLayer.frame = CGRectMake(20, 25, 28, 28);
+    
+    CALayer *arrowLayer = [[CALayer alloc] init];
+    arrowLayer.name = @"Arrow";
+    arrowLayer.frame = CGRectMake(0, 34, 20, 19);
+    arrowLayer.backgroundColor = [UIColor grayColor].CGColor;
+    arrowLayer.contents = (id)[UIImage imageNamed:@"retweet_arrow"].CGImage;
     
     if ( [[NSUserDefaults standardUserDefaults] integerForKey:@"IconCornerRounding"] == 1 ) {
         
         //角を丸める
-        [iconLayer setMasksToBounds:YES];
-        [iconLayer setCornerRadius:6.0f];
+        [userIconLayer setMasksToBounds:YES];
+        [userIconLayer setCornerRadius:5.0f];
+        [rtUserIconLayer setMasksToBounds:YES];
+        [rtUserIconLayer setCornerRadius:4.0f];
     }
     
-    [self.iconView.layer addSublayer:iconLayer];
+    [arrowLayer setMasksToBounds:YES];
+    [arrowLayer setCornerRadius:3.0f];
+    
+    [self.iconView.layer addSublayer:userIconLayer];
+    [self.iconView.layer addSublayer:rtUserIconLayer];
+    [self.iconView.layer addSublayer:arrowLayer];
     
     [self addSubview:_infoLabel];
     [self addSubview:_mainLabel];

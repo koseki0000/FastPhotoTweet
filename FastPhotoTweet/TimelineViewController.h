@@ -5,8 +5,8 @@
 //  Created by @peace3884 on 12/07/08.
 //
 
+#import "TimelineMenu.h"
 #import "Share.h"
-#import <CoreFoundation/CoreFoundation.h>
 #import <UIKit/UIKit.h>
 #import <QuartzCore/CALayer.h>
 #import <Twitter/Twitter.h>
@@ -14,6 +14,7 @@
 #import "AppDelegate.h"
 
 #import "TimelineAttributedCell.h"
+#import "TimelineAttributedRTCell.h"
 #import "NSAttributedString+Attributes.h"
 
 #import "TWTwitterHeader.h"
@@ -38,11 +39,36 @@
 #import "NSDictionary+XPath.h"
 #import "NSString+RegularExpression.h"
 #import "NSString+WordCollect.h"
+#import "NSString+Calculator.h"
 
 #import "Three20UI/TTTableHeaderDragRefreshView.h"
 #import <Three20UI/TTActivityLabel.h>
 #import <Three20Style/Three20Style.h>
 #import <Three20UICommon/Three20UICommon.h>
+
+typedef enum {
+    CellTextColorBlack,
+    CellTextColorRed,
+    CellTextColorBlue,
+    CellTextColorGreen,
+    CellTextColorGold
+}CellTextColor;
+
+typedef enum {
+    TimelineMenuActionOpenURL,
+    TimelineMenuActionReply,
+    TimelineMenuActionFavorite,
+    TimelineMenuActionReTweet,
+    TimelineMenuActionFavRT,
+    TimelineMenuActionSelectID,
+    TimelineMenuActionNGTag,
+    TimelineMenuActionNGClient,
+    TimelineMenuActionInReplyTo,
+    TimelineMenuActionCopy,
+    TimelineMenuActionDelete,
+    TimelineMenuActionEdit,
+    TimelineMenuActionUserMenu
+}TimelineMenuAction;
 
 @interface TimelineViewController : UIViewController <UIActionSheetDelegate, UITextFieldDelegate, UIPickerViewDelegate, UIPickerViewDataSource, UITableViewDelegate, UITableViewDataSource>
 
@@ -58,57 +84,58 @@
 @property BOOL isLoading;
 @property BOOL iconWorking;
 @property BOOL firstLoad;
+@property BOOL showMenu;
 
 @property int selectRow;
 @property int longPressControl;
 
-@property (retain, nonatomic) ActivityGrayView *grayView;
-@property (retain, nonatomic) NSMutableArray *timelineArray;
-@property (retain, nonatomic) NSMutableArray *inReplyTo;
-@property (retain, nonatomic) NSMutableArray *currentList;
-@property (retain, nonatomic) NSMutableArray *searchStreamTemp;
-@property (retain, nonatomic) NSMutableDictionary *allLists;
-@property (retain, nonatomic) NSMutableSet *requestedUser;
-@property (retain, nonatomic) NSArray *mentionsArray;
-@property (retain, nonatomic) NSArray *selectTweetIds;
-@property (retain, nonatomic) NSArray *tweetInUrls;
-@property (retain, nonatomic) NSDictionary *currentTweet;
-@property (retain, nonatomic) NSDictionary *selectTweet;
+@property (strong, nonatomic) TimelineMenu *timelineMenu;
+@property (strong, nonatomic) ActivityGrayView *grayView;
+@property (strong, nonatomic) NSMutableArray *timelineArray;
+@property (strong, nonatomic) NSMutableArray *inReplyTo;
+@property (strong, nonatomic) NSMutableArray *currentList;
+@property (strong, nonatomic) NSMutableArray *searchStreamTemp;
+@property (strong, nonatomic) NSMutableDictionary *allLists;
+@property (strong, nonatomic) NSMutableSet *requestedUser;
+@property (strong, nonatomic) NSArray *mentionsArray;
+@property (strong, nonatomic) NSArray *selectTweetIds;
+@property (strong, nonatomic) NSArray *tweetInUrls;
+@property (strong, nonatomic) NSDictionary *selectTweet;
 
-@property (retain, nonatomic) NSString *lastUpdateAccount;
-@property (retain, nonatomic) NSString *selectAccount;
-@property (retain, nonatomic) NSString *alertSearchUserName;
-@property (retain, nonatomic) NSTimer *searchStreamTimer;
-@property (retain, nonatomic) NSTimer *connectionCheckTimer;
-@property (retain, nonatomic) NSTimer *onlineCheckTimer;
+@property (copy, nonatomic) NSString *lastUpdateAccount;
+@property (copy, nonatomic) NSString *selectAccount;
+@property (copy, nonatomic) NSString *alertSearchUserName;
+@property (strong, nonatomic) NSTimer *searchStreamTimer;
+@property (strong, nonatomic) NSTimer *connectionCheckTimer;
+@property (strong, nonatomic) NSTimer *onlineCheckTimer;
 @property (strong, nonatomic) NSURLConnection *connection;
-@property (retain, nonatomic) UIImage *startImage;
-@property (retain, nonatomic) UIImage *stopImage;
-@property (retain, nonatomic) UIImage *listImage;
+@property (strong, nonatomic) UIImage *startImage;
+@property (strong, nonatomic) UIImage *stopImage;
+@property (strong, nonatomic) UIImage *listImage;
 
-@property (retain, nonatomic) UIAlertView *alertSearch;
-@property (retain, nonatomic) SSTextField *alertSearchText;
-@property (retain, nonatomic) UIView *pickerBase;
-@property (retain, nonatomic) UIToolbar *pickerBar;
-@property (retain, nonatomic) UIPickerView *eventPicker;
-@property (retain, nonatomic) UIBarButtonItem *pickerBarDoneButton;
-@property (retain, nonatomic) UIBarButtonItem *pickerBarCancelButton;
-@property (retain, nonatomic) TTTableHeaderDragRefreshView *headerView;
-@property (retain, nonatomic) UIView *activityTable;
+@property (strong, nonatomic) UIAlertView *alertSearch;
+@property (strong, nonatomic) SSTextField *alertSearchText;
+@property (strong, nonatomic) UIView *pickerBase;
+@property (strong, nonatomic) UIToolbar *pickerBar;
+@property (strong, nonatomic) UIPickerView *eventPicker;
+@property (strong, nonatomic) UIBarButtonItem *pickerBarDoneButton;
+@property (strong, nonatomic) UIBarButtonItem *pickerBarCancelButton;
+@property (strong, nonatomic) TTTableHeaderDragRefreshView *headerView;
+@property (strong, nonatomic) UIView *activityTable;
 
-@property (retain, nonatomic) ImageWindow *imageWindow;
+@property (strong, nonatomic) ImageWindow *imageWindow;
 
-@property (retain, nonatomic) IBOutlet UIToolbar *topBar;
-@property (retain, nonatomic) IBOutlet UITableView *timeline;
-@property (retain, nonatomic) IBOutlet UIBarButtonItem *flexibleSpace;
-@property (retain, nonatomic) IBOutlet UIBarButtonItem *fixedSpace;
-@property (retain, nonatomic) IBOutlet UIBarButtonItem *postButton;
-@property (retain, nonatomic) IBOutlet UIBarButtonItem *reloadButton;
-@property (retain, nonatomic) IBOutlet UIBarButtonItem *timelineControlButton;
-@property (retain, nonatomic) IBOutlet UIBarButtonItem *actionButton;
-@property (retain, nonatomic) IBOutlet UIBarButtonItem *closeOtherTweetsButton;
-@property (retain, nonatomic) IBOutlet UIImageView *accountIconView;
-@property (retain, nonatomic) IBOutlet UISegmentedControl *timelineSegment;
+@property (strong, nonatomic) IBOutlet UIToolbar *topBar;
+@property (strong, nonatomic) IBOutlet UITableView *timeline;
+@property (strong, nonatomic) IBOutlet UIBarButtonItem *flexibleSpace;
+@property (strong, nonatomic) IBOutlet UIBarButtonItem *fixedSpace;
+@property (strong, nonatomic) IBOutlet UIBarButtonItem *postButton;
+@property (strong, nonatomic) IBOutlet UIBarButtonItem *reloadButton;
+@property (strong, nonatomic) IBOutlet UIBarButtonItem *timelineControlButton;
+@property (strong, nonatomic) IBOutlet UIBarButtonItem *actionButton;
+@property (strong, nonatomic) IBOutlet UIBarButtonItem *closeOtherTweetsButton;
+@property (strong, nonatomic) IBOutlet UIImageView *accountIconView;
+@property (strong, nonatomic) IBOutlet UISegmentedControl *timelineSegment;
 
 - (IBAction)pushPostButton:(UIBarButtonItem *)sender;
 - (IBAction)pushReloadButton:(UIBarButtonItem *)sender;
@@ -134,6 +161,7 @@
 - (void)loadMentions:(NSNotification *)center;
 - (void)loadFavorites:(NSNotification *)center;
 - (void)getIconWithTweetArray:(NSMutableArray *)tweetArray;
+- (void)requestProfileImageWithURL:(NSString *)biggerUrl screenName:(NSString *)screenName searchName:(NSString *)searchName;
 - (void)changeAccount:(NSNotification *)notification;
 - (void)getInReplyToChain:(NSDictionary *)tweetData;
 - (void)scrollTimelineForNewTweet:(NSString *)tweetID;
@@ -146,7 +174,7 @@
 - (void)openTimelineURL:(NSNotification *)notification;
 - (void)openTimelineImage:(NSNotification *)notification;
 - (void)receiveGrayViewDoneNotification:(NSNotification *)notification;
-- (UIColor *)getTextColor:(int)color;
+- (UIColor *)getTextColor:(CellTextColor)color;
 
 - (void)openStream;
 - (void)closeStream;
@@ -165,10 +193,26 @@
 - (void)showTwitterAccountSelectActionSheet:(NSArray *)ids;
 - (void)openTwitterService:(NSString *)username serviceType:(int)serviceType;
 
+- (void)timelineMenuActionOpenURL;
+- (void)timelineMenuActionReply;
+- (void)timelineMenuActionFavorite;
+- (void)timelineMenuActionReTweet;
+- (void)timelineMenuActionFavRT;
+- (void)timelineMenuActionSelectID;
+- (void)timelineMenuActionNGTag;
+- (void)timelineMenuActionNGClient;
+- (void)timelineMenuActionInReplyTo;
+- (void)timelineMenuActionCopy;
+- (void)timelineMenuActionDelete;
+- (void)timelineMenuActionEdit;
+- (void)timelineMenuActionUserMenu;
+
 - (void)receiveProfile:(NSNotification *)notification;
 - (void)enterBackground:(NSNotification *)notification;
 - (void)becomeActive:(NSNotification *)notification;
-- (void)imageCachedNotification:(NSNotification *)notification;
+
+- (void)timelineMenuAction:(NSNotification *)notification;
+- (void)hideTimelineMenu:(NSNotification *)notification;
 
 - (void)getMyAccountIcon;
 - (void)setMyAccountIconCorner;
@@ -191,13 +235,3 @@
 - (void)checkOnline;
 
 @end
-
-typedef enum {
-    CellTextColorBlack,
-    CellTextColorRed,
-    CellTextColorBlue,
-    CellTextColorGreen,
-    CellTextColorGold
-}CellTextColor;
-
-

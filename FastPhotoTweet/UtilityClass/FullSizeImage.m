@@ -17,7 +17,7 @@
 //画像共有サービスのURLを渡すと画像本体のURLを返す
 + (NSString *)urlString:(NSString *)urlString {
     
-    NSLog(@"originalUrl: %@", urlString);
+//    NSLog(@"originalUrl: %@", urlString);
     
     if ( urlString != nil && ![urlString isEqualToString:@""] ) {
         
@@ -187,7 +187,7 @@
         }
     }
     
-    NSLog(@"fullUrl: %@", urlString);
+//    NSLog(@"fullUrl: %@", urlString);
     
     return urlString;
 }

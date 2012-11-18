@@ -3,22 +3,38 @@
 //
 
 #import "StatusBarInfo.h"
+#import "NSNotificationCenter+EasyPost.h"
 
-#define DISPATCH_AFTER(x) dispatch_after(dispatch_time(DISPATCH_TIME_NOW, x * NSEC_PER_SEC), dispatch_get_main_queue(),
-#define NOTIFICATION [NSNotificationCenter defaultCenter]
+#define DISPATCH_AFTER(delay) dispatch_after(dispatch_time(DISPATCH_TIME_NOW, delay * NSEC_PER_SEC), dispatch_get_main_queue(),
+
+#define START_STATUS_BAR_TIMER      @"StartStatusBarTimer"
+#define STOP_STATUS_BAR_TIMER       @"StopStatusBarTimer"
+#define START_WAIT_STATUS_BAR_TASK  @"StartWaitStatusBarTask"
+#define STOP_WAIT_STATUS_BAR_TASK   @"StopWaitStatusBarTask"
+#define ADD_STATUS_BAR_TASK         @"AddStatusBarTask"
+
+#define SHOW_POSITION  CGRectMake(   0,   0, 320, 20)
+#define HIDE_POSITION  CGRectMake(   0, -20, 320, 20)
+#define RIGHT_POSITION CGRectMake( 320,   0, 320, 20)
+#define LEFT_POSITION  CGRectMake(-320,   0, 320, 20)
 
 @implementation StatusBarInfo
 
-- (id)initWithShowTime:(NSNumber *)showTime checkInterval:(NSNumber *)checkInterval {
+#pragma mark - Initialize
+
+- (id)initWithShowTime:(NSNumber *)showTime
+     taskCheckInterval:(NSNumber *)taskCheckInterval
+     animationDuration:(NSNumber *)animationDuration
+         animationType:(StatusBarInfoAnimationType)animationType
+       backgroundColor:(UIColor *)backgroundColor
+             textColor:(UIColor *)textColor {
     
-    self = [super initWithFrame:CGRectMake(0, -20, 320, 20)];
+    self = [super initWithFrame:HIDE_POSITION];
     
     if ( self ) {
         
-        UIColor *blue = [UIColor colorWithRed:0.4 green:0.8 blue:1.0 alpha:1.0];
-        
         self.windowLevel = UIWindowLevelStatusBar + 1.0f;
-        self.backgroundColor = blue;
+        self.backgroundColor = backgroundColor;
         self.hidden = NO;
         self.alpha = 1.0;
         
@@ -26,16 +42,21 @@
         
         _textLabel = [[UILabel alloc] initWithFrame:CGRectMake(0, 0, 320, 20)];
         [self addSubview:_textLabel];
-        _textLabel.backgroundColor = blue;
-        _textLabel.textColor = [UIColor whiteColor];
+        _textLabel.backgroundColor = backgroundColor;
+        _textLabel.textColor = textColor;
         _textLabel.font = [UIFont systemFontOfSize:14];
         _textLabel.textAlignment = UITextAlignmentCenter;
         
         _showTime = showTime;
         [_showTime retain];
         
-        _checkInterval = checkInterval;
-        [_checkInterval retain];
+        _taskCheckInterval = taskCheckInterval;
+        [_taskCheckInterval retain];
+        
+        _animationDuration = animationDuration;
+        [_animationDuration retain];
+        
+        _animationType = animationType;
         
         [self setNotifications];
         [self startTimer:nil];
@@ -48,35 +69,37 @@
     
     [NOTIFICATION addObserver:self
                      selector:@selector(addTask:)
-                         name:@"AddStatusBarTask"
+                         name:ADD_STATUS_BAR_TASK
                        object:nil];
     
     [NOTIFICATION addObserver:self
                      selector:@selector(startWaitTask:)
-                         name:@"StartWaitStatusBarTask"
+                         name:START_WAIT_STATUS_BAR_TASK
                        object:nil];
     
     [NOTIFICATION addObserver:self
                      selector:@selector(stopWaitTask:)
-                         name:@"StopWaitStatusBarTask"
+                         name:STOP_WAIT_STATUS_BAR_TASK
                        object:nil];
     
     [NOTIFICATION addObserver:self
                      selector:@selector(startTimer:)
-                         name:@"StartStatusBarTimer"
+                         name:START_STATUS_BAR_TIMER
                        object:nil];
     
     [NOTIFICATION addObserver:self
                      selector:@selector(stopTimer:)
-                         name:@"StopStatusBarTimer"
+                         name:STOP_STATUS_BAR_TIMER
                        object:nil];
 }
+
+#pragma mark - NotificationMethod
 
 - (void)startTimer:(NSNotification *)notification {
     
     NSLog(@"startTimer");
     
-    _timer = [NSTimer scheduledTimerWithTimeInterval:[_checkInterval floatValue]
+    _timer = [NSTimer scheduledTimerWithTimeInterval:[_taskCheckInterval floatValue]
                                               target:self
                                             selector:@selector(checkTask)
                                             userInfo:nil
@@ -88,7 +111,10 @@
     
     NSLog(@"stopTimer");
     
-    if ( _timer.isValid ) [_timer invalidate];
+    if ( _timer != nil ) {
+     
+        _timer = nil;
+    }
 }
 
 - (void)startWaitTask:(NSNotification *)notification {
@@ -97,7 +123,7 @@
     
     [NOTIFICATION addObserver:self
                      selector:@selector(startWaitTask:)
-                         name:@"StartWaitStatusBarTask"
+                         name:START_WAIT_STATUS_BAR_TASK
                        object:nil];
 }
 
@@ -109,7 +135,7 @@
     
     [NOTIFICATION addObserver:self
                      selector:@selector(startWaitTask:)
-                         name:@"StartWaitStatusBarTask"
+                         name:START_WAIT_STATUS_BAR_TASK
                        object:nil];
     [self stopTimer:nil];
 }
@@ -127,8 +153,6 @@
 
 - (void)checkTask {
     
-//    NSLog(@"checkTask");
-    
     if ( _tasks.count != 0 ) {
         
         NSLog(@"Find Task");
@@ -144,53 +168,149 @@
     
     [self stopTimer:nil];
     
+    __block __weak StatusBarInfo *weakSelf = self;
+    
     if ( task != nil ) {
         
         _textLabel.text = task;
-        self.frame = CGRectMake(0, -20, 320, 20);
         self.alpha = 1.0;
         
-        [UIView animateWithDuration:0.3
-                         animations:^{
-                             
-                             self.frame = CGRectMake(0, 0, 320, 20);
-                         }
-                         completion:^(BOOL completion) {
-                             
-                             DISPATCH_AFTER([_showTime floatValue]) ^{
-                                 
-                                 [self hideTask];
-                             });
-                         }
-         ];
+        switch ( _animationType ) {
+                
+            case StatusBarInfoAnimationTypeTopInToFadeOut:
+                
+                self.frame = HIDE_POSITION;
+                
+                [UIView animateWithDuration:[_animationDuration floatValue]
+                                 animations:^{
+                                     
+                                     weakSelf.frame = SHOW_POSITION;
+                                 }
+                                 completion:^(BOOL finished) {
+                                     
+                                     [weakSelf hideTask];
+                                 }
+                 ];
+                
+                break;
+                
+            case StatusBarInfoAnimationTypeRightInLeftOut:
+                
+                self.frame = RIGHT_POSITION;
+                
+                [UIView animateWithDuration:[_animationDuration floatValue]
+                                 animations:^{
+                                     
+                                     weakSelf.frame = SHOW_POSITION;
+                                 }
+                                 completion:^(BOOL finished) {
+                                     
+                                     [weakSelf hideTask];
+                                 }
+                 ];
+                
+                break;
+                
+            default:
+                break;
+        }
         
     }else {
         
         DISPATCH_AFTER(0.3) ^{
             
-            [self startTimer:nil];
+            [weakSelf startTimer:nil];
         });
     }
 }
 
 - (void)hideTask {
     
-    [UIView animateWithDuration:0.3
-                     animations:^{
-                         
-                         self.alpha = 0.0;
-                     }
-                     completion:^(BOOL completion) {
-                         
-                         self.frame = CGRectMake(0, -20, 320, 20);
-                         self.alpha = 1.0;
-                         
-                         DISPATCH_AFTER(0.1) ^{
-                             
-                             [self startTimer:nil];
-                         });
-                     }
-     ];
+    NSLog(@"hideTask");
+    
+    __block __weak StatusBarInfo *weakSelf = self;
+    
+    switch ( _animationType ) {
+            
+        case StatusBarInfoAnimationTypeTopInToFadeOut:
+            
+            [UIView animateWithDuration:[_animationDuration floatValue]
+                                  delay:[_showTime floatValue]
+                                options:0
+                             animations:^{
+                                 
+                                 weakSelf.alpha = 0.0;
+                             }
+                             completion:^(BOOL finished) {
+                                 
+                                 weakSelf.frame = HIDE_POSITION;
+                                 weakSelf.alpha = 1.0;
+                                 
+                                 DISPATCH_AFTER(0.1) ^{
+                                     
+                                     [weakSelf startTimer:nil];
+                                 });
+                             }
+             ];
+            
+            break;
+            
+        case StatusBarInfoAnimationTypeRightInLeftOut:
+            
+            [UIView animateWithDuration:[_animationDuration floatValue]
+                                  delay:[_showTime floatValue]
+                                options:0
+                             animations:^{
+                                 
+                                 weakSelf.frame = LEFT_POSITION;
+                             }
+                             completion:^(BOOL finished) {
+                                 
+                                 weakSelf.frame = HIDE_POSITION;
+                                 
+                                 DISPATCH_AFTER(0.1) ^{
+                                     
+                                     [weakSelf startTimer:nil];
+                                 });
+                             }
+             ];
+            
+            break;
+            
+        default:
+            break;
+    }
+}
+
+#pragma mark - ClassMethod
+
++ (void)srartTimer {
+    
+    [NSNotificationCenter postNotificationCenterForName:START_STATUS_BAR_TIMER];
+}
+
++ (void)stopTimer {
+    
+    [NSNotificationCenter postNotificationCenterForName:STOP_STATUS_BAR_TIMER];
+}
+
++ (void)startWaitTask {
+    
+    [NSNotificationCenter postNotificationCenterForName:START_WAIT_STATUS_BAR_TASK];
+}
+
++ (void)stopWaitTask {
+    
+    [NSNotificationCenter postNotificationCenterForName:STOP_WAIT_STATUS_BAR_TASK];
+}
+
++ (void)addTask:(NSString *)task {
+    
+    if ( task != nil ) {
+        
+        [NSNotificationCenter postNotificationCenterForName:ADD_STATUS_BAR_TASK
+                                               withUserInfo:@{@"Task":task}];
+    }
 }
 
 - (void)dealloc {
@@ -199,7 +319,8 @@
     [_tasks release];
     [self stopTimer:nil];
     [_showTime release];
-    [_checkInterval release];
+    [_taskCheckInterval release];
+    [_animationDuration release];
     
     [super dealloc];
 }

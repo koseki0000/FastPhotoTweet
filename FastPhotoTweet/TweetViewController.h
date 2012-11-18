@@ -26,7 +26,7 @@
 #import <MediaPlayer/MediaPlayer.h>
 #import "ResendViewController.h"
 
-@interface ViewController : UIViewController <UINavigationControllerDelegate, UIImagePickerControllerDelegate, UIActionSheetDelegate> {
+@interface TweetViewController : UIViewController <UINavigationControllerDelegate, UIImagePickerControllerDelegate, UIActionSheetDelegate> {
     
     AppDelegate * appDelegate;
     GrayView *grayView;
@@ -56,6 +56,7 @@
     BOOL nowPlayingMode;
     BOOL iconUploadMode;
     BOOL showImageMode;
+    BOOL cacheArtWorkSeted;
     
     int actionSheetNo;
 }

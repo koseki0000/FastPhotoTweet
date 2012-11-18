@@ -7,10 +7,10 @@
 
 #import <UIKit/UIKit.h>
 #import "AppDelegate.h"
-#import "DeleteWhiteSpace.h"
 #import "EmptyCheck.h"
 #import "ShowAlert.h"
 #import "SSTextField.h"
+#import "NSString+WordCollect.h"
 
 @interface NGSettingViewController : UIViewController <UITextFieldDelegate, UINavigationBarDelegate> {
     
@@ -19,26 +19,19 @@
     NSMutableArray *ngSettingArray;
 }
 
-@property (retain, nonatomic) IBOutlet UIScrollView *sv;
-@property (retain, nonatomic) IBOutlet UINavigationBar *topBar;
-@property (retain, nonatomic) IBOutlet UIBarButtonItem *closeButton;
-@property (retain, nonatomic) IBOutlet UIBarButtonItem *addButton;
-@property (retain, nonatomic) IBOutlet UISegmentedControl *ngTypeSegment;
-@property (retain, nonatomic) IBOutlet SSTextField *ngWordField;
-@property (retain, nonatomic) IBOutlet SSTextField *userField;
-@property (retain, nonatomic) IBOutlet SSTextField *exclusionUserField;
-@property (retain, nonatomic) IBOutlet UILabel *regexpLabel;
-@property (retain, nonatomic) IBOutlet UISwitch *regexpSwitch;
-@property (retain, nonatomic) IBOutlet UITableView *addedNgSettings;
+@property (weak, nonatomic) IBOutlet UIScrollView *sv;
+@property (strong, nonatomic) IBOutlet UIBarButtonItem *addButton;
+@property (weak, nonatomic) IBOutlet UISegmentedControl *ngTypeSegment;
+@property (weak, nonatomic) IBOutlet SSTextField *ngWordField;
+@property (weak, nonatomic) IBOutlet SSTextField *userField;
+@property (weak, nonatomic) IBOutlet SSTextField *exclusionUserField;
+@property (weak, nonatomic) IBOutlet UILabel *regexpLabel;
+@property (weak, nonatomic) IBOutlet UISwitch *regexpSwitch;
+@property (weak, nonatomic) IBOutlet UITableView *addedNgSettings;
 
 - (IBAction)doneButtonVisible:(UITextField *)sender;
-
 - (IBAction)changeSegment:(UISegmentedControl *)sender;
-
 - (IBAction)pushAddButton:(UIBarButtonItem *)sender;
-- (IBAction)pushCloseButton:(UIBarButtonItem *)sender;
-
-- (IBAction)upView:(id)sender;
 
 - (CGFloat)heightForContents:(NSString *)contents;
 

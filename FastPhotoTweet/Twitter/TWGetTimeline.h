@@ -15,6 +15,7 @@
 #import "TWEntities.h"
 #import "TWAccounts.h"
 #import "TWTweets.h"
+#import "TWNgTweet.h"
 
 @interface TWGetTimeline : NSObject
 

@@ -2,7 +2,7 @@
 //  SpecialThanksViewController.h
 //  FastPhotoTweet
 //
-//  Created by m.s.s02968 on 12/11/04.
+//  Created by @peace3884 on 12/11/04.
 //
 //
 

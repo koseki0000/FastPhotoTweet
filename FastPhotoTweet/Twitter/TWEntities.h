@@ -10,9 +10,9 @@
 #import "TWParser.h"
 #import "TWIconBigger.h"
 #import "EmptyCheck.h"
-#import "NSStringAdditions.h"
 #import "NSDictionary+DataExtraction.h"
 #import "NSObject+EmptyCheck.h"
+#import "NSString+Calculator.h"
 
 @interface TWEntities : NSObject
 

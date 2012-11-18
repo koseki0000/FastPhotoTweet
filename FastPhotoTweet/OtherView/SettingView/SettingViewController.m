@@ -73,8 +73,6 @@
 
 @implementation SettingViewController
 @synthesize tv;
-@synthesize bar;
-@synthesize saveButton;
 
 - (id)initWithNibName:(NSString *)nibNameOrNil bundle:(NSBundle *)nibBundleOrNil {
     
@@ -84,7 +82,7 @@
     if ( self ) {
 
         //NSLog(@"SettingView init");
-        
+           
         appDelegate = (AppDelegate *)[[UIApplication sharedApplication] delegate];
         d = [NSUserDefaults standardUserDefaults];
         actionSheetNo = 0;
@@ -116,6 +114,12 @@
     [super viewDidLoad];
     
     [tv flashScrollIndicators];
+    
+    UIBarButtonItem *closeButton = [[[UIBarButtonItem alloc] initWithTitle:@"閉じる"
+                                                                     style:UIBarButtonItemStyleBordered
+                                                                    target:self
+                                                                    action:@selector(pushDoneButton:)] autorelease];
+    self.navigationItem.leftBarButtonItem = closeButton;
 }
 
 - (void)viewDidAppear:(BOOL)animated {
@@ -1176,8 +1180,8 @@
         
             //NG設定を開く
             NGSettingViewController *dialog = [[[NGSettingViewController alloc] init] autorelease];
-            dialog.modalTransitionStyle = UIModalTransitionStyleCoverVertical;
-            [self presentModalViewController:dialog animated:YES];
+            dialog.title = @"NG Settings";
+            [self.navigationController pushViewController:dialog animated:YES];
         
         }else if ( indexPath.row == 4 ) {
             
@@ -1265,14 +1269,14 @@
         if ( indexPath.row == 0 ) {
             
             LicenseViewController *dialog = [[[LicenseViewController alloc] init] autorelease];
-            dialog.modalTransitionStyle = UIModalTransitionStyleCoverVertical;
-            [self presentModalViewController:dialog animated:YES];
+            dialog.title = @"License";
+            [self.navigationController pushViewController:dialog animated:YES];
             
         }else if ( indexPath.row == 1 ) {
             
             SpecialThanksViewController *dialog = [[[SpecialThanksViewController alloc] init] autorelease];
-            dialog.modalTransitionStyle = UIModalTransitionStyleCoverVertical;
-            [self presentModalViewController:dialog animated:YES];
+            dialog.title = @"SpecialThanks";
+            [self.navigationController pushViewController:dialog animated:YES];
         }
     }
 }
@@ -1417,7 +1421,7 @@
             
             if ( twitpicName == nil ) {
                 
-                [ShowAlert error:[NSString stringWithFormat:@"現在使用中のアカウント %@ のTwitpicアカウントが見つかりません。アカウントを登録してください。", twAccount.username]];
+                [ShowAlert error:[NSString stringWithFormat:@"現在使用中のアカウント %@ のTwitpicアカウントが見つかりません。アカウントを登録してください", twAccount.username]];
                 
                 appDelegate.addTwitpicAccountName = twAccount.username;
                 
@@ -1824,8 +1828,6 @@
 - (void)viewDidUnload {
     
     [self setTv:nil];
-    [self setBar:nil];
-    [self setSaveButton:nil];
     [super viewDidUnload];
 }
 

@@ -5,14 +5,14 @@
 //  Created by @peace3884 on 12/02/23.
 //
 
-#import "ViewController.h"
+#import "TweetViewController.h"
 
 #define APP_VERSION [[[NSBundle mainBundle] infoDictionary] objectForKey:@"CFBundleShortVersionString"]
 
 #define TOP_BAR [NSArray arrayWithObjects:trashButton, flexibleSpace, idButton, flexibleSpace, resendButton, flexibleSpace, imageSettingButton, flexibleSpace, postButton, nil]
 #define BOTTOM_BAR [NSArray arrayWithObjects:settingButton, flexibleSpace, browserButton, flexibleSpace, nowPlayingButton, flexibleSpace, actionButton, nil]
 
-@implementation ViewController
+@implementation TweetViewController
 @synthesize resendButton;
 @synthesize sv;
 @synthesize imageSettingButton;
@@ -335,7 +335,7 @@
             //NSLog(@"newVersion");
             
             [ShowAlert title:[NSString stringWithFormat:@"FastPhotoTweet %@", APP_VERSION]
-                     message:@"・ステータスバーオーバーレイ表示の色を変更\n・NG処理中にUserStreamの新着があった場合にクラッシュする問題を修正\n・メモリ消費の低減\n・その他細かな修正"];
+                     message:@"・Timelineメニュー表示の微調整\n・Timeline更新後のスクロールの問題を修正\n・ReTweetの表示形式の変更\n・｢NowPlaying｣の問題を修正\n・｢Tweetを編集｣の問題を修正\n・その他細かな修正"];
             
             information = [[[NSMutableDictionary alloc] initWithDictionary:[d dictionaryForKey:@"Information"]] autorelease];
             [information setValue:[NSNumber numberWithInt:1] forKey:APP_VERSION];
@@ -398,8 +398,9 @@
                 }else {
                     
                     //画像投稿先がTwitterの場合
-                    if ( [[d objectForKey:@"PhotoService"] isEqualToString:@"Twitter"] ||
-                        ( nowPlayingMode && [d  integerForKey:@"NowPlayingPhotoService"] == 1 )) {
+                    if (( [[d objectForKey:@"PhotoService"] isEqualToString:@"Twitter"] ||
+                        ( nowPlayingMode && [d  integerForKey:@"NowPlayingPhotoService"] == 1 )) &&
+                         !cacheArtWorkSeted ) {
                         
                         //文字列と画像をバックグラウンドプロセスで投稿
                         [TWSendTweet post:text
@@ -422,6 +423,7 @@
                     [inReplyToId release];
                     inReplyToId = BLANK;
                     imagePreview.image = nil;
+                    cacheArtWorkSeted = NO;
                     
                     //とは検索機能ONかつ条件にマッチ
                     if ( [d boolForKey:@"TohaSearch"] &&
@@ -503,8 +505,11 @@
     //NSLog(@"Setting");
     
     SettingViewController *dialog = [[[SettingViewController alloc] init] autorelease];
-    dialog.modalTransitionStyle = UIModalTransitionStyleCoverVertical;
-    [self presentModalViewController:dialog animated:YES];
+    dialog.title = @"Settings";
+    UINavigationController *navigation = [[[UINavigationController alloc] initWithRootViewController:dialog] autorelease];
+    navigation.modalTransitionStyle = UIModalTransitionStyleCoverVertical;
+    navigation.navigationBar.tintColor = [UIColor colorWithRed:0.4 green:0.8 blue:1.0 alpha:1.0];
+    [self presentModalViewController:navigation animated:YES];
 }
 
 - (IBAction)pushIDButton:(id)sender {
@@ -524,7 +529,7 @@
     
     //カメラか投稿時選択
     if ( [d integerForKey:@"ImageSource"] == 0 ||
-        [d integerForKey:@"ImageSource"] == 2 ) {
+         [d integerForKey:@"ImageSource"] == 2 ) {
         
         if ( [d boolForKey:@"RepeatedPost"] ) {
             
@@ -772,7 +777,7 @@
 - (void)becomeActive:(NSNotification *)notification {
     
     //アプリケーションがアクティブになった際に呼ばれる
-    //NSLog(@"becomeActive");
+    NSLog(@"ViewController becomeActive");
     
     if ( showImageMode ) [self tapClearView:nil];
     
@@ -780,18 +785,21 @@
     
     if ( appDelegate.willResignActive ) {
         
+        NSLog(@"  willResignActive");
         appDelegate.willResignActive = NO;
         return;
     }
     
     if ( appDelegate.pboardURLOpenTweet ) {
         
+        NSLog(@"  pboardURLOpenTweet");
         appDelegate.pboardURLOpenTweet = NO;
         return;
     }
     
     if ( [EmptyCheck check:appDelegate.urlSchemeDownloadUrl] ) {
         
+        NSLog(@"  urlSchemeDownloadUrl");
         appDelegate.startupUrlList = [NSArray arrayWithObject:@"about:blank"];
         
         [self pushBrowserButton:nil];
@@ -799,7 +807,11 @@
         return;
     }
     
-    if ( self.tabBarController.selectedIndex == 1 ) return;
+    if ( self.tabBarController.selectedIndex == 1 ) {
+     
+        NSLog(@"  selectedIndex == 1");
+        return;
+    }
     
     //設定が有効な場合Post入力可能状態にする
     if ( [d boolForKey:@"ShowKeyboard"] ) {
@@ -810,16 +822,23 @@
     //iOS5以降かチェック
     if ( [appDelegate ios5Check] ) {
         
+        NSLog(@"  version check ok");
+        NSLog(@"  showActionSheet: %@, showImagePicker: %@",
+              showActionSheet ? @"YES" : @"NO",
+              showImagePicker ? @"YES" : @"NO");
+        
         if ( !showActionSheet && !showImagePicker ) {
             
             if ( appDelegate.launchMode == 2 ) {
                 
+                NSLog(@"  launchMode == 2");
                 [self showActionMenu];
                 
             }else {
                 
                 if ( appDelegate.launchMode == 1 ) {
-                    
+                
+                    NSLog(@"  launchMode == 1");
                     [self showActionMenu];
                 }
             }
@@ -930,13 +949,23 @@
     
     //画像ソースがカメラの場合保存
     if ( [d integerForKey:@"ImageSource"] == 1 || cameraMode ) {
+    
+        __block TweetViewController *weakSelf = self;
+        __block UIImage *weakImage = image;
         
-        UIImageWriteToSavedPhotosAlbum(image, self, @selector(savingImageIsFinished:didFinishSavingWithError:contextInfo:), nil);
+        dispatch_queue_t queue = dispatch_get_global_queue(0, 0);
+        dispatch_async(queue, ^{
+            
+            UIImageWriteToSavedPhotosAlbum(weakImage,
+                                           weakSelf,
+                                           @selector(savingImageIsFinished:didFinishSavingWithError:contextInfo:),
+                                           nil);
+        });
     }
     
     //画像が選択された場合
     if ( [[d objectForKey:@"PhotoService"] isEqualToString:@"img.ur"] ||
-        [[d objectForKey:@"PhotoService"] isEqualToString:@"Twitpic"] ) {
+         [[d objectForKey:@"PhotoService"] isEqualToString:@"Twitpic"] ) {
         
         //画像アップロード開始
         [self uploadImage:image];
@@ -1621,6 +1650,7 @@
     
     //NSLog(@"nowPlaying");
     
+    cacheArtWorkSeted = NO;
     NSMutableString *resultText = [NSMutableString stringWithString:BLANK];
     
     @try {
@@ -1756,6 +1786,7 @@
         
         if ( [d boolForKey:@"NowPlayingArtWork"] && [EmptyCheck check:url] ) {
             
+            cacheArtWorkSeted = YES;
             resultText = [NSMutableString stringWithFormat:@"%@%@", resultText, url];
         }
         
@@ -2067,10 +2098,10 @@
             
             if ( [postText.text hasSuffix:@" "] ) {
                 
-                postText.text = [NSString stringWithFormat:@"%@ ",postText.text];
+                postText.text = [NSString stringWithFormat:@"%@ ", postText.text];
             }
             
-            postText.text = [NSString stringWithFormat:@"%@%@",postText.text , nowPlayingText];
+            postText.text = [NSString stringWithFormat:@"%@%@", postText.text , nowPlayingText];
             [postText becomeFirstResponder];
             [postText setSelectedRange:NSMakeRange(0, 0)];
         }

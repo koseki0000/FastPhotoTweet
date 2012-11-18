@@ -142,17 +142,33 @@
      
         if ( [replacedTweet objectForKey:@"event"] == nil ) {
             
-            [replacedTweet setObject:[NSString stringWithFormat:@"%@ - %@ [%@]",
-                                      [[replacedTweet objectForKey:@"user"] objectForKey:@"screen_name"],
-                                      [TWParser JSTDate:[replacedTweet objectForKey:@"created_at"]],
-                                      [TWParser client:[replacedTweet objectForKey:@"source"]]]
-                              forKey:@"info_text"];
+            if ( [[tweet objectForKey:@"retweeted_status"] boolForKey:@"id"] ) {
+                
+                [replacedTweet setObject:[NSString stringWithFormat:@"%@ - %@ [%@]",
+                                          [[[replacedTweet objectForKey:@"retweeted_status"] objectForKey:@"user"] objectForKey:@"screen_name"],
+                                          [TWParser JSTDate:[[replacedTweet objectForKey:@"retweeted_status"] objectForKey:@"created_at"]],
+                                          [TWParser client:[[replacedTweet objectForKey:@"retweeted_status"] objectForKey:@"source"]]]
+                                  forKey:@"info_text"];
             
-            [replacedTweet setObject:[NSString stringWithFormat:@"%@_%@",
-                                      [[replacedTweet objectForKey:@"user"] objectForKey:@"screen_name"],
-                                      [TWIconBigger normal:[[[replacedTweet objectForKey:@"user"] objectForKey:@"profile_image_url"] lastPathComponent]]]
-                              forKey:@"search_name"];
-            
+                [replacedTweet setObject:[NSString stringWithFormat:@"%@_%@",
+                                          [[[replacedTweet objectForKey:@"retweeted_status"] objectForKey:@"user"] objectForKey:@"screen_name"],
+                                          [TWIconBigger normal:[[[[replacedTweet objectForKey:@"retweeted_status"] objectForKey:@"user"] objectForKey:@"profile_image_url"] lastPathComponent]]]
+                                  forKey:@"search_name"];
+                
+            }else {
+             
+                [replacedTweet setObject:[NSString stringWithFormat:@"%@ - %@ [%@]",
+                                          [[replacedTweet objectForKey:@"user"] objectForKey:@"screen_name"],
+                                          [TWParser JSTDate:[replacedTweet objectForKey:@"created_at"]],
+                                          [TWParser client:[replacedTweet objectForKey:@"source"]]]
+                                  forKey:@"info_text"];
+                
+                [replacedTweet setObject:[NSString stringWithFormat:@"%@_%@",
+                                          [[replacedTweet objectForKey:@"user"] objectForKey:@"screen_name"],
+                                          [TWIconBigger normal:[[[replacedTweet objectForKey:@"user"] objectForKey:@"profile_image_url"] lastPathComponent]]]
+                                  forKey:@"search_name"];
+            }
+        
         }else if ( [tweet objectForKey:@"event"] != nil &&
                   [[tweet stringForKey:@"event"] isEqualToString:@"favorite"] ) {
             
@@ -167,8 +183,14 @@
                                       [TWIconBigger normal:[[[[replacedTweet objectForKey:@"target_object"] objectForKey:@"user"] objectForKey:@"profile_image_url"] lastPathComponent]]]
                               forKey:@"search_name"];
         }
+        
+        [replacedTweet setObject:@([text heightForContents:[UIFont systemFontOfSize:12.0]
+                                                   toWidht:264
+                                                 minHeight:31
+                                             lineBreakMode:NSLineBreakByCharWrapping])
+                          forKey:@"contents_height"];
     }
-    
+
     return [TWEntities truncateUselessData:replacedTweet];
 }
 
@@ -226,7 +248,6 @@
                 
                 [tcoURL release];
                 [expandedURL release];
-
             }
             
             [urls release];
@@ -244,37 +265,34 @@
 
 + (NSDictionary *)truncateUselessData:(NSMutableDictionary *)tweet {
     
-    @autoreleasepool {
-        
-        [tweet removeObjectForKey:@"coordinates"];
-        [tweet removeObjectForKey:@"truncated"];
-        [tweet removeObjectForKey:@"contributors"];
-        [tweet removeObjectForKey:@"geo"];
-        [tweet removeObjectForKey:@"possibly_sensitive"];
-        
-        NSMutableDictionary *user = [NSMutableDictionary dictionaryWithDictionary:[tweet objectForKey:@"user"]];
-        
-        [user removeObjectForKey:@"profile_sidebar_border_color"];
-        [user removeObjectForKey:@"profile_sidebar_fill_color"];
-        [user removeObjectForKey:@"profile_background_tile"];
-        [user removeObjectForKey:@"is_translator"];
-        [user removeObjectForKey:@"profile_link_color"];
-        [user removeObjectForKey:@"profile_background_image_url_https"];
-        [user removeObjectForKey:@"description"];
-        [user removeObjectForKey:@"profile_background_image_url"];
-        [user removeObjectForKey:@"profile_background_color"];
-        [user removeObjectForKey:@"profile_image_url_https"];
-        [user removeObjectForKey:@"url"];
-        [user removeObjectForKey:@"geo_enabled"];
-        [user removeObjectForKey:@"verified"];
-        [user removeObjectForKey:@"notifications"];
-        [user removeObjectForKey:@"statuses_count"];
-        [user removeObjectForKey:@"friends_count"];
-        [user removeObjectForKey:@"show_all_inline_media"];
-        [user removeObjectForKey:@"utc_offset"];
-        
-        [tweet setObject:user forKey:@"user"];
-    }
+    [tweet removeObjectForKey:@"coordinates"];
+    [tweet removeObjectForKey:@"truncated"];
+    [tweet removeObjectForKey:@"contributors"];
+    [tweet removeObjectForKey:@"geo"];
+    [tweet removeObjectForKey:@"possibly_sensitive"];
+    
+    NSMutableDictionary *user = [NSMutableDictionary dictionaryWithDictionary:[tweet objectForKey:@"user"]];
+    
+    [user removeObjectForKey:@"profile_sidebar_border_color"];
+    [user removeObjectForKey:@"profile_sidebar_fill_color"];
+    [user removeObjectForKey:@"profile_background_tile"];
+    [user removeObjectForKey:@"is_translator"];
+    [user removeObjectForKey:@"profile_link_color"];
+    [user removeObjectForKey:@"profile_background_image_url_https"];
+    [user removeObjectForKey:@"description"];
+    [user removeObjectForKey:@"profile_background_image_url"];
+    [user removeObjectForKey:@"profile_background_color"];
+    [user removeObjectForKey:@"profile_image_url_https"];
+    [user removeObjectForKey:@"url"];
+    [user removeObjectForKey:@"geo_enabled"];
+    [user removeObjectForKey:@"verified"];
+    [user removeObjectForKey:@"notifications"];
+    [user removeObjectForKey:@"statuses_count"];
+    [user removeObjectForKey:@"friends_count"];
+    [user removeObjectForKey:@"show_all_inline_media"];
+    [user removeObjectForKey:@"utc_offset"];
+    
+    [tweet setObject:user forKey:@"user"];
     
     return [NSDictionary dictionaryWithDictionary:tweet];
 }

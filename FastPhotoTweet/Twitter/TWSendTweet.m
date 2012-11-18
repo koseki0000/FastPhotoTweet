@@ -6,6 +6,7 @@
 //
 
 #import "TWSendTweet.h"
+#import "NSObject+EmptyCheck.h"
 
 #define API_VERSION @"1"
 
@@ -31,7 +32,12 @@
     
     NSMutableArray *tempMArray = [NSMutableArray array];
     [tempMArray addObject:text];
-    if ( tweetID != nil && ![tweetID isEqualToString:@""] ) [tempMArray addObject:tweetID];
+    
+    if ( [tweetID isNotEmpty] ) {
+        
+        [tempMArray addObject:tweetID];
+    }
+    
     [tempMArray insertObject:[NSNumber numberWithInt:[[NSUserDefaults standardUserDefaults] integerForKey:@"UseAccount"]] atIndex:0];
     [tempMArray insertObject:[TWAccounts currentAccountName] atIndex:1];
     [appDelegate.postError addObject:(NSArray *)tempMArray];
@@ -47,8 +53,7 @@
     [params setObject:@"1" forKey:@"include_entities"];
     [params setObject:text forKey:@"status"];
     
-    if (  tweetID != nil &&
-        ![tweetID isEqualToString:@""] ) {
+    if ( [tweetID isNotEmpty] ) {
         
         [params setObject:tweetID forKey:@"in_reply_to_status_id"];
     }
@@ -155,8 +160,7 @@
         return;
     }
 
-    if (( text == nil || [text isEqualToString:@""] ) &&
-        image != nil ) {
+    if ( [text isNotEmpty] && [image isNotEmpty] ) {
         
         text = @"";
     }
@@ -167,7 +171,12 @@
     
     NSMutableArray *tempMArray = [NSMutableArray array];
     [tempMArray addObject:text];
-    if ( tweetID != nil && ![tweetID isEqualToString:@""] ) [tempMArray addObject:tweetID];
+
+    if ( [tweetID isNotEmpty] ) {
+        
+        [tempMArray addObject:tweetID];
+    }
+    
     [tempMArray insertObject:[NSNumber numberWithInt:[[NSUserDefaults standardUserDefaults] integerForKey:@"UseAccount"]] atIndex:0];
     [tempMArray insertObject:[TWAccounts currentAccountName] atIndex:1];
     [appDelegate.postError addObject:(NSArray *)tempMArray];
@@ -198,8 +207,7 @@
                          withName:@"media[]"
                              type:@"multipart/form-data"];
     
-    if (  tweetID != nil &&
-        ![tweetID isEqualToString:@""] ) {
+    if ( [tweetID isNotEmpty] ) {
         
         [postRequest addMultiPartData:[tweetID dataUsingEncoding:NSUTF8StringEncoding]
                              withName:@"in_reply_to_status_id"

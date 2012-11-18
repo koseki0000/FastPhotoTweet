@@ -97,6 +97,7 @@
                      
                      //t.coを全て展開する
                      timeline = [TWEntities replaceTcoAll:timeline];
+                     timeline = [TWNgTweet ngAll:timeline];
                      
                      //取得完了を通知
                      [weakResult setObject:@"TimelineSuccess" forKey:@"Result"];
@@ -212,6 +213,7 @@
                      
                      //t.coを全て展開する
                      userTimeline = [TWEntities replaceTcoAll:userTimeline];
+                     userTimeline = [TWNgTweet ngAll:userTimeline];
                      
                      //取得完了を通知
                      [weakResult setObject:@"UserTimelineSuccess" forKey:@"Result"];
