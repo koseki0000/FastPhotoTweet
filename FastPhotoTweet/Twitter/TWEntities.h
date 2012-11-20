@@ -7,12 +7,21 @@
 
 #import <Foundation/Foundation.h>
 #import "JSON.h"
+#import "TWAccounts.h"
 #import "TWParser.h"
 #import "TWIconBigger.h"
 #import "EmptyCheck.h"
 #import "NSDictionary+DataExtraction.h"
 #import "NSObject+EmptyCheck.h"
 #import "NSString+Calculator.h"
+
+typedef enum {
+    CellTextColorBlack,
+    CellTextColorRed,
+    CellTextColorBlue,
+    CellTextColorGreen,
+    CellTextColorGold
+}CellTextColor;
 
 @interface TWEntities : NSObject
 

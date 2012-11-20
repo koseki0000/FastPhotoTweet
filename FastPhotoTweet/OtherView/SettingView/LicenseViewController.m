@@ -8,8 +8,6 @@
 #import "LicenseViewController.h"
 
 @implementation LicenseViewController
-@synthesize bar;
-@synthesize closeButton;
 @synthesize textView;
 
 - (id)initWithNibName:(NSString *)nibNameOrNil bundle:(NSBundle *)nibBundleOrNil {
@@ -46,8 +44,6 @@
 
 - (void)viewDidUnload {
 
-    [self setBar:nil];
-    [self setCloseButton:nil];
     [self setTextView:nil];
     [super viewDidUnload];
 }
@@ -66,8 +62,6 @@
 
 - (void)dealloc {
     
-    [bar release];
-    [closeButton release];
     [textView release];
     [super dealloc];
 }

@@ -138,59 +138,78 @@
     NSMutableDictionary *replacedTweet = [NSMutableDictionary dictionaryWithDictionary:tweet];
     [replacedTweet setObject:text forKey:@"text"];
     
-    @autoreleasepool {
-     
-        if ( [replacedTweet objectForKey:@"event"] == nil ) {
-            
-            if ( [[tweet objectForKey:@"retweeted_status"] boolForKey:@"id"] ) {
-                
-                [replacedTweet setObject:[NSString stringWithFormat:@"%@ - %@ [%@]",
-                                          [[[replacedTweet objectForKey:@"retweeted_status"] objectForKey:@"user"] objectForKey:@"screen_name"],
-                                          [TWParser JSTDate:[[replacedTweet objectForKey:@"retweeted_status"] objectForKey:@"created_at"]],
-                                          [TWParser client:[[replacedTweet objectForKey:@"retweeted_status"] objectForKey:@"source"]]]
-                                  forKey:@"info_text"];
-            
-                [replacedTweet setObject:[NSString stringWithFormat:@"%@_%@",
-                                          [[[replacedTweet objectForKey:@"retweeted_status"] objectForKey:@"user"] objectForKey:@"screen_name"],
-                                          [TWIconBigger normal:[[[[replacedTweet objectForKey:@"retweeted_status"] objectForKey:@"user"] objectForKey:@"profile_image_url"] lastPathComponent]]]
-                                  forKey:@"search_name"];
-                
-            }else {
-             
-                [replacedTweet setObject:[NSString stringWithFormat:@"%@ - %@ [%@]",
-                                          [[replacedTweet objectForKey:@"user"] objectForKey:@"screen_name"],
-                                          [TWParser JSTDate:[replacedTweet objectForKey:@"created_at"]],
-                                          [TWParser client:[replacedTweet objectForKey:@"source"]]]
-                                  forKey:@"info_text"];
-                
-                [replacedTweet setObject:[NSString stringWithFormat:@"%@_%@",
-                                          [[replacedTweet objectForKey:@"user"] objectForKey:@"screen_name"],
-                                          [TWIconBigger normal:[[[replacedTweet objectForKey:@"user"] objectForKey:@"profile_image_url"] lastPathComponent]]]
-                                  forKey:@"search_name"];
-            }
+    if ( [replacedTweet objectForKey:@"event"] == nil ) {
         
-        }else if ( [tweet objectForKey:@"event"] != nil &&
-                  [[tweet stringForKey:@"event"] isEqualToString:@"favorite"] ) {
+        if ( [[tweet objectForKey:@"retweeted_status"] boolForKey:@"id"] ) {
+            
+            [replacedTweet setObject:@(CellTextColorGreen) forKey:@"text_color"];
             
             [replacedTweet setObject:[NSString stringWithFormat:@"%@ - %@ [%@]",
-                                      [[[replacedTweet objectForKey:@"target_object"] objectForKey:@"user"] objectForKey:@"screen_name"],
-                                      [TWParser JSTDate:[[replacedTweet objectForKey:@"target_object"] objectForKey:@"created_at"]],
-                                      [TWParser client:[[replacedTweet objectForKey:@"target_object"] objectForKey:@"source"]]]
+                                      [[[replacedTweet objectForKey:@"retweeted_status"] objectForKey:@"user"] objectForKey:@"screen_name"],
+                                      [TWParser JSTDate:[[replacedTweet objectForKey:@"retweeted_status"] objectForKey:@"created_at"]],
+                                      [TWParser client:[[replacedTweet objectForKey:@"retweeted_status"] objectForKey:@"source"]]]
                               forKey:@"info_text"];
             
             [replacedTweet setObject:[NSString stringWithFormat:@"%@_%@",
-                                      [[[replacedTweet objectForKey:@"target_object"] objectForKey:@"user"] objectForKey:@"screen_name"],
-                                      [TWIconBigger normal:[[[[replacedTweet objectForKey:@"target_object"] objectForKey:@"user"] objectForKey:@"profile_image_url"] lastPathComponent]]]
+                                      [[[replacedTweet objectForKey:@"retweeted_status"] objectForKey:@"user"] objectForKey:@"screen_name"],
+                                      [TWIconBigger normal:[[[[replacedTweet objectForKey:@"retweeted_status"] objectForKey:@"user"] objectForKey:@"profile_image_url"] lastPathComponent]]]
+                              forKey:@"search_name"];
+            
+        }else {
+            
+            CellTextColor textColor = CellTextColorBlack;
+            
+            if ( [[[replacedTweet objectForKey:@"user"] objectForKey:@"screen_name"] isEqualToString:[TWAccounts currentAccountName]] ) {
+                
+                textColor = CellTextColorBlue;
+            }
+            
+            if ( [[replacedTweet objectForKey:@"text"] rangeOfString:[TWAccounts currentAccount].accountDescription].location != NSNotFound ) {
+                
+                textColor = CellTextColorRed;
+            }
+            
+            NSString *infoLabelText = [NSString stringWithFormat:@"%@ - %@ [%@]",
+                                       [[replacedTweet objectForKey:@"user"] objectForKey:@"screen_name"],
+                                       [TWParser JSTDate:[replacedTweet objectForKey:@"created_at"]],
+                                       [TWParser client:[replacedTweet objectForKey:@"source"]]];
+            
+            if ( [replacedTweet boolForKey:@"favorited"] ) {
+                
+                infoLabelText = [NSString stringWithFormat:@"★%@", infoLabelText];
+                textColor = CellTextColorGold;
+            }
+            
+            [replacedTweet setObject:@(textColor) forKey:@"text_color"];
+            [replacedTweet setObject:infoLabelText forKey:@"info_text"];
+            
+            [replacedTweet setObject:[NSString stringWithFormat:@"%@_%@",
+                                      [[replacedTweet objectForKey:@"user"] objectForKey:@"screen_name"],
+                                      [TWIconBigger normal:[[[replacedTweet objectForKey:@"user"] objectForKey:@"profile_image_url"] lastPathComponent]]]
                               forKey:@"search_name"];
         }
         
-        [replacedTweet setObject:@([text heightForContents:[UIFont systemFontOfSize:12.0]
-                                                   toWidht:264
-                                                 minHeight:31
-                                             lineBreakMode:NSLineBreakByCharWrapping])
-                          forKey:@"contents_height"];
+    }else if ( [tweet objectForKey:@"event"] != nil &&
+              [[tweet stringForKey:@"event"] isEqualToString:@"favorite"] ) {
+        
+        [replacedTweet setObject:[NSString stringWithFormat:@"%@ - %@ [%@]",
+                                  [[[replacedTweet objectForKey:@"target_object"] objectForKey:@"user"] objectForKey:@"screen_name"],
+                                  [TWParser JSTDate:[[replacedTweet objectForKey:@"target_object"] objectForKey:@"created_at"]],
+                                  [TWParser client:[[replacedTweet objectForKey:@"target_object"] objectForKey:@"source"]]]
+                          forKey:@"info_text"];
+        
+        [replacedTweet setObject:[NSString stringWithFormat:@"%@_%@",
+                                  [[[replacedTweet objectForKey:@"target_object"] objectForKey:@"user"] objectForKey:@"screen_name"],
+                                  [TWIconBigger normal:[[[[replacedTweet objectForKey:@"target_object"] objectForKey:@"user"] objectForKey:@"profile_image_url"] lastPathComponent]]]
+                          forKey:@"search_name"];
     }
-
+    
+    [replacedTweet setObject:@([text heightForContents:[UIFont systemFontOfSize:12.0]
+                                               toWidht:264
+                                             minHeight:31
+                                         lineBreakMode:NSLineBreakByCharWrapping])
+                      forKey:@"contents_height"];
+    
     return [TWEntities truncateUselessData:replacedTweet];
 }
 

@@ -19,6 +19,7 @@
 @property (strong, nonatomic) OHAttributedLabel *mainLabel;
 @property (strong, nonatomic) TitleButton *iconView;
 
-- (void)setProperties;
+- (id)initWithStyle:(UITableViewCellStyle)style reuseIdentifier:(NSString *)reuseIdentifier forWidth:(CGFloat)width;
+- (void)setProperties:(CGFloat)width;
 
 @end

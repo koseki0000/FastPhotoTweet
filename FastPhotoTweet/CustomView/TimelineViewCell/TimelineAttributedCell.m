@@ -31,22 +31,22 @@ static NSInteger const kAttributedLabelTag = 100;
     CGGradientRelease(gradient);
 }
 
-- (id)initWithStyle:(UITableViewCellStyle)style reuseIdentifier:(NSString *)reuseIdentifier {
+- (id)initWithStyle:(UITableViewCellStyle)style reuseIdentifier:(NSString *)reuseIdentifier forWidth:(CGFloat)width {
     
     self = [super initWithStyle:style reuseIdentifier:reuseIdentifier];
     
     if ( self ) {
         
-        [self setProperties];
+        [self setProperties:width];
     }
     
     return self;
 }
 
-- (void)setProperties {
+- (void)setProperties:(CGFloat)width {
     
-    _infoLabel = [[UILabel alloc] initWithFrame:CGRectMake(54, 2,  264, 14)];
-    _mainLabel = [[OHAttributedLabel alloc] initWithFrame:CGRectMake(54, 19, 264, 31)];
+    _infoLabel = [[UILabel alloc] initWithFrame:CGRectMake(54, 2,  width, 14)];
+    _mainLabel = [[OHAttributedLabel alloc] initWithFrame:CGRectMake(54, 19, width, 31)];
     _iconView = [[TitleButton alloc] initWithFrame:CGRectMake(2, 4, 48, 48)];
     
     _infoLabel.font = [UIFont boldSystemFontOfSize:11];

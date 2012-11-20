@@ -47,14 +47,6 @@
 #import <Three20UICommon/Three20UICommon.h>
 
 typedef enum {
-    CellTextColorBlack,
-    CellTextColorRed,
-    CellTextColorBlue,
-    CellTextColorGreen,
-    CellTextColorGold
-}CellTextColor;
-
-typedef enum {
     TimelineMenuActionOpenURL,
     TimelineMenuActionReply,
     TimelineMenuActionFavorite,
@@ -69,6 +61,23 @@ typedef enum {
     TimelineMenuActionEdit,
     TimelineMenuActionUserMenu
 }TimelineMenuAction;
+
+typedef enum {
+    TimelineCopyMenuSTOT,
+    TimelineCopyMenuText,
+    TimelineCopyMenuTweetURL,
+    TimelineCopyMenuURL
+}TimelineCopyMenu;
+
+typedef enum {
+    TimelineUserMenuTwilog,
+    TimelineUserMenuTwilogSearch,
+    TimelineUserMenuFavstar,
+    TimelineUserMenuTwitpic,
+    TimelineUserMenuUserTimeline,
+    TimelineUserMenuTwitterSearch,
+    TimelineUserMenuSearchStream
+}TimelineUserMenu;
 
 @interface TimelineViewController : UIViewController <UIActionSheetDelegate, UITextFieldDelegate, UIPickerViewDelegate, UIPickerViewDataSource, UITableViewDelegate, UITableViewDataSource>
 
@@ -206,6 +215,21 @@ typedef enum {
 - (void)timelineMenuActionDelete;
 - (void)timelineMenuActionEdit;
 - (void)timelineMenuActionUserMenu;
+
+- (void)timelineCopyMenuSTOT;
+- (void)timelineCopyMenuText;
+- (void)timelineCopyMenuTweetURL;
+- (void)timelineCopyMenuURL;
+
+- (void)timelineUserMenuTwilog;
+- (void)timelineUserMenuTwilogSearch;
+- (void)timelineUserMenuFavstar;
+- (void)timelineUserMenuTwitpic;
+- (void)timelineUserMenuUserTimeline;
+- (void)timelineUserMenuTwitterSearch;
+- (void)timelineUserMenuSearchStream;
+
+- (void)timelineMenuActionCopyTweet:(NSUInteger)type;
 
 - (void)receiveProfile:(NSNotification *)notification;
 - (void)enterBackground:(NSNotification *)notification;

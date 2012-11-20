@@ -13,11 +13,8 @@
     BOOL debugMode;
 }
 
-@property (retain, nonatomic) IBOutlet UINavigationBar *bar;
-@property (retain, nonatomic) IBOutlet UIBarButtonItem *closeButton;
 @property (retain, nonatomic) IBOutlet UITextView *textView;
 
-- (IBAction)pushCloseButton:(id)sender;
 - (IBAction)debug:(id)sender;
 
 @end

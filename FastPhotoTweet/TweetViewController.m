@@ -335,7 +335,7 @@
             //NSLog(@"newVersion");
             
             [ShowAlert title:[NSString stringWithFormat:@"FastPhotoTweet %@", APP_VERSION]
-                     message:@"・Timelineメニュー表示の微調整\n・Timeline更新後のスクロールの問題を修正\n・ReTweetの表示形式の変更\n・｢NowPlaying｣の問題を修正\n・｢Tweetを編集｣の問題を修正\n・その他細かな修正"];
+                     message:@"・Timelineメニュー表示階層対応\n・その他多数の修正"];
             
             information = [[[NSMutableDictionary alloc] initWithDictionary:[d dictionaryForKey:@"Information"]] autorelease];
             [information setValue:[NSNumber numberWithInt:1] forKey:APP_VERSION];

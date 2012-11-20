@@ -67,8 +67,6 @@
         NSMutableDictionary *result = [[NSMutableDictionary alloc] init];
         [result setObject:@"Timeline" forKey:@"Type"];
         
-        __block __weak NSMutableDictionary *weakResult = result;
-        
         NSNotification *notification =[NSNotification notificationWithName:@"GetTimeline"
                                                                     object:self
                                                                   userInfo:result];
@@ -89,7 +87,7 @@
                                                   options:NSJSONReadingMutableLeaves
                                                     error:&jsonError]];
                  
-                 [weakResult setObject:requestAccount.username forKey:@"Account"];
+                 [result setObject:requestAccount.username forKey:@"Account"];
                  
                  //NSLog(@"timeline: %@", timeline);
                  
@@ -100,12 +98,12 @@
                      timeline = [TWNgTweet ngAll:timeline];
                      
                      //取得完了を通知
-                     [weakResult setObject:@"TimelineSuccess" forKey:@"Result"];
-                     [weakResult setObject:timeline forKey:@"Timeline"];
+                     [result setObject:@"TimelineSuccess" forKey:@"Result"];
+                     [result setObject:timeline forKey:@"Timeline"];
                      
                  }else {
                      
-                     [weakResult setObject:@"TimelineError" forKey:@"Result"];
+                     [result setObject:@"TimelineError" forKey:@"Result"];
                  }
                  
                  //NSLog(@"Get HomeTimeline done");
@@ -118,8 +116,6 @@
                  
                  [ActivityIndicator off];
              }
-             
-             weakResult = nil;
          }];
         
         NSLog(@"HomeTimeline request sended");

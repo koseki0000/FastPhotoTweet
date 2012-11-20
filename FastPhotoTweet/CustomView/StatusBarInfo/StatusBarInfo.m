@@ -48,14 +48,8 @@
         _textLabel.textAlignment = UITextAlignmentCenter;
         
         _showTime = showTime;
-        [_showTime retain];
-        
         _taskCheckInterval = taskCheckInterval;
-        [_taskCheckInterval retain];
-        
         _animationDuration = animationDuration;
-        [_animationDuration retain];
-        
         _animationType = animationType;
         
         [self setNotifications];
@@ -113,7 +107,7 @@
     
     if ( _timer != nil ) {
      
-        _timer = nil;
+        [_timer invalidate];
     }
 }
 
@@ -168,7 +162,7 @@
     
     [self stopTimer:nil];
     
-    __block __weak StatusBarInfo *weakSelf = self;
+    __block StatusBarInfo *weakSelf = self;
     
     if ( task != nil ) {
         
@@ -228,7 +222,7 @@
     
     NSLog(@"hideTask");
     
-    __block __weak StatusBarInfo *weakSelf = self;
+    __block StatusBarInfo *weakSelf = self;
     
     switch ( _animationType ) {
             
@@ -315,14 +309,6 @@
 
 - (void)dealloc {
     
-    [_textLabel release];
-    [_tasks release];
-    [self stopTimer:nil];
-    [_showTime release];
-    [_taskCheckInterval release];
-    [_animationDuration release];
-    
-    [super dealloc];
 }
 
 @end

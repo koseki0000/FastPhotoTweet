@@ -1348,15 +1348,18 @@
     if ( [[currentTweet objectForKey:@"retweeted_status"] boolForKey:@"id"] ) {
         
         //公式RT
-        
         TimelineAttributedRTCell *cell = (TimelineAttributedRTCell *)[tableView dequeueReusableCellWithIdentifier:RT_CELL_IDENTIFIER];
         
         @autoreleasepool {
             
             if ( cell == nil ) {
                 
-                cell = [[TimelineAttributedRTCell alloc] initWithStyle:UITableViewCellStyleDefault reuseIdentifier:RT_CELL_IDENTIFIER];
-                [cell.iconView addTarget:self action:@selector(pushIcon:) forControlEvents:UIControlEventTouchUpInside];
+                cell = [[TimelineAttributedRTCell alloc] initWithStyle:UITableViewCellStyleDefault
+                                                       reuseIdentifier:RT_CELL_IDENTIFIER
+                                                              forWidth:264];
+                [cell.iconView addTarget:self
+                                  action:@selector(pushIcon:)
+                        forControlEvents:UIControlEventTouchUpInside];
             }
             
             //Tweetの本文
@@ -1427,11 +1430,13 @@
             
             if ( cell == nil ) {
                 
-                cell = [[TimelineAttributedCell alloc] initWithStyle:UITableViewCellStyleDefault reuseIdentifier:CELL_IDENTIFIER];
-                [cell.iconView addTarget:self action:@selector(pushIcon:) forControlEvents:UIControlEventTouchUpInside];
+                cell = [[TimelineAttributedCell alloc] initWithStyle:UITableViewCellStyleDefault
+                                                     reuseIdentifier:CELL_IDENTIFIER
+                                                            forWidth:264];
+                [cell.iconView addTarget:self
+                                  action:@selector(pushIcon:)
+                        forControlEvents:UIControlEventTouchUpInside];
             }
-            
-            CellTextColor textColor = CellTextColorBlack;
             
             //Tweetの本文
             __autoreleasing NSString *text = [currentTweet objectForKey:@"text"];
@@ -1454,25 +1459,6 @@
                 [cell.iconView.layer.sublayers.lastObject setContents:nil];
             }
             
-            //自分の発言の色を変える
-            if ( [screenName isEqualToString:[TWAccounts currentAccountName]] ) {
-                
-                textColor = CellTextColorBlue;
-            }
-            
-            //Replyの色を変える
-            if ( [text rangeOfString:[TWAccounts currentAccount].accountDescription].location != NSNotFound ) {
-                
-                textColor = CellTextColorRed;
-            }
-            
-            //Favoriteの色を変えて星をつける
-            if ( [currentTweet boolForKey:@"favorited"] ) {
-                
-                infoLabelText = [NSMutableString stringWithFormat:@"★%@", infoLabelText];
-                textColor = CellTextColorGold;
-            }
-            
             CGFloat contentsHeight = [currentTweet integerForKey:@"contents_height"];
             
             //ふぁぼられイベント用
@@ -1491,11 +1477,11 @@
             
             //セルへの反映開始
             cell.infoLabel.text = [NSString stringWithString:infoLabelText];
-            cell.infoLabel.textColor = [self getTextColor:textColor];
+            cell.infoLabel.textColor = [self getTextColor:[currentTweet integerForKey:@"text_color"]];
             
             NSMutableAttributedString *mainText = [NSMutableAttributedString attributedStringWithString:text];
             [mainText setFont:[UIFont systemFontOfSize:12]];
-            [mainText setTextColor:[self getTextColor:textColor] range:NSMakeRange(0, text.length)];
+            [mainText setTextColor:[self getTextColor:[currentTweet integerForKey:@"text_color"]] range:NSMakeRange(0, text.length)];
             [mainText setTextAlignment:kCTLeftTextAlignment
                          lineBreakMode:kCTLineBreakByCharWrapping
                          maxLineHeight:14.0
@@ -1523,6 +1509,8 @@
     
     return BLACK_COLOR;
 }
+
+
 
 - (CGFloat)tableView:(UITableView *)tableView heightForRowAtIndexPath:(NSIndexPath *)indexPath {
     
@@ -1803,66 +1791,133 @@
                              if ( [notification.userInfo objectForKey:@"Action"] != nil ) {
                                  
                                  __block NSUInteger actionNo = [notification.userInfo uintegerForKey:@"Action"];
+                                 __block NSString *type = [notification.userInfo stringForKey:@"Type"];
+                                 __block NSString *targetUser = [notification.userInfo stringForKey:@"TargetUser"];
                                  
                                  dispatch_queue_t globalQueue = GLOBAL_QUEUE_DEFAULT;
                                  dispatch_async(globalQueue, ^{
                                      
-                                     switch ( actionNo ) {
-                                             
-                                         case TimelineMenuActionOpenURL:
-                                             [weakSelf timelineMenuActionOpenURL];
-                                             break;
-                                             
-                                         case TimelineMenuActionReply:
-                                             [weakSelf timelineMenuActionReply];
-                                             break;
-                                             
-                                         case TimelineMenuActionFavorite:
-                                             [weakSelf timelineMenuActionFavorite];
-                                             break;
-                                             
-                                         case TimelineMenuActionReTweet:
-                                             [weakSelf timelineMenuActionReTweet];
-                                             break;
-                                             
-                                         case TimelineMenuActionFavRT:
-                                             [weakSelf timelineMenuActionFavRT];
-                                             break;
-                                             
-                                         case TimelineMenuActionSelectID:
-                                             [weakSelf timelineMenuActionSelectID];
-                                             break;
-                                             
-                                         case TimelineMenuActionNGTag:
-                                             [weakSelf timelineMenuActionNGTag];
-                                             break;
-                                             
-                                         case TimelineMenuActionNGClient:
-                                             [weakSelf timelineMenuActionNGClient];
-                                             break;
-                                             
-                                         case TimelineMenuActionInReplyTo:
-                                             [weakSelf timelineMenuActionInReplyTo];
-                                             break;
-                                             
-                                         case TimelineMenuActionCopy:
-                                             [weakSelf timelineMenuActionCopy];
-                                             break;
-                                             
-                                         case TimelineMenuActionDelete:
-                                             [weakSelf timelineMenuActionDelete];
-                                             break;
-                                             
-                                         case TimelineMenuActionEdit:
-                                             [weakSelf timelineMenuActionEdit];
-                                             break;
-                                             
-                                         case TimelineMenuActionUserMenu:
-                                             [weakSelf timelineMenuActionUserMenu];
-                                             break;
-                                             
-                                         default:
-                                             break;
+                                     if ( [type isEqualToString:@"Main"] ) {
+                                         
+                                         switch ( actionNo ) {
+                                                 
+                                             case TimelineMenuActionOpenURL:
+                                                 [weakSelf timelineMenuActionOpenURL];
+                                                 break;
+                                                 
+                                             case TimelineMenuActionReply:
+                                                 [weakSelf timelineMenuActionReply];
+                                                 break;
+                                                 
+                                             case TimelineMenuActionFavorite:
+                                                 [weakSelf timelineMenuActionFavorite];
+                                                 break;
+                                                 
+                                             case TimelineMenuActionReTweet:
+                                                 [weakSelf timelineMenuActionReTweet];
+                                                 break;
+                                                 
+                                             case TimelineMenuActionFavRT:
+                                                 [weakSelf timelineMenuActionFavRT];
+                                                 break;
+                                                 
+                                             case TimelineMenuActionSelectID:
+                                                 [weakSelf timelineMenuActionSelectID];
+                                                 break;
+                                                 
+                                             case TimelineMenuActionNGTag:
+                                                 [weakSelf timelineMenuActionNGTag];
+                                                 break;
+                                                 
+                                             case TimelineMenuActionNGClient:
+                                                 [weakSelf timelineMenuActionNGClient];
+                                                 break;
+                                                 
+                                             case TimelineMenuActionInReplyTo:
+                                                 [weakSelf timelineMenuActionInReplyTo];
+                                                 break;
+                                                 
+                                             case TimelineMenuActionCopy:
+                                                 [weakSelf timelineMenuActionCopy];
+                                                 break;
+                                                 
+                                             case TimelineMenuActionDelete:
+                                                 [weakSelf timelineMenuActionDelete];
+                                                 break;
+                                                 
+                                             case TimelineMenuActionEdit:
+                                                 [weakSelf timelineMenuActionEdit];
+                                                 break;
+                                                 
+                                             case TimelineMenuActionUserMenu:
+                                                 [weakSelf timelineMenuActionUserMenu];
+                                                 break;
+                                                 
+                                             default:
+                                                 break;
+                                         }
+                                         
+                                     }else if ( [type isEqualToString:@"Copy"] ) {
+                                         
+                                         switch ( actionNo ) {
+                                                 
+                                             case TimelineCopyMenuSTOT:
+                                                 [weakSelf timelineCopyMenuSTOT];
+                                                 break;
+                                                 
+                                             case TimelineCopyMenuText:
+                                                 [weakSelf timelineCopyMenuText];
+                                                 break;
+                                                 
+                                             case TimelineCopyMenuTweetURL:
+                                                 [weakSelf timelineCopyMenuTweetURL];
+                                                 break;
+                                                 
+                                             case TimelineCopyMenuURL:
+                                                 [weakSelf timelineCopyMenuURL];
+                                                 break;
+                                                 
+                                             default:
+                                                 break;
+                                         }
+                                         
+                                     }else if ( [type isEqualToString:@"User"] ) {
+                                         
+                                         [weakSelf openTwitterService:targetUser serviceType:actionNo];
+                                         
+//                                         switch ( actionNo ) {
+//                                                 
+//                                             case TimelineUserMenuTwilog:
+//                                                 [weakSelf timelineUserMenuTwilog];
+//                                                 break;
+//                                                 
+//                                             case TimelineUserMenuTwilogSearch:
+//                                                 [weakSelf timelineUserMenuTwilogSearch];
+//                                                 break;
+//                                                 
+//                                             case TimelineUserMenuFavstar:
+//                                                 [weakSelf timelineUserMenuFavstar];
+//                                                 break;
+//                                                 
+//                                             case TimelineUserMenuTwitpic:
+//                                                 [weakSelf timelineUserMenuTwitpic];
+//                                                 break;
+//                                                 
+//                                             case TimelineUserMenuUserTimeline:
+//                                                 [weakSelf timelineUserMenuUserTimeline];
+//                                                 break;
+//                                                 
+//                                             case TimelineUserMenuTwitterSearch:
+//                                                 [weakSelf timelineUserMenuTwitterSearch];
+//                                                 break;
+//                                                 
+//                                             case TimelineUserMenuSearchStream:
+//                                                 [weakSelf timelineUserMenuSearchStream];
+//                                                 break;
+//                                                 
+//                                             default:
+//                                                 break;
+//                                         }
                                      }
                                  });
                              }
@@ -2089,8 +2144,12 @@
     
     _userStream = NO;
     _userStreamFirstResponse = NO;
-    _timelineControlButton.enabled = YES;
-    _timelineControlButton.image = _startImage;
+    
+    ASYNC_MAIN_QUEUE ^{
+    
+        _timelineControlButton.enabled = YES;
+        _timelineControlButton.image = _startImage;
+    });
     
     if ( self.connection != nil ) {
         
@@ -2386,8 +2445,12 @@
     
     _searchStream = NO;
     _userStreamFirstResponse = NO;
-    _timelineControlButton.enabled = YES;
-    _timelineControlButton.image = _startImage;
+    
+    ASYNC_MAIN_QUEUE ^{
+       
+        _timelineControlButton.enabled = YES;
+        _timelineControlButton.image = _startImage;
+    });
     
     [self stopSearchStreamTimer];
     
@@ -2773,11 +2836,14 @@
             
             //Timelineに切り替わった
             _timelineArray = [TWTweets currentTimeline];
-            [_timeline reloadData];
             
-            _listMode = NO;
-            _timelineControlButton.image = _startImage;
-            _timelineControlButton.enabled = YES;
+            ASYNC_MAIN_QUEUE ^{
+            
+                [_timeline reloadData];
+                _listMode = NO;
+                _timelineControlButton.image = _startImage;
+                _timelineControlButton.enabled = YES;
+            });
             
             _mentionsArray = BLANK_ARRAY;
             
@@ -2785,16 +2851,22 @@
             
         }else if ( _timelineSegment.selectedSegmentIndex == 1 ) {
             
-            _listMode = NO;
-            _timelineControlButton.image = _startImage;
+            ASYNC_MAIN_QUEUE ^{
+                
+                _listMode = NO;
+                _timelineControlButton.image = _startImage;
+            });
             
             //Mentionsに切り替わった
             [TWGetTimeline performSelectorInBackground:@selector(mentions) withObject:nil];
             
         }else if ( _timelineSegment.selectedSegmentIndex == 2 ) {
             
-            _listMode = NO;
-            _timelineControlButton.image = _startImage;
+            ASYNC_MAIN_QUEUE ^{
+                
+                _listMode = NO;
+                _timelineControlButton.image = _startImage;
+            });
             
             //Favoritesに切り替わった
             [TWGetTimeline performSelectorInBackground:@selector(favotites) withObject:nil];
@@ -2823,10 +2895,10 @@
     dispatch_queue_t globalQueue = GLOBAL_QUEUE_DEFAULT;
     dispatch_async(globalQueue, ^{
         
-        NSString *tweetId = [_selectTweet objectForKey:@"id_str"];
-        NSString *screenName = [[_selectTweet objectForKey:@"user"] objectForKey:@"screen_name"];
+//        NSString *tweetId = [_selectTweet objectForKey:@"id_str"];
+//        NSString *screenName = [[_selectTweet objectForKey:@"user"] objectForKey:@"screen_name"];
         NSString *text = [_selectTweet objectForKey:@"text"];
-        __block __weak NSString *weakText = text;
+//        __block __weak NSString *weakText = text;
         
         if ( actionSheet.tag == 1 ) {
             
@@ -3031,45 +3103,6 @@
             }
             
         }else if ( actionSheet.tag == 6 ) {
-            
-            //公式RTであるか
-            if ( [[_selectTweet objectForKey:@"retweeted_status"] objectForKey:@"id"] ) {
-                
-                text = [TWEntities openTcoWithReTweet:_selectTweet];
-                screenName = [[[_selectTweet objectForKey:@"retweeted_status"] objectForKey:@"user"] objectForKey:@"screen_name"];
-                tweetId = [[_selectTweet objectForKey:@"retweeted_status"] objectForKey:@"id_str"];
-            }
-            
-            if ( buttonIndex == 0 ) {
-                
-                //STOT形式
-                NSString *copyText = [[NSString alloc] initWithFormat:@"%@: %@ [https://twitter.com/%@/status/%@]",
-                                      screenName,
-                                      text,
-                                      screenName,
-                                      tweetId];
-                [P_BOARD setString:copyText];
-                
-            }else if ( buttonIndex == 1 ) {
-                
-                //本文
-                [P_BOARD setString:text];
-                
-            }else if ( buttonIndex == 2 ) {
-                
-                //URL
-                [P_BOARD setString:[NSString stringWithFormat:@"https://twitter.com/%@/status/%@", screenName, tweetId]];
-                
-            }else if ( buttonIndex == 3 ) {
-                
-                ASYNC_MAIN_QUEUE ^{
-                    
-                    //Tweet内のURL
-                    _tweetInUrls = [weakText urls];
-                    [self copyTweetInUrl:_tweetInUrls];
-                    weakText = nil;
-                });
-            }
             
         }else if ( actionSheet.tag >= 7 && actionSheet.tag <= 11 ) {
             
@@ -3455,10 +3488,7 @@
     
     SYNC_MAIN_QUEUE ^{
         
-        DISPATCH_AFTER(0.1) ^{
-            
-            [self showPickerView];
-        });
+        [self showPickerView];
     });
 }
 
@@ -3655,6 +3685,110 @@
         
         [self showTwitterAccountSelectActionSheet:_selectTweetIds];
     });
+}
+
+- (void)timelineCopyMenuSTOT {
+    
+    NSString *tweetId = [_selectTweet objectForKey:@"id_str"];
+    NSString *screenName = [[_selectTweet objectForKey:@"user"] objectForKey:@"screen_name"];
+    NSString *text = [_selectTweet objectForKey:@"text"];
+    
+    //公式RTであるか
+    if ( [[_selectTweet objectForKey:@"retweeted_status"] objectForKey:@"id"] ) {
+        
+        text = [TWEntities openTcoWithReTweet:_selectTweet];
+        screenName = [[[_selectTweet objectForKey:@"retweeted_status"] objectForKey:@"user"] objectForKey:@"screen_name"];
+        tweetId = [[_selectTweet objectForKey:@"retweeted_status"] objectForKey:@"id_str"];
+    }
+    
+    //STOT形式
+    NSString *copyText = [[NSString alloc] initWithFormat:@"%@: %@ [https://twitter.com/%@/status/%@]",
+                          screenName,
+                          text,
+                          screenName,
+                          tweetId];
+    [P_BOARD setString:copyText];
+}
+
+- (void)timelineCopyMenuText {
+    
+    NSString *tweetId = [_selectTweet objectForKey:@"id_str"];
+    NSString *screenName = [[_selectTweet objectForKey:@"user"] objectForKey:@"screen_name"];
+    NSString *text = [_selectTweet objectForKey:@"text"];
+    
+    //公式RTであるか
+    if ( [[_selectTweet objectForKey:@"retweeted_status"] objectForKey:@"id"] ) {
+        
+        text = [TWEntities openTcoWithReTweet:_selectTweet];
+        screenName = [[[_selectTweet objectForKey:@"retweeted_status"] objectForKey:@"user"] objectForKey:@"screen_name"];
+        tweetId = [[_selectTweet objectForKey:@"retweeted_status"] objectForKey:@"id_str"];
+    }
+    
+    //本文
+    [P_BOARD setString:text];
+}
+
+- (void)timelineCopyMenuTweetURL {
+    
+    NSString *screenName = [[_selectTweet objectForKey:@"user"] objectForKey:@"screen_name"];
+    NSString *tweetId = [_selectTweet objectForKey:@"id_str"];
+    
+    //公式RTであるか
+    if ( [[_selectTweet objectForKey:@"retweeted_status"] objectForKey:@"id"] ) {
+        
+        screenName = [[[_selectTweet objectForKey:@"retweeted_status"] objectForKey:@"user"] objectForKey:@"screen_name"];
+        tweetId = [[_selectTweet objectForKey:@"retweeted_status"] objectForKey:@"id_str"];
+    }
+    
+    //URL
+    [P_BOARD setString:[NSString stringWithFormat:@"https://twitter.com/%@/status/%@", screenName, tweetId]];
+}
+
+- (void)timelineCopyMenuURL {
+    
+    NSString *text = [_selectTweet objectForKey:@"text"];
+    __block __weak NSString *weakText = text;
+    
+    if ( [[_selectTweet objectForKey:@"retweeted_status"] objectForKey:@"id"] ) {
+        
+        text = [TWEntities openTcoWithReTweet:_selectTweet];
+    }
+    
+    ASYNC_MAIN_QUEUE ^{
+        
+        //Tweet内のURL
+        _tweetInUrls = [weakText urls];
+        [self copyTweetInUrl:_tweetInUrls];
+        weakText = nil;
+    });
+}
+
+- (void)timelineUserMenuTwilog {
+    
+}
+
+- (void)timelineUserMenuTwilogSearch {
+    
+}
+
+- (void)timelineUserMenuFavstar {
+    
+}
+
+- (void)timelineUserMenuTwitpic {
+    
+}
+
+- (void)timelineUserMenuUserTimeline {
+    
+}
+
+- (void)timelineUserMenuTwitterSearch {
+    
+}
+
+- (void)timelineUserMenuSearchStream {
+    
 }
 
 #pragma mark - UIPickerView
