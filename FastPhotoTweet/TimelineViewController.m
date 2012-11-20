@@ -1792,7 +1792,12 @@
                                  
                                  __block NSUInteger actionNo = [notification.userInfo uintegerForKey:@"Action"];
                                  __block NSString *type = [notification.userInfo stringForKey:@"Type"];
-                                 __block NSString *targetUser = [notification.userInfo stringForKey:@"TargetUser"];
+                                 __block NSString *targetUser = nil;
+                                 
+                                 if ( [type isEqualToString:@"User"] ) {
+                                     
+                                     targetUser = [notification.userInfo stringForKey:@"TargetUser"];
+                                 }
                                  
                                  dispatch_queue_t globalQueue = GLOBAL_QUEUE_DEFAULT;
                                  dispatch_async(globalQueue, ^{
@@ -2214,11 +2219,16 @@
             
             __block NSMutableDictionary *favedTweet = [[NSMutableDictionary alloc] initWithDictionary:tweet];
             [favedTweet setObject:@"1" forKey:@"favorited"];
+            [favedTweet setObject:@(CellTextColorGold) forKey:@"text_color"];
+            
+            NSString *infoText = [[NSString alloc] initWithString:[favedTweet stringForKey:@"info_text"]];
+            infoText = [NSString stringWithFormat:@"★%@", infoText];
+            [favedTweet setObject:infoText forKey:@"info_text"];
+            infoText = nil;
             
             SYNC_MAIN_QUEUE ^{
                 
                 [_timelineArray replaceObjectAtIndex:index withObject:favedTweet];
-                favedTweet = nil;
                 
                 //タイムラインを保存
                 [TWTweets saveCurrentTimeline:_timelineArray];
