@@ -2389,6 +2389,8 @@
                forKey:@"info_text"];
     [favDic setObject:[NSString stringWithString:searchName]
                forKey:@"search_name"];
+    [favDic setObject:@(CellTextColorGold)
+               forKey:@"text_color"];
     
     //NSLog(@"favDic: %@", favDic);
     
