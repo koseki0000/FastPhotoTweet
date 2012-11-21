@@ -452,66 +452,79 @@ NSDataDetector* sharedReusableDataDetector(NSTextCheckingTypes types)
 	}
 }
 
-- (void)drawTextInRect:(CGRect)aRect
-{
-	if (_attributedText)
-    {
+- (void)drawTextInRect:(CGRect)aRect {
+    
+	if ( _attributedText ) {
+        
 		CGContextRef ctx = UIGraphicsGetCurrentContext();
 		CGContextSaveGState(ctx);
 		
 		// flipping the context to draw core text
 		// no need to flip our typographical bounds from now on
-		CGContextConcatCTM(ctx, CGAffineTransformScale(CGAffineTransformMakeTranslation(0, self.bounds.size.height), 1.f, -1.f));
+		CGContextConcatCTM(ctx,
+                           CGAffineTransformScale(CGAffineTransformMakeTranslation(0, self.bounds.size.height), 1.f, -1.f));
 		
-		if (self.shadowColor)
-        {
-			CGContextSetShadowWithColor(ctx, self.shadowOffset, 0.0, self.shadowColor.CGColor);
+		if ( self.shadowColor ) {
+            
+			CGContextSetShadowWithColor(ctx,
+                                        self.shadowOffset,
+                                        0.0,
+                                        self.shadowColor.CGColor);
 		}
 		
         [self recomputeLinksInTextIfNeeded];
+        
         NSAttributedString* attributedStringToDisplay = _attributedTextWithLinks;
-		if (self.highlighted && self.highlightedTextColor != nil)
-        {
+        
+		if ( self.highlighted && self.highlightedTextColor != nil ) {
+            
             NSMutableAttributedString* mutAS = [attributedStringToDisplay mutableCopy];
 			[mutAS setTextColor:self.highlightedTextColor];
             attributedStringToDisplay = mutAS;
             (void)MRC_AUTORELEASE(mutAS);
 		}
-		if (textFrame == NULL)
-        {
+        
+		if ( textFrame == NULL ) {
+            
             CFAttributedStringRef cfAttrStrWithLinks = (BRIDGE_CAST CFAttributedStringRef)attributedStringToDisplay;
 			CTFramesetterRef framesetter = CTFramesetterCreateWithAttributedString(cfAttrStrWithLinks);
 			drawingRect = self.bounds;
-			if (self.centerVertically || self.extendBottomToFit)
-            {
+            
+			if (self.centerVertically || self.extendBottomToFit) {
+                
 				CGSize sz = CTFramesetterSuggestFrameSizeWithConstraints(framesetter,CFRangeMake(0,0),NULL,CGSizeMake(drawingRect.size.width,CGFLOAT_MAX),NULL);
-				if (self.extendBottomToFit)
-                {
+                
+				if ( self.extendBottomToFit ) {
+                    
 					CGFloat delta = MAX(0.f , ceilf(sz.height - drawingRect.size.height)) + 10 /* Security margin */;
 					drawingRect.origin.y -= delta;
 					drawingRect.size.height += delta;
 				}
-				if (self.centerVertically) {
-					drawingRect.origin.y -= (drawingRect.size.height - sz.height)/2;
+                
+				if ( self.centerVertically ) {
+                    
+					drawingRect.origin.y -= (drawingRect.size.height - sz.height) / 2;
 				}
 			}
+            
 			CGMutablePathRef path = CGPathCreateMutable();
 			CGPathAddRect(path, NULL, drawingRect);
-			textFrame = CTFramesetterCreateFrame(framesetter,CFRangeMake(0,0), path, NULL);
+			textFrame = CTFramesetterCreateFrame(framesetter, CFRangeMake(0,0), path, NULL);
 			CGPathRelease(path);
 			CFRelease(framesetter);
 		}
 		
 		// draw highlights for activeLink
-		if (_activeLink)
-        {
+		if ( _activeLink ) {
+            
 			[self drawActiveLinkHighlightForRect:drawingRect];
 		}
 		
 		CTFrameDraw(textFrame, ctx);
-
 		CGContextRestoreGState(ctx);
+        
 	} else {
+        
 		[super drawTextInRect:aRect];
 	}
 }

@@ -26,13 +26,16 @@
 
 + (void)saveCurrentTimeline:(NSMutableArray *)currentTimeline {
 
+    __block __weak NSMutableDictionary *wTimelines = [TWTweetsBase manager].timelines;
+    __block __weak NSString *wCurrentAccountName = [TWAccounts currentAccountName];
+    
     dispatch_queue_t queue = dispatch_get_global_queue(DISPATCH_QUEUE_PRIORITY_DEFAULT, 0);
     dispatch_semaphore_t semaphore = dispatch_semaphore_create(1);
     dispatch_async(queue, ^{
         dispatch_semaphore_wait(semaphore, DISPATCH_TIME_FOREVER);
         
-        [[TWTweetsBase manager].timelines setObject:currentTimeline
-                                             forKey:[TWAccounts currentAccountName]];
+        [wTimelines setObject:currentTimeline
+                       forKey:wCurrentAccountName];
         
         dispatch_semaphore_signal(semaphore);
         dispatch_release(semaphore);
@@ -84,13 +87,17 @@
 
 + (void)saveSinceID:(NSString *)sinceID {
     
+    __block __weak NSMutableDictionary *wSinceIDs = [TWTweetsBase manager].sinceIDs;
+    __block __weak NSString *wCurrentAccountName = [TWAccounts currentAccountName];
+    __block __weak NSString *wSinceID = sinceID;
+    
     dispatch_queue_t queue = dispatch_get_global_queue(DISPATCH_QUEUE_PRIORITY_DEFAULT, 0);
     dispatch_semaphore_t semaphore = dispatch_semaphore_create(1);
     dispatch_async(queue, ^{
         dispatch_semaphore_wait(semaphore, DISPATCH_TIME_FOREVER);
         
-        [[[TWTweetsBase manager].sinceIDs objectForKey:[TWAccounts currentAccountName]] setObject:sinceID forKey:@"SinceID"];
-        [[[TWTweetsBase manager].sinceIDs objectForKey:[TWAccounts currentAccountName]] setObject:@(TimelineRequestStatsSended) forKey:@"Status"];
+        [[wSinceIDs objectForKey:wCurrentAccountName] setObject:wSinceID forKey:@"SinceID"];
+        [[wSinceIDs objectForKey:wCurrentAccountName] setObject:@(TimelineRequestStatsSended) forKey:@"Status"];
         
         dispatch_semaphore_signal(semaphore);
         dispatch_release(semaphore);

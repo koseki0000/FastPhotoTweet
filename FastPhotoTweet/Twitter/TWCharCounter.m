@@ -22,7 +22,7 @@
     NSAutoreleasePool *pool = [[NSAutoreleasePool alloc] init];
     
     //id型で受け取りNSMutableStringにキャスト
-    NSMutableString *postString = (NSMutableString *)post;
+    NSMutableString *postString = [NSMutableString stringWithString:post];
     
     int num = 140;
     int originalCharNum = num - postString.length;
@@ -37,10 +37,10 @@
                                                                                 options:0 
                                                                                   error:&error];
         
-        postString = (NSMutableString *)[regexp stringByReplacingMatchesInString:postString
-                                                                         options:0
-                                                                           range:NSMakeRange(0, postString.length)
-                                                                    withTemplate:BLANK];
+        postString = [NSMutableString stringWithString:[regexp stringByReplacingMatchesInString:postString
+                                                                                        options:0
+                                                                                          range:NSMakeRange(0, postString.length)
+                                                                                   withTemplate:BLANK]];
         
         //文末スペースをカウントしない
         regexp = [NSRegularExpression regularExpressionWithPattern:@"[\\s]+$" 

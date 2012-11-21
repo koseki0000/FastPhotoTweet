@@ -16,6 +16,8 @@
 #define OAUTH_KEY       @"dVbmOIma7UCc5ZkV3SckQ"
 #define OAUTH_SECRET    @"wnDptUj4VpGLZebfLT3IInTZPkPS4XimYh6WXAmdI"
 
+#define RELEASE_SAFETY(object) [object release]; object = nil
+
 #define SCREEN_HEIGHT (int)[UIScreen mainScreen].applicationFrame.size.height
 #define SCREEN_WIDTH (int)[UIScreen mainScreen].applicationFrame.size.width
 #define STATUS_BAR_HEIGHT 20

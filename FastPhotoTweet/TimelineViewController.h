@@ -47,7 +47,6 @@
 #import <Three20UICommon/Three20UICommon.h>
 
 typedef enum {
-    TimelineMenuActionOpenURL,
     TimelineMenuActionReply,
     TimelineMenuActionFavorite,
     TimelineMenuActionReTweet,
@@ -111,7 +110,7 @@ typedef enum {
 @property (strong, nonatomic) NSArray *tweetInUrls;
 @property (strong, nonatomic) NSDictionary *selectTweet;
 
-@property (copy, nonatomic) NSString *lastUpdateAccount;
+@property (weak, nonatomic) __block NSString *lastUpdateAccount;
 @property (copy, nonatomic) NSString *selectAccount;
 @property (copy, nonatomic) NSString *alertSearchUserName;
 @property (strong, nonatomic) NSTimer *searchStreamTimer;
@@ -143,7 +142,7 @@ typedef enum {
 @property (strong, nonatomic) IBOutlet UIBarButtonItem *timelineControlButton;
 @property (strong, nonatomic) IBOutlet UIBarButtonItem *actionButton;
 @property (strong, nonatomic) IBOutlet UIBarButtonItem *closeOtherTweetsButton;
-@property (strong, nonatomic) IBOutlet UIImageView *accountIconView;
+@property (strong, nonatomic) __block IBOutlet UIImageView *accountIconView;
 @property (strong, nonatomic) IBOutlet UISegmentedControl *timelineSegment;
 
 - (IBAction)pushPostButton:(UIBarButtonItem *)sender;
@@ -202,7 +201,6 @@ typedef enum {
 - (void)showTwitterAccountSelectActionSheet:(NSArray *)ids;
 - (void)openTwitterService:(NSString *)username serviceType:(int)serviceType;
 
-- (void)timelineMenuActionOpenURL;
 - (void)timelineMenuActionReply;
 - (void)timelineMenuActionFavorite;
 - (void)timelineMenuActionReTweet;
@@ -220,16 +218,6 @@ typedef enum {
 - (void)timelineCopyMenuText;
 - (void)timelineCopyMenuTweetURL;
 - (void)timelineCopyMenuURL;
-
-- (void)timelineUserMenuTwilog;
-- (void)timelineUserMenuTwilogSearch;
-- (void)timelineUserMenuFavstar;
-- (void)timelineUserMenuTwitpic;
-- (void)timelineUserMenuUserTimeline;
-- (void)timelineUserMenuTwitterSearch;
-- (void)timelineUserMenuSearchStream;
-
-- (void)timelineMenuActionCopyTweet:(NSUInteger)type;
 
 - (void)receiveProfile:(NSNotification *)notification;
 - (void)enterBackground:(NSNotification *)notification;

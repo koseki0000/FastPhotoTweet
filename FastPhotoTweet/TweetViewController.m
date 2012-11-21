@@ -335,7 +335,7 @@
             //NSLog(@"newVersion");
             
             [ShowAlert title:[NSString stringWithFormat:@"FastPhotoTweet %@", APP_VERSION]
-                     message:@"・Timelineメニュー表示階層対応\n・その他多数の修正"];
+                     message:@"・InReplyToに関する問題の修正\n・お気に入りに追加した際にクラッシュする問題の修正\n・フォロー関連メニューが選択出来ない状態になっていた問題の修正\n・メモリ管理の改善\n・Timelineメニューから｢URLを開く｣を削除\n・その他多数の修正"];
             
             information = [[[NSMutableDictionary alloc] initWithDictionary:[d dictionaryForKey:@"Information"]] autorelease];
             [information setValue:[NSNumber numberWithInt:1] forKey:APP_VERSION];

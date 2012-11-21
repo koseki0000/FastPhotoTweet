@@ -18,6 +18,7 @@
 #import "NSString+RegularExpression.h"
 #import "NSArrayAdditions.h"
 #import "TWEntities.h"
+#import "TWFriends.h"
 
 #define DELAY_TIME(x) dispatch_time(DISPATCH_TIME_NOW, x * NSEC_PER_SEC), dispatch_get_main_queue(),
 
@@ -34,9 +35,10 @@
 #define RED_COLOR   [UIColor redColor]
 #define GOLD_COLOR  [UIColor colorWithRed:0.5 green:0.4 blue:0.0 alpha:1.0]
 
-#define MAIN_MENU @[@"URLを開く", @"Reply", @"Favorite／UnFavorite", @"ReTweet", @"Fav+RT", @"IDとFav,RTを選択", @"ハッシュタグをNG", @"クライアントをNG", @"InReplyTo", @"Tweetをコピー", @"Tweetを削除", @"Tweetを編集", @"ユーザーメニュー"]
+#define MAIN_MENU @[@"Reply", @"Favorite／UnFavorite", @"ReTweet", @"Fav+RT", @"IDとFav,RTを選択", @"ハッシュタグをNG", @"クライアントをNG", @"InReplyTo", @"Tweetをコピー", @"Tweetを削除", @"Tweetを編集", @"ユーザーメニュー"]
 #define COPY_MENU @[@"STOT形式", @"本文", @"TweetへのURL", @"Tweet内のURL"]
-#define USER_MENU @[@"Twilog", @"TwilogSearch", @"favstar", @"Twitpic", @"UserTimeline", @"TwitterSearch", @"TwitterSearch(Stream)"]
+#define USER_MENU @[@"Twilog", @"TwilogSearch", @"favstar", @"Twitpic", @"UserTimeline", @"TwitterSearch", @"TwitterSearch(Stream)", @"フォロー関連"]
+#define FORROW_MENU @[@"スパム報告", @"ブロック", @"ブロック解除", @"フォロー", @"フォロー解除"]
 
 @implementation TimelineMenu
 
@@ -50,37 +52,40 @@
     
     self.menuList = [NSMutableArray arrayWithArray:MAIN_MENU];
     self.tweet = [[NSDictionary alloc] initWithDictionary:tweet];
-    [self.menuList insertObject:self.tweet atIndex:0];
+    [_menuList insertObject:[NSDictionary dictionaryWithDictionary:_tweet]
+                    atIndex:0];
     
     self.topBar = [[UIToolbar alloc] initWithFrame:CGRectMake(0,
                                                               0,
                                                               266,
                                                               44)];
-    [self addSubview:self.topBar];
+    [self addSubview:_topBar];
     
-    self.topBar.tintColor = [UIColor colorWithRed:0.4 green:0.8 blue:1.0 alpha:1.0];
+    _topBar.tintColor = [UIColor colorWithRed:0.4 green:0.8 blue:1.0 alpha:1.0];
+    
     self.cancelButton = [[UIBarButtonItem alloc] initWithTitle:@"キャンセル"
                                                          style:UIBarButtonItemStyleBordered
                                                         target:self
                                                         action:@selector(pushCancelButton)];
     
     self.backButton = [[UIBarButtonItem alloc] initWithTitle:@"戻る"
-                                                         style:UIBarButtonItemStyleBordered
-                                                        target:self
-                                                        action:@selector(pushBackButton)];
+                                                       style:UIBarButtonItemStyleBordered
+                                                      target:self
+                                                      action:@selector(pushBackButton)];
     
     self.space = [[UIBarButtonItem alloc] initWithBarButtonSystemItem:UIBarButtonSystemItemFlexibleSpace
                                                                target:nil
                                                                action:nil];
-    [self.topBar setItems:@[self.space, self.cancelButton]];
+    [_topBar setItems:@[_space, _cancelButton]];
+    
     self.menuTable = [[UITableView alloc] initWithFrame:CGRectMake(0,
                                                                    44,
                                                                    266,
                                                                    SCREEN_HEIGHT - TOOL_BAR_HEIGHT - TAB_BAR_HEIGHT)
                                                   style:UITableViewStylePlain];
-    self.menuTable.delegate = self;
-    self.menuTable.dataSource = self;
-    [self addSubview:self.menuTable];
+    _menuTable.delegate = self;
+    _menuTable.dataSource = self;
+    [self addSubview:_menuTable];
     
     [[NSNotificationCenter defaultCenter] addObserver:self
                                              selector:@selector(pushCancelButton)
@@ -114,14 +119,14 @@
                 }
                 
                 //Tweetの本文
-                __autoreleasing NSString *text = [_tweet objectForKey:@"text"];
+                NSString *text = [_tweet objectForKey:@"text"];
                 
                 //ID
-                __autoreleasing NSString *screenName = [[[_tweet objectForKey:@"retweeted_status"] objectForKey:@"user"] objectForKey:@"screen_name"];
+                NSString *screenName = [[[_tweet objectForKey:@"retweeted_status"] objectForKey:@"user"] objectForKey:@"screen_name"];
                 cell.iconView.buttonTitle = [NSString stringWithString:screenName];
                 
                 //ID - 日付 [クライアント名]
-                __autoreleasing NSString *infoLabelText = [_tweet objectForKey:@"info_text"];
+                NSString *infoLabelText = [_tweet objectForKey:@"info_text"];
                 
                 if ( [[Share images] objectForKey:screenName] != nil &&
                     cell.iconView.layer.sublayers.count != 0 ) {
@@ -183,21 +188,21 @@
             @autoreleasepool {
                 
                 if ( cell == nil ) {
-
+                    
                     cell = [[TimelineAttributedCell alloc] initWithStyle:UITableViewCellStyleDefault
                                                          reuseIdentifier:CELL_IDENTIFIER
                                                                 forWidth:210];
                 }
                 
                 //Tweetの本文
-                __autoreleasing NSString *text = [_tweet objectForKey:@"text"];
+                NSString *text = [_tweet objectForKey:@"text"];
                 
                 //ID
-                __autoreleasing NSString *screenName = [[_tweet objectForKey:@"user"] objectForKey:@"screen_name"];
+                NSString *screenName = [[_tweet objectForKey:@"user"] objectForKey:@"screen_name"];
                 cell.iconView.buttonTitle = [NSString stringWithString:screenName];
                 
                 //ID - 日付 [クライアント名]
-                __autoreleasing NSString *infoLabelText = [_tweet objectForKey:@"info_text"];
+                NSString *infoLabelText = [_tweet objectForKey:@"info_text"];
                 
                 if ( [[Share images] objectForKey:screenName] != nil &&
                     cell.iconView.layer.sublayers.count != 0 &&
@@ -253,7 +258,7 @@
         }
         
     }else {
-     
+        
         TimelineMenuCell *cell = (TimelineMenuCell *)[tableView dequeueReusableCellWithIdentifier:@"TimelineMenuCell"];
         
         if ( cell == nil ) {
@@ -263,7 +268,7 @@
         }
         
         cell.textLabel.text = [_menuList objectAtIndex:indexPath.row];
-
+        
         return cell;
     }
 }
@@ -298,26 +303,32 @@
     
     [tableView deselectRowAtIndexPath:indexPath animated:YES];
     
-//    NSLog(@"didSelectRowAtIndexPath[%d]: %d", _menuNo, indexPath.row);
+    NSLog(@"didSelectRowAtIndexPath[%d]: %d", _menuNo, indexPath.row);
     
     if ( indexPath.row != 0 ) {
-    
+        
         if ( _menuNo == 0 ) {
             
             if ( indexPath.row == 10 ) {
                 
                 self.nextMenuList = [NSMutableArray arrayWithArray:COPY_MENU];
-                [self.nextMenuList insertObject:self.tweet atIndex:0];
+                [_nextMenuList insertObject:[NSDictionary dictionaryWithDictionary:_tweet]
+                                    atIndex:0];
                 _count = 0;
-                [self.topBar setItems:@[self.backButton, self.space, self.cancelButton] animated:YES];
+                [_topBar setItems:@[_backButton, _space, _cancelButton]
+                         animated:YES];
+                
                 [self startRemoveAllTimer];
                 
             }else if ( indexPath.row == 13 ) {
                 
                 self.nextMenuList = [NSMutableArray arrayWithArray:USER_MENU];
-                [self.nextMenuList insertObject:self.tweet atIndex:0];
+                [_nextMenuList insertObject:[NSDictionary dictionaryWithDictionary:_tweet]
+                                    atIndex:0];
+                
                 _count = 0;
-                [self.topBar setItems:@[self.backButton, self.space, self.cancelButton] animated:YES];
+                [_topBar setItems:@[_backButton, _space, _cancelButton]
+                         animated:YES];
                 [self startRemoveAllTimer];
                 
             }else {
@@ -331,43 +342,62 @@
             
             [NSNotificationCenter postNotificationCenterForName:@"TimelineMenuAction"
                                                    withUserInfo:@{@"Action":@(indexPath.row - 1),
-                                                                @"Type":@"Copy"}];
+             @"Type":@"Copy"}];
             
         }else if ( _menuNo == 2 ) {
             
-            _userMenuActionNo = indexPath.row - 1;
-            
-            //ユーザー選択
-            NSString *text = [_tweet objectForKey:@"text"];
-            
-            if ( [[_tweet objectForKey:@"retweeted_status"] objectForKey:@"id"] ) {
+            if ( indexPath.row != 8 ) {
                 
-                text = [TWEntities openTcoWithReTweet:_tweet];
-            }
-            
-            NSString *screenName = [NSString stringWithFormat:@"@%@", [[_tweet objectForKey:@"user"] objectForKey:@"screen_name"]];
-            NSMutableArray *users = [text twitterIds];
-            [users insertObject:screenName atIndex:0];
-            _nextMenuList = [NSMutableArray arrayWithArray:users.deleteDuplicate];
-            
-            if ( _nextMenuList.count == 1 ) {
+                _userMenuActionNo = indexPath.row - 1;
                 
-                _selectUser = [NSString stringWithString:[_nextMenuList objectAtIndex:0]];
+                //ユーザー選択
+                NSString *text = [_tweet objectForKey:@"text"];
                 
-                if ( [_selectUser hasPrefix:@"@"] ) _selectUser = [_selectUser substringFromIndex:1];
+                if ( [[_tweet objectForKey:@"retweeted_status"] objectForKey:@"id"] ) {
+                    
+                    text = [TWEntities openTcoWithReTweet:_tweet];
+                }
                 
-                [NSNotificationCenter postNotificationCenterForName:@"TimelineMenuAction"
-                                                       withUserInfo:@{@"Action":@(_userMenuActionNo),
-                                                                    @"Type":@"User",
-                                                                    @"TargetUser":_selectUser}];
+                NSString *screenName = [NSString stringWithFormat:@"@%@", [[_tweet objectForKey:@"user"] objectForKey:@"screen_name"]];
+                NSMutableArray *users = [text twitterIds];
+                [users insertObject:[NSString stringWithString:screenName]
+                            atIndex:0];
+                screenName = nil;
+                
+                _nextMenuList = [NSMutableArray arrayWithArray:users.deleteDuplicate];
+                users = nil;
+                text = nil;
+                
+                if ( _nextMenuList.count == 1 ) {
+                    
+                    _selectUser = [NSString stringWithString:[_nextMenuList objectAtIndex:0]];
+                    
+                    if ( [_selectUser hasPrefix:@"@"] ) _selectUser = [_selectUser substringFromIndex:1];
+                    
+                    [NSNotificationCenter postNotificationCenterForName:@"TimelineMenuAction"
+                                                           withUserInfo:@{@"Action":@(_userMenuActionNo),
+                     @"Type":@"User",
+                     @"TargetUser":_selectUser}];
+                    
+                }else {
+                    
+                    [_nextMenuList insertObject:_tweet atIndex:0];
+                    _count = 0;
+                    _menuNo = 3;
+                    _menuTable.userInteractionEnabled = NO;
+                    [_topBar setItems:@[_backButton, _space, _cancelButton] animated:YES];
+                    [self startRemoveAllTimer];
+                }
                 
             }else {
                 
+                self.selectUser = @"";
+                self.nextMenuList = [NSMutableArray arrayWithArray:FORROW_MENU];
                 [_nextMenuList insertObject:_tweet atIndex:0];
                 _count = 0;
-                _menuNo = 3;
+                _menuNo = 4;
                 _menuTable.userInteractionEnabled = NO;
-                [self.topBar setItems:@[self.backButton, self.space, self.cancelButton] animated:YES];
+                [_topBar setItems:@[_backButton, _space, _cancelButton] animated:YES];
                 [self startRemoveAllTimer];
             }
             
@@ -396,8 +426,59 @@
             NSLog(@"selectUser[%d]: %@, index: %d", _userMenuActionNo, _selectUser, indexPath.row - 1);
             [NSNotificationCenter postNotificationCenterForName:@"TimelineMenuAction"
                                                    withUserInfo:@{@"Action":@(_userMenuActionNo),
-                                                                @"Type":@"User",
-                                                                @"TargetUser":_selectUser}];
+             @"Type":@"User",
+             @"TargetUser":_selectUser}];
+            
+        }else if ( _menuNo == 4 ) {
+            
+            [_menuList removeObjectAtIndex:0];
+            
+            if ( [[_menuList objectAtIndex:indexPath.row - 1] isKindOfClass:[NSDictionary class]] ) {
+                
+                if ( [[[_menuList objectAtIndex:indexPath.row - 1] objectForKey:@"retweeted_status"] objectForKey:@"id"] ) {
+                    
+                    _selectUser = [[[[_menuList objectAtIndex:indexPath.row - 1] objectForKey:@"retweeted_status"] objectForKey:@"user"] objectForKey:@"screen_name"];
+                    
+                }else {
+                    
+                    _selectUser = [[[_menuList objectAtIndex:indexPath.row - 1] objectForKey:@"user"] objectForKey:@"screen_name"];
+                }
+                
+            }else {
+                
+                _selectUser = [NSString stringWithString:[_menuList objectAtIndex:indexPath.row - 1]];
+            }
+            
+            if ( [_selectUser hasPrefix:@"@"] ) _selectUser = [_selectUser substringFromIndex:1];
+            
+            if ( indexPath.row == 0 ) {
+                
+                //スパム報告
+                [TWFriends reportSpam:_selectUser];
+                
+            }else if ( indexPath.row == 1 ) {
+                
+                //ブロック
+                [TWFriends block:_selectUser];
+                
+            }else if ( indexPath.row == 2 ) {
+                
+                //ブロック解除
+                [TWFriends unblock:_selectUser];
+                
+            }else if ( indexPath.row == 3 ) {
+                
+                //フォロー
+                [TWFriends follow:_selectUser];
+                
+            }else if ( indexPath.row == 4 ) {
+                
+                //フォロー解除
+                [TWFriends unfollow:_selectUser];
+            }
+            
+            self.selectUser = nil;
+            [self pushCancelButton];
         }
         
         if ( _menuNo == 0 ) {
@@ -439,9 +520,13 @@
     _userMenuActionNo = 0;
     _selectUser = nil;
     _menuTable.userInteractionEnabled = NO;
+    
     self.nextMenuList = [NSMutableArray arrayWithArray:MAIN_MENU];
-    [self.nextMenuList insertObject:self.tweet atIndex:0];
-    [self.topBar setItems:@[self.space, self.cancelButton] animated:YES];
+    [_nextMenuList insertObject:[NSDictionary dictionaryWithDictionary:_tweet]
+                        atIndex:0];
+    [_topBar setItems:@[_space, _cancelButton]
+             animated:YES];
+    
     [self startRemoveAllTimer];
 }
 
@@ -457,23 +542,23 @@
 
 - (void)removeAllItems {
     
-       [_timer invalidate];
+    [_timer invalidate];
     
     if ( _menuList.count != 0 ) {
         
         __weak TimelineMenu *wself = self;
         
         dispatch_async(dispatch_get_main_queue(), ^{
-        
+            
             [wself.menuList removeObjectAtIndex:0];
             [wself.menuTable deleteRowsAtIndexPaths:@[[NSIndexPath indexPathForRow:0 inSection:0]]
-                              withRowAnimation:UITableViewRowAnimationLeft];
+                                   withRowAnimation:UITableViewRowAnimationLeft];
             [wself startRemoveAllTimer];
         });
         
     }else {
         
-          [self addNewListItems];
+        [self addNewListItems];
     }
 }
 
@@ -487,7 +572,7 @@
             
             [wself.menuList addObject:[wself.nextMenuList objectAtIndex:wself.count]];
             [wself.menuTable insertRowsAtIndexPaths:@[[NSIndexPath indexPathForRow:wself.count inSection:0]]
-                              withRowAnimation:UITableViewRowAnimationRight];
+                                   withRowAnimation:UITableViewRowAnimationRight];
             wself.count++;
             
             dispatch_after(DELAY_TIME(0.04) ^{
@@ -507,13 +592,13 @@
 
 - (void)dealloc {
     
-//    NSLog(@"%s", __func__);
+    //    NSLog(@"%s", __func__);
     
     [[NSNotificationCenter defaultCenter] removeObserver:self];
     self.menuTable.delegate = nil;
     self.menuTable.dataSource = nil;
-    [self.topBar removeFromSuperview];
-    [self.menuTable removeFromSuperview];
+    [_topBar removeFromSuperview];
+    [_menuTable removeFromSuperview];
 }
 
 @end

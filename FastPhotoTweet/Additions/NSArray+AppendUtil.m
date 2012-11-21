@@ -17,7 +17,8 @@
         
         if ( [(NSArray *)unitArray isEmpty] ) return self;
         
-        __block NSMutableArray *tempArray = nil;
+        NSMutableArray *tempArray = [NSMutableArray arrayWithArray:self];
+        __block __weak NSMutableArray *wTempArray = tempArray;
         
         dispatch_queue_t semaphoreQueue = dispatch_get_global_queue(DISPATCH_QUEUE_PRIORITY_DEFAULT, 0);
         dispatch_semaphore_t semaphore = dispatch_semaphore_create(1);
@@ -26,12 +27,11 @@
             
             dispatch_semaphore_wait(semaphore, DISPATCH_TIME_FOREVER);
         
-            tempArray = [NSMutableArray arrayWithArray:self];
-            
             int i = 0;
             for ( id item in unitArray ) {
                 
-                [tempArray insertObject:item atIndex:i];
+                [wTempArray insertObject:item
+                                 atIndex:i];
                 i++;
             }
             
@@ -53,7 +53,8 @@
         
         if ( [(NSArray *)unitArray isEmpty] ) return self;
         
-        __block NSMutableArray *tempArray = nil;
+        NSMutableArray *tempArray = [NSMutableArray arrayWithArray:self];
+        __block __weak NSMutableArray *wTempArray = tempArray;
         
         dispatch_queue_t semaphoreQueue = dispatch_get_global_queue(DISPATCH_QUEUE_PRIORITY_DEFAULT, 0);
         dispatch_semaphore_t semaphore = dispatch_semaphore_create(1);
@@ -62,11 +63,9 @@
             
             dispatch_semaphore_wait(semaphore, DISPATCH_TIME_FOREVER);
             
-            tempArray = [NSMutableArray arrayWithArray:self];
-            
             for ( id item in unitArray ) {
                 
-                [tempArray addObject:item];
+                [wTempArray addObject:item];
             }
             
             dispatch_semaphore_signal(semaphore);
@@ -87,7 +86,9 @@
         
         if ( [(NSArray *)unitArray isEmpty] ) return self;
         
-        __block NSMutableArray *tempArray = nil;
+        __block __weak id wself = self;
+        NSMutableArray *tempArray = [NSMutableArray arrayWithArray:self];
+        __block __weak NSMutableArray *wTempArray = tempArray;
         
         dispatch_queue_t semaphoreQueue = dispatch_get_global_queue(DISPATCH_QUEUE_PRIORITY_DEFAULT, 0);
         dispatch_semaphore_t semaphore = dispatch_semaphore_create(1);
@@ -96,13 +97,11 @@
             
             dispatch_semaphore_wait(semaphore, DISPATCH_TIME_FOREVER);
             
-            tempArray = [NSMutableArray arrayWithArray:self];
-            
             int i = 0;
             for ( id item in unitArray ) {
                 
                 BOOL notHave = YES;
-                for ( id myItem in self ) {
+                for ( id myItem in wself ) {
                     
                     if ( [myItem isEqual:item] ) {
                      
@@ -113,7 +112,7 @@
                 
                 if ( notHave ) {
                     
-                    [tempArray insertObject:item atIndex:i];
+                    [wTempArray insertObject:item atIndex:i];
                     i++;
                 }
             }
@@ -136,7 +135,9 @@
         
         if ( [(NSArray *)unitArray isEmpty] ) return self;
         
-        __block NSMutableArray *tempArray = nil;
+        __block __weak id wself = self;
+        NSMutableArray *tempArray = [NSMutableArray arrayWithArray:self];
+        __block __weak NSMutableArray *wTempArray = tempArray;
         
         dispatch_queue_t semaphoreQueue = dispatch_get_global_queue(DISPATCH_QUEUE_PRIORITY_DEFAULT, 0);
         dispatch_semaphore_t semaphore = dispatch_semaphore_create(1);
@@ -145,12 +146,10 @@
             
             dispatch_semaphore_wait(semaphore, DISPATCH_TIME_FOREVER);
             
-            tempArray = [NSMutableArray arrayWithArray:self];
-            
             for ( id item in unitArray ) {
                 
                 BOOL notHave = YES;
-                for ( id myItem in self ) {
+                for ( id myItem in wself ) {
                     
                     if ( [myItem isEqual:item] ) {
                         
@@ -159,7 +158,7 @@
                     }
                 }
                 
-                if ( notHave ) [tempArray addObject:item];
+                if ( notHave ) [wTempArray addObject:item];
             }
             
             dispatch_semaphore_signal(semaphore);
@@ -180,7 +179,9 @@
         
         if ( [(NSArray *)dictionariesArray isEmpty] ) return self;
         
-        __block NSMutableArray *tempArray = nil;
+        __block __weak id wself = self;
+        NSMutableArray *tempArray = [NSMutableArray arrayWithArray:self];
+        __block __weak NSMutableArray *wTempArray = tempArray;
         
         dispatch_queue_t semaphoreQueue = dispatch_get_global_queue(DISPATCH_QUEUE_PRIORITY_DEFAULT, 0);
         dispatch_semaphore_t semaphore = dispatch_semaphore_create(1);
@@ -200,7 +201,7 @@
                 }
             }
             
-            for ( id item in self ) {
+            for ( id item in wself ) {
                 
                 if (!( [item isKindOfClass:[NSDictionary class]] ||
                        [item isKindOfClass:[NSMutableDictionary class]] )) {
@@ -212,13 +213,11 @@
             
             if ( isOnlyDictionary ) {
              
-                tempArray = [NSMutableArray arrayWithArray:self];
-                
                 int i = 0;
                 for ( NSDictionary *item in dictionariesArray ) {
                     
                     BOOL notHave = YES;
-                    for ( NSDictionary *myItem in self ) {
+                    for ( NSDictionary *myItem in wself ) {
                         
                         id targetMyItem = [myItem objectForXPath:xpath separator:separator];
                         id targetItem = [item objectForXPath:xpath separator:separator];
@@ -236,7 +235,7 @@
                     
                     if ( notHave ) {
                         
-                        [tempArray insertObject:item atIndex:i];
+                        [wTempArray insertObject:item atIndex:i];
                         i++;
                     }
                 }
