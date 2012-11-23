@@ -9,12 +9,11 @@
 #import "TitleButton.h"
 
 @implementation TitleButton
-@synthesize buttonTitle;
 
 - (void)dealloc {
     
-    [self setButtonTitle:nil];
-    
+    [_buttonTitle release];
+    _buttonTitle = nil;
     [super dealloc];
 }
 

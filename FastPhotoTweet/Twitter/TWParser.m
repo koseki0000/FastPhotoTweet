@@ -32,17 +32,14 @@
         //トリム開始位置を変更
         if ( [tweetData rangeOfString:@","].location != NSNotFound ) from = 17;
         
-        @autoreleasepool {
-            
-            //時刻フォーマットを指定
-            __autoreleasing NSDateFormatter *inputDateFormatter = [[NSDateFormatter alloc] init];
-            [inputDateFormatter setDateFormat:DATE_FORMAT];
-            
-            //JSTタイムゾーンを適用し、時刻部分を抜き出す
-            jstDate = [[[NSDate dateWithTimeInterval:OFFSET
-                                           sinceDate:[inputDateFormatter dateFromString:[tweetData substringWithRange:NSMakeRange(from, 8)]]] description] substringWithRange:NSMakeRange(11, 8)];
-        }
+        //時刻フォーマットを指定
+        NSDateFormatter *inputDateFormatter = [[NSDateFormatter alloc] init];
+        [inputDateFormatter setDateFormat:DATE_FORMAT];
         
+        //JSTタイムゾーンを適用し、時刻部分を抜き出す
+        jstDate = [[[NSDate dateWithTimeInterval:OFFSET
+                                       sinceDate:[inputDateFormatter dateFromString:[tweetData substringWithRange:NSMakeRange(from, 8)]]] description] substringWithRange:NSMakeRange(11, 8)];
+        inputDateFormatter = nil;
         tweetData = nil;
         
     }@catch ( NSException *e ) {
@@ -69,9 +66,10 @@
         @autoreleasepool {
             
             if ( ![tweetData isKindOfClass:[NSString class]] &&
-                ![tweetData isKindOfClass:[NSMutableString class]]) return BLANK;
+                 ![tweetData isKindOfClass:[NSMutableString class]]) return BLANK;
             
-            if ( tweetData == nil || [tweetData isEqualToString:@""] )return BLANK;
+            if ( tweetData == nil ||
+                [tweetData isEqualToString:@""] )return BLANK;
             
             if ( [tweetData isEqualToString:@"web"] ) return @"web";
             
@@ -150,14 +148,21 @@
         [rtStatusUser removeObjectForKey:@"verified"];
         [rtStatusUser removeObjectForKey:@"statuses_count"];
         
-        [rtStatus setObject:rtStatusUser forKey:@"user"];
-        [mTweet setObject:rtStatus forKey:@"retweeted_status"];
+        [rtStatus setObject:[NSDictionary dictionaryWithDictionary:rtStatusUser]
+                     forKey:@"user"];
+        [mTweet setObject:[NSDictionary dictionaryWithDictionary:rtStatus]
+                   forKey:@"retweeted_status"];
         
-        NSString *originalText =  [[mTweet objectForKey:@"retweeted_status"] objectForKey:@"text"];
-        NSString *rtUser = [[tweet objectForKey:@"user"] objectForKey:@"screen_name"];
+        __weak NSString *originalText =  [[mTweet objectForKey:@"retweeted_status"] objectForKey:@"text"];
+        __weak NSString *rtUser = [[tweet objectForKey:@"user"] objectForKey:@"screen_name"];
         
-        [mTweet setObject:[NSString stringWithFormat:@"%@\nRetweeted by @%@", originalText, rtUser] forKey:@"text"];
-        [mTweet setObject:rtUser forKey:@"rt_user"];
+        [mTweet setObject:[NSString stringWithFormat:@"%@\nRetweeted by @%@", originalText, rtUser]
+                   forKey:@"text"];
+        [mTweet setObject:rtUser
+                   forKey:@"rt_user"];
+        
+        rtStatus = nil;
+        rtStatusUser = nil;
     }
     
     return [NSDictionary dictionaryWithDictionary:mTweet];

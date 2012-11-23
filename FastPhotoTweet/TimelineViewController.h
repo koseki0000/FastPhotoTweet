@@ -110,7 +110,7 @@ typedef enum {
 @property (strong, nonatomic) NSArray *tweetInUrls;
 @property (strong, nonatomic) NSDictionary *selectTweet;
 
-@property (weak, nonatomic) __block NSString *lastUpdateAccount;
+@property (weak, nonatomic) NSString *lastUpdateAccount;
 @property (copy, nonatomic) NSString *selectAccount;
 @property (copy, nonatomic) NSString *alertSearchUserName;
 @property (strong, nonatomic) NSTimer *searchStreamTimer;
@@ -142,7 +142,7 @@ typedef enum {
 @property (strong, nonatomic) IBOutlet UIBarButtonItem *timelineControlButton;
 @property (strong, nonatomic) IBOutlet UIBarButtonItem *actionButton;
 @property (strong, nonatomic) IBOutlet UIBarButtonItem *closeOtherTweetsButton;
-@property (strong, nonatomic) __block IBOutlet UIImageView *accountIconView;
+@property (strong, nonatomic) IBOutlet UIImageView *accountIconView;
 @property (strong, nonatomic) IBOutlet UISegmentedControl *timelineSegment;
 
 - (IBAction)pushPostButton:(UIBarButtonItem *)sender;

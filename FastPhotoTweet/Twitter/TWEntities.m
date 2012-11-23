@@ -43,7 +43,7 @@
     
     //展開するt.coがない場合は何もせず終了
     if ( [[tweet objectForKey:@"entities"] objectForKey:@"urls"] == nil &&
-        [[tweet objectForKey:@"entities"] objectForKey:@"media"] == nil ) return text;
+         [[tweet objectForKey:@"entities"] objectForKey:@"media"] == nil ) return text;
     
     //t.coの展開を行う
     text = [TWEntities replace:tweet text:text entitiesType:@"urls"];
@@ -57,21 +57,18 @@
 + (NSString *)openTcoWithReTweet:(NSDictionary *)tweet {
     
     NSMutableString *text = [[[NSMutableString alloc] initWithString:[[tweet objectForKey:@"retweeted_status"] objectForKey:@"text"]] autorelease];
-    NSArray *urls = [[NSArray alloc] initWithArray:[[[tweet objectForKey:@"retweeted_status"] objectForKey:@"entities"] objectForKey:@"urls"]];
-    NSArray *media = [[NSArray alloc] initWithArray:[[[tweet objectForKey:@"retweeted_status"] objectForKey:@"entities"] objectForKey:@"media"]];
+    NSArray *urls = [[[NSArray alloc] initWithArray:[[[tweet objectForKey:@"retweeted_status"] objectForKey:@"entities"] objectForKey:@"urls"]] autorelease];
+    NSArray *media = [[[NSArray alloc] initWithArray:[[[tweet objectForKey:@"retweeted_status"] objectForKey:@"entities"] objectForKey:@"media"]] autorelease];
     
     //entitiesがない場合はそのままのtext
     if ( [urls isNotEmpty] && [media isNotEmpty] ) {
      
-        //NSLog(@"urls and media is empty");
-        
-        [urls release];
-        [media release];
+        //NSLog(@"urls and media is empty");        
         return [[tweet objectForKey:@"retweeted_status"] objectForKey:@"text"];
     }
     
     //retweeted_status/entities/urls と retweeted_status/entities/media を1つにまとめる
-    NSMutableArray *entities = [[NSMutableArray alloc] init];
+    NSMutableArray *entities = [[[NSMutableArray alloc] init] autorelease];
     
     for ( id url in urls ) {
         
@@ -90,17 +87,17 @@
     for ( NSDictionary *entitiy in entities ) {
         
         NSString *replaceUrl = nil;
-        NSString *tcoUrl = [[NSString alloc] initWithString:[entitiy objectForKey:@"url"]];
+        NSString *tcoUrl = [[[NSString alloc] initWithString:[entitiy objectForKey:@"url"]] autorelease];
         
         if ( [entitiy objectForKey:@"media_url_https"] == nil ) {
             
             //url
-            replaceUrl = [[NSString alloc] initWithString:[entitiy objectForKey:@"expanded_url"]];
+            replaceUrl = [[[NSString alloc] initWithString:[entitiy objectForKey:@"expanded_url"]] autorelease];
             
         }else {
             
             //media
-            replaceUrl = [[NSString alloc] initWithString:[entitiy objectForKey:@"media_url_https"]];
+            replaceUrl = [[[NSString alloc] initWithString:[entitiy objectForKey:@"media_url_https"]] autorelease];
         }
         
         //NSLog(@"%@→%@", tcoUrl, replaceUrl);
@@ -112,17 +109,10 @@
                                   withString:replaceUrl
                                      options:0
                                        range:NSMakeRange( 0, text.length )];
-            [replaceUrl release];
         }
-        
-        [tcoUrl release];
     }
     
     //NSLog(@"ResutlText: %@", text);
-    
-    [urls release];
-    [media release];
-    [entities release];
     
     //t.coが展開されたReTweet本文が返される
     return [NSString stringWithString:text];
@@ -228,35 +218,34 @@
             //公式RTであるか
             if ( [[tweet objectForKey:@"retweeted_status"] objectForKey:@"id"] ) {
                 
-                urls = [[NSArray alloc] initWithArray:[[[tweet objectForKey:@"retweeted_status"] objectForKey:@"entities"] objectForKey:entitiesType]];
+                urls = [[[NSArray alloc] initWithArray:[[[tweet objectForKey:@"retweeted_status"] objectForKey:@"entities"] objectForKey:entitiesType]] autorelease];
                 
             }else {
 
-                urls = [[NSArray alloc] initWithArray:[[tweet objectForKey:@"entities"] objectForKey:entitiesType]];
+                urls = [[[NSArray alloc] initWithArray:[[tweet objectForKey:@"entities"] objectForKey:entitiesType]] autorelease];
             }
             
             //t.coの情報が無い場合は何もせず終了
             if ( [urls isEmpty] ) {
 
-                [urls release];
                 return text;
             }
 
             for ( NSDictionary *url in urls ) {
                 
                 //t.coのURL
-                NSString *tcoURL = [[NSString alloc] initWithString:[url objectForKey:@"url"]];
+                NSString *tcoURL = [[[NSString alloc] initWithString:[url objectForKey:@"url"]] autorelease];
 
                 //元のURL
                 NSString *expandedURL = nil;
                 
                 if ( [entitiesType isEqualToString:@"urls"] ) {
 
-                    expandedURL = [[NSString alloc] initWithString:[url objectForKey:@"expanded_url"]];
+                    expandedURL = [[[NSString alloc] initWithString:[url objectForKey:@"expanded_url"]] autorelease];
                     
                 }else {
 
-                    expandedURL = [[NSString alloc] initWithString:[url objectForKey:@"media_url_https"]];
+                    expandedURL = [[[NSString alloc] initWithString:[url objectForKey:@"media_url_https"]] autorelease];
                 }
 
                 //置換を行う
@@ -264,12 +253,7 @@
                                       withString:expandedURL
                                          options:0
                                            range:NSMakeRange( 0, text.length )];
-                
-                [tcoURL release];
-                [expandedURL release];
             }
-            
-            [urls release];
         }
         
     }@catch ( NSException *e ) {

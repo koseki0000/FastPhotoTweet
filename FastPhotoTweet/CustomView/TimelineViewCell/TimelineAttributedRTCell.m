@@ -45,9 +45,9 @@ static NSInteger const kAttributedLabelTag = 100;
 
 - (void)setProperties:(CGFloat)width {
     
-    _infoLabel = [[UILabel alloc] initWithFrame:CGRectMake(54, 2,  width, 14)];
-    _mainLabel = [[OHAttributedLabel alloc] initWithFrame:CGRectMake(54, 19, width, 31)];
-    _iconView = [[TitleButton alloc] initWithFrame:CGRectMake(2, 4, 48, 54)];
+    self.infoLabel = [[UILabel alloc] initWithFrame:CGRectMake(54, 2,  width, 14)];
+    self.mainLabel = [[OHAttributedLabel alloc] initWithFrame:CGRectMake(54, 19, width, 31)];
+    self.iconView = [[TitleButton alloc] initWithFrame:CGRectMake(2, 4, 48, 54)];
     
     _infoLabel.font = [UIFont boldSystemFontOfSize:11];
     
@@ -120,10 +120,14 @@ static NSInteger const kAttributedLabelTag = 100;
     
     NSLog(@"%s", __func__);
     
-    [self.iconView.layer setSublayers:nil];
-    [self setIconView:nil];
-    [self setInfoLabel:nil];
-    [self setMainLabel:nil];
+    _iconView.layer.sublayers = nil;
+    [_iconView release];
+    _iconView = nil;
+    [_infoLabel release];
+    _infoLabel = nil;
+    [_mainLabel release];
+    _mainLabel = nil;
+    [super dealloc];
 }
 
 @end

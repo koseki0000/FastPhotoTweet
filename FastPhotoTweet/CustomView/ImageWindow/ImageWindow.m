@@ -426,6 +426,8 @@
 
 - (void)dealloc {
     
+    NSLog(@"%s", __func__);
+    
     [self setImageName:nil];
     [self setImageUrl:nil];
     [self setConnection:nil];

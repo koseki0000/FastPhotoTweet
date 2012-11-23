@@ -199,7 +199,7 @@
 
 - (void)dealloc {
     
-    NSLog(@"GrayView dealloc");
+    NSLog(@"%s", __func__);
     
     if ( _activityIndicator.isAnimating ) [_activityIndicator stopAnimating];
     [_activityIndicator removeFromSuperview];

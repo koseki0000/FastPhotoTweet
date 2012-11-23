@@ -309,7 +309,7 @@
         
         if ( _menuNo == 0 ) {
             
-            if ( indexPath.row == 10 ) {
+            if ( indexPath.row == 9 ) {
                 
                 self.nextMenuList = [NSMutableArray arrayWithArray:COPY_MENU];
                 [_nextMenuList insertObject:[NSDictionary dictionaryWithDictionary:_tweet]
@@ -320,7 +320,7 @@
                 
                 [self startRemoveAllTimer];
                 
-            }else if ( indexPath.row == 13 ) {
+            }else if ( indexPath.row == 12 ) {
                 
                 self.nextMenuList = [NSMutableArray arrayWithArray:USER_MENU];
                 [_nextMenuList insertObject:[NSDictionary dictionaryWithDictionary:_tweet]
@@ -483,10 +483,10 @@
         
         if ( _menuNo == 0 ) {
             //メインメニュー
-            if ( indexPath.row == 10 ) {
+            if ( indexPath.row == 9 ) {
                 //コピーメニュー
                 _menuNo = 1;
-            }else if ( indexPath.row == 13 ) {
+            }else if ( indexPath.row == 12 ) {
                 //ユーザーメニュー
                 _menuNo = 2;
             }else {
