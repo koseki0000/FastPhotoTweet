@@ -37,16 +37,13 @@
     BOOL loading;
 }
 
-@property (weak, nonatomic) AppDelegate *appDelegate;
 @property (retain, nonatomic) GrayView *grayView;
 
-@property (retain, nonatomic) UIPasteboard *pboard;
 @property (retain, nonatomic) UIAlertView *alert;
 @property (retain, nonatomic) UITextField *alertText;
 @property (retain, nonatomic) UIImage *reloadButtonImage;
 @property (retain, nonatomic) UIImage *stopButtonImage;
 
-@property (retain, nonatomic) NSUserDefaults *d;
 @property (copy, nonatomic) NSString *accessURL;
 @property (copy, nonatomic) NSString *loadStartURL;
 @property (copy, nonatomic) NSString *saveFileName;

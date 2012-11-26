@@ -16,7 +16,7 @@
 //セクション2の項目数 (その他の設定)
 #define SECTION_2 6
 //セクション2の項目数 (タイムライン設定)
-#define SECTION_3 11
+#define SECTION_3 12
 
 //セクション3の項目数 (ライセンス)
 #define SECTION_4 2
@@ -65,6 +65,7 @@
 #define MENTIONS_LOAD @"Mentions読み込み数"
 #define FAVORITES_LOAD @"Favorites読み込み数"
 #define TIMELINE_FIRSTLOAD @"Timeline初回読み込み後表示位置"
+#define TIMELINE_ICON_ACTION @"アイコンタップ時の動作"
 
 #define NAME_LICENSE @"ライセンス"
 #define SPECIAL_THANKS @"スペシャルサンクス"
@@ -101,7 +102,7 @@
          SWITCH_APP, ACTIVE_INPUT, SEARCH_WORD_RESET, PASTE_BOARD_URL, USER_AGENT, USER_AGENT_RESET,
          SWIPE_SHIFT_CARET, ENTER_BACKGROUND_US, BECOME_ACTIVE_US, RELOAD_US, NG_OPEN, MY_TWEET_NG,
          ICON_CORNER, US_NO_AUTO_LOCK, TIMELINE_LOAD, MENTIONS_LOAD, FAVORITES_LOAD, TIMELINE_FIRSTLOAD,
-         NAME_LICENSE, SPECIAL_THANKS, nil];
+         TIMELINE_ICON_ACTION, NAME_LICENSE, SPECIAL_THANKS, nil];
         
         [settingArray retain];
     }
@@ -629,6 +630,21 @@
         }else {
             
             result = @"最上部";
+        }
+        
+    }else if ( settingState == 37 ) {
+        if ( [d integerForKey:@"TimelineIconAction"] == 0 ) {
+            result = @"UserMenu";
+        }else if ( [d integerForKey:@"TimelineIconAction"] == 1 ) {
+            result = @"Reply";
+        }else if ( [d integerForKey:@"TimelineIconAction"] == 2 ) {
+            result = @"Favorite／UnFavorite";
+        }else if ( [d integerForKey:@"TimelineIconAction"] == 3 ) {
+            result = @"ReTweet";
+        }else if ( [d integerForKey:@"TimelineIconAction"] == 4 ) {
+            result = @"Fav+RT";
+        }else if ( [d integerForKey:@"TimelineIconAction"] == 5 ) {
+            result = @"IDとFav,RTを選択";
         }
     }
     
@@ -1262,6 +1278,17 @@
                      otherButtonTitles:@"最上部", @"最下部", nil];
             [sheet autorelease];
             [sheet showInView:self.view];
+        
+        }else if ( indexPath.row == 11 ) {
+            
+            sheet = [[UIActionSheet alloc]
+                     initWithTitle:TIMELINE_ICON_ACTION
+                     delegate:self
+                     cancelButtonTitle:@"Cancel"
+                     destructiveButtonTitle:nil
+                     otherButtonTitles:@"UserMenu", @"Reply", @"Favorite／UnFavorite", @"ReTweet", @"Fav+RT", @"IDとFav,RTを選択", nil];
+            [sheet autorelease];
+            [sheet showInView:self.view];
         }
         
     }else if ( indexPath.section == 4 ) {
@@ -1770,6 +1797,13 @@
             [d setBool:NO forKey:@"TimelineFirstLoad"];
         }else if ( buttonIndex == 1 ) {
             [d setBool:YES forKey:@"TimelineFirstLoad"];
+        }
+    
+    }else if ( actionSheetNo == 37 ) {
+        
+        if ( buttonIndex != 6 ) {
+            
+            [d setInteger:buttonIndex forKey:@"TimelineIconAction"];
         }
         
     }else if ( actionSheetNo == 100 ) {

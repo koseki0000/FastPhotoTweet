@@ -32,7 +32,7 @@
         self.backgroundColor = [UIColor clearColor];
         
         //GrayView本体
-        _grayView = [[[UIView alloc] init] autorelease];
+        self.grayView = [[[UIView alloc] init] autorelease];
         _grayView.backgroundColor = [UIColor colorWithWhite:0.2 alpha:0.7];
         //角を丸める
         [[_grayView layer] setCornerRadius:10.0];
@@ -40,11 +40,16 @@
         [self addSubview:_grayView];
         
         //処理中を表すインディケーターを表示
-        _activityIndicator = [[[UIActivityIndicatorView alloc] initWithActivityIndicatorStyle:UIActivityIndicatorViewStyleWhiteLarge] autorelease];
+        self.activityIndicator = [[[UIActivityIndicatorView alloc] initWithActivityIndicatorStyle:UIActivityIndicatorViewStyleWhiteLarge] autorelease];
         //表示位置は画面中央
         _activityIndicator.center = CGPointMake(self.frame.size.width / 2,
                                                 self.frame.size.height / 2);
         [self addSubview:_activityIndicator];
+        
+        [[NSNotificationCenter defaultCenter] addObserver:self
+                                                 selector:@selector(endNotification:)
+                                                     name:@"GrayViewEnd"
+                                                   object:nil];
         
         //各種初期値を設定
         [self setDefault];
@@ -90,7 +95,7 @@
     
     //エラーチェック
     if ( _grayView == nil || _activityIndicator == nil ) {
-     
+        
         NSLog(@"GrayView nil[%d]", _startCount);
         return;
     }
@@ -109,30 +114,19 @@
         //インディケーターのアニメーションを開始
         [_activityIndicator startAnimating];
         
+        ActivityGrayView *wself = self;
+        
         //0.2s掛けてアニメーションする
         [UIView animateWithDuration:0.2
                          animations:^ {
                              
                              //GrayViewのサイズを変更
-                             _grayView.frame = CGRectMake(SCREEN_WIDTH / 2 - VIEW_SIZE / 2,
-                                                          SCREEN_HEIGHT / 2 - VIEW_SIZE / 2,
-                                                          VIEW_SIZE,
-                                                          VIEW_SIZE);
+                             wself.grayView.frame = CGRectMake(SCREEN_WIDTH / 2 - VIEW_SIZE / 2,
+                                                               SCREEN_HEIGHT / 2 - VIEW_SIZE / 2,
+                                                               VIEW_SIZE,
+                                                               VIEW_SIZE);
                          }
-         
-//                         completion:^ (BOOL finished) {
-//                             
-//                             //アニメーション完了時に実行される
-//                             
-//                             //for Debug
-//                             [self performSelector:@selector(end) withObject:nil afterDelay:2.0];
-//                         }
          ];
-        
-//    }else {
-//        
-//        //for Debug
-//        [self performSelector:@selector(end) withObject:nil afterDelay:2.0];
         
     }else {
         
@@ -140,11 +134,16 @@
     }
 }
 
+- (void)endNotification:(NSNotification *)notification {
+    
+    [self end];
+}
+
 - (void)end {
     
     //エラーチェック
     if ( _grayView == nil || _activityIndicator == nil ) {
-     
+        
         NSLog(@"GrayView nil[%d]", _startCount);
         return;
     }
@@ -153,18 +152,20 @@
     _startCount--;
     
     if ( _startCount == 0 ) {
-    
+        
         NSLog(@"GrayView end[%d]", _startCount);
         
         //startが呼ばれた回数が0以下になった場合
+        
+        ActivityGrayView *wself = self;
         
         //0.2s掛けてアニメーション
         [UIView animateWithDuration:0.2
                          animations:^ {
                              
                              //GrayViewを徐々に薄くする
-                             _activityIndicator.alpha = 0.0;
-                             _grayView.alpha = 0.0;
+                             wself.activityIndicator.alpha = 0.0;
+                             wself.grayView.alpha = 0.0;
                          }
          
                          completion:^ (BOOL finished) {
@@ -172,17 +173,17 @@
                              //アニメーション完了後に実行される
                              
                              //非表示にする
-                             self.hidden = YES;
+                             wself.hidden = YES;
                              //インディケーターのアニメーションを止める
-                             [_activityIndicator stopAnimating];
+                             [wself.activityIndicator stopAnimating];
                              
                              //次回表示のために設定を初期化する
-                             [self setDefault];
+                             [wself setDefault];
                              
                              //タスク名が設定されている場合はタスク名と共に処理完了の通知を行う
                              NSNotification *doneNotification = [NSNotification notificationWithName:@"GrayViewDone"
-                                                                                              object:self
-                                                                                            userInfo:@{ @"TaskName" : self.taskName == nil ? @"" : self.taskName }];
+                                                                                              object:wself
+                                                                                            userInfo:@{ @"TaskName" : wself.taskName == nil ? @"" : wself.taskName }];
                              [[NSNotificationCenter defaultCenter] postNotification:doneNotification];
                          }
          ];
@@ -200,6 +201,8 @@
 - (void)dealloc {
     
     NSLog(@"%s", __func__);
+    
+    [[NSNotificationCenter defaultCenter] removeObserver:_grayView];
     
     if ( _activityIndicator.isAnimating ) [_activityIndicator stopAnimating];
     [_activityIndicator removeFromSuperview];

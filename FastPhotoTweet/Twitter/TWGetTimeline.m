@@ -104,6 +104,7 @@
                  }else {
                      
                      [result setObject:@"TimelineError" forKey:@"Result"];
+                     [NSNotificationCenter postNotificationCenterForName:@"GrayViewEnd"];
                  }
                  
                  //NSLog(@"Get HomeTimeline done");
@@ -112,6 +113,10 @@
                   
                      //通知を実行
                      [[NSNotificationCenter defaultCenter] postNotification:notification];
+                     
+                 }else {
+                     
+                     [NSNotificationCenter postNotificationCenterForName:@"GrayViewEnd"];
                  }
                  
                  [ActivityIndicator off];
@@ -228,6 +233,7 @@
                      if ( userTimeline.count == 0 ) NSLog(@"timeline.count == 0");
                      
                      [weakResult setObject:@"UserTimelineError" forKey:@"Result"];
+                     [NSNotificationCenter postNotificationCenterForName:@"GrayViewEnd"];
                  }
                  
                  if ( [requestAccount.username isEqualToString:[TWAccounts currentAccountName]] ) {
@@ -241,10 +247,12 @@
                  NSDictionary *errorData = [NSDictionary dictionaryWithDictionary:responseJSONData];
                  
                  [ShowAlert error:[errorData objectForKey:@"error"]];
+                 [NSNotificationCenter postNotificationCenterForName:@"GrayViewEnd"];
                  
              }else {
                  
                  [ShowAlert unknownError];
+                 [NSNotificationCenter postNotificationCenterForName:@"GrayViewEnd"];
              }
              
              [ActivityIndicator off];
@@ -329,6 +337,10 @@
                      
                      //通知を実行
                      [[NSNotificationCenter defaultCenter] postNotification:notification];
+                     
+                 }else {
+                     
+                     [NSNotificationCenter postNotificationCenterForName:@"GrayViewEnd"];
                  }
                  
                  [ActivityIndicator off];
@@ -406,6 +418,10 @@
                      
                      //通知を実行
                      [[NSNotificationCenter defaultCenter] postNotification:notification];
+                     
+                 }else {
+                     
+                     [NSNotificationCenter postNotificationCenterForName:@"GrayViewEnd"];
                  }
                  
                  [ActivityIndicator off];
@@ -499,6 +515,10 @@
                      
                      //通知を実行
                      [[NSNotificationCenter defaultCenter] postNotification:notification];
+                     
+                 }else {
+                     
+                     [NSNotificationCenter postNotificationCenterForName:@"GrayViewEnd"];
                  }
                  
                  [ActivityIndicator off];

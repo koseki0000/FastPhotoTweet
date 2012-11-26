@@ -9,15 +9,12 @@
 #import <UIKit/UIActivityIndicatorView.h>
 #import <QuartzCore/QuartzCore.h>
 
-@interface ActivityGrayView : UIView {
-    
-    UIView *_grayView;
-    UIActivityIndicatorView *_activityIndicator;
-    
-    NSInteger _startCount;
-}
+@interface ActivityGrayView : UIView
 
+@property (retain, nonatomic) UIView *grayView;
+@property (retain, nonatomic) UIActivityIndicatorView *activityIndicator;
 @property (retain, nonatomic) NSString *taskName;
+@property NSInteger startCount;
 
 + (ActivityGrayView *)grayView;
 + (ActivityGrayView *)grayViewWithTaskName:(NSString *)taskName;

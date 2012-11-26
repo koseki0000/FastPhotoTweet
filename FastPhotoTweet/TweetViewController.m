@@ -9,35 +9,11 @@
 
 #define APP_VERSION [[[NSBundle mainBundle] infoDictionary] objectForKey:@"CFBundleShortVersionString"]
 
-#define TOP_BAR [NSArray arrayWithObjects:trashButton, flexibleSpace, idButton, flexibleSpace, resendButton, flexibleSpace, imageSettingButton, flexibleSpace, postButton, nil]
-#define BOTTOM_BAR [NSArray arrayWithObjects:settingButton, flexibleSpace, browserButton, flexibleSpace, nowPlayingButton, flexibleSpace, actionButton, nil]
+#define TOP_BAR [NSArray arrayWithObjects:_trashButton, _flexibleSpace, _idButton, _flexibleSpace, _resendButton, _flexibleSpace, _imageSettingButton, _flexibleSpace, _postButton, nil]
+#define BOTTOM_BAR [NSArray arrayWithObjects:_settingButton, _flexibleSpace, _browserButton, _flexibleSpace, _nowPlayingButton, _flexibleSpace, _actionButton, nil]
 
 @implementation TweetViewController
-@synthesize resendButton;
-@synthesize sv;
-@synthesize imageSettingButton;
-@synthesize postText;
-@synthesize callbackLabel;
-@synthesize postCharLabel;
-@synthesize pboardURLLabel;
-@synthesize callbackSwitch;
-@synthesize pboardURLSwitch;
-@synthesize imagePreview;
-@synthesize topBar;
-@synthesize trashButton;
-@synthesize postButton;
-@synthesize flexibleSpace;
-@synthesize tapGesture;
-@synthesize rigthSwipe;
-@synthesize leftSwipe;
 @synthesize inputFunctionButton;
-@synthesize iconPreview;
-@synthesize browserButton;
-@synthesize actionButton;
-@synthesize nowPlayingButton;
-@synthesize idButton;
-@synthesize bottomBar;
-@synthesize settingButton;
 
 #pragma mark - Initialize
 
@@ -68,24 +44,24 @@
             [self setBottomBarPosition];
             
             //アイコン表示の角を丸める
-            [iconPreview.layer setMasksToBounds:YES];
-            [iconPreview.layer setCornerRadius:5.0f];
+            [_iconPreview.layer setMasksToBounds:YES];
+            [_iconPreview.layer setCornerRadius:5.0f];
             
-            postText.layer.borderWidth = 2;
-            postText.layer.borderColor = [[UIColor blackColor] CGColor];
+            _postText.layer.borderWidth = 2;
+            _postText.layer.borderColor = [[UIColor blackColor] CGColor];
             
             //画像プレビュー時用マスク
             clearView = nil;
             
             //処理中を表すビューを生成
             grayView = [[GrayView alloc] init];
-            [sv addSubview:grayView];
+            [_sv addSubview:grayView];
             
             //ツールバーにボタンをセット
-            [topBar setItems:TOP_BAR animated:NO];
-            [bottomBar setItems:BOTTOM_BAR animated:NO];
+            [_topBar setItems:TOP_BAR animated:NO];
+            [_bottomBar setItems:BOTTOM_BAR animated:NO];
             
-            postText.text = BLANK;
+            _postText.text = BLANK;
         });
         
         //アプリがアクティブになった場合の通知を受け取る設定
@@ -145,7 +121,7 @@
                                                     twAccount = [TWAccounts currentAccount];
                                                     
                                                     //入力可能状態にする
-                                                    [postText becomeFirstResponder];
+                                                    [_postText becomeFirstResponder];
                                                     
                                                     //更新情報の表示
                                                     [self showInfomation];
@@ -199,8 +175,8 @@
     
     SYNC_MAIN_QUEUE ^{
        
-        pboardURLSwitch.on = [d boolForKey:@"PasteBoardCheck"];
-        callbackSwitch.on = [d boolForKey:@"CallBack"];
+        _pboardURLSwitch.on = [d boolForKey:@"PasteBoardCheck"];
+        _callbackSwitch.on = [d boolForKey:@"CallBack"];
     });
     
     if ( ![EmptyCheck check:[d objectForKey:@"CallBackScheme"]] ) {
@@ -280,7 +256,7 @@
     int bottomBarY = SCREEN_HEIGHT - TAB_BAR_HEIGHT - TOOL_BAR_HEIGHT;
     
     //下部バーに位置と高さを設定する
-    bottomBar.frame = CGRectMake(0,
+    _bottomBar.frame = CGRectMake(0,
                                  bottomBarY,
                                  SCREEN_WIDTH,
                                  TOOL_BAR_HEIGHT);
@@ -335,7 +311,7 @@
             //NSLog(@"newVersion");
             
             [ShowAlert title:[NSString stringWithFormat:@"FastPhotoTweet %@", APP_VERSION]
-                     message:@"・InReplyToに関する問題の修正\n・お気に入りに追加した際にクラッシュする問題の修正\n・フォロー関連メニューが選択出来ない状態になっていた問題の修正\n・メモリ管理の改善\n・Timelineメニューから｢URLを開く｣を削除\n・その他多数の修正"];
+                     message:@"・iPhone版アメブロの追従広告ブロックを追加\n・アイコン取得、表示処理を改善\n・その他細かなの修正"];
             
             information = [[[NSMutableDictionary alloc] initWithDictionary:[d dictionaryForKey:@"Information"]] autorelease];
             [information setValue:[NSNumber numberWithInt:1] forKey:APP_VERSION];
@@ -371,9 +347,9 @@
                 return;
             }
             
-            NSString *text = [[[NSString alloc] initWithString:postText.text] autorelease];
+            NSString *text = [[[NSString alloc] initWithString:_postText.text] autorelease];
             
-            if ( imagePreview.image == nil &&
+            if ( _imagePreview.image == nil &&
                 ![EmptyCheck check:text] ) {
                 
                 [ShowAlert error:@"文字が入力されていません。"];
@@ -385,12 +361,12 @@
                 
                 SYNC_MAIN_QUEUE ^{
                     
-                    postButton.enabled = NO;
+                    _postButton.enabled = NO;
                     [self callback];
                 });
                 
                 //画像が設定されていない場合
-                if ( imagePreview.image == nil ) {
+                if ( _imagePreview.image == nil ) {
                     
                     [TWSendTweet post:text
                       withInReplyToID:inReplyToId];
@@ -405,7 +381,7 @@
                         //文字列と画像をバックグラウンドプロセスで投稿
                         [TWSendTweet post:text
                           withInReplyToID:inReplyToId
-                                 andImage:imagePreview.image];
+                                 andImage:_imagePreview.image];
                         
                     }else {
                         
@@ -419,10 +395,10 @@
                 SYNC_MAIN_QUEUE ^{
                     
                     //入力欄を空にする
-                    postText.text = BLANK;
+                    _postText.text = BLANK;
                     [inReplyToId release];
                     inReplyToId = BLANK;
-                    imagePreview.image = nil;
+                    _imagePreview.image = nil;
                     cacheArtWorkSeted = NO;
                     
                     //とは検索機能ONかつ条件にマッチ
@@ -432,7 +408,7 @@
                             [self tohaSearch:text];
                         }
                     
-                    postButton.enabled = YES;
+                    _postButton.enabled = YES;
                 });
             });
         }
@@ -462,9 +438,9 @@
     
     nowPlayingMode = NO;
     artWorkUploading = NO;
-    postText.text = BLANK;
-    imagePreview.image = nil;
-    postButton.enabled = YES;
+    _postText.text = BLANK;
+    _imagePreview.image = nil;
+    _postButton.enabled = YES;
     
     if ( [EmptyCheck check:inReplyToId] ) {
         
@@ -591,7 +567,7 @@
 - (IBAction)callbackSwitchDidChage:(id)sender {
     
     //スイッチの状態を保存
-    if ( callbackSwitch.on ) {
+    if ( _callbackSwitch.on ) {
         
         [d setBool:YES forKey:@"CallBack"];
         
@@ -604,7 +580,7 @@
 - (IBAction)pboardSwitchDidChage:(id)sender {
     
     //スイッチの状態を保存
-    if ( pboardURLSwitch.on ) {
+    if ( _pboardURLSwitch.on ) {
         
         [d setBool:YES forKey:@"PasteBoardCheck"];
         
@@ -620,18 +596,18 @@
     
     //NSLog(@"svTapGesture");
     
-    [postText resignFirstResponder];
-    [sv setContentOffset:CGPointMake(0, 0) animated:YES];
+    [_postText resignFirstResponder];
+    [_sv setContentOffset:CGPointMake(0, 0) animated:YES];
 }
 
 - (void)imagePreviewTapGesture:(UITapGestureRecognizer *)sender {
     
     //NSLog(@"imagePreviewTapGesture");
     
-    [postText resignFirstResponder];
-    [sv setContentOffset:CGPointMake(0, 0) animated:YES];
+    [_postText resignFirstResponder];
+    [_sv setContentOffset:CGPointMake(0, 0) animated:YES];
     
-    if ( imagePreview.image != nil ) {
+    if ( _imagePreview.image != nil ) {
         
         if ( nowPlayingMode ) {
             
@@ -678,11 +654,11 @@
     
     if ( ![d boolForKey:@"SwipeShiftCaret"] ) return;
     
-    int location = postText.selectedRange.location + 1;
+    int location = _postText.selectedRange.location + 1;
     
-    if ( location <= postText.text.length ) {
+    if ( location <= _postText.text.length ) {
         
-        [postText setSelectedRange:NSMakeRange( location, 0 )];
+        [_postText setSelectedRange:NSMakeRange( location, 0 )];
     }
 }
 
@@ -690,10 +666,10 @@
     
     if ( ![d boolForKey:@"SwipeShiftCaret"] ) return;
     
-    if ( postText.selectedRange.location != 0 ) {
+    if ( _postText.selectedRange.location != 0 ) {
         
-        int location = postText.selectedRange.location - 1;
-        [postText setSelectedRange:NSMakeRange( location, 0 )];
+        int location = _postText.selectedRange.location - 1;
+        [_postText setSelectedRange:NSMakeRange( location, 0 )];
     }
 }
 
@@ -707,8 +683,8 @@
                      animations:^{
                          
                          self.view.frame = viewRect;
-                         sv.frame = svRect;
-                         imagePreview.frame = imagePreviewRect;
+                         _sv.frame = svRect;
+                         _imagePreview.frame = imagePreviewRect;
                      }
      
                      completion:^( BOOL finished ){
@@ -766,11 +742,11 @@
     //再投稿ボタンの有効･無効切り替え
     if ( appDelegate.postError.count == 0 ) {
         
-        resendButton.enabled = NO;
+        _resendButton.enabled = NO;
         
     }else {
         
-        resendButton.enabled = YES;
+        _resendButton.enabled = YES;
     }
 }
 
@@ -816,7 +792,7 @@
     //設定が有効な場合Post入力可能状態にする
     if ( [d boolForKey:@"ShowKeyboard"] ) {
         
-        [postText becomeFirstResponder];
+        [_postText becomeFirstResponder];
     }
     
     //iOS5以降かチェック
@@ -972,11 +948,11 @@
     }
     
     //画像を設定
-    imagePreview.image = image;
+    _imagePreview.image = image;
     
     //Post入力状態にする
-    [postText becomeFirstResponder];
-    [postText setSelectedRange:NSMakeRange(0, 0)];
+    [_postText becomeFirstResponder];
+    [_postText setSelectedRange:NSMakeRange(0, 0)];
     [self countText];
 }
 
@@ -1083,17 +1059,17 @@
         }
         
         //Post入力欄の最後にURLを付ける
-        postText.text = [NSString stringWithFormat:@"%@ %@ ", postText.text, imageURL];
+        _postText.text = [NSString stringWithFormat:@"%@ %@ ", _postText.text, imageURL];
         
         //連続するスペースを1つにする
-        postText.text = [postText.text replaceWord:@"  " replacedWord:@" "];
+        _postText.text = [_postText.text replaceWord:@"  " replacedWord:@" "];
         
         //文字数カウントを行いラベルに反映
         [self countText];
         
         //カーソルを先頭にする
-        [postText becomeFirstResponder];
-        [postText setSelectedRange:NSMakeRange(0, 0)];
+        [_postText becomeFirstResponder];
+        [_postText setSelectedRange:NSMakeRange(0, 0)];
         
         //処理中表示をオフ
         [grayView off];
@@ -1265,23 +1241,22 @@
         
         if ( buttonIndex == 0 ) {
             
-            postText.text = [HankakuKana kana:postText.text];
+            _postText.text = [HankakuKana kana:_postText.text];
             
         }else if ( buttonIndex == 1 ) {
             
-            postText.text = [HankakuKana hiragana:postText.text];
+            _postText.text = [HankakuKana hiragana:_postText.text];
             
         }else if ( buttonIndex == 2 ) {
             
-            postText.text = [HankakuKana kanaHiragana:postText.text];
-            
+            _postText.text = [HankakuKana kanaHiragana:_postText.text];
         }
         
     }else if ( actionSheetNo == 6 ) {
         
         if ( buttonIndex == 0 ) {
             
-            [self uploadImage:imagePreview.image];
+            [self uploadImage:_imagePreview.image];
         }
         
     }else if ( actionSheetNo == 7 ) {
@@ -1294,12 +1269,12 @@
                 
             }else {
                 
-                [self uploadImage:imagePreview.image];
+                [self uploadImage:_imagePreview.image];
             }
             
         }else if ( buttonIndex == 1 ) {
             
-            imagePreview.image = nil;
+            _imagePreview.image = nil;
             [self countText];
             
         }else if ( buttonIndex == 2 ) {
@@ -1319,8 +1294,8 @@
             [self.view addSubview:clearView];
             
             viewRect = self.view.frame;
-            svRect = sv.frame;
-            imagePreviewRect = imagePreview.frame;
+            svRect = _sv.frame;
+            imagePreviewRect = _imagePreview.frame;
             
             [UIView animateWithDuration:0.4f
                                   delay:0.0f
@@ -1333,7 +1308,7 @@
                                                               SCREEN_WIDTH,
                                                               SCREEN_HEIGHT);
                                  
-                                 sv.frame = CGRectMake(0,
+                                 _sv.frame = CGRectMake(0,
                                                        TOOL_BAR_HEIGHT,
                                                        SCREEN_WIDTH * 2,
                                                        SCREEN_HEIGHT - TOOL_BAR_HEIGHT * 2);
@@ -1347,7 +1322,7 @@
                                   
                                                   animations:^{
                                                       
-                                                      imagePreview.frame = CGRectMake(SCREEN_WIDTH,
+                                                      _imagePreview.frame = CGRectMake(SCREEN_WIDTH,
                                                                                       0,
                                                                                       SCREEN_WIDTH - (SCREEN_WIDTH / 8),
                                                                                       SCREEN_HEIGHT - TAB_BAR_HEIGHT - (TOOL_BAR_HEIGHT * 2));
@@ -1435,7 +1410,7 @@
             NSString *deleteUrl = [dic objectForKey:keyName];
             
             //入力欄から対象URLを削除
-            postText.text = [postText.text deleteWord:deleteUrl];
+            _postText.text = [_postText.text deleteWord:deleteUrl];
             
             //対象キーを削除
             [dic removeObjectForKey:keyName];
@@ -1443,7 +1418,7 @@
             
             //アートワークの再アップロード開始
             artWorkUploading = YES;
-            [self uploadImage:imagePreview.image];
+            [self uploadImage:_imagePreview.image];
             
         }else if ( buttonIndex == 1 ) {
             
@@ -1453,12 +1428,12 @@
                 
             }else {
                 
-                [self uploadImage:imagePreview.image];
+                [self uploadImage:_imagePreview.image];
             }
             
         }else if ( buttonIndex == 2 ) {
             
-            imagePreview.image = nil;
+            _imagePreview.image = nil;
             [self countText];
             
         }else if ( buttonIndex == 3 ) {
@@ -1499,28 +1474,28 @@
 - (oneway void)countText {
     
     //t.coを考慮した文字数カウントを行う
-    int num = [TWCharCounter charCounter:postText.text];
+    int num = [TWCharCounter charCounter:_postText.text];
     
     //画像投稿先がTwitterの場合で画像が設定されている場合入力可能文字数を21文字減らす
     if ( [[d objectForKey:@"PhotoService"] isEqualToString:@"Twitter"] ) {
         
-        if ( imagePreview.image != nil ) {
+        if ( _imagePreview.image != nil ) {
             
             num = num - 21;
         }
     }
     
     //結果をラベルに反映
-    postCharLabel.text = [NSString stringWithFormat:@"%d", num];
+    _postCharLabel.text = [NSString stringWithFormat:@"%d", num];
     
     //文字数が140字を超えていた場合Postボタンを隠す
     if (num < 0) {
         
-        postButton.enabled = NO;
+        _postButton.enabled = NO;
         
     }else {
         
-        postButton.enabled = YES;
+        _postButton.enabled = YES;
     }
 }
 
@@ -1529,8 +1504,8 @@
     @autoreleasepool {
         
         //処理中を表すビューを表示
-        [grayView onAndSetSize:postText.frame.origin.x   y:postText.frame.origin.y
-                             w:postText.frame.size.width h:postText.frame.size.height];
+        [grayView onAndSetSize:_postText.frame.origin.x   y:_postText.frame.origin.y
+                             w:_postText.frame.size.width h:_postText.frame.size.height];
         
         //画像をリサイズするか判定
         if ( [d boolForKey:@"ResizeImage"] ) {
@@ -1573,23 +1548,22 @@
             
             if ( [EmptyCheck check:[dic objectForKey:twAccount.username]] ) {
                 
-                NSString *key = [UUIDEncryptor decryption:[[dic objectForKey:twAccount.username] objectAtIndex:0]];
-                NSString *secret = [UUIDEncryptor decryption:[[dic objectForKey:twAccount.username] objectAtIndex:1]];
+                NSString *key    = [UUIDEncryptor decryption:dic[twAccount.username][0]];
+                NSString *secret = [UUIDEncryptor decryption:dic[twAccount.username][1]];
                 
                 [request addPostValue:TWITPIC_API_KEY forKey:@"key"];
                 [request addPostValue:OAUTH_KEY forKey:@"consumer_token"];
                 [request addPostValue:OAUTH_SECRET forKey:@"consumer_secret"];
                 [request addPostValue:key forKey:@"oauth_token"];
                 [request addPostValue:secret forKey:@"oauth_secret"];
-                [request addPostValue:postText.text forKey:@"message"];
+                [request addPostValue:_postText.text forKey:@"message"];
                 [request addData:imageData forKey:@"media"];
                 
             }else {
                 
-                //Twitpic投稿が不可な場合はimg.urに投稿
-                request.url = [NSURL URLWithString:@"http://api.imgur.com/2/upload.json"];
-                
                 [d setObject:@"img.ur" forKey:@"PhotoService"];
+                
+                [request setURL:[NSURL URLWithString:@"http://api.imgur.com/2/upload.json"]];
                 [request addPostValue:IMGUR_API_KEY forKey:@"key"];
                 [request addData:imageData forKey:@"image"];
                 
@@ -1617,7 +1591,7 @@
             
             if ( [[d objectForKey:@"CallBackScheme"] isEqualToString:@"FPT"] ) {
                 
-                [postText resignFirstResponder];
+                [_postText resignFirstResponder];
                 self.tabBarController.selectedIndex = 1;
                 
             }else {
@@ -1685,7 +1659,7 @@
             int h = (int)artwork.bounds.size.height;
             int w = (int)artwork.bounds.size.width;
             
-            imagePreview.image = [ResizeImage aspectResizeForMaxSize:[artwork imageWithSize:CGSizeMake(500, 500)]
+            _imagePreview.image = [ResizeImage aspectResizeForMaxSize:[artwork imageWithSize:CGSizeMake(500, 500)]
                                                              maxSize:500];
             
             if ( ![EmptyCheck check:url] ) {
@@ -1712,7 +1686,7 @@
                         artWorkUploading = YES;
                         
                         //アートワークをアップロード
-                        [self uploadNowPlayingImage:imagePreview.image
+                        [self uploadNowPlayingImage:_imagePreview.image
                                          uploadType:uploadType];
                     }
                 }
@@ -1828,7 +1802,7 @@
         if ( [name hasPrefix:searchName] ) {
             
             UIImage *image = [[UIImage alloc] initWithContentsOfFile:[ICONS_DIRECTORY stringByAppendingPathComponent:name]];
-            iconPreview.image = image;
+            _iconPreview.image = image;
             [image release];
             
             find = YES;
@@ -1838,7 +1812,7 @@
     }
     
     //アイコンが見つからなかった場合はnilをセット
-    if ( !find ) iconPreview.image = nil;
+    if ( !find ) _iconPreview.image = nil;
 }
 
 - (oneway void)uploadNowPlayingImage:(UIImage *)image uploadType:(int)uploadType {
@@ -1848,8 +1822,8 @@
         //NSLog(@"uploadType: %d", uploadType);
         
         //処理中を表すビューを表示
-        [grayView onAndSetSize:postText.frame.origin.x   y:postText.frame.origin.y
-                             w:postText.frame.size.width h:postText.frame.size.height];
+        [grayView onAndSetSize:_postText.frame.origin.x   y:_postText.frame.origin.y
+                             w:_postText.frame.size.width h:_postText.frame.size.height];
         
         //画像をリサイズするか判定
         if ( [d boolForKey:@"ResizeImage"] ) {
@@ -1900,7 +1874,7 @@
                 [request addPostValue:OAUTH_SECRET forKey:@"consumer_secret"];
                 [request addPostValue:key forKey:@"oauth_token"];
                 [request addPostValue:secret forKey:@"oauth_secret"];
-                [request addPostValue:postText.text forKey:@"message"];
+                [request addPostValue:_postText.text forKey:@"message"];
                 [request addData:imageData forKey:@"media"];
                 
             }else {
@@ -2028,8 +2002,8 @@
                 
                 dispatch_async(dispatch_get_main_queue(), ^{
                     
-                    postText.text = [NSString stringWithFormat:@"%@ ", [DeleteWhiteSpace string:[NSString stringWithFormat:@"%@ %@", postText.text, shareString]]];
-                    [postText becomeFirstResponder];
+                    _postText.text = [NSString stringWithFormat:@"%@ ", [DeleteWhiteSpace string:[NSString stringWithFormat:@"%@ %@", _postText.text, shareString]]];
+                    [_postText becomeFirstResponder];
                     [ActivityIndicator visible:NO];
                 });
 			});
@@ -2064,11 +2038,11 @@
                 
                 if ( [[d objectForKey:@"PhotoService"] isEqualToString:@"Twitter"] ) {
                     
-                    if ( imagePreview.image != nil ) {
+                    if ( _imagePreview.image != nil ) {
                         
                         [TWSendTweet post:nowPlayingText
                           withInReplyToID:inReplyToId
-                                 andImage:imagePreview.image];
+                                 andImage:_imagePreview.image];
                         
                     }else {
                         
@@ -2082,7 +2056,7 @@
                       withInReplyToID:inReplyToId];
                 }
                 
-                imagePreview.image = nil;
+                _imagePreview.image = nil;
             }
             
             //CallBack、またはNowPlaying限定CallBackが有効
@@ -2096,14 +2070,14 @@
             
         }else {
             
-            if ( [postText.text hasSuffix:@" "] ) {
+            if ( [_postText.text hasSuffix:@" "] ) {
                 
-                postText.text = [NSString stringWithFormat:@"%@ ", postText.text];
+                _postText.text = [NSString stringWithFormat:@"%@ ", _postText.text];
             }
             
-            postText.text = [NSString stringWithFormat:@"%@%@", postText.text , nowPlayingText];
-            [postText becomeFirstResponder];
-            [postText setSelectedRange:NSMakeRange(0, 0)];
+            _postText.text = [NSString stringWithFormat:@"%@%@", _postText.text , nowPlayingText];
+            [_postText becomeFirstResponder];
+            [_postText setSelectedRange:NSMakeRange(0, 0)];
         }
         
     }else if ( length == 0 ) {
@@ -2121,9 +2095,9 @@
         [ShowAlert error:@"文章が140字を超えています。"];
         
         //入力欄に貼り付け
-        postText.text = nowPlayingText;
-        [postText becomeFirstResponder];
-        [postText setSelectedRange:NSMakeRange(0, 0)];
+        _postText.text = nowPlayingText;
+        [_postText becomeFirstResponder];
+        [_postText setSelectedRange:NSMakeRange(0, 0)];
     }
     
     [self countText];
@@ -2138,7 +2112,7 @@
         @try {
             
             //ペーストボード内容をPost入力欄にコピー
-            postText.text = pboard.string;
+            _postText.text = pboard.string;
             
         }@catch ( NSException *e ) {}
         
@@ -2148,7 +2122,7 @@
     }
     
     //Post入力状態にする
-    [postText becomeFirstResponder];
+    [_postText becomeFirstResponder];
 }
 
 - (void)fasttweetNotification:(int)pBoardType {
@@ -2197,13 +2171,13 @@
             }else {
                 
                 //ペーストボード内容をPost入力欄にコピー
-                postText.text = pboard.string;
-                [postText becomeFirstResponder];
+                _postText.text = pboard.string;
+                [_postText becomeFirstResponder];
             }
             
         }else {
             
-            [postText becomeFirstResponder];
+            [_postText becomeFirstResponder];
         }
         
     }@catch ( NSException *e ) {}
@@ -2225,10 +2199,10 @@
         }
         
         //ペーストボードの画像をサムネイル表示
-        imagePreview.image = image;
+        _imagePreview.image = image;
         
         //Post入力状態にする
-        [postText becomeFirstResponder];
+        [_postText becomeFirstResponder];
         
     }else {
         
@@ -2254,32 +2228,32 @@
             if ( [appDelegate.tabChangeFunction isEqualToString:@"Post"] ) {
                 
                 //入力可能状態にする
-                [postText becomeFirstResponder];
+                [_postText becomeFirstResponder];
                 
             }else if ( [appDelegate.tabChangeFunction isEqualToString:@"Reply"] ) {
                 
                 NSDictionary *postData = appDelegate.postData;
-                postText.text = [NSString stringWithFormat:@"@%@ %@", [postData objectForKey:@"ScreenName"], postText.text];
+                _postText.text = [NSString stringWithFormat:@"@%@ %@", [postData objectForKey:@"ScreenName"], _postText.text];
                 inReplyToId = [postData objectForKey:@"InReplyToId"];
                 [inReplyToId retain];
                 
-                [postText becomeFirstResponder];
+                [_postText becomeFirstResponder];
                 [appDelegate.postData removeAllObjects];
                 
             }else if ( [appDelegate.tabChangeFunction isEqualToString:@"Edit"] ) {
                 
                 NSDictionary *postData = appDelegate.postData;
-                postText.text = [postData objectForKey:@"Text"];
+                _postText.text = [postData objectForKey:@"Text"];
                 inReplyToId = [postData objectForKey:@"InReplyToId"];
                 [inReplyToId retain];
                 
-                [postText becomeFirstResponder];
+                [_postText becomeFirstResponder];
                 [appDelegate.postData removeAllObjects];
                 
             }else if ( [appDelegate.tabChangeFunction isEqualToString:@"PostError"] ) {
                 
                 [ShowAlert error:@"投稿に失敗しました。失敗したPostは上部中央のボタンから再投稿出来ます。"];
-                resendButton.enabled = YES;
+                _resendButton.enabled = YES;
             }
             
             appDelegate.tabChangeFunction = BLANK;
@@ -2299,8 +2273,8 @@
         
         if ( [EmptyCheck check:appDelegate.postText] ) {
             
-            postText.text = [NSString stringWithFormat:@"%@%@", postText.text, appDelegate.postText];
-            [postText becomeFirstResponder];
+            _postText.text = [NSString stringWithFormat:@"%@%@", _postText.text, appDelegate.postText];
+            [_postText becomeFirstResponder];
             
             appDelegate.postText = BLANK;
             
@@ -2308,22 +2282,22 @@
                 
                 if ( [d boolForKey:@"WebPagePostCursorPosition"] ) {
                     
-                    [postText setSelectedRange:NSMakeRange(0, 0)];
+                    [_postText setSelectedRange:NSMakeRange(0, 0)];
                     
                 }else {
                     
-                    [postText setSelectedRange:NSMakeRange(postText.text.length, 0)];
+                    [_postText setSelectedRange:NSMakeRange(_postText.text.length, 0)];
                 }
                 
             }else if ( [appDelegate.postTextType isEqualToString:@"Quote"] ) {
                 
                 if ( [d boolForKey:@"QuoteCursorPosition"] ) {
                     
-                    [postText setSelectedRange:NSMakeRange(0, 0)];
+                    [_postText setSelectedRange:NSMakeRange(0, 0)];
                     
                 }else {
                     
-                    [postText setSelectedRange:NSMakeRange(postText.text.length, 0)];
+                    [_postText setSelectedRange:NSMakeRange(_postText.text.length, 0)];
                 }
             }
             
@@ -2359,7 +2333,7 @@
             int account = [[resendArray objectAtIndex:1] intValue];
             [d setInteger:account forKey:@"UseAccount"];
             
-            postText.text = [resendArray objectAtIndex:2];
+            _postText.text = [resendArray objectAtIndex:2];
             inReplyToId = [resendArray objectAtIndex:3];
             
             if ( resendArray.count == 4 ) {
@@ -2369,7 +2343,7 @@
             }else if ( resendArray.count == 5 ) {
                 
                 //NSLog(@"Resend data set PHOTO");
-                imagePreview.image = [resendArray objectAtIndex:4];
+                _imagePreview.image = [resendArray objectAtIndex:4];
             }
             
             [appDelegate.postError removeObjectAtIndex:appDelegate.resendNumber];
@@ -2378,52 +2352,17 @@
         //再投稿ボタンの有効･無効切り替え
         if ( appDelegate.postError.count == 0 ) {
             
-            resendButton.enabled = NO;
+            _resendButton.enabled = NO;
             
         }else {
             
-            resendButton.enabled = YES;
+            _resendButton.enabled = YES;
         }
         
     }@finally {
         
         [self countText];
     }
-}
-
-- (void)didReceiveMemoryWarning {
-    
-    [super didReceiveMemoryWarning];
-}
-
-- (void)viewDidUnload {
-    
-    [self setPostText:nil];
-    [self setCallbackLabel:nil];
-    [self setCallbackSwitch:nil];
-    [self setPostCharLabel:nil];
-    [self setImagePreview:nil];
-    [self setImageSettingButton:nil];
-    [self setSv:nil];
-    [self setTopBar:nil];
-    [self setTrashButton:nil];
-    [self setPostButton:nil];
-    [self setFlexibleSpace:nil];
-    [self setSettingButton:nil];
-    [self setBottomBar:nil];
-    [self setIdButton:nil];
-    [self setTapGesture:nil];
-    [self setResendButton:nil];
-    [self setRigthSwipe:nil];
-    [self setLeftSwipe:nil];
-    [self setNowPlayingButton:nil];
-    [self setBrowserButton:nil];
-    [self setInputFunctionButton:nil];
-    [self setActionButton:nil];
-    [self setIconPreview:nil];
-    [self setPboardURLLabel:nil];
-    [self setPboardURLSwitch:nil];
-    [super viewDidUnload];
 }
 
 - (void)viewWillAppear:(BOOL)animated {
@@ -2456,61 +2395,21 @@
     return UIInterfaceOrientationMaskPortrait;
 }
 
+- (void)didReceiveMemoryWarning {
+    
+    NSLog(@"%s", __func__);
+    [super didReceiveMemoryWarning];
+}
+
+- (void)viewDidUnload {
+    
+    NSLog(@"%s", __func__);
+    [super viewDidUnload];
+}
+
 - (void)dealloc {
     
-    [twAccount release];
-    twAccount = nil;
-    [postText release];
-    postText = nil;
-    [callbackLabel release];
-    callbackLabel = nil;
-    [callbackSwitch release];
-    callbackSwitch = nil;
-    [postCharLabel release];
-    postCharLabel = nil;
-    [imagePreview release];
-    imagePreview = nil;
-    [imageSettingButton release];
-    imageSettingButton = nil;
-    [sv release];
-    sv = nil;
-    [topBar release];
-    topBar = nil;
-    [trashButton release];
-    trashButton = nil;
-    [postButton release];
-    postButton = nil;
-    [flexibleSpace release];
-    flexibleSpace = nil;
-    [settingButton release];
-    settingButton = nil;
-    [bottomBar release];
-    bottomBar = nil;
-    [idButton release];
-    idButton = nil;
-    [tapGesture release];
-    tapGesture = nil;
-    [resendButton release];
-    resendButton = nil;
-    [rigthSwipe release];
-    rigthSwipe = nil;
-    [leftSwipe release];
-    leftSwipe = nil;
-    [nowPlayingButton release];
-    nowPlayingButton = nil;
-    [browserButton release];
-    browserButton = nil;
-    [inputFunctionButton release];
-    inputFunctionButton = nil;
-    [actionButton release];
-    actionButton = nil;
-    [iconPreview release];
-    iconPreview = nil;
-    [pboardURLLabel release];
-    pboardURLLabel = nil;
-    [pboardURLSwitch release];
-    pboardURLSwitch = nil;
-    
+    NSLog(@"%s", __func__);
     [super dealloc];
 }
 

@@ -80,6 +80,7 @@ typedef enum {
 
 @interface TimelineViewController : UIViewController <UIActionSheetDelegate, UITextFieldDelegate, UIPickerViewDelegate, UIPickerViewDataSource, UITableViewDelegate, UITableViewDataSource>
 
+@property BOOL viewReloaded;
 @property BOOL userStream;
 @property BOOL userStreamFirstResponse;
 @property BOOL webBrowserMode;
@@ -172,6 +173,7 @@ typedef enum {
 - (void)requestProfileImageWithURL:(NSString *)biggerUrl screenName:(NSString *)screenName searchName:(NSString *)searchName;
 - (void)changeAccount:(NSNotification *)notification;
 - (void)getInReplyToChain:(NSDictionary *)tweetData;
+- (void)createTimelineMenu:(TimeLineMenuIdentifier)menuIdentifier;
 - (void)scrollTimelineForNewTweet:(NSString *)tweetID;
 - (void)scrollTimelineToTop:(BOOL)animation;
 - (void)scrollTimelineToBottom:(BOOL)animation;

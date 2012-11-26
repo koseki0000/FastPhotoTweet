@@ -9,7 +9,6 @@
 #import "ShowAlert.h"
 #import "NSString+RegularExpression.h"
 #import "NSString+WordCollect.h"
-#import "DeleteWhiteSpace.h"
 #import "EmptyCheck.h"
 
 #import <MobileCoreServices/MobileCoreServices.h>

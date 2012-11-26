@@ -42,7 +42,7 @@
 
 @implementation TimelineMenu
 
-- (id)initWithTweet:(NSDictionary *)tweet {
+- (id)initWithTweet:(NSDictionary *)tweet forMenu:(TimeLineMenuIdentifier)menuIdentifier {
     
     self = [super initWithFrame:CGRectMake(0,
                                            SCREEN_HEIGHT - TAB_BAR_HEIGHT,
@@ -50,7 +50,19 @@
                                            SCREEN_HEIGHT - TAB_BAR_HEIGHT)];
     self.backgroundColor = [UIColor whiteColor];
     
-    self.menuList = [NSMutableArray arrayWithArray:MAIN_MENU];
+    if ( menuIdentifier == TimeLineMenuIdentifierMain ) {
+        
+        self.menuList = [NSMutableArray arrayWithArray:MAIN_MENU];
+        
+    }else if ( menuIdentifier == TimeLineMenuIdentifierCopy ) {
+        
+        self.menuList = [NSMutableArray arrayWithArray:COPY_MENU];
+        
+    }else if ( menuIdentifier == TimeLineMenuIdentifierUser ) {
+        
+        self.menuList = [NSMutableArray arrayWithArray:USER_MENU];
+    }
+    
     self.tweet = [[NSDictionary alloc] initWithDictionary:tweet];
     [_menuList insertObject:[NSDictionary dictionaryWithDictionary:_tweet]
                     atIndex:0];
@@ -269,6 +281,15 @@
         
         cell.textLabel.text = [_menuList objectAtIndex:indexPath.row];
         
+        if ( [cell.textLabel.text isEqualToString:@"Tweetを削除"]) {
+            
+            if ( [_tweet[@"retweeted_status"] boolForKey:@"id"] &&
+                 [_tweet[@"rt_user"] isEqualToString:[TWAccounts currentAccountName]] ) {
+                
+                cell.textLabel.text = @"ReTweetを取り消す";
+            }
+        }
+        
         return cell;
     }
 }
@@ -403,75 +424,75 @@
             
         }else if ( _menuNo == 3 ) {
             
-            [_menuList removeObjectAtIndex:0];
-            
-            if ( [[_menuList objectAtIndex:indexPath.row - 1] isKindOfClass:[NSDictionary class]] ) {
+            if ( [[_menuList objectAtIndex:indexPath.row] isKindOfClass:[NSDictionary class]] ) {
                 
-                if ( [[[_menuList objectAtIndex:indexPath.row - 1] objectForKey:@"retweeted_status"] objectForKey:@"id"] ) {
+                if ( [[[_menuList objectAtIndex:indexPath.row] objectForKey:@"retweeted_status"] objectForKey:@"id"] ) {
                     
-                    _selectUser = [[[[_menuList objectAtIndex:indexPath.row - 1] objectForKey:@"retweeted_status"] objectForKey:@"user"] objectForKey:@"screen_name"];
+                    self.selectUser = [[[[_menuList objectAtIndex:indexPath.row] objectForKey:@"retweeted_status"] objectForKey:@"user"] objectForKey:@"screen_name"];
                     
                 }else {
                     
-                    _selectUser = [[[_menuList objectAtIndex:indexPath.row - 1] objectForKey:@"user"] objectForKey:@"screen_name"];
+                    self.selectUser = [[[_menuList objectAtIndex:indexPath.row] objectForKey:@"user"] objectForKey:@"screen_name"];
                 }
                 
             }else {
                 
-                _selectUser = [NSString stringWithString:[_menuList objectAtIndex:indexPath.row - 1]];
+                self.selectUser = [NSString stringWithString:[_menuList objectAtIndex:indexPath.row]];
             }
             
             if ( [_selectUser hasPrefix:@"@"] ) _selectUser = [_selectUser substringFromIndex:1];
             
-            NSLog(@"selectUser[%d]: %@, index: %d", _userMenuActionNo, _selectUser, indexPath.row - 1);
+            NSLog(@"selectUser[%d]: %@, index: %d", _userMenuActionNo, _selectUser, indexPath.row);
             [NSNotificationCenter postNotificationCenterForName:@"TimelineMenuAction"
                                                    withUserInfo:@{@"Action":@(_userMenuActionNo),
              @"Type":@"User",
              @"TargetUser":_selectUser}];
             
-        }else if ( _menuNo == 4 ) {
-            
             [_menuList removeObjectAtIndex:0];
             
-            if ( [[_menuList objectAtIndex:indexPath.row - 1] isKindOfClass:[NSDictionary class]] ) {
+        }else if ( _menuNo == 4 ) {
+            
+            if ( [[_menuList objectAtIndex:0] isKindOfClass:[NSDictionary class]] ) {
                 
-                if ( [[[_menuList objectAtIndex:indexPath.row - 1] objectForKey:@"retweeted_status"] objectForKey:@"id"] ) {
+                if ( [[[_menuList objectAtIndex:0] objectForKey:@"retweeted_status"] objectForKey:@"id"] ) {
                     
-                    _selectUser = [[[[_menuList objectAtIndex:indexPath.row - 1] objectForKey:@"retweeted_status"] objectForKey:@"user"] objectForKey:@"screen_name"];
+                    self.selectUser = [[[[_menuList objectAtIndex:0] objectForKey:@"retweeted_status"] objectForKey:@"user"] objectForKey:@"screen_name"];
                     
                 }else {
                     
-                    _selectUser = [[[_menuList objectAtIndex:indexPath.row - 1] objectForKey:@"user"] objectForKey:@"screen_name"];
+                    self.selectUser = [[[_menuList objectAtIndex:0] objectForKey:@"user"] objectForKey:@"screen_name"];
                 }
                 
             }else {
                 
-                _selectUser = [NSString stringWithString:[_menuList objectAtIndex:indexPath.row - 1]];
+                self.selectUser = [NSString stringWithString:[_menuList objectAtIndex:0]];
             }
             
-            if ( [_selectUser hasPrefix:@"@"] ) _selectUser = [_selectUser substringFromIndex:1];
+            [_menuList removeObjectAtIndex:0];
             
-            if ( indexPath.row == 0 ) {
+            if ( [_selectUser hasPrefix:@"@"] ) self.selectUser = [_selectUser substringFromIndex:1];
+            
+            if ( indexPath.row == 1 ) {
                 
                 //スパム報告
                 [TWFriends reportSpam:_selectUser];
                 
-            }else if ( indexPath.row == 1 ) {
+            }else if ( indexPath.row == 2 ) {
                 
                 //ブロック
                 [TWFriends block:_selectUser];
                 
-            }else if ( indexPath.row == 2 ) {
+            }else if ( indexPath.row == 3 ) {
                 
                 //ブロック解除
                 [TWFriends unblock:_selectUser];
                 
-            }else if ( indexPath.row == 3 ) {
+            }else if ( indexPath.row == 4 ) {
                 
                 //フォロー
                 [TWFriends follow:_selectUser];
                 
-            }else if ( indexPath.row == 4 ) {
+            }else if ( indexPath.row == 5 ) {
                 
                 //フォロー解除
                 [TWFriends unfollow:_selectUser];

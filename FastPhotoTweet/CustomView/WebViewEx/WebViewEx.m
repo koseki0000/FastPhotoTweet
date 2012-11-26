@@ -345,9 +345,7 @@
 //選択中の文字が返される
 - (NSString *)selectString {
     
-    //NSLog(@"selectString");
-    
-    return [DeleteWhiteSpace string:[self stringByEvaluatingJavaScriptFromString:@"(window.getSelection()).toString()"]];
+    return [self stringByEvaluatingJavaScriptFromString:@"(window.getSelection()).toString()"].deleteWhiteSpace;
 }
 
 //開いているページのタイトルが返される
@@ -355,7 +353,7 @@
     
     //NSLog(@"pageTitle");
     
-    return [self stringByEvaluatingJavaScriptFromString:@"document.title"];
+    return [self stringByEvaluatingJavaScriptFromString:@"document.title"].deleteWhiteSpace;
 }
 
 //開いているページのソースコードが返される
@@ -419,10 +417,7 @@
 
 - (void)dealloc {
     
-    NSLog(@"WebViewEx dealloc");
-    
-    [self setURL:nil];
-    [self setURLReq:nil];
+    NSLog(@"%s", __func__);
     
     //メモリキャッシュの削除
     NSURLCache *cache = [NSURLCache sharedURLCache];

@@ -10,9 +10,15 @@
 #import "TWEntities.h"
 #import "NSNotificationCenter+EasyPost.h"
 
+typedef enum {
+    TimeLineMenuIdentifierMain,
+    TimeLineMenuIdentifierCopy,
+    TimeLineMenuIdentifierUser,
+}TimeLineMenuIdentifier;
+
 @interface TimelineMenu : UIView <UITableViewDataSource, UITableViewDelegate>
 
-- (id)initWithTweet:(NSDictionary *)tweet;
+- (id)initWithTweet:(NSDictionary *)tweet forMenu:(TimeLineMenuIdentifier)menuIdentifier;
 
 @property __block NSUInteger count;
 @property NSUInteger menuNo;

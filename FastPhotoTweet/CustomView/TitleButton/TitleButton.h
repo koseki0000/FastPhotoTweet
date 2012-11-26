@@ -11,5 +11,6 @@
 @interface TitleButton : UIButton
 
 @property (retain, nonatomic) NSString *buttonTitle;
+@property NSUInteger index;
 
 @end

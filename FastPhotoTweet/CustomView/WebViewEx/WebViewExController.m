@@ -15,15 +15,15 @@
 #define BOTTOM_BAR [NSArray arrayWithObjects:closeButton, flexibleSpace, composeButton, flexibleSpace, reloadButton, flexibleSpace, backButton, flexibleSpace, forwardButton, flexibleSpace, bookmarkButton, flexibleSpace, menuButton, nil]
 #define EXTENSIONS [NSArray arrayWithObjects:@"zip", @"mp4", @"mov", @"m4a", @"rar", @"dmg", @"deb", nil]
 
+#define APP_DELEGATE ((AppDelegate *)[[UIApplication sharedApplication] delegate])
+#define P_BOARD [UIPasteboard generalPasteboard]
+#define D [NSUserDefaults standardUserDefaults]
+
 @implementation WebViewExController
-@synthesize appDelegate;
-@synthesize grayView;
-@synthesize pboard;
 @synthesize alert;
 @synthesize alertText;
 @synthesize reloadButtonImage;
 @synthesize stopButtonImage;
-@synthesize d;
 @synthesize accessURL;
 @synthesize loadStartURL;
 @synthesize saveFileName;
@@ -33,7 +33,6 @@
 @synthesize startupUrlList;
 @synthesize urlList;
 
-@synthesize wv;
 @synthesize topBar;
 @synthesize urlField;
 @synthesize searchField;
@@ -57,11 +56,10 @@
     
     if ( self ) {
         
-        appDelegate = (AppDelegate *)[[UIApplication sharedApplication] delegate];
-        startupUrlList = appDelegate.startupUrlList;
+        startupUrlList = APP_DELEGATE.startupUrlList;
         urlList = BLANK_ARRAY;
         
-        if ( startupUrlList == nil ) [d objectForKey:@"HomePageURL"];
+        if ( startupUrlList == nil ) [D objectForKey:@"HomePageURL"];
         
         retina4InchOffset = 0;
         
@@ -83,13 +81,11 @@
     
     NSLog(@"retina4InchOffset: %d", retina4InchOffset);
     
-    pboard = [UIPasteboard generalPasteboard];
+    self.grayView = [[GrayView alloc] init];
+    [_wv addSubview:_grayView];
     
-    grayView = [[GrayView alloc] init];
-    [wv addSubview:grayView];
-    
-    reloadButtonImage = [UIImage imageNamed:@"reload.png"];
-    stopButtonImage = [UIImage imageNamed:@"stop.png"];
+    self.reloadButtonImage = [UIImage imageNamed:@"reload.png"];
+    self.stopButtonImage = [UIImage imageNamed:@"stop.png"];
     
     openBookmark = NO;
     fullScreen = NO;
@@ -112,9 +108,7 @@
     
     notificationCenter = nil;
     
-    d = [NSUserDefaults standardUserDefaults];
-
-    searchField.clearsOnBeginEditing = [d boolForKey:@"ClearBrowserSearchField"];
+    searchField.clearsOnBeginEditing = [D boolForKey:@"ClearBrowserSearchField"];
     
     accessURL = BLANK;
     
@@ -123,23 +117,23 @@
     //ツールバーにボタンをセット
     [bottomBar setItems:BOTTOM_BAR animated:NO];
     
-    appDelegate.browserOpenMode = YES;
+    APP_DELEGATE.browserOpenMode = YES;
     
     //URLSchemeダウンロード判定
-    if ( [EmptyCheck check:appDelegate.urlSchemeDownloadUrl] ) {
+    if ( [EmptyCheck check:APP_DELEGATE.urlSchemeDownloadUrl] ) {
         
-        [self requestStart:appDelegate.urlSchemeDownloadUrl];
+        [self requestStart:APP_DELEGATE.urlSchemeDownloadUrl];
         
         return;
     }
     
-    if ( appDelegate.pcUaMode ||
-        [EmptyCheck string:appDelegate.reOpenUrl] ) {
+    if ( APP_DELEGATE.pcUaMode ||
+        [EmptyCheck string:APP_DELEGATE.reOpenUrl] ) {
         
-        [wv loadRequestWithString:appDelegate.reOpenUrl];
+        [_wv loadRequestWithString:APP_DELEGATE.reOpenUrl];
         
-        appDelegate.reOpenUrl = BLANK;
-        appDelegate.pcUaMode = NO;
+        APP_DELEGATE.reOpenUrl = BLANK;
+        APP_DELEGATE.pcUaMode = NO;
         
     }else {
      
@@ -151,7 +145,7 @@
     
     //NSLog(@"startupUrlList: %@", startupUrlList);
     
-    if ( appDelegate.tabBarController.selectedIndex == 1 ) {
+    if ( APP_DELEGATE.tabBarController.selectedIndex == 1 ) {
         
         //NSLog(@"タイムラインから開いている場合はスタートアップURLを優先");
         
@@ -161,53 +155,53 @@
         
         //NSLog(@"タイムラインから開かれていない場合");
         
-        if ( [d boolForKey:@"OpenPasteBoardURL"] ) {
+        if ( [D boolForKey:@"OpenPasteBoardURL"] ) {
             
-            //NSLog(@"ペーストボードからURLを開く設定が有効な場合: %@", [d objectForKey:@"LastOpendPasteBoardURL"]);
+            //NSLog(@"ペーストボードからURLを開く設定が有効な場合: %@", [D objectForKey:@"LastOpendPasteBoardURL"]);
             
             //ペーストボードのURLを取得
-            urlList = [pboard.string urls];
+            urlList = [P_BOARD.string urls];
             
             if ( startupUrlList.count == 1 && urlList.count == 0 ) {
                 
                 //NSLog(@"ペーストボードにURLが存在しない場合");
                 
-                [wv loadRequestWithString:[startupUrlList objectAtIndex:0]];
+                [_wv loadRequestWithString:[startupUrlList objectAtIndex:0]];
                 
             }else if ( startupUrlList.count == 0 && urlList.count == 1 ) {
                 
                 //NSLog(@"スタートアップURLがなく、ペーストボードにURLが1つ存在する場合");
                 
-                if ( [[urlList objectAtIndex:0] isEqualToString:[d objectForKey:@"LastOpendPasteBoardURL"]] ) {
+                if ( [[urlList objectAtIndex:0] isEqualToString:[D objectForKey:@"LastOpendPasteBoardURL"]] ) {
                 
-                    [wv loadRequestWithString:[d objectForKey:@"HomePageURL"]];
+                    [_wv loadRequestWithString:[D objectForKey:@"HomePageURL"]];
                     
                 }else {
                     
-                    [wv loadRequestWithString:[urlList objectAtIndex:0]];
-                    [d setObject:[urlList objectAtIndex:0] forKey:@"LastOpendPasteBoardURL"];
+                    [_wv loadRequestWithString:[urlList objectAtIndex:0]];
+                    [D setObject:[urlList objectAtIndex:0] forKey:@"LastOpendPasteBoardURL"];
                 }
                 
             }else if ( startupUrlList.count == 1 && urlList.count == 1 ) {
                 
                 //NSLog(@"ペーストボードにURLが1つ存在する場合");
                 
-                if ( [[startupUrlList objectAtIndex:0] isEqualToString:[d objectForKey:@"HomePageURL"]] ) {
+                if ( [[startupUrlList objectAtIndex:0] isEqualToString:[D objectForKey:@"HomePageURL"]] ) {
                     
                     //NSLog(@"スタートアップURLがホームページだった場合はペーストボードのURLを優先して判定");
                     
-                    if ( [[urlList objectAtIndex:0] isEqualToString:[d objectForKey:@"LastOpendPasteBoardURL"]] ) {
+                    if ( [[urlList objectAtIndex:0] isEqualToString:[D objectForKey:@"LastOpendPasteBoardURL"]] ) {
                         
                         //NSLog(@"直前にペーストボードから開いたURLだった場合はスタートアップURLを開く");
                         
-                        [wv loadRequestWithString:[startupUrlList objectAtIndex:0]];
+                        [_wv loadRequestWithString:[startupUrlList objectAtIndex:0]];
                         
                     }else {
                         
                         //NSLog(@"直前にペーストボードから開いたURLではない場合開く");
                         
-                        [wv loadRequestWithString:[urlList objectAtIndex:0]];
-                        [d setObject:[urlList objectAtIndex:0] forKey:@"LastOpendPasteBoardURL"];
+                        [_wv loadRequestWithString:[urlList objectAtIndex:0]];
+                        [D setObject:[urlList objectAtIndex:0] forKey:@"LastOpendPasteBoardURL"];
                     }
                     
                 }else {
@@ -216,7 +210,7 @@
                     
                     if ( [[startupUrlList objectAtIndex:0] isEqualToString:[urlList objectAtIndex:0]] ) {
                         
-                        [wv loadRequestWithString:[startupUrlList objectAtIndex:0]];
+                        [_wv loadRequestWithString:[startupUrlList objectAtIndex:0]];
                         
                     }else {
                         
@@ -236,7 +230,7 @@
                 
                 //NSLog(@"ペーストボードにURLが複数個ある場合");
                 
-                if ( [[startupUrlList objectAtIndex:0] isEqualToString:[d objectForKey:@"HomePageURL"]] ) {
+                if ( [[startupUrlList objectAtIndex:0] isEqualToString:[D objectForKey:@"HomePageURL"]] ) {
                     
                     //NSLog(@"スタートアップURLがホームページだった場合はペーストボードのURLを優先して判定");
                     
@@ -282,7 +276,7 @@
                 
                 //NSLog(@"その他の場合");
                 
-                [wv loadRequestWithString:[d objectForKey:@"HomePageURL"]];
+                [_wv loadRequestWithString:[D objectForKey:@"HomePageURL"]];
             }
             
         }else {
@@ -292,7 +286,7 @@
             if ( startupUrlList.count == 1 ) {
                 
                 //NSLog(@"URLが1つの場合は開く");
-                [wv loadRequestWithString:[startupUrlList objectAtIndex:0]];
+                [_wv loadRequestWithString:[startupUrlList objectAtIndex:0]];
                 
             }else if ( startupUrlList.count > 1 ) {
                 
@@ -302,7 +296,7 @@
             }else {
                 
                 //NSLog(@"その他の場合はホームページを開く");
-                [wv loadRequestWithString:[d objectForKey:@"HomePageURL"]];
+                [_wv loadRequestWithString:[D objectForKey:@"HomePageURL"]];
             }
         }
     }
@@ -318,11 +312,11 @@
         
         openBookmark = NO;
         
-        if ( [EmptyCheck check:appDelegate.bookmarkUrl] ) {
+        if ( [EmptyCheck check:APP_DELEGATE.bookmarkUrl] ) {
             
             //ブックマークで選択したURLを読み込み
-            [wv loadRequestWithString:appDelegate.bookmarkUrl];
-            appDelegate.bookmarkUrl = BLANK;
+            [_wv loadRequestWithString:APP_DELEGATE.bookmarkUrl];
+            APP_DELEGATE.bookmarkUrl = BLANK;
         }
     }
 }
@@ -333,7 +327,7 @@
     
     if (startupUrlList.count == 1 ) {
         
-        [wv loadRequestWithString:[startupUrlList objectAtIndex:0]];
+        [_wv loadRequestWithString:[startupUrlList objectAtIndex:0]];
         
     }else if (startupUrlList.count == 2 ) {
         
@@ -419,33 +413,33 @@
     NSLog(@"Browser pboardNotification: %@", notification.userInfo);
     
     //ブラウザを開いていない場合は終了
-    if ( !appDelegate.browserOpenMode ) return;
+    if ( !APP_DELEGATE.browserOpenMode ) return;
     
-    //NSLog(@"Browser pboardNotification: %@", notification.userInfo);
+    //NSLog(@"Browser P_BOARDNotification: %@", notification.userInfo);
     
-    [wv loadRequestWithString:[notification.userInfo objectForKey:@"pboardURL"]];
+    [_wv loadRequestWithString:[notification.userInfo objectForKey:@"P_BOARDURL"]];
 }
 
 - (void)becomeActive:(NSNotification *)notification {
     
-    if ( appDelegate.willResignActiveBrowser ) {
+    if ( APP_DELEGATE.willResignActiveBrowser ) {
         
-        appDelegate.willResignActiveBrowser = NO;
+        APP_DELEGATE.willResignActiveBrowser = NO;
         
         return;
     }
     
     //URLSchemeダウンロード判定
-    if ( [EmptyCheck check:appDelegate.urlSchemeDownloadUrl] ) {
+    if ( [EmptyCheck check:APP_DELEGATE.urlSchemeDownloadUrl] ) {
         
-        [self requestStart:appDelegate.urlSchemeDownloadUrl];
+        [self requestStart:APP_DELEGATE.urlSchemeDownloadUrl];
         
         return;
     }
     
-    if ( appDelegate.pboardURLOpenBrowser ) {
+    if ( APP_DELEGATE.pboardURLOpenBrowser ) {
      
-        appDelegate.pboardURLOpenBrowser = NO;
+        APP_DELEGATE.pboardURLOpenBrowser = NO;
         return;
     }
     
@@ -469,9 +463,9 @@
 
 - (void)setSearchEngine {
     
-    if ( ![EmptyCheck check:[d objectForKey:@"SearchEngine"]] ) [d setObject:@"Google" forKey:@"SearchEngine"];
+    if ( ![EmptyCheck check:[D objectForKey:@"SearchEngine"]] ) [D setObject:@"Google" forKey:@"SearchEngine"];
     
-    searchField.placeholder = [d objectForKey:@"SearchEngine"];
+    searchField.placeholder = [D objectForKey:@"SearchEngine"];
 }
 
 - (IBAction)pushSearchButton:(id)sender {
@@ -508,12 +502,12 @@
     
         [self resetUserAgent];
         
-        appDelegate.startupUrlList = BLANK_ARRAY;
-        appDelegate.reOpenUrl = accessURL;
+        APP_DELEGATE.startupUrlList = BLANK_ARRAY;
+        APP_DELEGATE.reOpenUrl = accessURL;
         
-        if ( appDelegate.tabBarController.selectedIndex == 0 ) {
+        if ( APP_DELEGATE.tabBarController.selectedIndex == 0 ) {
          
-            if ( [appDelegate.firmwareVersion hasPrefix:@"6"] ) {
+            if ( [APP_DELEGATE.firmwareVersion hasPrefix:@"6"] ) {
                 
                 [self dismissViewControllerAnimated:YES completion:nil];
                 
@@ -548,12 +542,12 @@
      
         [self resetUserAgent];
         
-        appDelegate.startupUrlList = BLANK_ARRAY;
-        appDelegate.reOpenUrl = BLANK;
+        APP_DELEGATE.startupUrlList = BLANK_ARRAY;
+        APP_DELEGATE.reOpenUrl = BLANK;
         
-        if ( appDelegate.tabBarController.selectedIndex == 0 ) {
+        if ( APP_DELEGATE.tabBarController.selectedIndex == 0 ) {
             
-            if ( [appDelegate.firmwareVersion hasPrefix:@"6"] ) {
+            if ( [APP_DELEGATE.firmwareVersion hasPrefix:@"6"] ) {
                 
                 [self dismissViewControllerAnimated:YES completion:nil];
                 
@@ -575,25 +569,25 @@
         
         if ( loading ) {
             
-            [wv stopLoading];
+            [_wv stopLoading];
             [ActivityIndicator off];
             reloadButton.image = reloadButtonImage;
             
         }else {
             
-            [wv loadRequestWithString:accessURL];
+            [_wv loadRequestWithString:accessURL];
         }
     }
 }
 
 - (IBAction)pushBackButton:(id)sender {
     
-    if ( [InternetConnection enable] ) [wv goBack];
+    if ( [InternetConnection enable] ) [_wv goBack];
 }
 
 - (IBAction)pushForwardButton:(id)sender {
     
-    if ( [InternetConnection enable] ) [wv goForward];
+    if ( [InternetConnection enable] ) [_wv goForward];
 }
 
 - (IBAction)pushMenuButton:(id)sender {
@@ -634,27 +628,27 @@
     
     NSString *searchURL = nil;
     
-    if ( [[d objectForKey:@"SearchEngine"] isEqualToString:@"Google"] ) {
+    if ( [[D objectForKey:@"SearchEngine"] isEqualToString:@"Google"] ) {
         
         searchURL = @"http://www.google.co.jp/search?q=";
         
-    }else if ( [[d objectForKey:@"SearchEngine"] isEqualToString:@"Amazon"] ) {
+    }else if ( [[D objectForKey:@"SearchEngine"] isEqualToString:@"Amazon"] ) {
         
         searchURL = @"http://www.amazon.co.jp/s/field-keywords=";
         
-    }else if ( [[d objectForKey:@"SearchEngine"] isEqualToString:@"Yahoo!オークション"] ) {
+    }else if ( [[D objectForKey:@"SearchEngine"] isEqualToString:@"Yahoo!オークション"] ) {
         
         searchURL = @"http://auctions.search.yahoo.co.jp/search?tab_ex=commerce&rkf=1&p=";
         
-    }else if ( [[d objectForKey:@"SearchEngine"] isEqualToString:@"Wikipedia"] ) {
+    }else if ( [[D objectForKey:@"SearchEngine"] isEqualToString:@"Wikipedia"] ) {
         
         searchURL = @"http://ja.m.wikipedia.org/wiki/";
         
-    }else if ( [[d objectForKey:@"SearchEngine"] isEqualToString:@"Twitter"] ) {
+    }else if ( [[D objectForKey:@"SearchEngine"] isEqualToString:@"Twitter"] ) {
         
         searchURL = @"https://mobile.twitter.com/search?q=";
     
-    }else if ( [[d objectForKey:@"SearchEngine"] isEqualToString:@"Wikipedia (Suggestion)"] ) {
+    }else if ( [[D objectForKey:@"SearchEngine"] isEqualToString:@"Wikipedia (Suggestion)"] ) {
         
         searchURL = @"http://google.com/complete/search?output=toolbar&hl=ja&q=";
     }
@@ -665,9 +659,9 @@
                                                                                                 (CFStringRef)@"!*'();:@&=+$,/?%#[]", 
                                                                                                 kCFStringEncodingUTF8);
     
-    if ( ![[d objectForKey:@"SearchEngine"] isEqualToString:@"Wikipedia (Suggestion)"] ) {
+    if ( ![[D objectForKey:@"SearchEngine"] isEqualToString:@"Wikipedia (Suggestion)"] ) {
         
-        [wv loadRequestWithString:[NSString stringWithFormat:@"%@%@", searchURL, encodedSearchWord]];
+        [_wv loadRequestWithString:[NSString stringWithFormat:@"%@%@", searchURL, encodedSearchWord]];
         searchURL = nil;
         encodedSearchWord = nil;
     
@@ -703,7 +697,7 @@
                     //UIの更新
                     searchField.text = suggestion;
                     searchField.placeholder = @"Wikipedia";
-                    [d setObject:@"Wikipedia" forKey:@"SearchEngine"];
+                    [D setObject:@"Wikipedia" forKey:@"SearchEngine"];
                     [self enterSearchField:nil];
                     [ActivityIndicator off];
                 });
@@ -726,7 +720,7 @@
     }
     
     NSString *encodedUrl = [DeleteWhiteSpace string:urlField.text];
-    [wv loadRequestWithString:encodedUrl];
+    [_wv loadRequestWithString:encodedUrl];
     
     encodedUrl = nil;
 }
@@ -734,7 +728,7 @@
 - (IBAction)onUrlField: (id)sender {
     
     //URLフィールドが選択された場合はプロトコルありの物に差し替える
-    urlField.text = [wv.request URL].absoluteString;
+    urlField.text = [_wv.request URL].absoluteString;
     
     editing = NO;
 
@@ -772,7 +766,7 @@
     [urlField resignFirstResponder];
     
     actionSheetNo = 16;
-    NSString *copyURL = [[wv.request URL] absoluteString];
+    NSString *copyURL = [[_wv.request URL] absoluteString];
     
     if ( ![EmptyCheck string:copyURL] ) {
 
@@ -794,7 +788,7 @@
     }
     
     UIActionSheet *sheet = [[UIActionSheet alloc]
-                            initWithTitle:[NSString stringWithFormat:@"%@\n%@", wv.pageTitle, copyURL]
+                            initWithTitle:[NSString stringWithFormat:@"%@\n%@", _wv.pageTitle, copyURL]
                             delegate:self
                             cancelButtonTitle:@"Cancel"
                             destructiveButtonTitle:nil
@@ -830,7 +824,7 @@
         }
         
         searchField.placeholder = searchEngineName;
-        [d setObject:searchEngineName forKey:@"SearchEngine"];
+        [D setObject:searchEngineName forKey:@"SearchEngine"];
         [searchField becomeFirstResponder];
         
     }else if ( actionSheetNo == 1 ) {
@@ -844,13 +838,13 @@
                 
                 NSLog(@"Shindanmaker Post");
                 
-                NSData *wvData = [NSURLConnection sendSynchronousRequest:[wv request]
+                NSData *_wvData = [NSURLConnection sendSynchronousRequest:[_wv request]
                                                        returningResponse:nil
                                                                    error:nil];
                 
-                if ( wvData != nil ) {
+                if ( _wvData != nil ) {
                 
-                    postText = [[NSString alloc] initWithData:wvData
+                    postText = [[NSString alloc] initWithData:_wvData
                                                      encoding:NSUTF8StringEncoding];
                     
                     postText = [postText deleteWord:@"\n"];
@@ -869,19 +863,19 @@
 
             }else {
                 
-                if ( [EmptyCheck check:[d objectForKey:@"WebPagePostFormat"]] ) {
+                if ( [EmptyCheck check:[D objectForKey:@"WebPagePostFormat"]] ) {
                     
-                    postText = [d objectForKey:@"WebPagePostFormat"];
+                    postText = [D objectForKey:@"WebPagePostFormat"];
                     
                 }else {
                     
                     postText = @" \"[title]\" [url] ";
-                    [d setObject:postText forKey:@"WebPagePostFormat"];
+                    [D setObject:postText forKey:@"WebPagePostFormat"];
                 }
                 
-                postText = [postText replaceWord:@"[title]" replacedWord:wv.pageTitle];
+                postText = [postText replaceWord:@"[title]" replacedWord:_wv.pageTitle];
                 
-                NSString *copyURL = [[wv.request URL] absoluteString];
+                NSString *copyURL = [[_wv.request URL] absoluteString];
                 
                 if ( ![EmptyCheck string:copyURL] ) {
                     
@@ -905,20 +899,18 @@
                 postText = [postText replaceWord:@"[url]" replacedWord:copyURL];
             }
             
-            appDelegate.tabBarController.selectedIndex = 0;
+            APP_DELEGATE.tabBarController.selectedIndex = 0;
             
-            appDelegate.postTextType = @"WebPage";
-            appDelegate.postText = postText;
+            APP_DELEGATE.postTextType = @"WebPage";
+            APP_DELEGATE.postText = postText;
             
             [self pushComposeButton:nil];
             
         }else if ( buttonIndex == 1 ) {
             
-            //NSLog(@"selectString: %@", wv.selectString);
+            //NSLog(@"selectString: %@", _wv.selectString);
             
-            appDelegate.tabBarController.selectedIndex = 0;
-            
-            if ( [EmptyCheck check:wv.selectString] ) {
+            if ( [EmptyCheck check:_wv.selectString] ) {
                 
                 actionSheetNo = 7;
                 
@@ -954,7 +946,7 @@
             if ( [EmptyCheck check:urlField.text] ) {
                 
                 NSError *error = nil;
-                NSString *documentTitle = wv.pageTitle;
+                NSString *documentTitle = _wv.pageTitle;
                 
                 NSRegularExpression *regexp = [NSRegularExpression regularExpressionWithPattern:@".*[0-9,]+×[0-9,]+ ?(pixels|ピクセル)$" 
                                                                                         options:0 
@@ -966,7 +958,7 @@
                 
                 @autoreleasepool {
                     
-                    [grayView performSelectorInBackground:@selector(on) withObject:nil];
+                    [_grayView performSelectorInBackground:@selector(on) withObject:nil];
                 }
                 
                 if ( match.numberOfRanges != 0 ) {
@@ -990,18 +982,18 @@
             
         }else if ( buttonIndex == 4 ) {
             
-            if ( ![EmptyCheck check:[d arrayForKey:@"Bookmark"]] ) {
+            if ( ![EmptyCheck check:[D arrayForKey:@"Bookmark"]] ) {
                 
-                [d setObject:BLANK_ARRAY forKey:@"Bookmark"];
+                [D setObject:BLANK_ARRAY forKey:@"Bookmark"];
             }
             
-            NSMutableArray *bookMarkArray = [[NSMutableArray alloc] initWithArray:[d arrayForKey:@"Bookmark"]];
+            NSMutableArray *bookMarkArray = [[NSMutableArray alloc] initWithArray:[D arrayForKey:@"Bookmark"]];
             
             //登録済みURLのチェック
             BOOL check = YES;
             for ( NSDictionary *dic in bookMarkArray ) {
                 
-                if ( [[dic objectForKey:@"URL"] isEqualToString:[[wv.request URL] absoluteString]] ) {
+                if ( [[dic objectForKey:@"URL"] isEqualToString:[[_wv.request URL] absoluteString]] ) {
                     
                     check = NO;
                 }
@@ -1009,12 +1001,12 @@
             
             if ( check ) {
                 
-                NSMutableDictionary *addBookmark = [NSMutableDictionary dictionaryWithObject:wv.pageTitle forKey:@"Title"];
-                [addBookmark setValue:[[wv.request URL] absoluteString] forKey:@"URL"];
+                NSMutableDictionary *addBookmark = [NSMutableDictionary dictionaryWithObject:_wv.pageTitle forKey:@"Title"];
+                [addBookmark setValue:[[_wv.request URL] absoluteString] forKey:@"URL"];
                 
                 [bookMarkArray addObject:addBookmark];
                 
-                [d setObject:bookMarkArray forKey:@"Bookmark"];
+                [D setObject:bookMarkArray forKey:@"Bookmark"];
                 
             }else {
                 
@@ -1068,6 +1060,8 @@
                                             replacedWord:@"width='0' height='0'><a href='http://d.href.asia/nw/d/ck.php"];
                     sourceCode = [sourceCode deleteWord:@"accesstrade.net"];
                     sourceCode = [sourceCode deleteWord:@"adingo.jp"];
+                    sourceCode = [sourceCode deleteWord:@"amoad.com"];
+                    sourceCode = [sourceCode deleteWord:@"spstatic.ameba.jp"];
                     sourceCode = [sourceCode deleteWord:@"searchteria.co.jp/ad"];
                     sourceCode = [sourceCode deleteWord:@"ad.douga-kan.com"];
                     sourceCode = [sourceCode deleteWord:@"mo.preaf.jp"];
@@ -1102,7 +1096,7 @@
                     
 //                    NSLog(@"sourceCode: %@", sourceCode);
                     
-                    [wv loadHTMLString:sourceCode baseURL:URL];
+                    [_wv loadHTMLString:sourceCode baseURL:URL];
                 }
             }];
             
@@ -1133,13 +1127,13 @@
                 
                 NSString *reqUrl = BLANK;
             
-                if ( [EmptyCheck check:wv.selectString] ) {
+                if ( [EmptyCheck check:_wv.selectString] ) {
                     
-                    reqUrl = [NSString stringWithFormat:@"fastever://?text=%@\n%@\n>>%@\n", wv.pageTitle, accessURL, wv.selectString];
+                    reqUrl = [NSString stringWithFormat:@"fastever://?text=%@\n%@\n>>%@\n", _wv.pageTitle, accessURL, _wv.selectString];
                     
                 }else {
                     
-                    reqUrl = [NSString stringWithFormat:@"fastever://?text=%@\n%@\n", wv.pageTitle, accessURL];
+                    reqUrl = [NSString stringWithFormat:@"fastever://?text=%@\n%@\n", _wv.pageTitle, accessURL];
                 }
                 
                 [[UIApplication sharedApplication] openURL:
@@ -1157,8 +1151,8 @@
         //PC版UAで開き直す
         }else if ( buttonIndex == 8 ) {
             
-            appDelegate.pcUaMode = YES;
-            [d setObject:@"FireFox" forKey:@"UserAgent"];
+            APP_DELEGATE.pcUaMode = YES;
+            [D setObject:@"FireFox" forKey:@"UserAgent"];
             [self pushComposeButton:nil];
         
         }else if ( buttonIndex == 9 ) {
@@ -1172,49 +1166,49 @@
         if ( buttonIndex == actionSheetNo ) {
             
             //キャンセルされた場合はホームページを開く
-            [wv loadRequestWithString:[d objectForKey:@"HomePageURL"]];
+            [_wv loadRequestWithString:[D objectForKey:@"HomePageURL"]];
             
         }else {
             
             //選択されたURLを開く
-            [wv loadRequestWithString:[startupUrlList objectAtIndex:buttonIndex]];
+            [_wv loadRequestWithString:[startupUrlList objectAtIndex:buttonIndex]];
         }
         
     }else if ( actionSheetNo == 7 ) {
         
-        appDelegate.postTextType = @"Quote";
+        APP_DELEGATE.postTextType = @"Quote";
         
         if ( buttonIndex == 0 ) {
         
-            if ( ![EmptyCheck check:wv.selectString] ) return;
+            if ( ![EmptyCheck check:_wv.selectString] ) return;
             
-            appDelegate.postText = wv.selectString;
+            APP_DELEGATE.postText = _wv.selectString;
             [self pushComposeButton:nil];
         
         }else if ( buttonIndex == 1 ) {
         
-            if ( ![EmptyCheck check:wv.selectString] ) return;
+            if ( ![EmptyCheck check:_wv.selectString] ) return;
             
-            appDelegate.postText = [NSString stringWithFormat:@">>%@", wv.selectString];
+            APP_DELEGATE.postText = [NSString stringWithFormat:@">>%@", _wv.selectString];
             [self pushComposeButton:nil];
         
         }else if ( buttonIndex == 2 ) {
         
-            if ( ![EmptyCheck check:wv.selectString] ) return;
+            if ( ![EmptyCheck check:_wv.selectString] ) return;
             
             NSString *postText = BLANK;
             
-            if ( [EmptyCheck check:[d objectForKey:@"QuoteFormat"]] ) {
+            if ( [EmptyCheck check:[D objectForKey:@"QuoteFormat"]] ) {
                 
-                postText = [d objectForKey:@"QuoteFormat"];
+                postText = [D objectForKey:@"QuoteFormat"];
                 
             }else {
                 
                 postText = @" \"[title]\" [url] >>[quote]";
-                [d setObject:postText forKey:@"QuoteFormat"];
+                [D setObject:postText forKey:@"QuoteFormat"];
             }
             
-            NSString *copyURL = [[wv.request URL] absoluteString];
+            NSString *copyURL = [[_wv.request URL] absoluteString];
             
             if ( ![EmptyCheck string:copyURL] ) {
                 
@@ -1235,22 +1229,24 @@
                 }
             }
             
-            postText = [postText replaceWord:@"[title]" replacedWord:wv.pageTitle];
+            postText = [postText replaceWord:@"[title]" replacedWord:_wv.pageTitle];
             postText = [postText replaceWord:@"[url]" replacedWord:copyURL];
-            postText = [postText replaceWord:@"[quote]" replacedWord:wv.selectString];
+            postText = [postText replaceWord:@"[quote]" replacedWord:_wv.selectString];
             
-            appDelegate.postText = postText;
+            APP_DELEGATE.postText = postText;
             
             [self pushComposeButton:nil];
         
         }else {
             
-            appDelegate.postTextType = BLANK;
+            APP_DELEGATE.postTextType = BLANK;
         }
     
+        APP_DELEGATE.tabBarController.selectedIndex = 0;
+        
     }else if ( actionSheetNo == 8 ) {
         
-        if ( [EmptyCheck check:wv.selectString] ) {
+        if ( [EmptyCheck check:_wv.selectString] ) {
             
             NSString *searchEngineName = nil;
             
@@ -1270,9 +1266,9 @@
                 return;
             }
             
-            searchField.text = wv.selectString;
+            searchField.text = _wv.selectString;
             searchField.placeholder = searchEngineName;
-            [d setObject:searchEngineName forKey:@"SearchEngine"];
+            [D setObject:searchEngineName forKey:@"SearchEngine"];
             
             [self enterSearchField:nil];
         }
@@ -1289,7 +1285,7 @@
             
         }else {
             
-            [grayView off];
+            [_grayView off];
         }
         
     }else if ( actionSheetNo == 10 ) {
@@ -1308,7 +1304,7 @@
             
         }else {
             
-            [grayView off];
+            [_grayView off];
         }
     
     }else if ( actionSheetNo == 11 ) {
@@ -1317,7 +1313,7 @@
             
             [self resetUserAgent];
             
-            if ( [appDelegate.firmwareVersion hasPrefix:@"6"] ) {
+            if ( [APP_DELEGATE.firmwareVersion hasPrefix:@"6"] ) {
                 
                 [self dismissViewControllerAnimated:YES completion:nil];
                 
@@ -1333,7 +1329,7 @@
             
             [self resetUserAgent];
             
-            if ( [appDelegate.firmwareVersion hasPrefix:@"6"] ) {
+            if ( [APP_DELEGATE.firmwareVersion hasPrefix:@"6"] ) {
                 
                 [self dismissViewControllerAnimated:YES completion:nil];
                 
@@ -1360,13 +1356,13 @@
             
             if ( buttonIndex == 0 ) {
                 
-                appDelegate.postText = pboard.string;
+                APP_DELEGATE.postText = P_BOARD.string;
                 
                 [self pushComposeButton:nil];
                 
             }else if ( buttonIndex == 1 ) {
                 
-                [wv loadRequestWithString:[CreateSearchURL google:pboard.string]];
+                [_wv loadRequestWithString:[CreateSearchURL google:P_BOARD.string]];
                 
             }else if ( buttonIndex == 2 ) {
                 
@@ -1387,7 +1383,7 @@
         }else {
             
             //キャンセルされた場合はホームページを開く
-            [wv loadRequestWithString:[d objectForKey:@"HomePageURL"]];
+            [_wv loadRequestWithString:[D objectForKey:@"HomePageURL"]];
             
             return;
         }
@@ -1396,21 +1392,21 @@
         
     }else if ( actionSheetNo == 16 ) {
         
-        NSString *copyURL = [[wv.request URL] absoluteString];
+        NSString *copyURL = [[_wv.request URL] absoluteString];
         
         if ( ![EmptyCheck string:copyURL] ) copyURL = loadStartURL;
         
         if ( buttonIndex == 0 ) {
             
-            [pboard setString:wv.pageTitle];
+            [P_BOARD setString:_wv.pageTitle];
             
         }else if ( buttonIndex == 1 ) {
             
-            [pboard setString:copyURL];
+            [P_BOARD setString:copyURL];
             
         }else if ( buttonIndex == 2 ) {
             
-            [pboard setString:[NSString stringWithFormat:@"\"%@\" %@", wv.pageTitle, copyURL]];
+            [P_BOARD setString:[NSString stringWithFormat:@"\"%@\" %@", _wv.pageTitle, copyURL]];
         }
     }
 }
@@ -1439,7 +1435,7 @@
         [ShowAlert title:@"保存完了" message:@"カメラロールに保存しました。"];
     }
     
-    [grayView off];
+    [_grayView off];
 }
 
 - (void)alertView:(UIAlertView *)alertView clickedButtonAtIndex:(NSInteger)buttonIndex {
@@ -1449,7 +1445,7 @@
         if ( buttonIndex == 1 ) {
      
             //NSLog(@"SetHomePage: %@", alertText.text);
-            [d setObject:alertText.text forKey:@"HomePageURL"];
+            [D setObject:alertText.text forKey:@"HomePageURL"];
             
             alertTextNo = 0;
             alertText.text = BLANK;
@@ -1464,7 +1460,7 @@
     if ( alertTextNo == 1 ) {
     
         //NSLog(@"SetHomePage: %@", alertText.text);
-        [d setObject:alertText.text forKey:@"HomePageURL"];
+        [D setObject:alertText.text forKey:@"HomePageURL"];
         
         alertTextNo = 0;
         alertText.text = BLANK;
@@ -1499,7 +1495,7 @@
     //NSLog(@"%@", [[request URL] absoluteString]);
     
     //フルサイズ取得が有効
-    if ( [d boolForKey:@"FullSizeImage"] ) {
+    if ( [D boolForKey:@"FullSizeImage"] ) {
         
         //画像サービスのURLかスキャン
         NSString *fullSizeImageUrl = [FullSizeImage urlString:accessURL];
@@ -1508,7 +1504,7 @@
         if ( ![fullSizeImageUrl isEqualToString:accessURL] ) {
             
             //NSLog(@"FullSizeImage ReAccess");
-            [wv loadRequestWithString:fullSizeImageUrl];
+            [_wv loadRequestWithString:fullSizeImageUrl];
             
             return NO;
         }
@@ -1522,7 +1518,7 @@
         if ( ![affiliateCuttedUrl isEqualToString:accessURL] ) {
             
             //NSLog(@"Affiliate cutted access: %@", affiliateCuttedUrl);
-            [wv loadRequestWithString:affiliateCuttedUrl];
+            [_wv loadRequestWithString:affiliateCuttedUrl];
             
             return NO;
         }
@@ -1556,7 +1552,7 @@
             //http://を付けてみる
             NSLog(@"add protocol");
             
-            [wv loadRequestWithString:[NSString stringWithFormat:@"http://%@", accessURL]];
+            [_wv loadRequestWithString:[NSString stringWithFormat:@"http://%@", accessURL]];
             
             return NO;
         }
@@ -1629,8 +1625,8 @@
 
 - (void)backForwordButtonVisible {
     
-    wv.canGoBack ? ( backButton.enabled = YES ) : ( backButton.enabled = NO );
-    wv.canGoForward ? ( forwardButton.enabled = YES ) : ( forwardButton.enabled = NO );
+    _wv.canGoBack ? ( backButton.enabled = YES ) : ( backButton.enabled = NO );
+    _wv.canGoForward ? ( forwardButton.enabled = YES ) : ( forwardButton.enabled = NO );
 }
 
 /* WebViewここまで */
@@ -1640,7 +1636,7 @@
     if ( [accessURL hasSuffix:@"/"] ) {
         
         if ( [[NSString stringWithFormat:@"http://%@/", urlField.text] isEqualToString:accessURL] ||
-            [[NSString stringWithFormat:@"https://%@/", urlField.text] isEqualToString:accessURL] ) {
+             [[NSString stringWithFormat:@"https://%@/", urlField.text] isEqualToString:accessURL] ) {
             
             [self requestStart:accessURL];
             
@@ -1826,14 +1822,14 @@
 
 - (void)endDownload {
     
-    [grayView off];
+    [_grayView off];
     asyncData = nil;
     asyncConnection = nil;
     downloading = NO;
     bytesLabel.hidden = YES;
     progressBar.hidden = YES;
     downloadCancelButton.hidden = YES;
-    appDelegate.urlSchemeDownloadUrl = BLANK;
+    APP_DELEGATE.urlSchemeDownloadUrl = BLANK;
 }
 
 - (void)showDownloadMenu:(NSString *)url {
@@ -1872,11 +1868,11 @@
     //NSLog(@"resetUserAgent");
     
     //「PC版UAで開き直す」ではなく、リセット設定がONでなく、空でない
-    if ( !appDelegate.pcUaMode && ![[d objectForKey:@"UserAgentReset"] isEqualToString:@"OFF"] ) {
+    if ( !APP_DELEGATE.pcUaMode && ![[D objectForKey:@"UserAgentReset"] isEqualToString:@"OFF"] ) {
         
-        //NSLog(@"Reset: %@", [d objectForKey:@"UserAgentReset"]);
+        //NSLog(@"Reset: %@", [D objectForKey:@"UserAgentReset"]);
         
-        [d setObject:[d objectForKey:@"UserAgentReset"] forKey:@"UserAgent"];
+        [D setObject:[D objectForKey:@"UserAgentReset"] forKey:@"UserAgent"];
     }
 }
 
@@ -1896,7 +1892,7 @@
         if ( fullScreen ) {
             
             topBar.frame = CGRectMake(0, -44, SCREEN_WIDTH, TOOL_BAR_HEIGHT);
-            wv.frame = CGRectMake(0, 0, SCREEN_WIDTH, SCREEN_HEIGHT);
+            _wv.frame = CGRectMake(0, 0, SCREEN_WIDTH, SCREEN_HEIGHT);
             bottomBar.frame = CGRectMake(0, SCREEN_HEIGHT, SCREEN_WIDTH, TOOL_BAR_HEIGHT);
             
             if ( editing ) {
@@ -1913,7 +1909,7 @@
         }else {
             
             topBar.frame = CGRectMake(0, 0, SCREEN_WIDTH, TOOL_BAR_HEIGHT);
-            wv.frame = CGRectMake(0, TOOL_BAR_HEIGHT, SCREEN_WIDTH, SCREEN_HEIGHT - TOOL_BAR_HEIGHT * 2);
+            _wv.frame = CGRectMake(0, TOOL_BAR_HEIGHT, SCREEN_WIDTH, SCREEN_HEIGHT - TOOL_BAR_HEIGHT * 2);
             bottomBar.frame = CGRectMake(0, SCREEN_HEIGHT - TOOL_BAR_HEIGHT, SCREEN_WIDTH, TOOL_BAR_HEIGHT);
             
             if ( editing ) {
@@ -1934,7 +1930,7 @@
         if ( fullScreen ) {
 
             topBar.frame = CGRectMake(0, -44, SCREEN_HEIGHT, TOOL_BAR_HEIGHT);
-            wv.frame = CGRectMake(0, 0, SCREEN_HEIGHT, SCREEN_WIDTH);
+            _wv.frame = CGRectMake(0, 0, SCREEN_HEIGHT, SCREEN_WIDTH);
             bottomBar.frame = CGRectMake(0, SCREEN_WIDTH, SCREEN_HEIGHT, TOOL_BAR_HEIGHT);
             
             if ( editing ) {
@@ -1951,7 +1947,7 @@
         }else {
 
             topBar.frame = CGRectMake(0, 0, SCREEN_HEIGHT, TOOL_BAR_HEIGHT);
-            wv.frame = CGRectMake(0, TOOL_BAR_HEIGHT, SCREEN_HEIGHT, SCREEN_WIDTH - TOOL_BAR_HEIGHT * 2);
+            _wv.frame = CGRectMake(0, TOOL_BAR_HEIGHT, SCREEN_HEIGHT, SCREEN_WIDTH - TOOL_BAR_HEIGHT * 2);
             bottomBar.frame = CGRectMake(0, SCREEN_WIDTH - TOOL_BAR_HEIGHT, SCREEN_HEIGHT, TOOL_BAR_HEIGHT);
             
             if ( editing ) {
@@ -2049,15 +2045,15 @@
 - (void)adBlock {
     
 //    NSLog(@"adBlock");
-//    NSLog(@"%@", [wv stringByEvaluatingJavaScriptFromString:@"var delads=document.getElementsByTagName(\'div\'); delads.toString();"]);
+//    NSLog(@"%@", [_wv stringByEvaluatingJavaScriptFromString:@"var delads=document.getElementsByTagName(\'div\'); delads.toString();"]);
     
-//    [wv stringByEvaluatingJavaScriptFromString:@"var delads=document.getElementsByTagName(\'div\');for(i=0;i<delads.length;i++){if(delads[i].className==\'_naver_ad_area\'){delads[i].style.display=none}}"];
-//    [wv stringByEvaluatingJavaScriptFromString:@"var delads=document.getElementsByTagName(\'div\');for(i=0;i<delads.length;i++){if(delads[i].className==\\'adlantis_sp_sticky_container\'){delads[i].style.display=none}}"];
+//    [_wv stringByEvaluatingJavaScriptFromString:@"var delads=document.getElementsByTagName(\'div\');for(i=0;i<delads.length;i++){if(delads[i].className==\'_naver_ad_area\'){delads[i].style.display=none}}"];
+//    [_wv stringByEvaluatingJavaScriptFromString:@"var delads=document.getElementsByTagName(\'div\');for(i=0;i<delads.length;i++){if(delads[i].className==\\'adlantis_sp_sticky_container\'){delads[i].style.display=none}}"];
     
-//    [wv stringByEvaluatingJavaScriptFromString:
+//    [_wv stringByEvaluatingJavaScriptFromString:
 //     @"var delads=document.getElementsByClassName(\'_naver_ad_area\');for(i=0;i<delads.length;i++){delads[i].style.display=none}"];
     
-//    [wv stringByEvaluatingJavaScriptFromString:
+//    [_wv stringByEvaluatingJavaScriptFromString:
 //     @"var delads=document.getElementById(\'ad_cloud_overlay_space\'); alert(delads.length);"];
 }
 
@@ -2087,12 +2083,18 @@
     }
 }
 
+- (void)didReceiveMemoryWarning {
+    
+    NSLog(@"%s", __func__);
+    [super didReceiveMemoryWarning];
+}
+
 - (void)viewDidUnload {
     
-    //NSLog(@"WebViewExController viewDidUnload");
+    NSLog(@"%s", __func__);
     
-    appDelegate.browserOpenMode = NO;
-    appDelegate.urlSchemeDownloadUrl = BLANK;
+    APP_DELEGATE.browserOpenMode = NO;
+    APP_DELEGATE.urlSchemeDownloadUrl = BLANK;
     
     [self setTopBar:nil];
     [self setBottomBar:nil];
@@ -2106,7 +2108,6 @@
     [self setUrlField:nil];
     [self setSearchField:nil];
     [self setComposeButton:nil];
-    [self setWv:nil];
     [self setBytesLabel:nil];
     [self setProgressBar:nil];
     [self setDownloadCancelButton:nil];
@@ -2117,48 +2118,22 @@
 
 - (void)dealloc {
     
-    NSLog(@"WebViewExController dealloc");
+    NSLog(@"%s", __func__);
     
-    appDelegate.browserOpenMode = NO;
-    appDelegate.urlSchemeDownloadUrl = BLANK;
+    APP_DELEGATE.browserOpenMode = NO;
+    APP_DELEGATE.urlSchemeDownloadUrl = BLANK;
     
-    if ( wv.loading ) [wv stopLoading];
-    wv.delegate = nil;
-    
-    self.appDelegate = nil;
-    self.pboard = nil;
-    self.alert = nil;
-    self.alertText = nil;
-    self.reloadButtonImage = nil;
-    self.stopButtonImage = nil;
-    self.d = nil;
-    self.accessURL = nil;
-    self.loadStartURL = nil;
-    self.saveFileName = nil;
-    self.asyncConnection = nil;
-    self.asyncData = nil;;
-    self.startupUrlList = nil;
-    self.urlList = nil;
-    
-    [self setTopBar:nil];
-    [self setBottomBar:nil];
-    [self setSearchButton:nil];
-    [self setCloseButton:nil];
-    [self setReloadButton:nil];
-    [self setBackButton:nil];
-    [self setForwardButton:nil];
-    [self setMenuButton:nil];
-    [self setFlexibleSpace:nil];
-    [self setUrlField:nil];
-    [self setSearchField:nil];
-    [self setComposeButton:nil];
-    [self setWv:nil];
-    [self setBytesLabel:nil];
-    [self setProgressBar:nil];
-    [self setDownloadCancelButton:nil];
-    [self setBookmarkButton:nil];
-    
-    [ActivityIndicator visible:NO];
+    if ( _wv.loading ) [_wv stopLoading];
+    _wv.delegate = nil;
+
+    REMOVE_SAFETY(_wv);
+    REMOVE_SAFETY(urlField);
+    REMOVE_SAFETY(searchField);
+    REMOVE_SAFETY(topBar);
+    REMOVE_SAFETY(bottomBar);
+    REMOVE_SAFETY(bytesLabel);
+    REMOVE_SAFETY(progressBar);
+    REMOVE_SAFETY(downloadCancelButton);
 }
 
 @end

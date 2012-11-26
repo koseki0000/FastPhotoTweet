@@ -184,6 +184,10 @@
                     urlString = fullUrl;
                 }
             }
+        }else if ( [urlString hasPrefix:@"http://campl.us/"] ) {
+            
+            NSString *sourceCode = [FullSizeImage getSourceCode:urlString];
+            urlString = [sourceCode strWithRegExp:@"https?://(www\\.)?pics\\.campl\\.us/f/[0-9]+/[-_\\.a-zA-Z0-9]+\\.(jpe?g|png)"];
         }
     }
     
@@ -271,6 +275,8 @@
         result = YES;
     }else if ( [urlString boolWithRegExp:PIXIV_FULL_PATTERN] ) {
         result = YES;
+    }else if ( [urlString hasPrefix:@"http://campl.us/"] ) {
+        result = YES;
     }
     
     if ( [[urlString lowercaseString] boolWithRegExp:@"\\.(jpe?g|png|gif)"] ) {
@@ -311,6 +317,8 @@
     }else if ( [urlString boolWithRegExp:@"https?://img.ly/[a-zA-Z0-9]+"] ) {
         result = YES;
     }else if ( [urlString boolWithRegExp:PIXIV_FULL_PATTERN] ) {
+        result = YES;
+    }else if ( [urlString hasPrefix:@"http://campl.us/"] ) {
         result = YES;
     }
     
