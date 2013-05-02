@@ -6,6 +6,7 @@
 //
 
 #import <UIKit/UIKit.h>
+#import "BaseViewController.h"
 #import "TableViewCell.h"
 #import "TableViewCellController.h"
 #import "EmptyCheck.h"
@@ -18,7 +19,7 @@
 #import "UIViewSubViewRemover.h"
 #import "TWAccounts.h"
 
-@interface SettingViewController : UIViewController <UIActionSheetDelegate, UITextFieldDelegate> {
+@interface SettingViewController : BaseViewController <UIActionSheetDelegate, UITextFieldDelegate> {
     
     AppDelegate *appDelegate;
     GrayView *grayView;
@@ -34,6 +35,7 @@
 }
 
 @property (retain, nonatomic) IBOutlet UITableView *tv;
+@property (nonatomic) BOOL listSelectMode;
 
 - (NSString *)getSettingState:(int)settingState;
 

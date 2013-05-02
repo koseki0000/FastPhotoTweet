@@ -6,20 +6,18 @@
 //
 
 #import <UIKit/UIKit.h>
-#import "AppDelegate.h"
-#import "TWList.h"
+#import "BaseViewController.h"
 
-@interface ListViewController : UIViewController {
-    
-    AppDelegate *appDelegate;
-    
-    NSArray *listAll;
-}
+@interface ListViewController : BaseViewController
+
+@property (nonatomic) BOOL listSelectMode;
 
 @property (retain, nonatomic) IBOutlet UINavigationBar *topBar;
 @property (retain, nonatomic) IBOutlet UIBarButtonItem *closeButton;
 @property (retain, nonatomic) IBOutlet UITableView *listTable;
 
 - (IBAction)pushCloseButton:(id)sender;
+
+- (id)initWithListSelectMode:(BOOL)listSelectMode;
 
 @end

@@ -7,11 +7,9 @@
 
 #import <UIKit/UIKit.h>
 #import "AppDelegate.h"
+#import "BaseViewController.h"
 
-@interface ResendViewController : UIViewController {
-    
-    AppDelegate * appDelegate;
-}
+@interface ResendViewController : BaseViewController
 
 @property (retain, nonatomic) IBOutlet UITableView *resendTable;
 @property (retain, nonatomic) IBOutlet UINavigationBar *bar;

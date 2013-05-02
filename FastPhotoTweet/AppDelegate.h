@@ -34,17 +34,16 @@
 #define BLANK_M_ARRAY [NSMutableArray array]
 #define BLANK_DIC [NSDictionary dictionary]
 #define BLANK_M_DIC [NSMutableDictionary dictionary]
-#define D [NSUserDefaults standardUserDefaults]
 
+#define D [NSUserDefaults standardUserDefaults]
+#define P_BOARD [UIPasteboard generalPasteboard]
 #define ORIENTATION [[UIDevice currentDevice] orientation]
 
 #define FIREFOX_USERAGENT @"Mozilla/5.0 (Macintosh; Intel Mac OS X 10.7; rv:13.0) Gecko/20100101 Firefox/13.0.1"
 #define IPAD_USERAFENT @"Mozilla/5.0 (iPad; CPU OS 5_1_1 like Mac OS X) AppleWebKit/534.46 (KHTML, like Gecko) Version/5.1 Mobile/9B176 Safari/7534.48.3"
 #define IPHONE_USERAGENT @"Mozilla/5.0 (iPhone; CPU iPhone OS 5_1_1 like Mac OS X) AppleWebKit/534.46 (KHTML, like Gecko) Mobile/9B206"
 
-#define ICONS_DIRECTORY [NSHomeDirectory() stringByAppendingPathComponent:@"Documents/Icons"]
-#define LOGS_DIRECTORY [NSHomeDirectory() stringByAppendingPathComponent:@"Documents/Logs"]
-#define FILE_PATH [ICONS_DIRECTORY stringByAppendingPathComponent:searchName]
+#define FIRMWARE_VERSION [[UIDevice currentDevice] systemVersion]
 
 #define MAIN_QUEUE dispatch_get_main_queue()
 #define ASYNC_MAIN_QUEUE dispatch_async(dispatch_get_main_queue(),
@@ -64,32 +63,23 @@ void uncaughtExceptionHandler(NSException *exception);
     NSString *lastCheckPasteBoardURL;
     NSArray *pBoardUrls;
     
-    UIPasteboard *pboard;
     UIBackgroundTaskIdentifier backgroundTask;
     
     BOOL pBoardWatch;
     BOOL debugMode;
 }
 
-@property NSInteger startUpFreeMemory;
 @property (strong, nonatomic) UIWindow *window;
 @property (strong, nonatomic) MainTabBarController *tabBarController;
 @property (retain, nonatomic) StatusBarInfo *statusBarInfo;
 
-@property (nonatomic, retain) NSString *postText;
-@property (nonatomic, retain) NSString *postTextType;
-@property (nonatomic, retain) NSString *bookmarkUrl;
-@property (nonatomic, retain) NSString *urlSchemeDownloadUrl;
-@property (nonatomic, retain) NSString *tabChangeFunction;
-@property (nonatomic, retain) NSString *reOpenUrl;
-@property (nonatomic, retain) NSString *listId;
-@property (nonatomic, retain) NSString *addTwitpicAccountName;
-@property (nonatomic, retain) NSString *platformName;
-@property (nonatomic, retain) NSString *firmwareVersion;
+@property (nonatomic, copy) NSString *postText;
+@property (nonatomic, copy) NSString *postTextType;
+@property (nonatomic, copy) NSString *bookmarkUrl;
+@property (nonatomic, copy) NSString *urlSchemeDownloadUrl;
+@property (nonatomic, copy) NSString *reOpenUrl;
+@property (nonatomic, copy) NSString *addTwitpicAccountName;
 @property (nonatomic, retain) NSArray *startupUrlList;
-@property (nonatomic, retain) NSArray *listAll;
-@property (nonatomic, retain) NSMutableArray *postError;
-@property (nonatomic, retain) NSMutableDictionary *postData;
 @property (nonatomic, weak) NSTimer *pBoardWatchTimer;
 @property int resendNumber;
 @property int launchMode;
@@ -106,9 +96,6 @@ void uncaughtExceptionHandler(NSException *exception);
 @property BOOL twitpicLinkMode;
 @property BOOL needChangeAccount;
 
-//- (oneway void)setNavigatorMap;
-- (BOOL)ios5Check;
-- (BOOL)iconExist:(NSString *)searchName;
 - (NSString *)getPlatformName;
 - (void)memoryStatus;
 - (void)startPasteBoardTimer;

@@ -6,8 +6,10 @@
 //
 
 #import "TWEvent.h"
+#import "NSNotificationCenter+EasyPost.h"
+#import "TWTweet.h"
 
-#define API_VERSION @"1"
+#define API_VERSION @"1.1"
 
 @implementation TWEvent
 
@@ -15,66 +17,78 @@
     
     NSLog(@"Add Favorite");
     
-    if ( [TWAccounts selectAccount:accountIndex] != nil ) {
+    dispatch_queue_t queue = dispatch_get_global_queue(0, 0);
+    dispatch_async(queue, ^{
         
-        //リクエストURLを指定
-        NSString *tReqURL = [NSString stringWithFormat:@"https://api.twitter.com/%@/favorites/create/%@.json", API_VERSION, tweetId];
-        
-        //リクエストの作成
-        TWRequest *postRequest = [[TWRequest alloc] initWithURL:[NSURL URLWithString:tReqURL]
-                                                     parameters:nil
-                                                  requestMethod:TWRequestMethodPOST];
-        
-        //リクエストにアカウントを設定
-        [postRequest setAccount:[TWAccounts selectAccount:accountIndex]];
-        
-        [postRequest performRequestWithHandler:
-         ^( NSData *responseData, NSHTTPURLResponse *urlResponse, NSError *error ) {
-             
-             dispatch_async(dispatch_get_main_queue(), ^{
+        if ( [TWAccounts selectAccount:accountIndex] != nil ) {
+            
+            //リクエストURLを指定
+            NSString *tReqURL = [NSString stringWithFormat:@"https://api.twitter.com/%@/favorites/create.json", API_VERSION];
+            
+            NSMutableDictionary *params = [[NSMutableDictionary alloc] init];
+            //ID
+            [params setObject:tweetId forKey:@"id"];
+            
+            //リクエストの作成
+            TWRequest *postRequest = [[TWRequest alloc] initWithURL:[NSURL URLWithString:tReqURL]
+                                                         parameters:params
+                                                      requestMethod:TWRequestMethodPOST];
+            
+            //リクエストにアカウントを設定
+            [postRequest setAccount:[TWAccounts selectAccount:accountIndex]];
+            
+            [postRequest performRequestWithHandler:
+             ^( NSData *responseData, NSHTTPURLResponse *urlResponse, NSError *error ) {
                  
-                 NSNotification *statusBarNotification = [NSNotification notificationWithName:@"AddStatusBarTask"
-                                                                                       object:self
-                                                                                     userInfo:@{@"Task" : @"Favorited"}];
-                 [[NSNotificationCenter defaultCenter] postNotification:statusBarNotification];
-                 
-                 [ActivityIndicator visible:NO];
-             });
-         }];
-    }
+                 dispatch_async(dispatch_get_main_queue(), ^{
+                     
+                     NSNotification *statusBarNotification = [NSNotification notificationWithName:@"AddStatusBarTask"
+                                                                                           object:self
+                                                                                         userInfo:@{@"Task" : @"Favorited"}];
+                     [[NSNotificationCenter defaultCenter] postNotification:statusBarNotification];
+                     
+                     [ActivityIndicator visible:NO];
+                 });
+             }];
+        }
+    });
 }
 
 + (void)reTweet:(NSString *)tweetId accountIndex:(int)accountIndex {
     
     NSLog(@"ReTweet");
     
-    if ( [TWAccounts selectAccount:accountIndex] != nil ) {
+    dispatch_queue_t queue = dispatch_get_global_queue(0, 0);
+    dispatch_async(queue, ^{
         
-        //リクエストURLを指定
-        NSString *tReqURL = [NSString stringWithFormat:@"https://api.twitter.com/%@/statuses/retweet/%@.json",API_VERSION , tweetId];
-        
-        //リクエストの作成
-        TWRequest *postRequest = [[TWRequest alloc] initWithURL:[NSURL URLWithString:tReqURL]
-                                                     parameters:nil
-                                                  requestMethod:TWRequestMethodPOST];
-        
-        //リクエストにアカウントを設定
-        [postRequest setAccount:[TWAccounts selectAccount:accountIndex]];
-        
-        [postRequest performRequestWithHandler:
-         ^( NSData *responseData, NSHTTPURLResponse *urlResponse, NSError *error ) {
-             
-             dispatch_async(dispatch_get_main_queue(), ^{
+        if ( [TWAccounts selectAccount:accountIndex] != nil ) {
+            
+            //リクエストURLを指定
+            NSString *tReqURL = [NSString stringWithFormat:@"https://api.twitter.com/%@/statuses/retweet/%@.json",API_VERSION , tweetId];
+            
+            //リクエストの作成
+            TWRequest *postRequest = [[TWRequest alloc] initWithURL:[NSURL URLWithString:tReqURL]
+                                                         parameters:nil
+                                                      requestMethod:TWRequestMethodPOST];
+            
+            //リクエストにアカウントを設定
+            [postRequest setAccount:[TWAccounts selectAccount:accountIndex]];
+            
+            [postRequest performRequestWithHandler:
+             ^( NSData *responseData, NSHTTPURLResponse *urlResponse, NSError *error ) {
                  
-                 NSNotification *statusBarNotification = [NSNotification notificationWithName:@"AddStatusBarTask"
-                                                                                       object:self
-                                                                                     userInfo:@{@"Task" : @"ReTweeted"}];
-                 [[NSNotificationCenter defaultCenter] postNotification:statusBarNotification];
-                 
-                 [ActivityIndicator visible:NO];
-             });
-         }];
-    }
+                 dispatch_async(dispatch_get_main_queue(), ^{
+                     
+                     NSNotification *statusBarNotification = [NSNotification notificationWithName:@"AddStatusBarTask"
+                                                                                           object:self
+                                                                                         userInfo:@{@"Task" : @"ReTweeted"}];
+                     [[NSNotificationCenter defaultCenter] postNotification:statusBarNotification];
+                     
+                     [ActivityIndicator visible:NO];
+                 });
+             }];
+        }
+    });
 }
 
 + (void)favoriteReTweet:(NSString *)tweetId accountIndex:(int)accountIndex {
@@ -87,33 +101,41 @@
     
     NSLog(@"UnFavorite");
     
-    if ( [TWAccounts selectAccount:accountIndex] != nil ) {
-        
-        //リクエストURLを指定
-        NSString *tReqURL = [NSString stringWithFormat:@"https://api.twitter.com/%@/favorites/destroy/%@.json", API_VERSION, tweetId];
-        
-        //リクエストの作成
-        TWRequest *postRequest = [[TWRequest alloc] initWithURL:[NSURL URLWithString:tReqURL]
-                                                     parameters:nil
-                                                  requestMethod:TWRequestMethodPOST];
-        
-        //リクエストにアカウントを設定
-        [postRequest setAccount:[TWAccounts selectAccount:accountIndex]];
-        
-        [postRequest performRequestWithHandler:
-         ^( NSData *responseData, NSHTTPURLResponse *urlResponse, NSError *error ) {
-             
-             dispatch_async(dispatch_get_main_queue(), ^{
+    dispatch_queue_t queue = dispatch_get_global_queue(0, 0);
+    dispatch_async(queue, ^{
+       
+        if ( [TWAccounts selectAccount:accountIndex] != nil ) {
+            
+            //リクエストURLを指定
+            NSString *tReqURL = [NSString stringWithFormat:@"https://api.twitter.com/%@/favorites/destroy.json", API_VERSION];
+            
+            NSMutableDictionary *params = [[NSMutableDictionary alloc] init];
+            //ID
+            [params setObject:tweetId forKey:@"id"];
+            
+            //リクエストの作成
+            TWRequest *postRequest = [[TWRequest alloc] initWithURL:[NSURL URLWithString:tReqURL]
+                                                         parameters:params
+                                                      requestMethod:TWRequestMethodPOST];
+            
+            //リクエストにアカウントを設定
+            [postRequest setAccount:[TWAccounts selectAccount:accountIndex]];
+            
+            [postRequest performRequestWithHandler:
+             ^( NSData *responseData, NSHTTPURLResponse *urlResponse, NSError *error ) {
                  
-                 NSNotification *statusBarNotification = [NSNotification notificationWithName:@"AddStatusBarTask"
-                                                                                       object:self
-                                                                                     userInfo:@{@"Task" : @"UnFavorited"}];
-                 [[NSNotificationCenter defaultCenter] postNotification:statusBarNotification];
-                 
-                 [ActivityIndicator visible:NO];
-             });
-         }];
-    }
+                 dispatch_async(dispatch_get_main_queue(), ^{
+                     
+                     NSNotification *statusBarNotification = [NSNotification notificationWithName:@"AddStatusBarTask"
+                                                                                           object:self
+                                                                                         userInfo:@{@"Task" : @"UnFavorited"}];
+                     [[NSNotificationCenter defaultCenter] postNotification:statusBarNotification];
+                     
+                     [ActivityIndicator visible:NO];
+                 });
+             }];
+        }
+    });
 }
 
 + (void)getProfile:(NSString *)screenName {
@@ -145,34 +167,46 @@
         [postRequest performRequestWithHandler:
          ^( NSData *responseData, NSHTTPURLResponse *urlResponse, NSError *error ) {
              
-             dispatch_async(dispatch_get_main_queue(), ^{
-                 
-                 //レスポンスのデータをNSStringに変換後JSONをDictionaryに格納
-                 NSString *responseDataString = [[NSString alloc] initWithData:responseData encoding:NSUTF8StringEncoding];
-                 
-                 if ( responseDataString != nil && ![responseDataString isEqualToString:@""] ) {
+             if ( responseData ) {
+              
+                 dispatch_async(dispatch_get_main_queue(), ^{
                      
-                     NSDictionary *result = [responseDataString JSONValue];
+                     //レスポンスのデータをNSStringに変換後JSONをDictionaryに格納
+                     NSString *responseDataString = [[NSString alloc] initWithData:responseData
+                                                                          encoding:NSUTF8StringEncoding];
                      
-                     if ( result != nil ) {
+                     if ( responseDataString != nil && ![responseDataString isEqualToString:@""] ) {
                          
-                         [resultProfile setObject:@"Success" forKey:@"Result"];
-                         [resultProfile setObject:result forKey:@"Profile"];
+                         if ( [responseDataString hasPrefix:@"{\"errors\""] ) {
+                             
+                             [NSNotificationCenter postNotificationCenterForName:@"APIError" withUserInfo:@{@"JSONData" : responseData}];
+                             return;
+                             
+                         }else {
+                             
+                             NSDictionary *result = [responseDataString JSONValue];
+                             
+                             if ( result != nil ) {
+                                 
+                                 [resultProfile setObject:@"Success" forKey:@"Result"];
+                                 [resultProfile setObject:result forKey:@"Profile"];
+                                 
+                             }else {
+                                 
+                                 [resultProfile setObject:@"Error" forKey:@"Result"];
+                             }
+                         }
                          
                      }else {
                          
                          [resultProfile setObject:@"Error" forKey:@"Result"];
                      }
                      
-                 }else {
+                     [[NSNotificationCenter defaultCenter] postNotification:notification];
                      
-                     [resultProfile setObject:@"Error" forKey:@"Result"];
-                 }
-                 
-                 [[NSNotificationCenter defaultCenter] postNotification:notification];
-                 
-                 [ActivityIndicator visible:NO];
-             });
+                     [ActivityIndicator visible:NO];
+                 });
+             }
          }];
     }
 }
@@ -208,31 +242,39 @@
              
              dispatch_async(dispatch_get_main_queue(), ^{
                  
-                 //レスポンスのデータをNSStringに変換後JSONをDictionaryに格納
                  NSString *responseDataString = [[NSString alloc] initWithData:responseData encoding:NSUTF8StringEncoding];
-                 NSDictionary *result = [responseDataString JSONValue];
                  
-                 //NSLog(@"Tweet: %@", result);
-                 
-                 if ( result != nil ) {
+                 if ( [responseDataString hasPrefix:@"{\"errors\""] ) {
                      
-                     if ( [result objectForKey:@"error"] == nil ) {
-                         
-                         [resultProfile setObject:@"Success" forKey:@"Result"];
-                         [resultProfile setObject:result forKey:@"Tweet"];
-                         
-                     }else {
-                         
-                         [ShowAlert error:[result objectForKey:@"error"]];
-                         [resultProfile setObject:@"AuthorizeError" forKey:@"Result"];
-                     }
+                     [NSNotificationCenter postNotificationCenterForName:@"APIError" withUserInfo:@{@"JSONData" : responseData}];
                      
                  }else {
                      
-                     [resultProfile setObject:@"Error" forKey:@"Result"];
+                     NSDictionary *result = [responseDataString JSONValue];
+                     TWTweet *tweet = [TWTweet tweetWithDictionary:result];
+                     
+                     //NSLog(@"Tweet: %@", result);
+                     
+                     if ( result != nil ) {
+                         
+                         if ( [result objectForKey:@"error"] == nil ) {
+                             
+                             [resultProfile setObject:@"Success" forKey:@"Result"];
+                             [resultProfile setObject:tweet forKey:@"Tweet"];
+                             
+                         }else {
+                             
+                             [ShowAlert error:[result objectForKey:@"error"]];
+                             [resultProfile setObject:@"AuthorizeError" forKey:@"Result"];
+                         }
+                         
+                     }else {
+                         
+                         [resultProfile setObject:@"Error" forKey:@"Result"];
+                     }
+                     
+                     [[NSNotificationCenter defaultCenter] postNotification:notification];
                  }
-                 
-                 [[NSNotificationCenter defaultCenter] postNotification:notification];
                  
                  [ActivityIndicator visible:NO];
              });
@@ -273,13 +315,12 @@
                  //レスポンスのデータをNSStringに変換後JSONをDictionaryに格納
                  NSString *responseDataString = [[NSString alloc] initWithData:responseData encoding:NSUTF8StringEncoding];
                  NSDictionary *result = [responseDataString JSONValue];
-                 
-                 //NSLog(@"result: %@", result);
+                 TWTweet *tweet = [TWTweet tweetWithDictionary:result];
                  
                  if ( result != nil ) {
                      
                      [resultDestroy setObject:@"Success" forKey:@"Result"];
-                     [resultDestroy setObject:result forKey:@"Tweet"];
+                     [resultDestroy setObject:tweet forKey:@"Tweet"];
                      
                  }else {
                      

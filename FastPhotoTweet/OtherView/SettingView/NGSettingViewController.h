@@ -28,6 +28,8 @@
 @property (weak, nonatomic) IBOutlet UILabel *regexpLabel;
 @property (weak, nonatomic) IBOutlet UISwitch *regexpSwitch;
 @property (weak, nonatomic) IBOutlet UITableView *addedNgSettings;
+@property (weak, nonatomic) IBOutlet UILabel *reTweetText;
+@property (weak, nonatomic) IBOutlet UISwitch *reTweetSwitch;
 
 - (IBAction)doneButtonVisible:(UITextField *)sender;
 - (IBAction)changeSegment:(UISegmentedControl *)sender;

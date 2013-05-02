@@ -36,10 +36,13 @@ static TWTweetsBase *sharedObject = nil;
             sharedObject = [super allocWithZone:zone];
             
             sharedObject.timelines = [NSMutableDictionary dictionary];
-            [sharedObject.timelines retain];
-            
             sharedObject.sinceIDs = [NSMutableDictionary dictionary];
-            [sharedObject.sinceIDs retain];
+            sharedObject.sendedTweets = [NSMutableArray array];
+            sharedObject.text = @"";
+            sharedObject.inReplyToID = @"";
+            sharedObject.tabChangeFunction = @"";
+            sharedObject.lists = @[];
+            sharedObject.listID = @"";
             
             for ( ACAccount *account in [TWAccountsBase manager].twitterAccounts ) {
                 

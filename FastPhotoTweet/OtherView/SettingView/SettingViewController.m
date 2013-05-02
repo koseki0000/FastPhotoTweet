@@ -6,6 +6,7 @@
 //
 
 #import "SettingViewController.h"
+#import "ListViewController.h"
 
 //セクション数
 #define SECTION_COUNT 5
@@ -16,7 +17,7 @@
 //セクション2の項目数 (その他の設定)
 #define SECTION_2 6
 //セクション2の項目数 (タイムライン設定)
-#define SECTION_3 12
+#define SECTION_3 15
 
 //セクション3の項目数 (ライセンス)
 #define SECTION_4 2
@@ -66,6 +67,9 @@
 #define FAVORITES_LOAD @"Favorites読み込み数"
 #define TIMELINE_FIRSTLOAD @"Timeline初回読み込み後表示位置"
 #define TIMELINE_ICON_ACTION @"アイコンタップ時の動作"
+#define TIMELINE_LIST @"Timeline代替Listを使用"
+#define TIMELINE_LIST_SELECT @"Timeline代替List選択"
+#define ICON_QUALITY @"アイコン画質"
 
 #define NAME_LICENSE @"ライセンス"
 #define SPECIAL_THANKS @"スペシャルサンクス"
@@ -102,7 +106,8 @@
          SWITCH_APP, ACTIVE_INPUT, SEARCH_WORD_RESET, PASTE_BOARD_URL, USER_AGENT, USER_AGENT_RESET,
          SWIPE_SHIFT_CARET, ENTER_BACKGROUND_US, BECOME_ACTIVE_US, RELOAD_US, NG_OPEN, MY_TWEET_NG,
          ICON_CORNER, US_NO_AUTO_LOCK, TIMELINE_LOAD, MENTIONS_LOAD, FAVORITES_LOAD, TIMELINE_FIRSTLOAD,
-         TIMELINE_ICON_ACTION, NAME_LICENSE, SPECIAL_THANKS, nil];
+         TIMELINE_ICON_ACTION, TIMELINE_LIST, TIMELINE_LIST_SELECT, ICON_QUALITY,
+         NAME_LICENSE, SPECIAL_THANKS, nil];
         
         [settingArray retain];
     }
@@ -176,6 +181,12 @@
             dialog.modalTransitionStyle = UIModalTransitionStyleCoverVertical;
             [self presentModalViewController:dialog animated:YES];
         }
+        
+    }else if ( self.listSelectMode ) {
+        
+        [self setListSelectMode:NO];
+        
+        NSLog(@"%@", [d objectForKey:@"TimelineList"]);
     }
     
     //設定項目の表示を更新
@@ -187,7 +198,7 @@
     //NSLog(@"pushDoneButton");
     
     //閉じる
-    if ( [appDelegate.firmwareVersion hasPrefix:@"6"] ) {
+    if ( [FIRMWARE_VERSION hasPrefix:@"6"] ) {
         
         [self dismissViewControllerAnimated:YES completion:nil];
         
@@ -646,6 +657,22 @@
         }else if ( [d integerForKey:@"TimelineIconAction"] == 5 ) {
             result = @"IDとFav,RTを選択";
         }
+        
+    }else if ( settingState == 38 ) {
+        
+        if ( [d boolForKey:@"UseTimelineList"] ) {
+            result = @"ON";
+        }else {
+            result = @"OFF";
+        }
+        
+    }else if ( settingState == 39 ) {
+        
+        result = [[d objectForKey:@"TimelineList"] objectForKey:[TWAccounts currentAccountName]];
+        
+    }else if ( settingState == 40 ) {
+        
+        result = [d objectForKey:@"IconQuality"];
     }
     
     return result;
@@ -1289,6 +1316,36 @@
                      otherButtonTitles:@"UserMenu", @"Reply", @"Favorite／UnFavorite", @"ReTweet", @"Fav+RT", @"IDとFav,RTを選択", nil];
             [sheet autorelease];
             [sheet showInView:self.view];
+            
+        }else if ( indexPath.row == 12 ) {
+            
+            sheet = [[UIActionSheet alloc]
+                     initWithTitle:TIMELINE_LIST
+                     delegate:self
+                     cancelButtonTitle:@"Cancel"
+                     destructiveButtonTitle:nil
+                     otherButtonTitles:@"ON", @"OFF", nil];
+            [sheet autorelease];
+            [sheet showInView:self.view];
+            
+        }else if ( indexPath.row == 13 ) {
+        
+            [self setListSelectMode:YES];
+            
+            ListViewController *dialog = [[[ListViewController alloc] initWithListSelectMode:YES] autorelease];
+            dialog.modalTransitionStyle = UIModalTransitionStyleCoverVertical;
+            [self showModalViewController:dialog];
+            
+        }else if ( indexPath.row == 14 ) {
+            
+            sheet = [[UIActionSheet alloc]
+                     initWithTitle:ICON_QUALITY
+                     delegate:self
+                     cancelButtonTitle:@"Cancel"
+                     destructiveButtonTitle:nil
+                     otherButtonTitles:@"Mini (24x24)", @"Normal (48x48)", @"Bigger (73x73)", @"Original", @"Original (96x96)", nil];
+            [sheet autorelease];
+            [sheet showInView:self.view];
         }
         
     }else if ( indexPath.section == 4 ) {
@@ -1804,6 +1861,28 @@
         if ( buttonIndex != 6 ) {
             
             [d setInteger:buttonIndex forKey:@"TimelineIconAction"];
+        }
+        
+    }else if ( actionSheetNo == 38 ) {
+        
+        if ( buttonIndex == 0 ) {
+            [d setBool:YES forKey:@"UseTimelineList"];
+        }else if ( buttonIndex == 1 ) {
+            [d setBool:NO forKey:@"UseTimelineList"];
+        }
+    
+    }else if ( actionSheetNo == 40 ) {
+        
+        if ( buttonIndex == 0 ) {
+            [d setObject:@"Mini" forKey:@"IconQuality"];
+        }else if ( buttonIndex == 1 ) {
+            [d setObject:@"Normal" forKey:@"IconQuality"];
+        }else if ( buttonIndex == 2 ) {
+            [d setObject:@"Bigger" forKey:@"IconQuality"];
+        }else if ( buttonIndex == 3 ) {
+            [d setObject:@"Original" forKey:@"IconQuality"];
+        }else if ( buttonIndex == 4 ) {
+            [d setObject:@"Original96" forKey:@"IconQuality"];
         }
         
     }else if ( actionSheetNo == 100 ) {

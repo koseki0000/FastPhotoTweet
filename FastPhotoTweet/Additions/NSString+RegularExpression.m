@@ -1,8 +1,5 @@
 //
 //  NSString+RegularExpression.m
-//  FastPhotoTweet
-//
-//  Created by @peace3884 12/11/07.
 //
 
 #import "NSString+RegularExpression.h"
@@ -13,20 +10,19 @@
 
 - (BOOL)boolWithRegExp:(NSString *)regExpPattern {
     
-    if ( self == nil || regExpPattern == nil ) {
+    if ( regExpPattern == nil ) {
         
         return NO;
     }
     
     NSError *error = nil;
-    NSRegularExpression *regexp = [[NSRegularExpression alloc] initWithPattern:regExpPattern
-                                                                       options:0
-                                                                         error:&error];
+    NSRegularExpression *regexp = [NSRegularExpression regularExpressionWithPattern:regExpPattern
+                                                                            options:0
+                                                                              error:&error];
     
     NSTextCheckingResult *match = [regexp firstMatchInString:self
                                                      options:0
                                                        range:NSMakeRange(0, self.length)];
-    [regexp release];
     
     if ( !error ) {
         
@@ -41,27 +37,26 @@
 
 #pragma mark - NSString
 
-- (NSString *)strWithRegExp:(NSString *)regExpPattern {
+- (NSString *)stringWithRegExp:(NSString *)regExpPattern {
     
-    return [NSString stringWithString:[self mStrWithRegExp:regExpPattern]];
+    return [NSString stringWithString:[self mutableStringWithRegExp:regExpPattern]];
 }
 
-- (NSMutableString *)mStrWithRegExp:(NSString *)regExpPattern {
+- (NSMutableString *)mutableStringWithRegExp:(NSString *)regExpPattern {
     
-    if ( self == nil || regExpPattern == nil ) {
+    if ( regExpPattern == nil ) {
         
         return [NSMutableString string];
     }
     
     NSError *error = nil;
-    NSRegularExpression *regexp = [[NSRegularExpression alloc] initWithPattern:regExpPattern
-                                                                       options:0
-                                                                         error:&error];
+    NSRegularExpression *regexp = [NSRegularExpression regularExpressionWithPattern:regExpPattern
+                                                                            options:0
+                                                                              error:&error];
     
     NSTextCheckingResult *match = [regexp firstMatchInString:self
                                                      options:0
                                                        range:NSMakeRange(0, self.length)];
-    [regexp release];
     
     if ( !error ) {
         
@@ -78,27 +73,26 @@
 
 - (NSArray *)arrayWithRegExp:(NSString *)regExpPattern {
     
-    return [NSArray arrayWithArray:[self mArrayWithRegExp:regExpPattern]];
+    return [NSArray arrayWithArray:[self mutableArrayWithRegExp:regExpPattern]];
 }
 
-- (NSMutableArray *)mArrayWithRegExp:(NSString *)regExpPattern {
+- (NSMutableArray *)mutableArrayWithRegExp:(NSString *)regExpPattern {
     
-    if ( self == nil || regExpPattern == nil ) {
+    if ( regExpPattern == nil ) {
         
         return [NSMutableArray array];
     }
     
-    NSMutableArray *resultArray = [[[NSMutableArray alloc] init] autorelease];
+    NSMutableArray *resultArray = [NSMutableArray array];
     NSError *error = nil;
     
-    NSRegularExpression *regexp = [[NSRegularExpression alloc] initWithPattern:regExpPattern
-                                                                       options:0
-                                                                         error:&error];
+    NSRegularExpression *regexp = [NSRegularExpression regularExpressionWithPattern:regExpPattern
+                                                                            options:0
+                                                                              error:&error];
     
     NSArray *match = [regexp matchesInString:self
                                      options:0
                                        range:NSMakeRange(0, self.length)];
-    [regexp release];
     
     if ( !error ) {
         
@@ -111,72 +105,56 @@
     return resultArray;
 }
 
-- (NSMutableArray *)urls {
-    
-    if ( self == nil ) {
-        
-        return [NSMutableArray array];
-    }
+- (NSMutableArray *)URLs {
     
     NSError *error = nil;
-    NSString *searchString = [[NSString alloc] initWithString:self];
-    NSMutableArray *urlList = [[[NSMutableArray alloc] init] autorelease];
+    NSMutableArray *urlList = [NSMutableArray array];
     
-    NSDataDetector *linkDetector = [[NSDataDetector alloc] initWithTypes:NSTextCheckingTypeLink
-                                                                   error:&error];
+    NSDataDetector *linkDetector = [[[NSDataDetector alloc] initWithTypes:NSTextCheckingTypeLink
+                                                                    error:&error] autorelease];
     
-    NSArray *matches = [linkDetector matchesInString:searchString
+    NSArray *matches = [linkDetector matchesInString:self
                                              options:0
-                                               range:NSMakeRange(0, [searchString length])];
-    [linkDetector release];
+                                               range:NSMakeRange(0, [self length])];
     
     if ( !error ) {
-     
+        
         for ( NSTextCheckingResult *match in matches ) {
             
             [urlList addObject:match.URL.absoluteString];
         }
     }
     
-    [searchString release];
-    
     return urlList;
 }
 
-- (NSMutableArray *)twitterIds {
+- (NSMutableArray *)twitterIDs {
     
-    if ( self == nil ) {
-        
-        return [NSMutableArray array];
-    }
-    
-    return [self mArrayWithRegExp:@"@[a-zA-Z0-9_]{1,15}"];
+    return [self mutableArrayWithRegExp:@"@[\\w]{1,15}"];
 }
 
 #pragma mark - ReplaceNSString
 
-- (NSString *)replaceStrWithRegExp:(NSString *)regExpPattern
+- (NSString *)replaceStringWithRegExp:(NSString *)regExpPattern
                         targetWord:(NSString *)targetWord {
     
-    return [NSString stringWithString:[self replaceMStrWithRegExp:regExpPattern targetWord:targetWord]];
+    return [NSString stringWithString:[self replaceMutableStringWithRegExp:regExpPattern targetWord:targetWord]];
 }
 
-- (NSString *)replaceMStrWithRegExp:(NSString *)regExpPattern
+- (NSString *)replaceMutableStringWithRegExp:(NSString *)regExpPattern
                          targetWord:(NSString *)targetWord {
     
-    NSString *tempString = [NSString stringWithString:self];
     NSError *error = nil;
-    
     NSRegularExpression *regexp = [NSRegularExpression regularExpressionWithPattern:regExpPattern
                                                                             options:0
                                                                               error:&error];
     
     if ( !error ) {
         
-        return tempString = [regexp stringByReplacingMatchesInString:tempString
-                                                             options:0
-                                                               range:NSMakeRange(0, tempString.length)
-                                                        withTemplate:targetWord];
+        return [[[regexp stringByReplacingMatchesInString:self
+                                                  options:0
+                                                    range:NSMakeRange(0, self.length)
+                                             withTemplate:targetWord] mutableCopy] autorelease];
         
     }else {
         

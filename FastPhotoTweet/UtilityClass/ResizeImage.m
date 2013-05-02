@@ -17,18 +17,20 @@
     
     size_t resizeHeight = 0;
     size_t resizeWidth = 0;
-    float originalHeight = image.size.height;
-    float originalWidth = image.size.width;
-    float maxSize = (float)[d integerForKey:@"ImageMaxSize"];
+    CGFloat originalHeight = image.size.height;
+    CGFloat originalWidth = image.size.width;
+    CGFloat maxSize = (CGFloat)[d integerForKey:@"ImageMaxSize"];
         
     //iPhone4解像度もリサイズする
     if ( [d boolForKey:@"NoResizeIphone4Ss"] ){
         
-		if ( originalHeight == 640 && originalWidth == 960 ) {
+		if ( originalHeight == 640.0f &&
+             originalWidth == 960.0f ) {
             
             return image;
             
-		}else if ( originalHeight == 960 && originalWidth == 640 ) {
+		}else if ( originalHeight == 960.0f &&
+                   originalWidth == 640.0f ) {
             
             return image;
         }
@@ -54,16 +56,18 @@
              originalWidth > maxSize ) {
             
             //縦長
-            if ( originalHeight > originalWidth && originalHeight > maxSize ) {
+            if ( originalHeight > originalWidth &&
+                 originalHeight > maxSize ) {
                 
-                float ratio = originalHeight / maxSize;
+                CGFloat ratio = originalHeight / maxSize;
                 resizeWidth = originalWidth / ratio;
                 resizeHeight = maxSize;
                 
             //横長
-            }else if ( originalWidth > originalHeight && originalWidth > maxSize ) {
+            }else if ( originalWidth > originalHeight &&
+                       originalWidth > maxSize ) {
                 
-                float ratio = originalWidth / maxSize;
+                CGFloat ratio = originalWidth / maxSize;
                 resizeWidth = maxSize;
                 resizeHeight = originalHeight / ratio;
                 
@@ -81,15 +85,18 @@
         }
     }
     
-    UIGraphicsBeginImageContext( CGSizeMake( (int)resizeWidth, (int)resizeHeight ) );  
-	[image drawInRect:CGRectMake( 0, 0, (int)resizeWidth, (int)resizeHeight )];  
+    resizeWidth = roundf(resizeWidth);
+    resizeHeight = roundf(resizeHeight);
+    
+    UIGraphicsBeginImageContext(CGSizeMake(resizeWidth, resizeHeight));
+	[image drawInRect:CGRectMake(0.0f, 0.0f, resizeWidth, resizeHeight)];
 	image = UIGraphicsGetImageFromCurrentImageContext();
 	UIGraphicsEndImageContext();
     
     return image;
 }
 
-+ (UIImage *)aspectResizeForMaxSize:(UIImage *)image maxSize:(int)maxSize {
++ (UIImage *)aspectResizeForMaxSize:(UIImage *)image maxSize:(CGFloat)maxSize {
     
     //NSLog(@"aspectResizeSetMaxSize");
     
@@ -97,18 +104,19 @@
     
     size_t resizeHeight = 0;
     size_t resizeWidth = 0;
-    float originalHeight = image.size.height;
-    float originalWidth = image.size.width;
-    float maxSizeF = (float)maxSize;
+    CGFloat originalHeight = image.size.height;
+    CGFloat originalWidth = image.size.width;
     
     //iPhone4解像度もリサイズする
     if ( [d boolForKey:@"NoResizeIphone4Ss"] ){
         
-		if ( originalHeight == 640 && originalWidth == 960 ) {
+		if ( originalHeight == 640.0f &&
+             originalWidth == 960.0f ) {
             
             return image;
             
-		}else if ( originalHeight == 960 && originalWidth == 640 ) {
+		}else if ( originalHeight == 960.0f &&
+                   originalWidth == 640.0f ) {
             
             return image;
         }
@@ -117,10 +125,10 @@
     //正方形
     if ( originalWidth == originalHeight ) {
         
-        if ( originalHeight > maxSizeF ) {
+        if ( originalHeight > maxSize ) {
             
-            resizeWidth = maxSizeF;
-            resizeHeight = maxSizeF;
+            resizeWidth = maxSize;
+            resizeHeight = maxSize;
             
         }else {
             
@@ -130,21 +138,23 @@
         //長方形
     } else {
         
-        if ( originalHeight > maxSizeF ||
-             originalWidth > maxSizeF ) {
+        if ( originalHeight > maxSize ||
+             originalWidth > maxSize ) {
             
             //縦長
-            if ( originalHeight > originalWidth && originalHeight > maxSizeF ) {
+            if ( originalHeight > originalWidth &&
+                 originalHeight > maxSize ) {
                 
-                float ratio = originalHeight / maxSizeF;
+                CGFloat ratio = originalHeight / maxSize;
                 resizeWidth = originalWidth / ratio;
-                resizeHeight = maxSizeF;
+                resizeHeight = maxSize;
                 
             //横長
-            }else if ( originalWidth > originalHeight && originalWidth > maxSizeF ) {
+            }else if ( originalWidth > originalHeight &&
+                       originalWidth > maxSize ) {
                 
-                float ratio = originalWidth / maxSizeF;
-                resizeWidth = maxSizeF;
+                CGFloat ratio = originalWidth / maxSize;
+                resizeWidth = maxSize;
                 resizeHeight = originalHeight / ratio;
                 
             }else {
@@ -159,8 +169,11 @@
         }
     }
     
-    UIGraphicsBeginImageContext( CGSizeMake( (int)resizeWidth, (int)resizeHeight ) );  
-	[image drawInRect:CGRectMake( 0, 0, (int)resizeWidth, (int)resizeHeight )];  
+    resizeWidth = roundf(resizeWidth);
+    resizeHeight = roundf(resizeHeight);
+    
+    UIGraphicsBeginImageContext(CGSizeMake(resizeWidth, resizeHeight));
+	[image drawInRect:CGRectMake(0.0f, 0.0f, resizeWidth, resizeHeight)];
 	image = UIGraphicsGetImageFromCurrentImageContext();
 	UIGraphicsEndImageContext();
     

@@ -4,6 +4,12 @@
 
 #import <Foundation/Foundation.h>
 
+#define BLACK_COLOR [UIColor blackColor]
+#define GREEN_COLOR [UIColor colorWithRed:0.0 green:0.4 blue:0.0 alpha:1.0]
+#define BLUE_COLOR  [UIColor blueColor]
+#define RED_COLOR   [UIColor redColor]
+#define GOLD_COLOR  [UIColor colorWithRed:0.5 green:0.4 blue:0.0 alpha:1.0]
+
 @class TWTweetEntities;
 
 typedef enum {
@@ -14,11 +20,19 @@ typedef enum {
     CellTextColorGold
 }CellTextColor;
 
+typedef enum {
+    FavoriteEventTypeAdd,
+    FavoriteEventTypeRemove,
+    FavoriteEventTypeReceive
+}FavoriteEventType;
+
 @interface TWTweet : NSObject
 
 //Tweet
 @property (nonatomic, retain) TWTweetEntities *entities;
 @property (nonatomic, copy) NSString *text;
+@property (nonatomic, copy) NSString *originalText;
+
 //発言したユーザー
 @property (nonatomic, copy) NSString *screenName;
 @property (nonatomic, copy) NSString *iconURL;
@@ -35,6 +49,9 @@ typedef enum {
 @property (nonatomic, copy) NSString *rtIconSearchPath;
 @property (nonatomic, copy) NSString *rtID;
 
+//ふぁぼったユーザー
+@property (nonatomic, copy) NSString *favUser;
+
 //Info
 @property (nonatomic) CellTextColor textColor;
 @property (nonatomic) CGFloat cellHeight;
@@ -42,10 +59,16 @@ typedef enum {
 @property (nonatomic) BOOL isReply;
 @property (nonatomic) BOOL isReTweet;
 @property (nonatomic) BOOL isFavorited;
+@property (nonatomic) FavoriteEventType favoriteEventeType;
 @property (nonatomic) BOOL isEvent;
+@property (nonatomic) BOOL isDelete;
+@property (nonatomic, copy) NSString *eventType;
+@property (nonatomic, copy) NSString *error;
 
 - (void)debugLog;
 
 + (TWTweet *)tweetWithDictionary:(NSDictionary *)tweetDictionary;
++ (UIColor *)getTextColor:(CellTextColor)color;
+- (void)createTimelineCellInfo;
 
 @end

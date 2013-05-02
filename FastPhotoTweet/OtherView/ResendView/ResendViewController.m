@@ -6,6 +6,8 @@
 //
 
 #import "ResendViewController.h"
+#import "TWTweets.h"
+#import "TWTweet.h"
 
 #define BLANK @""
 
@@ -19,7 +21,8 @@
     
     //NSLog(@"init ResendViewController");
     
-    self = [super initWithNibName:nibNameOrNil bundle:nibBundleOrNil];
+    self = [super initWithNibName:nibNameOrNil
+                           bundle:nibBundleOrNil];
     
     if ( self ) {
     
@@ -31,31 +34,17 @@
 - (void)viewDidLoad {
     
     [super viewDidLoad];
-    
-    //NSLog(@"viewDidLoad ResendViewController");
-    
-    appDelegate = (AppDelegate *)[[UIApplication sharedApplication] delegate];
 }
 
 - (IBAction)pushTrashButton:(id)sender {
     
-    [appDelegate.postError removeAllObjects];
+    [[TWTweets sendedTweets] removeAllObjects];
     [resendTable reloadData];
 }
 
 - (IBAction)pushCloseButon:(id)sender {
     
-    //再投稿モードを無効化
-    appDelegate.resendMode = NO;
-    
-    if ( [appDelegate.firmwareVersion hasPrefix:@"6"] ) {
-        
-        [self dismissViewControllerAnimated:YES completion:nil];
-        
-    }else {
-        
-        [self dismissModalViewControllerAnimated:YES];
-    }
+    [self dismissModalViewController:self];
 }
 
 /* TableView必須メソッド */
@@ -63,7 +52,7 @@
 - (NSInteger)tableView:(UITableView *)tableView numberOfRowsInSection:(NSInteger)section {
     
     //TableViewの要素数を返す
-	return [appDelegate.postError count];
+	return [[TWTweets sendedTweets] count];
 }
 
 - (UITableViewCell *)tableView:(UITableView *)tableView cellForRowAtIndexPath:(NSIndexPath *)indexPath {
@@ -83,28 +72,15 @@
     cell.textLabel.font = [UIFont systemFontOfSize:14];
     cell.textLabel.numberOfLines = 0;
     
-    NSArray *array = [appDelegate.postError objectAtIndex:indexPath.row];
+    NSDictionary *resendData = [TWTweets sendedTweets][indexPath.row];
+//    NSDictionary *saveTweet = @{@"UserName" : [TWAccounts currentAccountName],
+//                                @"Parameters" : parameters,
+//                                @"RequestType" : @(postRequestType)};
     
     //NSLog(@"Resend[%d]: %@", array.count, array);
 
-    if ( array.count == 4 ) {
-        
-        //NSLog(@"TextCell");
-        cell.textLabel.text = [NSString stringWithFormat:@"%@: %@", [array objectAtIndex:1], 
-                                                                    [array objectAtIndex:2]];
-        
-    }else if ( array.count == 5 ) {
-        
-        //NSLog(@"PhotoCell");
-        cell.textLabel.text = [NSString stringWithFormat:@"%@: %@", [array objectAtIndex:1], 
-                                                                    [array objectAtIndex:2]];
-        
-        cell.imageView.image = [array objectAtIndex:4];
-        
-    }else {
-        
-        //NSLog(@"Error");
-    }
+    cell.textLabel.text = [NSString stringWithFormat:@"%@: %@",
+                           resendData[@"UserName"], resendData[@"Parameters"][@"status"]];
     
     return cell;
 }
@@ -114,23 +90,45 @@
     //セルの選択状態を解除
 	[tableView deselectRowAtIndexPath:indexPath animated:YES];
     
-    appDelegate.resendNumber = indexPath.row;
+    NSDictionary *resendData = [TWTweets sendedTweets][indexPath.row];
+    NSString *accountName = resendData[@"UserName"];
     
-    //閉じる
-    if ( [appDelegate.firmwareVersion hasPrefix:@"6"] ) {
+    [[TWTweets manager] setText:resendData[@"Parameters"][@"status"]];
+    [[TWTweets manager] setInReplyToID:resendData[@"Parameters"][@"in_reply_to_status_id"]];
+    
+    NSUInteger index = 0;
+    BOOL find = NO;
+    for ( ACAccount *account in [TWAccounts twitterAccounts] ) {
+     
+        if ( [account.username isEqualToString:accountName] ) {
+            
+            find = YES;
+            break;
+        }
         
-        [self dismissViewControllerAnimated:YES completion:nil];
-        
-    }else {
-        
-        [self dismissModalViewControllerAnimated:YES];
+        index++;
     }
+    
+    if ( find ) {
+        
+        [[NSUserDefaults standardUserDefaults] setInteger:index
+                                                   forKey:@"UseAccount"];
+        
+        //アカウントが切り替わったことを通知
+        NSNotification *notification =[NSNotification notificationWithName:@"ChangeAccount"
+                                                                    object:self
+                                                                  userInfo:nil];
+        [[NSNotificationCenter defaultCenter] postNotification:notification];
+    }
+    
+    [self dismissModalViewController:self];
 }
 
 - (void)tableView:(UITableView *)tableView commitEditingStyle:(UITableViewCellEditingStyle)editingStyle forRowAtIndexPath:(NSIndexPath *)indexPath {
     
-    [appDelegate.postError removeObjectAtIndex:indexPath.row];
-    [resendTable deleteRowsAtIndexPaths:[NSArray arrayWithObject:indexPath] withRowAnimation:UITableViewRowAnimationLeft];
+    [[TWTweets sendedTweets] removeObjectAtIndex:indexPath.row];
+    [resendTable deleteRowsAtIndexPaths:[NSArray arrayWithObject:indexPath]
+                       withRowAnimation:UITableViewRowAnimationLeft];
 }
 
 /* TableView必須メソッドここまで */

@@ -50,9 +50,34 @@
 @synthesize downloadCancelButton;
 @synthesize searchButton;
 
+- (id)initWithURL:(NSString *)URL {
+    
+    self = [super initWithNibName:NSStringFromClass([WebViewExController class])
+                           bundle:nil];
+    
+    if ( self ) {
+        
+        startupUrlList = @[URL];
+        urlList = BLANK_ARRAY;
+        
+        if ( startupUrlList == nil ) [D objectForKey:@"HomePageURL"];
+        
+        retina4InchOffset = 0;
+        
+        if ( SCREEN_HEIGHT == 548 ) {
+            
+            NSLog(@"Retine 4inch");
+            retina4InchOffset = 88;
+        }
+    }
+    
+    return self;
+}
+
 - (id)initWithNibName:(NSString *)nibNameOrNil bundle:(NSBundle *)nibBundleOrNil {
     
-    self = [super initWithNibName:nibNameOrNil bundle:nibBundleOrNil];
+    self = [super initWithNibName:nibNameOrNil
+                           bundle:nibBundleOrNil];
     
     if ( self ) {
         
@@ -160,7 +185,7 @@
             //NSLog(@"ペーストボードからURLを開く設定が有効な場合: %@", [D objectForKey:@"LastOpendPasteBoardURL"]);
             
             //ペーストボードのURLを取得
-            urlList = [P_BOARD.string urls];
+            urlList = [P_BOARD.string URLs];
             
             if ( startupUrlList.count == 1 && urlList.count == 0 ) {
                 
@@ -505,21 +530,24 @@
         APP_DELEGATE.startupUrlList = BLANK_ARRAY;
         APP_DELEGATE.reOpenUrl = accessURL;
         
-        if ( APP_DELEGATE.tabBarController.selectedIndex == 0 ) {
-         
-            if ( [APP_DELEGATE.firmwareVersion hasPrefix:@"6"] ) {
+        ASYNC_MAIN_QUEUE ^{
+            
+            if ( APP_DELEGATE.tabBarController.selectedIndex == 0 ) {
                 
-                [self dismissViewControllerAnimated:YES completion:nil];
+                if ( [FIRMWARE_VERSION hasPrefix:@"6"] ) {
+                    
+                    [self dismissViewControllerAnimated:YES completion:nil];
+                    
+                }else {
+                    
+                    [self dismissModalViewControllerAnimated:YES];
+                }
                 
             }else {
                 
-                [self dismissModalViewControllerAnimated:YES];
+                [self.navigationController popViewControllerAnimated:YES];
             }
-            
-        }else {
-         
-            [self.navigationController popViewControllerAnimated:YES];
-        }
+        });
     }
 }
 
@@ -545,21 +573,24 @@
         APP_DELEGATE.startupUrlList = BLANK_ARRAY;
         APP_DELEGATE.reOpenUrl = BLANK;
         
-        if ( APP_DELEGATE.tabBarController.selectedIndex == 0 ) {
+        ASYNC_MAIN_QUEUE ^{
             
-            if ( [APP_DELEGATE.firmwareVersion hasPrefix:@"6"] ) {
+            if ( APP_DELEGATE.tabBarController.selectedIndex == 0 ) {
                 
-                [self dismissViewControllerAnimated:YES completion:nil];
+                if ( [[[UIDevice currentDevice] systemVersion] hasPrefix:@"6"] ) {
+                    
+                    [self dismissViewControllerAnimated:YES completion:nil];
+                    
+                }else {
+                    
+                    [self dismissModalViewControllerAnimated:YES];
+                }
                 
             }else {
                 
-                [self dismissModalViewControllerAnimated:YES];
+                [self.navigationController popViewControllerAnimated:YES];
             }
-            
-        }else {
-            
-            [self.navigationController popViewControllerAnimated:YES];
-        }
+        });
     }
 }
 
@@ -679,7 +710,7 @@
                                                                      encoding:NSShiftJISStringEncoding
                                                                         error:nil];
                 
-                NSString *suggestion = [xmlString strWithRegExp:@"<suggestion data=\".{1,50}\"/><num_queries"];
+                NSString *suggestion = [xmlString stringWithRegExp:@"<suggestion data=\".{1,50}\"/><num_queries"];
                 xmlString = nil;
                 
                 if ( ![EmptyCheck check:suggestion] ) {
@@ -787,16 +818,19 @@
         }
     }
     
-    UIActionSheet *sheet = [[UIActionSheet alloc]
-                            initWithTitle:[NSString stringWithFormat:@"%@\n%@", _wv.pageTitle, copyURL]
-                            delegate:self
-                            cancelButtonTitle:@"Cancel"
-                            destructiveButtonTitle:nil
-                            otherButtonTitles:@"タイトルをコピー", @"URLをコピー", @"タイトルとURLをコピー", nil];
-    [sheet showInView:self.view];
-    
-    copyURL = nil;
-    sheet = nil;
+    if ( copyURL != nil ) {
+     
+        UIActionSheet *sheet = [[UIActionSheet alloc]
+                                initWithTitle:[NSString stringWithFormat:@"%@\n%@", _wv.pageTitle, copyURL]
+                                delegate:self
+                                cancelButtonTitle:@"Cancel"
+                                destructiveButtonTitle:nil
+                                otherButtonTitles:@"タイトルをコピー", @"URLをコピー", @"タイトルとURLをコピー", nil];
+        [sheet showInView:self.view];
+        
+        copyURL = nil;
+        sheet = nil;
+    }
 }
 
 - (void)actionSheet:(UIActionSheet *)actionSheet clickedButtonAtIndex:(NSInteger)buttonIndex {
@@ -831,80 +865,87 @@
         
         if ( buttonIndex == 0 ) {
             
-            NSString *postText = BLANK;
-            
-            
-            if ( [urlField.text boolWithRegExp:@"(https?://)?shindanmaker.com/[0-9]+"] ) {
+            dispatch_async(dispatch_get_main_queue(), ^ {
                 
-                NSLog(@"Shindanmaker Post");
+                NSString *postText = BLANK;
                 
-                NSData *_wvData = [NSURLConnection sendSynchronousRequest:[_wv request]
-                                                       returningResponse:nil
-                                                                   error:nil];
-                
-                if ( _wvData != nil ) {
-                
-                    postText = [[NSString alloc] initWithData:_wvData
-                                                     encoding:NSUTF8StringEncoding];
+                if ( [urlField.text boolWithRegExp:@"(https?://)?shindanmaker.com/[0-9]+"] ) {
                     
-                    postText = [postText deleteWord:@"\n"];
-                    postText = [postText replaceWord:@"\t" replacedWord:@" "];
-                    postText = [postText replaceWord:@"  " replacedWord:@" "];
-                    postText = [postText strWithRegExp:@"this.select...>.{1,140}?<.textarea>"];
-                    postText = [postText deleteWord:@"this.select()\">"];
-                    postText = [postText deleteWord:@"</textarea>"];
+                    NSLog(@"Shindanmaker Post");
                     
-                }else {
-
-                    [ShowAlert error:@"データ取得に失敗しました。"];
+                    NSData *_wvData = [NSURLConnection sendSynchronousRequest:[_wv request]
+                                                            returningResponse:nil
+                                                                        error:nil];
                     
-                    return;
-                }
-
-            }else {
-                
-                if ( [EmptyCheck check:[D objectForKey:@"WebPagePostFormat"]] ) {
-                    
-                    postText = [D objectForKey:@"WebPagePostFormat"];
-                    
-                }else {
-                    
-                    postText = @" \"[title]\" [url] ";
-                    [D setObject:postText forKey:@"WebPagePostFormat"];
-                }
-                
-                postText = [postText replaceWord:@"[title]" replacedWord:_wv.pageTitle];
-                
-                NSString *copyURL = [[_wv.request URL] absoluteString];
-                
-                if ( ![EmptyCheck string:copyURL] ) {
-                    
-                    if ( ![EmptyCheck string:loadStartURL] ) {
+                    if ( _wvData != nil ) {
                         
-                        if ( ![EmptyCheck string:[startupUrlList objectAtIndex:0]] ) {
-                            
-                            copyURL = [urlList objectAtIndex:0];
-                            
-                        }else {
-                            
-                            copyURL = [startupUrlList objectAtIndex:0];
-                        }
+                        postText = [[NSString alloc] initWithData:_wvData
+                                                         encoding:NSUTF8StringEncoding];
+                        
+                        postText = [postText deleteWord:@"\n"];
+                        postText = [postText replaceWord:@"\t" replacedWord:@" "];
+                        postText = [postText replaceWord:@"  " replacedWord:@" "];
+                        postText = [postText stringWithRegExp:@"this.select...>.{1,140}?<.textarea>"];
+                        postText = [postText deleteWord:@"this.select()\">"];
+                        postText = [postText deleteWord:@"</textarea>"];
                         
                     }else {
                         
-                        copyURL = loadStartURL;
+                        [ShowAlert error:@"データ取得に失敗しました。"];
+                        
+                        return;
                     }
+                    
+                }else {
+                    
+                    if ( [EmptyCheck check:[D objectForKey:@"WebPagePostFormat"]] ) {
+                        
+                        postText = [D objectForKey:@"WebPagePostFormat"];
+                        
+                    }else {
+                        
+                        postText = @" \"[title]\" [url] ";
+                        [D setObject:postText forKey:@"WebPagePostFormat"];
+                    }
+                    
+                    postText = [postText replaceWord:@"[title]" replacedWord:_wv.pageTitle];
+                    
+                    NSString *copyURL = [[_wv.request URL] absoluteString];
+                    
+                    if ( ![EmptyCheck string:copyURL] ) {
+                        
+                        if ( ![EmptyCheck string:loadStartURL] ) {
+                            
+                            if ( ![EmptyCheck string:[startupUrlList objectAtIndex:0]] ) {
+                                
+                                copyURL = [urlList objectAtIndex:0];
+                                
+                            }else {
+                                
+                                copyURL = [startupUrlList objectAtIndex:0];
+                            }
+                            
+                        }else {
+                            
+                            copyURL = loadStartURL;
+                        }
+                    }
+                    
+                    postText = [postText replaceWord:@"[url]" replacedWord:copyURL];
                 }
                 
-                postText = [postText replaceWord:@"[url]" replacedWord:copyURL];
-            }
-            
-            APP_DELEGATE.tabBarController.selectedIndex = 0;
-            
-            APP_DELEGATE.postTextType = @"WebPage";
-            APP_DELEGATE.postText = postText;
-            
-            [self pushComposeButton:nil];
+                APP_DELEGATE.postTextType = @"WebPage";
+                APP_DELEGATE.postText = postText;
+                
+                if ( APP_DELEGATE.tabBarController.selectedIndex == 0 ) {
+                    
+                    [self pushComposeButton:nil];
+                    
+                }else {
+                 
+                    APP_DELEGATE.tabBarController.selectedIndex = 0;
+                }
+            });
             
         }else if ( buttonIndex == 1 ) {
             
@@ -1028,7 +1069,10 @@
             
             NSString *adDeleteUrl = [NSString stringWithString:accessURL];
             NSURL *URL = [NSURL URLWithString:adDeleteUrl];
+            
             ASIHTTPRequest *httpRequest = [ASIHTTPRequest requestWithURL:URL];
+            ASIHTTPRequest *wHttpRequest = httpRequest;
+            
             [httpRequest setUserAgentString:useragent];
             
             [httpRequest setCompletionBlock:^ {
@@ -1049,7 +1093,7 @@
                 
                 for ( int i = 0; i < max; i++ ) {
                     
-                    sourceCode = [[NSString alloc] initWithData:httpRequest.responseData encoding:encodingList[i]];
+                    sourceCode = [[NSString alloc] initWithData:wHttpRequest.responseData encoding:encodingList[i]];
                     
                     if ( sourceCode != nil ) break;
                 }
@@ -1242,7 +1286,10 @@
             APP_DELEGATE.postTextType = BLANK;
         }
     
-        APP_DELEGATE.tabBarController.selectedIndex = 0;
+        dispatch_async(dispatch_get_main_queue(), ^{
+        
+            APP_DELEGATE.tabBarController.selectedIndex = 0;
+        });
         
     }else if ( actionSheetNo == 8 ) {
         
@@ -1313,7 +1360,7 @@
             
             [self resetUserAgent];
             
-            if ( [APP_DELEGATE.firmwareVersion hasPrefix:@"6"] ) {
+            if ( [FIRMWARE_VERSION hasPrefix:@"6"] ) {
                 
                 [self dismissViewControllerAnimated:YES completion:nil];
                 
@@ -1329,7 +1376,7 @@
             
             [self resetUserAgent];
             
-            if ( [APP_DELEGATE.firmwareVersion hasPrefix:@"6"] ) {
+            if ( [FIRMWARE_VERSION hasPrefix:@"6"] ) {
                 
                 [self dismissViewControllerAnimated:YES completion:nil];
                 
@@ -2083,6 +2130,14 @@
     }
 }
 
+- (void)viewDidAppear:(BOOL)animated {
+    
+    NSLog(@"%s", __func__);
+    
+    [super viewDidAppear:animated];
+    
+}
+
 - (void)didReceiveMemoryWarning {
     
     NSLog(@"%s", __func__);
@@ -2093,25 +2148,25 @@
     
     NSLog(@"%s", __func__);
     
-    APP_DELEGATE.browserOpenMode = NO;
-    APP_DELEGATE.urlSchemeDownloadUrl = BLANK;
-    
-    [self setTopBar:nil];
-    [self setBottomBar:nil];
-    [self setSearchButton:nil];
-    [self setCloseButton:nil];
-    [self setReloadButton:nil];
-    [self setBackButton:nil];
-    [self setForwardButton:nil];
-    [self setMenuButton:nil];
-    [self setFlexibleSpace:nil];
-    [self setUrlField:nil];
-    [self setSearchField:nil];
-    [self setComposeButton:nil];
-    [self setBytesLabel:nil];
-    [self setProgressBar:nil];
-    [self setDownloadCancelButton:nil];
-    [self setBookmarkButton:nil];
+//    APP_DELEGATE.browserOpenMode = NO;
+//    APP_DELEGATE.urlSchemeDownloadUrl = BLANK;
+//    
+//    [self setTopBar:nil];
+//    [self setBottomBar:nil];
+//    [self setSearchButton:nil];
+//    [self setCloseButton:nil];
+//    [self setReloadButton:nil];
+//    [self setBackButton:nil];
+//    [self setForwardButton:nil];
+//    [self setMenuButton:nil];
+//    [self setFlexibleSpace:nil];
+//    [self setUrlField:nil];
+//    [self setSearchField:nil];
+//    [self setComposeButton:nil];
+//    [self setBytesLabel:nil];
+//    [self setProgressBar:nil];
+//    [self setDownloadCancelButton:nil];
+//    [self setBookmarkButton:nil];
     
     [super viewDidUnload];
 }

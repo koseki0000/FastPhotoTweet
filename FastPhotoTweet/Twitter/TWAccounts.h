@@ -10,7 +10,7 @@
 + (NSArray *)twitterAccounts;
 + (ACAccount *)currentAccount;
 + (NSString *)currentAccountName;
-+ (ACAccount *)selectAccount:(int)num;
++ (ACAccount *)selectAccount:(NSInteger)index;
 + (NSUInteger)accountCount;
 
 @end

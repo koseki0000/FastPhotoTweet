@@ -12,7 +12,7 @@
 @implementation TWCharCounter
 
 //現在入力されている文字数をt.coを考慮してカウントし、残りの入力可能文字数を返す
-//URLはどんな長さでも1つ20文字としてカウント
+//URLはどんな長さでも1つ22文字としてカウント
 //文頭、末尾にある半角スペース･改行･タブはカウントされない
 //"トップレベルドメイン - Wikipedia" http://j.mp/oPPkZx
 //gTLD, sTLD, iTLD, 特殊用途についてはhttp(s)プロトコル無しでもt.co判定が行われる
@@ -79,8 +79,8 @@
         
         urlCount = matches.count;
         
-        //残り入力可能文字数 = 140 - URL以外の文字数 - 行頭･末尾半角スペースの数 - URLの数 * 20
-        num = num - postString.length - urlCount * 20;
+        //残り入力可能文字数 = 140 - URL以外の文字数 - 行頭･末尾半角スペースの数 - URLの数 * 22
+        num = num - postString.length - urlCount * 22;
         
     }@catch ( NSException *e ) {
         

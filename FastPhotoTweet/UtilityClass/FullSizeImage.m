@@ -97,7 +97,7 @@
             
             urlString = [NSString stringWithFormat:@"http://twitpic.com/show/full/%@", [urlString lastPathComponent]];
             
-        }else if ( [urlString hasPrefix:@"http://instagr.am/p/"] ) {
+        }else if ( [urlString boolWithRegExp:@"http://instagr.?am(.com)?/p/"] ) {
             
             NSString *sourceCode = [FullSizeImage getSourceCode:[NSString stringWithFormat:@"http://instagr.am/api/v1/oembed/?url=%@", urlString]];
             
@@ -115,7 +115,7 @@
             
             if ( sourceCode == nil ) return urlString;
             
-            urlString = [sourceCode strWithRegExp:@"https?://p(bs)?\\.twimg\\.com/(media/)?[-_\\.a-zA-Z0-9]+(:large)?"];
+            urlString = [sourceCode stringWithRegExp:@"https?://p(bs)?\\.twimg\\.com/(media/)?[-_\\.a-zA-Z0-9]+(:large)?"];
             
             if ( ![urlString hasSuffix:@":large"] ) {
                 
@@ -130,7 +130,7 @@
             
             if ( sourceCode == nil ) return urlString;
             
-            urlString = [sourceCode strWithRegExp:@"https?://(s[0-9]\\.amazonaws\\.com/com\\.clixtr\\.picbounce|img\\.viame-cdn\\.com)/photos/[-a-zA-Z0-9]+/[a-z]600x600\\.(jpe?g|png)"];
+            urlString = [sourceCode stringWithRegExp:@"https?://(s[0-9]\\.amazonaws\\.com/com\\.clixtr\\.picbounce|img\\.viame-cdn\\.com)/photos/[-a-zA-Z0-9]+/[a-z]600x600\\.(jpe?g|png)"];
             
         }else if ( [urlString boolWithRegExp:@"https?://img.ly/[a-zA-Z0-9]+"] ) {
             
@@ -138,7 +138,7 @@
             
             if ( sourceCode == nil ) return urlString;
             
-            NSString *target = [sourceCode strWithRegExp:@"href=\"/images/[0-9]+/full\">Show Full View"];
+            NSString *target = [sourceCode stringWithRegExp:@"href=\"/images/[0-9]+/full\">Show Full View"];
             
             NSMutableString *tempString = [NSMutableString stringWithString:target];
             
@@ -153,13 +153,22 @@
                                              range:NSMakeRange(0, tempString.length)];
             
             target = [NSString stringWithFormat:@"http://img.ly%@", tempString];
+            NSLog(@"%@", target);
             
             sourceCode = [FullSizeImage getSourceCode:target];
             
             if ( sourceCode == nil ) return urlString;
             
-            urlString = [sourceCode strWithRegExp:@"https?://s[0-9]\\.amazonaws\\.com/imgly_production/[0-9]+/original\\.(je?pg|png)"];
+            urlString = [sourceCode stringWithRegExp:@"https?://s[0-9]\\.amazonaws\\.com/imgly_production/[0-9]+/original\\.(je?pg|png)"];
+            NSLog(@"%@", urlString);
+            
+            if ( [urlString isEqualToString:@""] ) {
+                
+                urlString = [sourceCode stringWithRegExp:@"https?://(www.\\)?img\\.ly/system/uploads/([0-9]+/){3}original_image.\\(jpe?g|png)"];
+            }
         
+            NSLog(@"%@", urlString);
+            
         }else if ( [urlString boolWithRegExp:PIXIV_FULL_PATTERN] ) {
             
             NSString *originalURL = urlString;
@@ -172,7 +181,7 @@
                 
             }else {
              
-                NSString *fullUrl = [sourceCode strWithRegExp:@"https?://i[0-9]+\\.pixiv\\.net/img[0-9]+/img/[-_a-zA-Z0-9]+/[0-9]+(_s)?\\.(jpe?g|png)"];
+                NSString *fullUrl = [sourceCode stringWithRegExp:@"https?://i[0-9]+\\.pixiv\\.net/img[0-9]+/img/[-_a-zA-Z0-9]+/[0-9]+(_s)?\\.(jpe?g|png)"];
                 
                 if ( [fullUrl rangeOfString:@"_s."].location != NSNotFound ) {
                     
@@ -187,7 +196,7 @@
         }else if ( [urlString hasPrefix:@"http://campl.us/"] ) {
             
             NSString *sourceCode = [FullSizeImage getSourceCode:urlString];
-            urlString = [sourceCode strWithRegExp:@"https?://(www\\.)?pics\\.campl\\.us/f/[0-9]+/[-_\\.a-zA-Z0-9]+\\.(jpe?g|png)"];
+            urlString = [sourceCode stringWithRegExp:@"https?://(www\\.)?pics\\.campl\\.us/f/[0-9]+/[-_\\.a-zA-Z0-9]+\\.(jpe?g|png)"];
         }
     }
     
@@ -265,7 +274,7 @@
               ![urlString isEqualToString:@"http://twitpic.com/"] &&
               ![urlString boolWithRegExp:@"http://twitpic.com/[0-9a-zA-Z]+/full$"] ) {
         result = YES;
-    }else if ( [urlString hasPrefix:@"http://instagr.am/p/"] ) {
+    }else if ( [urlString boolWithRegExp:@"http://instagr.?am(.com)?/p/"] ) {
         result = YES;
     }else if ( [urlString boolWithRegExp:TWITTER_FULL_PATTERN] ) {
         result = YES;
@@ -308,7 +317,7 @@
               ![urlString isEqualToString:@"http://twitpic.com/"] &&
               ![urlString boolWithRegExp:@"http://twitpic.com/[0-9a-zA-Z]+/full$"] ) {
         result = YES;
-    }else if ( [urlString hasPrefix:@"http://instagr.am/p/"] ) {
+    }else if ( [urlString boolWithRegExp:@"http://instagr.?am(.com)?/p/"] ) {
         result = YES;
     }else if ( [urlString boolWithRegExp:TWITTER_FULL_PATTERN] ) {
         result = YES;

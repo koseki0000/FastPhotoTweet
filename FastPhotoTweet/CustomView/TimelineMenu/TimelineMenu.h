@@ -7,8 +7,9 @@
 //
 
 #import <UIKit/UIKit.h>
-#import "TWEntities.h"
+#import "TimelineViewController.h"
 #import "NSNotificationCenter+EasyPost.h"
+#import "TWTweet.h"
 
 typedef enum {
     TimeLineMenuIdentifierMain,
@@ -16,16 +17,33 @@ typedef enum {
     TimeLineMenuIdentifierUser,
 }TimeLineMenuIdentifier;
 
-@interface TimelineMenu : UIView <UITableViewDataSource, UITableViewDelegate>
+typedef enum {
+    MainMenuReply,
+    MainMenuFav,
+    MainMenuRT,
+    MainMenuFavRT,
+    MainMenuSeleceID,
+    MainMenuHashTagNG,
+    MainMenuClientNG,
+    MainMenuInReplyTo,
+    MainMenuCopy,
+    MainMenuDelete,
+    MainMenuEdit,
+    MainMenuUserMenu
+}MainMenu;
 
-- (id)initWithTweet:(NSDictionary *)tweet forMenu:(TimeLineMenuIdentifier)menuIdentifier;
+@interface TimelineMenu : UIView <UITableViewDataSource, UITableViewDelegate, UIActionSheetDelegate>
 
+- (id)initWithTweet:(TWTweet *)tweet forMenu:(TimeLineMenuIdentifier)menuIdentifier controller:(TimelineViewController *)controller;
+
+@property (assign, nonatomic) TimelineViewController *controller;
 @property __block NSUInteger count;
 @property NSUInteger menuNo;
 @property NSUInteger userMenuActionNo;
+@property (retain, nonatomic) NSArray *tweetInURLs;
 @property (retain, nonatomic) NSMutableArray *menuList;
 @property (retain, nonatomic) NSMutableArray *nextMenuList;
-@property (retain, nonatomic) NSDictionary *tweet;
+@property (retain, nonatomic) TWTweet *tweet;
 @property (retain, nonatomic) NSTimer *timer;
 @property (copy, nonatomic) NSString *selectUser;
 
@@ -35,9 +53,10 @@ typedef enum {
 @property (retain, nonatomic) UIBarButtonItem *space;
 @property (retain, nonatomic) UITableView *menuTable;
 
-- (UIColor *)getTextColor:(CellTextColor)color;
 - (void)pushCancelButton;
 - (void)pushBackButton;
+
+- (void)openUserMenu:(NSString *)screenName menuIndex:(NSInteger)menuIndex;
 
 - (void)startRemoveAllTimer;
 

@@ -15,6 +15,14 @@
 
 + (TWTweets *)manager;
 + (NSMutableDictionary *)timelines;
++ (NSMutableArray *)sendedTweets;
+
++ (NSString *)text;
++ (NSString *)inReplyToID;
++ (NSString *)tabChangeFunction;
+
++ (NSArray *)lists;
++ (NSString *)listID;
 
 + (void)saveCurrentTimeline:(NSMutableArray *)currentTimeline;
 + (NSMutableArray *)currentTimeline;

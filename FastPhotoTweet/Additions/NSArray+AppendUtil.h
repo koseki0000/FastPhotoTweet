@@ -19,6 +19,8 @@
 - (id)appendOnlyNewToTop:(id)dictionariesArray forXPath:(NSString *)xpath separator:(NSString *)separator returnMutable:(BOOL)returnMutable;
 - (id)appendOnlyNewToTop:(id)dictionariesArray forXPath:(NSString *)xpath returnMutable:(BOOL)returnMutable;
 
+- (id)appendOnlyNewTweetToTop:(id)tweetDictionariesArray returnMutable:(BOOL)returnMutable;
+
 + (BOOL)checkClass:(id)object;
 
 @end

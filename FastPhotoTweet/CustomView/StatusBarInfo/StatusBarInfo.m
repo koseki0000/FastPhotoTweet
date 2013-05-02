@@ -18,6 +18,12 @@
 #define RIGHT_POSITION CGRectMake( 320,   0, 320, 20)
 #define LEFT_POSITION  CGRectMake(-320,   0, 320, 20)
 
+@interface StatusBarInfo ()
+
+@property (nonatomic) BOOL showing;
+
+@end
+
 @implementation StatusBarInfo
 
 #pragma mark - Initialize
@@ -149,10 +155,13 @@
     
     if ( _tasks.count != 0 ) {
         
-        NSLog(@"Find Task");
-        
-        [self showTask:[_tasks objectAtIndex:0]];
-        [_tasks removeObjectAtIndex:0];
+        if ( !self.showing ) {
+         
+            NSLog(@"Find Task");
+            
+            [self showTask:[_tasks objectAtIndex:0]];
+            [_tasks removeObjectAtIndex:0];
+        }
     }
 }
 
@@ -160,6 +169,7 @@
     
     NSLog(@"showTask: %@", task);
     
+    [self setShowing:YES];
     [self stopTimer:nil];
     
     __block StatusBarInfo *weakSelf = self;
@@ -243,6 +253,7 @@
                                  DISPATCH_AFTER(0.1) ^{
                                      
                                      [weakSelf startTimer:nil];
+                                     [weakSelf setShowing:NO];
                                  });
                              }
              ];
@@ -265,6 +276,7 @@
                                  DISPATCH_AFTER(0.1) ^{
                                      
                                      [weakSelf startTimer:nil];
+                                     [weakSelf setShowing:NO];
                                  });
                              }
              ];

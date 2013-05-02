@@ -6,6 +6,7 @@
 //
 
 #import "NSArray+AppendUtil.h"
+#import "TWTweet.h"
 
 @implementation NSArray (NSArrayAppendUtil)
 
@@ -257,6 +258,62 @@
                            forXPath:xpath
                           separator:@"/"
                       returnMutable:returnMutable];
+}
+
+- (id)appendOnlyNewTweetToTop:(id)tweetDictionariesArray returnMutable:(BOOL)returnMutable {
+    
+    if ( [self isNil] || [tweetDictionariesArray isNil] ) return self;
+    
+    if ( [NSArray checkClass:tweetDictionariesArray] ) {
+        
+        if ( [(NSArray *)tweetDictionariesArray isEmpty] ) return self;
+        
+        __block __weak id wself = self;
+        NSMutableArray *tempArray = [NSMutableArray arrayWithArray:self];
+        __block __weak NSMutableArray *wTempArray = tempArray;
+        
+        dispatch_queue_t semaphoreQueue = dispatch_get_global_queue(DISPATCH_QUEUE_PRIORITY_DEFAULT, 0);
+        dispatch_semaphore_t semaphore = dispatch_semaphore_create(1);
+        
+        dispatch_sync(semaphoreQueue, ^{
+            
+            dispatch_semaphore_wait(semaphore, DISPATCH_TIME_FOREVER);
+            
+            int i = 0;
+            for ( TWTweet *tweet in tweetDictionariesArray ) {
+                
+                BOOL notHave = YES;
+                for ( TWTweet *myTweew in wself ) {
+                    
+                    NSString *myTweetID = myTweew.tweetID;
+                    NSString *tweetID = tweet.tweetID;
+                    
+                    if ( [myTweetID isNotEmpty] &&
+                         [tweetID isNotEmpty] ) {
+                        
+                        if ( [myTweetID isEqualToString:tweetID] ) {
+                        
+                            notHave = NO;
+                            break;
+                        }
+                    }
+                }
+                
+                if ( notHave ) {
+                    
+                    [wTempArray insertObject:tweet atIndex:i];
+                    i++;
+                }
+            }
+            
+            dispatch_semaphore_signal(semaphore);
+            dispatch_release(semaphore);
+        });
+        
+        return returnMutable ? tempArray : [NSArray arrayWithArray:tempArray];
+    }
+    
+    return self;
 }
 
 + (BOOL)checkClass:(id)object {

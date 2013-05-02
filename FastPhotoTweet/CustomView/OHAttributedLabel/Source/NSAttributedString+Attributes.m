@@ -148,13 +148,15 @@
 }
 
 -(void)setTextAlignment:(CTTextAlignment)alignment lineBreakMode:(CTLineBreakMode)lineBreakMode {
+    
 	[self setTextAlignment:alignment
              lineBreakMode:lineBreakMode
              maxLineHeight:14.0f
              minLineHeight:14.0f
             maxLineSpacing:4.0f
             minLineSpacing:4.0f
-                     range:NSMakeRange(0,[self length])];
+                     range:NSMakeRange(0,
+                                       self.length)];
 }
 
 -(void)setTextAlignment:(CTTextAlignment)alignment

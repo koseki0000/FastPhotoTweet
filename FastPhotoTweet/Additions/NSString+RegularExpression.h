@@ -1,8 +1,5 @@
 //
 //  NSString+RegularExpression.h
-//  FastPhotoTweet
-//
-//  Created by @peace3884 12/11/07.
 //
 
 #import <Foundation/Foundation.h>
@@ -11,17 +8,17 @@
 
 - (BOOL)boolWithRegExp:(NSString *)regExpPattern;
 
-- (NSString *)strWithRegExp:(NSString *)regExpPattern;
-- (NSMutableString *)mStrWithRegExp:(NSString *)regExpPattern;
+- (NSString *)stringWithRegExp:(NSString *)regExpPattern;
+- (NSMutableString *)mutableStringWithRegExp:(NSString *)regExpPattern;
 
 - (NSArray *)arrayWithRegExp:(NSString *)regExpPattern;
-- (NSMutableArray *)mArrayWithRegExp:(NSString *)regExpPattern;
-- (NSMutableArray *)urls;
-- (NSMutableArray *)twitterIds;
+- (NSMutableArray *)mutableArrayWithRegExp:(NSString *)regExpPattern;
+- (NSMutableArray *)URLs;
+- (NSMutableArray *)twitterIDs;
 
-- (NSString *)replaceStrWithRegExp:(NSString *)regExpPattern
+- (NSString *)replaceStringWithRegExp:(NSString *)regExpPattern
                         targetWord:(NSString *)targetWord;
-- (NSString *)replaceMStrWithRegExp:(NSString *)regExpPattern
+- (NSString *)replaceMutableStringWithRegExp:(NSString *)regExpPattern
                          targetWord:(NSString *)targetWord;
 
 @end

@@ -6,9 +6,20 @@
 //
 //
 
+#import <QuartzCore/QuartzCore.h>
 #import "TimelineAttributedRTCell.h"
+#import "NSAttributedString+Attributes.h"
+#import "NSDictionary+DataExtraction.h"
+#import "Share.h"
 
 static NSInteger const kAttributedLabelTag = 100;
+
+@interface TimelineAttributedRTCell ()
+
+- (void)resetImage:(NSString *)screenName userName:(NSString *)userName;
+- (void)reloadViews:(NSString *)screenName userName:(NSString *)userName;
+
+@end
 
 @implementation TimelineAttributedRTCell
 
@@ -17,14 +28,14 @@ static NSInteger const kAttributedLabelTag = 100;
     CGContextRef context = UIGraphicsGetCurrentContext();
     
     size_t location = 2;
-    CGFloat locations[2] =  {0.0, 1.0};
-    CGFloat components[8] = {1.0,  1.0,  1.0, 1.0, 0.92, 0.92, 0.92, 1.0};
+    CGFloat locations[2] =  {0.0f, 1.0f};
+    CGFloat components[8] = {1.0f,  1.0f,  1.0f, 1.0f, 0.92f, 0.92f, 0.92f, 1.0f};
     
     CGColorSpaceRef colorSpace = CGColorSpaceCreateDeviceRGB();
     CGGradientRef gradient =   CGGradientCreateWithColorComponents(colorSpace, components, locations, location);
     
-    CGPoint startPoint = CGPointMake(self.frame.size.width / 2, 0.0);
-    CGPoint endPoint =   CGPointMake(self.frame.size.width / 2, self.frame.size.height);
+    CGPoint startPoint = CGPointMake(self.frame.size.width / 2.0f, 0.0f);
+    CGPoint endPoint =   CGPointMake(self.frame.size.width / 2.0f, self.frame.size.height);
     CGContextDrawLinearGradient(context, gradient, startPoint, endPoint, 0);
     
     CGColorSpaceRelease(colorSpace);
@@ -45,14 +56,14 @@ static NSInteger const kAttributedLabelTag = 100;
 
 - (void)setProperties:(CGFloat)width {
     
-    self.infoLabel = [[UILabel alloc] initWithFrame:CGRectMake(54, 2,  width, 14)];
-    self.mainLabel = [[OHAttributedLabel alloc] initWithFrame:CGRectMake(54, 19, width, 31)];
-    self.iconView = [[TitleButton alloc] initWithFrame:CGRectMake(2, 4, 48, 54)];
+    self.infoLabel = [[[UILabel alloc] initWithFrame:CGRectMake(54.0f, 2.0f,  width, 14.0f)] autorelease];
+    self.mainLabel = [[[OHAttributedLabel alloc] initWithFrame:CGRectMake(54.0f, 19.0f, width, 31.0f)] autorelease];
+    self.iconView = [[[IconButton alloc] initWithFrame:CGRectMake(2.0f, 4.0f, 48.0f, 54.0f)] autorelease];
     
-    _infoLabel.font = [UIFont boldSystemFontOfSize:11];
+    _infoLabel.font = [UIFont boldSystemFontOfSize:11.0f];
     
-    _infoLabel.textColor = [UIColor colorWithRed:0.0 green:0.4 blue:0.0 alpha:1.0];
-    _mainLabel.textColor = [UIColor colorWithRed:0.0 green:0.4 blue:0.0 alpha:1.0];
+    _infoLabel.textColor = [UIColor colorWithRed:0.0f green:0.4f blue:0.0f alpha:1.0f];
+    _mainLabel.textColor = [UIColor colorWithRed:0.0f green:0.4f blue:0.0f alpha:1.0f];
     
     _infoLabel.backgroundColor = [UIColor clearColor];
     _mainLabel.backgroundColor = [UIColor clearColor];
@@ -81,39 +92,116 @@ static NSInteger const kAttributedLabelTag = 100;
     [self.multipleSelectionBackgroundView removeFromSuperview];
     [self.selectedBackgroundView removeFromSuperview];
     
-    CALayer *userIconLayer = [[CALayer alloc] init];
-    userIconLayer.name = @"UserIcon";
-    userIconLayer.frame = CGRectMake(0, 0, 34, 34);
+    self.userIconView = [[[UIImageView alloc] initWithFrame:CGRectMake(0.0f, 0.0f, 34.0f, 34.0f)] autorelease];
+    [self.userIconView setContentMode:UIViewContentModeScaleAspectFill];
+    [self.iconView addSubview:self.userIconView];
     
-    CALayer *rtUserIconLayer = [[CALayer alloc] init];
-    rtUserIconLayer.name = @"RTUserIcon";
-    rtUserIconLayer.frame = CGRectMake(20, 25, 28, 28);
+    self.rtUserIconView = [[[UIImageView alloc] initWithFrame:CGRectMake(20.0f, 25.0f, 28.0f, 28.0f)] autorelease];
+    [self.rtUserIconView setContentMode:UIViewContentModeScaleAspectFill];
+    [self.iconView addSubview:self.rtUserIconView];
     
-    CALayer *arrowLayer = [[CALayer alloc] init];
-    arrowLayer.name = @"Arrow";
-    arrowLayer.frame = CGRectMake(0, 34, 20, 19);
-    arrowLayer.backgroundColor = [UIColor grayColor].CGColor;
-    arrowLayer.contents = (id)[UIImage imageNamed:@"retweet_arrow"].CGImage;
+    self.arrowView = [[[UIImageView alloc] initWithFrame:CGRectMake(0.0f, 34.0f, 20.0f, 19.0f)] autorelease];
+    [self.arrowView setContentMode:UIViewContentModeScaleAspectFit];
+    [self.arrowView setImage:[UIImage imageNamed:@"retweet_arrow"]];
+    [self.arrowView setBackgroundColor:[UIColor grayColor]];
+    [self.iconView addSubview:self.arrowView];
     
     if ( [[NSUserDefaults standardUserDefaults] integerForKey:@"IconCornerRounding"] == 1 ) {
         
         //角を丸める
-        [userIconLayer setMasksToBounds:YES];
-        [userIconLayer setCornerRadius:5.0f];
-        [rtUserIconLayer setMasksToBounds:YES];
-        [rtUserIconLayer setCornerRadius:4.0f];
+        [self.userIconView.layer setCornerRadius:4.0f];
+        [self.rtUserIconView.layer setCornerRadius:4.0f];
+        [self.arrowView.layer setCornerRadius:3.0f];
     }
     
-    [arrowLayer setMasksToBounds:YES];
-    [arrowLayer setCornerRadius:3.0f];
-    
-    [self.iconView.layer addSublayer:userIconLayer];
-    [self.iconView.layer addSublayer:rtUserIconLayer];
-    [self.iconView.layer addSublayer:arrowLayer];
+    [self.userIconView.layer setMasksToBounds:YES];
+    [self.rtUserIconView.layer setMasksToBounds:YES];
+    [self.arrowView.layer setMasksToBounds:YES];
     
     [self addSubview:_infoLabel];
     [self addSubview:_mainLabel];
     [self addSubview:_iconView];
+}
+
+- (void)setTweetData:(TWTweet *)tweet cellWidth:(CGFloat)cellWidth {
+    
+    //Tweetの本文
+    NSString *text = tweet.text;
+    NSString *screenName = tweet.screenName;
+    NSString *userName = tweet.rtUserName;
+    [self.iconView setTargetTweet:tweet];
+    NSString *infoLabelText = tweet.infoText;
+    CGFloat contentsHeight = tweet.cellHeight;
+    
+    NSMutableAttributedString *mainText = [NSMutableAttributedString attributedStringWithString:text];
+    [mainText setFont:[UIFont systemFontOfSize:12.0f]];
+    [mainText setTextColor:GREEN_COLOR range:NSMakeRange(0.0f,
+                                                         text.length)];
+    [mainText setTextAlignment:kCTLeftTextAlignment
+                 lineBreakMode:kCTLineBreakByCharWrapping
+                 maxLineHeight:14.0f
+                 minLineHeight:14.0f
+                maxLineSpacing:1.0f
+                minLineSpacing:1.0f
+                         range:NSMakeRange(0.0f,
+                                           mainText.length)];
+    
+//    dispatch_queue_t queue;
+//    if ( dispatch_get_current_queue() == dispatch_get_main_queue() ) {
+//        
+//        queue = dispatch_get_current_queue();
+//        
+//    }else {
+//        
+//        queue = dispatch_get_main_queue();
+//    }
+//    
+//    dispatch_sync(queue, ^{
+    
+        //セルへの反映開始
+        [self.infoLabel setText:infoLabelText];
+        [self.mainLabel setAttributedText:mainText];
+        [self.mainLabel setFrame:CGRectMake(54.0f,
+                                            19.0f,
+                                            cellWidth,
+                                            contentsHeight)];
+        [self reloadViews:screenName
+                 userName:userName];
+//    });
+}
+
+- (void)reloadViews:(NSString *)screenName userName:(NSString *)userName {
+    
+    [self resetImage:screenName
+            userName:userName];
+    [self setNeedsDisplay];
+    [self.userIconView setNeedsDisplay];
+    [self.rtUserIconView setNeedsDisplay];
+    [self.infoLabel setNeedsDisplay];
+    [self.mainLabel setNeedsDisplay];
+}
+
+- (void)resetImage:(NSString *)screenName userName:(NSString *)userName {
+    
+    if ( [[Share images] objectForKey:screenName] != nil &&
+        self.iconView.layer.sublayers.count != 0 ) {
+        
+        [self.userIconView setImage:[[Share images] imageForKey:screenName]];
+        
+    }else {
+        
+        [self.userIconView setImage:nil];
+    }
+    
+    if ( [[Share images] objectForKey:userName] != nil &&
+        self.iconView.layer.sublayers.count != 0 ) {
+        
+        [self.rtUserIconView setImage:[[Share images] imageForKey:userName]];
+        
+    }else {
+        
+        [self.rtUserIconView setImage:nil];
+    }
 }
 
 - (void)dealloc {

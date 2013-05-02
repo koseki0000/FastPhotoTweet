@@ -24,6 +24,8 @@
 @synthesize regexpLabel;
 @synthesize regexpSwitch;
 @synthesize addedNgSettings;
+@synthesize reTweetSwitch;
+@synthesize reTweetText;
 
 #pragma mark - Initialize
 
@@ -75,13 +77,21 @@
 
 - (IBAction)doneButtonVisible:(UITextField *)sender {
     
-    if ( [EmptyCheck string:ngWordField.text] ) {
+    if ( reTweetSwitch.on &&
+         [EmptyCheck string:userField.text] ) {
         
         addButton.enabled = YES;
         
     }else {
-        
-        addButton.enabled = NO;
+     
+        if ( [EmptyCheck string:ngWordField.text] ) {
+            
+            addButton.enabled = YES;
+            
+        }else {
+            
+            addButton.enabled = NO;
+        }
     }
 }
 
@@ -99,6 +109,8 @@
         exclusionUserField.hidden = NO;
         regexpSwitch.hidden = NO;
         regexpLabel.hidden = NO;
+        reTweetText.hidden = NO;
+        reTweetSwitch.hidden = NO;
         
         ngWordField.placeholder = @"NGワード (必須)";
         
@@ -111,6 +123,8 @@
         exclusionUserField.hidden = YES;
         regexpSwitch.hidden = YES;
         regexpLabel.hidden = YES;
+        reTweetText.hidden = YES;
+        reTweetSwitch.hidden = YES;
         
         ngWordField.placeholder = @"NGネーム (必須)";
         
@@ -123,7 +137,9 @@
         exclusionUserField.hidden = YES;
         regexpSwitch.hidden = YES;
         regexpLabel.hidden = YES;
-        
+        reTweetText.hidden = YES;
+        reTweetSwitch.hidden = YES;
+
         ngWordField.placeholder = @"NGクライアント (必須)";
         
         //NGクライアント設定を読み込む
@@ -192,6 +208,12 @@
                 [addDic setObject:@"YES" forKey:@"RegExp"];
             }
             
+            if ( reTweetSwitch.on ) {
+                
+                //ReTweet
+                [addDic setObject:@"YES" forKey:@"ReTweet"];
+            }
+            
             [ngWordArray addObject:addDic];
             
             //NSLog(@"ngWordArray: %@", ngWordArray);
@@ -242,6 +264,7 @@
         exclusionUserField.text = BLANK;
         addButton.enabled = NO;
         regexpSwitch.on = NO;
+        reTweetSwitch.on = NO;
         
         [addedNgSettings reloadData];
     }
@@ -286,15 +309,11 @@
             
         }else if ( ngTypeSegment.selectedSegmentIndex == 1 ) {
             
-            
-            
         }else if ( ngTypeSegment.selectedSegmentIndex == 2 ) {
-            
             
         }
         
     }else if ( sender.tag == 1 || sender.tag == 2 ) {
-        
         
     }
     
@@ -347,6 +366,12 @@
         if ( [[currentNg objectForKey:@"RegExp"] isEqualToString:@"YES"] ) {
             
             [cellString appendString:@"正規表現: 有効"];
+            [cellString appendString:@"\n"];
+        }
+        
+        if ( [[currentNg objectForKey:@"ReTweet"] isEqualToString:@"YES"] ) {
+            
+            [cellString appendString:@"ReTweetのみ: 有効"];
         }
         
     }else if ( ngTypeSegment.selectedSegmentIndex == 1 ) {
@@ -392,6 +417,12 @@
         if ( [[currentNg objectForKey:@"RegExp"] isEqualToString:@"YES"] ) {
             
             [cellString appendString:@"正規表現: 有効"];
+            [cellString appendString:@"\n"];
+        }
+        
+        if ( [[currentNg objectForKey:@"ReTweet"] isEqualToString:@"YES"] ) {
+            
+            [cellString appendString:@"ReTweet: 有効"];
         }
         
     }else if ( ngTypeSegment.selectedSegmentIndex == 1 ) {
@@ -432,6 +463,11 @@
         if ( [EmptyCheck string:[dic objectForKey:@"RegExp"]] ) {
             
             regexpSwitch.on = YES;
+        }
+        
+        if ( [EmptyCheck string:[dic objectForKey:@"ReTweet"]] ) {
+            
+            reTweetSwitch.on = YES;
         }
         
         [ngSettingArray removeObjectAtIndex:indexPath.row];
@@ -518,6 +554,8 @@
     [self setAddedNgSettings:nil];
     [self setAddButton:nil];
     [self setSv:nil];
+    [self setReTweetText:nil];
+    [self setReTweetSwitch:nil];
     [super viewDidUnload];
 }
 
@@ -531,10 +569,6 @@
 - (NSUInteger)supportedInterfaceOrientations {
     
     return UIInterfaceOrientationMaskPortrait;
-}
-
-- (void)dealloc {
-    
 }
 
 @end

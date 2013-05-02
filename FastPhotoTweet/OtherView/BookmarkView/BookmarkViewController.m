@@ -41,7 +41,7 @@
     
     appDelegate.bookmarkUrl = BLANK;
     
-    if ( [appDelegate.firmwareVersion hasPrefix:@"6"] ) {
+    if ( [FIRMWARE_VERSION hasPrefix:@"6"] ) {
         
         [self dismissViewControllerAnimated:YES completion:nil];
         
@@ -139,7 +139,7 @@
     appDelegate.bookmarkUrl = [bookmark objectForKey:@"URL"];
     
     //閉じる
-    if ( [appDelegate.firmwareVersion hasPrefix:@"6"] ) {
+    if ( [FIRMWARE_VERSION hasPrefix:@"6"] ) {
         
         [self dismissViewControllerAnimated:YES completion:nil];
         

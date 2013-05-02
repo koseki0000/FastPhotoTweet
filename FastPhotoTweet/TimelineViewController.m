@@ -9,14 +9,49 @@
 //////// ARC ENABLED ////////
 /////////////////////////////
 
+#import <QuartzCore/CALayer.h>
+#import <Twitter/Twitter.h>
+#import <Accounts/Accounts.h>
+#import <MobileCoreServices/MobileCoreServices.h>
+#import "ASIHTTPRequest.h"
+#import <CFNetwork/CFNetwork.h>
+#import "UtilityClass.h"
+#import "WebViewExController.h"
 #import "TimelineViewController.h"
+#import "Share.h"
+#import "TimelineAttributedCell.h"
+#import "TimelineAttributedRTCell.h"
+#import "NSAttributedString+Attributes.h"
 
-#define TOP_BAR [NSArray arrayWithObjects:_actionButton, _flexibleSpace, _timelineControlButton, _flexibleSpace, _fixedSpace, _flexibleSpace , _reloadButton, _flexibleSpace, _postButton, nil]
-#define OTHER_TWEETS_BAR [NSArray arrayWithObjects:_flexibleSpace, _closeOtherTweetsButton, nil]
-#define PICKER_BAR_ITEM [NSArray arrayWithObjects:_pickerBarCancelButton, _flexibleSpace, _pickerBarDoneButton, nil]
+#import "Three20UI/TTTableHeaderDragRefreshView.h"
+#import <Three20UI/TTActivityLabel.h>
+#import <Three20Style/Three20Style.h>
+#import <Three20UICommon/Three20UICommon.h>
 
-#define CELL_IDENTIFIER @"TimelineAttributedCell"
-#define RT_CELL_IDENTIFIER @"TimelineAttributedRTCell"
+#import "TWTweet.h"
+#import "FPTRequest.h"
+
+#import "UIView+Positioning.h"
+#import "UIView+RectInitialize.h"
+#import "NSDictionary+DataExtraction.h"
+#import "NSArray+AppendUtil.h"
+#import "NSObject+EmptyCheck.h"
+#import "NSDictionary+XPath.h"
+#import "NSString+RegularExpression.h"
+#import "NSString+WordCollect.h"
+#import "NSString+Calculator.h"
+#import "TWTwitterHeader.h"
+#import "TWTweets.h"
+#import "ListViewController.h"
+#import "IconButton.h"
+#import "SSTextField.h"
+#import "TWTweetUtility.h"
+#import "ActivityGrayView.h"
+#import "ImageWindow.h"
+#import "TimelineMenu.h"
+#import "InputAlertView.h"
+
+#define OCEAN_COLOR [UIColor colorWithRed:0.4 green:0.8 blue:1.0 alpha:1.0]
 
 #define BLACK_COLOR [UIColor blackColor]
 #define GREEN_COLOR [UIColor colorWithRed:0.0 green:0.4 blue:0.0 alpha:1.0]
@@ -24,10 +59,185 @@
 #define RED_COLOR   [UIColor redColor]
 #define GOLD_COLOR  [UIColor colorWithRed:0.5 green:0.4 blue:0.0 alpha:1.0]
 
-#define D [NSUserDefaults standardUserDefaults]
-#define FILE_MANAGER [NSFileManager defaultManager]
-#define P_BOARD [UIPasteboard generalPasteboard]
-#define APP_DELEGATE ((AppDelegate *)[[UIApplication sharedApplication] delegate])
+#define CELL_IDENTIFIER @"TimelineAttributedCell"
+#define RT_CELL_IDENTIFIER @"TimelineAttributedRTCell"
+
+#define USER_STREAM_BUTTON (UIButton *)self.topBarUSButton.customView
+#define ICON_BUTTON (UIButton *)self.topBarIcon.customView
+
+#define PICKER_BAR_ITEM @[self.pickerBarCancelButton, self.flexibleSpace, self.pickerBarDoneButton]
+#define TOP_BAR_ITEM_DEFAULT @[self.actionButton, self.flexibleSpace, self.topBarUSButton, self.flexibleSpace, self.topBarIcon, self.flexibleSpace, self.topBarReloadButton, self.flexibleSpace, self.composeButton]
+#define TOP_BAR_ITEM_OTHER @[self.flexibleSpace, self.closeButton]
+
+#define CELL_WIDTH 264.0f
+
+typedef enum {
+    TimelineSegmentTimeline,
+    TimelineSegmentMentions,
+    TimelineSegmentFavorites,
+    TimelineSegmentList
+}TimelineSegment;
+
+typedef enum {
+    ActionMenuTypeService,
+    ActionMenuTypeMyService,
+    ActionMenuTypeTimelineLongPress
+}ActionMenuType;
+
+typedef enum {
+    TextFieldTypeTwilog,
+    TextFieldTypeTwilogSearch,
+    TextFieldTypeFavStar,
+    TextFieldTypeTwitPic,
+    TextFieldTypeUserTimeline,
+    TextFieldTypeSearch,
+    TextFieldTypeSearchStream,
+}TextFieldType;
+
+typedef enum {
+    TimelineIconActionTypeUserMenu,
+    TimelineIconActionTypeReply,
+    TimelineIconActionTypeFav,
+    TimelineIconActionTypeRT,
+    TimelineIconActionTypeFavRT,
+    TimelineIconActionTypeSelectIDFavRT
+}TimelineIconActionType;
+
+@interface TimelineViewController () <UIActionSheetDelegate, UITextFieldDelegate, UIPickerViewDelegate, UIPickerViewDataSource, UITableViewDelegate, UITableViewDataSource, NSURLConnectionDelegate, NSURLConnectionDataDelegate>
+
+@property (strong, nonatomic) UIToolbar *topBar;
+@property (strong, nonatomic) UIBarButtonItem *flexibleSpace;
+@property (strong, nonatomic) UIBarButtonItem *actionButton;
+@property (strong, nonatomic) UIBarButtonItem *topBarIcon;
+@property (strong, nonatomic) UIBarButtonItem *topBarUSButton;
+@property (strong, nonatomic) UIBarButtonItem *topBarReloadButton;
+@property (strong, nonatomic) UIBarButtonItem *composeButton;
+@property (strong, nonatomic) UIBarButtonItem *closeButton;
+
+@property (strong, nonatomic) UISegmentedControl *segment;
+
+@property (strong, nonatomic) TTTableHeaderDragRefreshView *headerView;
+@property (strong, nonatomic) UIView *activityTable;
+
+@property (strong, nonatomic) UITableView *timeline;
+@property (strong, nonatomic) TimelineMenu *timelineMenu;
+@property (strong, nonatomic) UIToolbar *bottomBar;
+
+@property (strong, nonatomic) UIAlertView *searchAlert;
+@property (strong, nonatomic) SSTextField *searchAlertTextField;
+
+@property (strong, nonatomic) UIView *pickerBase;
+@property (strong, nonatomic) UIToolbar *pickerBar;
+@property (strong, nonatomic) UIPickerView *eventPicker;
+@property (strong, nonatomic) UIBarButtonItem *pickerBarDoneButton;
+@property (strong, nonatomic) UIBarButtonItem *pickerBarCancelButton;
+@property (nonatomic) BOOL pickerVisible;
+
+@property (strong, nonatomic) ActivityGrayView *grayView;
+@property (strong, nonatomic) ImageWindow *imageWindow;
+
+@property (strong, nonatomic) NSURLConnection *connection;
+@property (strong, atomic) NSMutableArray *currentTweets;
+@property (strong, nonatomic) TWTweet *selectedTweet;
+@property (nonatomic) BOOL loading;
+@property (nonatomic) BOOL userStream;
+@property (nonatomic) BOOL webBrowserMode;
+@property (nonatomic) BOOL addTweetStopMode;
+@property (nonatomic) BOOL listSelect;
+@property (nonatomic) NSUInteger longPressControl;
+
+@property (strong, nonatomic) NSMutableArray *userStreamQueue;
+@property (strong, nonatomic) NSTimer *userStreamTimer;
+
+@property (strong, nonatomic) NSMutableArray *otherTweets;
+
+- (void)createPullDownRefreshHeader;
+- (void)createTimelineGuesture;
+- (void)addNotificationObservers;
+- (void)requestHomeTimeline;
+- (void)requestMentions;
+- (void)requestFavorites;
+- (void)requestTweet:(NSString *)tweetID;
+- (void)requestList:(NSString *)listID;
+- (void)createInReplyToChain:(TWTweet *)tweet;
+
+- (void)addFavorite:(NSString *)tweetID accountIndex:(NSInteger)accountIndex;
+
+- (void)startLoad;
+- (void)finishLoad;
+
+- (void)changeAccount:(NSNotification *)notification;
+
+- (void)pushActionButton;
+- (void)pushTopBarUSButton;
+- (void)pushAccountIconButton;
+- (void)pushReloadButton;
+- (void)pushComposeButton;
+- (void)pushCloseButton;
+
+- (void)changeSegmentIndex;
+
+- (void)receiveHomeTimeline:(NSNotification *)notification;
+- (void)receiveUserTimeline:(NSNotification *)notification;
+- (void)receiveMentions:(NSNotification *)notification;
+- (void)receiveFavorites:(NSNotification *)notification;
+- (void)receiveSearch:(NSNotification *)notification;
+- (void)receiveTweet:(NSNotification *)notification;
+- (void)receiveList:(NSNotification *)notification;
+- (void)receiveProfile:(NSNotification *)notification;
+- (void)receiveAPIError:(NSNotification *)notification;
+
+- (void)receiveOffline:(NSNotification *)notification;
+
+- (void)openStream;
+- (void)closeStream;
+- (void)reOpenStream;
+- (void)startUserStreamQueue;
+- (void)stopUserStreamQueue;
+- (void)checkUserStreamQueue;
+- (void)userStreamDelete:(TWTweet *)receiveTweet;
+- (void)userStreamMyAddFavEvent:(TWTweet *)receiveTweet;
+- (void)userStreamMyRemoveFavEvent:(TWTweet *)receiveTweet;
+- (void)userStreamReceiveFavEvent:(TWTweet *)receiveTweet;
+- (void)userStreamReceiveTweet:(TWTweet *)receiveTweet;
+
+- (void)getIconWithTweetArray:(NSMutableArray *)tweetArray;
+- (void)requestProfileImageWithURL:(NSString *)biggerUrl screenName:(NSString *)screenName searchName:(NSString *)searchName;
+- (void)refreshTimelineCell:(NSNumber *)index;
+- (void)openTimelineImage:(NSNotification *)notification;
+- (void)swipeTimelineRight:(UISwipeGestureRecognizer *)sender;
+- (void)swipeTimelineLeft:(UISwipeGestureRecognizer *)sender;
+- (void)scrollTimelineToTop:(BOOL)animation;
+- (void)scrollTimelineToBottom:(BOOL)animation;
+- (void)scrollTimelineForNewTweet:(NSString *)tweetID;
+- (void)longPressTimeline:(UILongPressGestureRecognizer *)sender;
+- (void)pushIcon:(UIButton *)sender;
+- (void)changeFavorite:(NSString *)targerTweetID;
+
+- (void)hideTimelineMenu:(NSNotification *)notification;
+- (void)timelineMenuSelectID:(NSNotification *)notification;
+- (void)timelineMenuHashTagNG:(NSNotification *)notification;
+- (void)timelineMenuClientNG:(NSNotification *)notification;
+- (void)timelineMenuInReplyTo:(NSNotification *)notification;
+- (void)timelineMenuDelete:(NSNotification *)notification;
+- (void)timelineMenuEdit:(NSNotification *)notification;
+
+- (void)createTimelineMenu:(TimeLineMenuIdentifier)menuIdentifier;
+- (void)createSearchAlert:(NSString *)title alertType:(TextFieldType)alertType;
+- (void)getMyAccountIcon;
+- (void)setOtherTweetsMode;
+
+- (void)showAPILimit;
+- (void)showListView;
+
+- (void)showPickerView;
+- (void)pickerDone;
+- (void)pickerCancel;
+- (void)hidePicker;
+
+- (void)openBrowser:(NSString *)URL;
+
+@end
 
 @implementation TimelineViewController
 
@@ -35,7 +245,8 @@
 
 - (id)initWithNibName:(NSString *)nibNameOrNil bundle:(NSBundle *)nibBundleOrNil {
     
-    self = [super initWithNibName:nibNameOrNil bundle:nibBundleOrNil];
+    self = [super initWithNibName:nibNameOrNil
+                           bundle:nibBundleOrNil];
     
     if ( self ) {
         
@@ -44,192 +255,263 @@
         
         [Share manager];
         
-        __weak TimelineViewController *wself = self;
+        self.currentTweets = [NSMutableArray array];
         
-        dispatch_queue_t asyncQueue = GLOBAL_QUEUE_DEFAULT;
-        dispatch_async(asyncQueue, ^{
+        //アイコン保存用ディレクトリ確認
+        BOOL isDir = NO;
+        BOOL directoryExists = ( [FILE_MANAGER fileExistsAtPath:ICONS_DIRECTORY isDirectory:&isDir] && isDir );
+        
+        if ( !directoryExists ) {
             
-            [wself setDefault];
-        });
+            //存在しない場合作成
+            [FILE_MANAGER createDirectoryAtPath:ICONS_DIRECTORY
+                    withIntermediateDirectories:YES
+                                     attributes:nil
+                                          error:nil];
+        }
+        
+        //クラッシュログ保存用ディレクトリ確認
+        isDir = NO;
+        directoryExists = ( [FILE_MANAGER fileExistsAtPath:LOGS_DIRECTORY isDirectory:&isDir] && isDir );
+        
+        if ( !directoryExists ) {
+            
+            //存在しない場合作成
+            [FILE_MANAGER createDirectoryAtPath:LOGS_DIRECTORY
+                    withIntermediateDirectories:YES
+                                     attributes:nil
+                                          error:nil];
+        }
     }
     
     return self;
 }
 
+#pragma mark - LifeCycle
 - (void)viewDidLoad {
     
     [super viewDidLoad];
+    NSLog(@"%s", __func__);
+    
+    [self.view setBackgroundColor:[UIColor whiteColor]];
+    
+    self.topBar = [[UIToolbar alloc] initWithX:0.0f
+                                             Y:0.0f
+                                             W:SCREEN_WIDTH
+                                             H:TOOL_BAR_HEIGHT];
+    [self.topBar setTintColor:OCEAN_COLOR];
+    
+    self.flexibleSpace = [[UIBarButtonItem alloc] initWithBarButtonSystemItem:UIBarButtonSystemItemFlexibleSpace
+                                                                       target:nil
+                                                                       action:nil];
+    
+    self.actionButton = [[UIBarButtonItem alloc] initWithImage:[UIImage imageNamed:@"action.png"]
+                                                         style:UIBarButtonItemStylePlain
+                                                        target:self
+                                                        action:@selector(pushActionButton)];
+    
+    UIButton *topBarUSButton = [[UIButton alloc] initWithX:0.0f
+                                                         Y:0.0f
+                                                         W:24.0f
+                                                         H:36.0f];
+    [topBarUSButton.imageView setContentMode:UIViewContentModeCenter];
+    [topBarUSButton addTarget:self
+                       action:@selector(pushTopBarUSButton)
+             forControlEvents:UIControlEventTouchUpInside];
+    [topBarUSButton setImage:[UIImage imageNamed:@"play.png"]
+                    forState:UIControlStateNormal];
+    
+    self.topBarUSButton = [[UIBarButtonItem alloc] initWithCustomView:topBarUSButton];
+    
+    UIButton *accountIconButton = [[UIButton alloc] initWithX:0.0f
+                                                            Y:0.0f
+                                                            W:36.0f
+                                                            H:36.0f];
+    [accountIconButton.imageView setContentMode:UIViewContentModeScaleAspectFit];
+    
+    NSArray *iconList = [FILE_MANAGER contentsOfDirectoryAtPath:ICONS_DIRECTORY
+                                                          error:nil];
+    NSString *myAccountName = [TWAccounts currentAccountName];
+    
+    for ( NSString *accountName in iconList ) {
+        
+        if ( [accountName hasPrefix:myAccountName] ) {
+            
+            NSString *searchName = [NSString stringWithFormat:@"%@-", accountName];
+            NSLog(@"%@", searchName);
+            
+            UIImage *image = [[UIImage alloc] initWithContentsOfFile:FILE_PATH];
+            
+            [accountIconButton setImage:image
+                               forState:UIControlStateNormal];
+            break;
+        }
+    }
+    
+    [accountIconButton addTarget:self
+                          action:@selector(pushAccountIconButton)
+                forControlEvents:UIControlEventTouchUpInside];
+    [accountIconButton.layer setMasksToBounds:YES];
+    [accountIconButton.layer setCornerRadius:5.0f];
+    
+    self.topBarIcon = [[UIBarButtonItem alloc] initWithCustomView:accountIconButton];
+    
+    self.topBarReloadButton = [[UIBarButtonItem alloc] initWithImage:[UIImage imageNamed:@"reload.png"]
+                                                               style:UIBarButtonItemStylePlain
+                                                              target:self
+                                                              action:@selector(pushReloadButton)];
+    
+    self.composeButton = [[UIBarButtonItem alloc] initWithImage:[UIImage imageNamed:@"compose.png"]
+                                                          style:UIBarButtonItemStylePlain
+                                                         target:self
+                                                         action:@selector(pushComposeButton)];
+    [self setDefaultTweetsMode];
+    [self.view addSubview:self.topBar];
+    
+    self.closeButton = [[UIBarButtonItem alloc] initWithBarButtonSystemItem:UIBarButtonSystemItemStop
+                                                                     target:self
+                                                                     action:@selector(pushCloseButton)];
+    
+    self.segment = [[UISegmentedControl alloc] initWithItems:@[
+                    @"Timeline", @"Mentions", @"Favorites", @"List"
+                    ]];
+    [self.segment setFrame:CGRectMake(0.0f,
+                                      CGRectGetMaxY(self.topBar.frame),
+                                      SCREEN_WIDTH,
+                                      SEGMENT_BAR_HEIGHT)];
+    [self.segment setSegmentedControlStyle:UISegmentedControlStyleBar];
+    [self.segment setTintColor:OCEAN_COLOR];
+    [self.segment addTarget:self
+                     action:@selector(changeSegmentIndex)
+           forControlEvents:UIControlEventValueChanged];
+    [self.segment setSelectedSegmentIndex:0];
+    [self.view addSubview:self.segment];
+    
+    self.timeline = [[UITableView alloc] initWithFrame:CGRectMake(0.0f,
+                                                                  CGRectGetMaxY(self.segment.frame),
+                                                                  SCREEN_WIDTH,
+                                                                  SCREEN_HEIGHT - CGRectGetHeight(self.topBar.frame) - CGRectGetHeight(self.segment.frame) - TAB_BAR_HEIGHT)
+                                                 style:UITableViewStylePlain];
+    [self.timeline setDelegate:self];
+    [self.timeline setDataSource:self];
+    [self.view addSubview:self.timeline];
+    [self createPullDownRefreshHeader];
+    [self createTimelineGuesture];
+    
+    self.imageWindow = [[ImageWindow alloc] init];
+    [self.view addSubview:self.imageWindow];
+    
+    self.grayView = [[ActivityGrayView alloc] init];
+    [self.view addSubview:self.grayView];
+    
+    [self addNotificationObservers];
+    
+    if ( [InternetConnection enable] ) {
+        
+        [self requestHomeTimeline];
+    }
+}
+
+- (void)viewDidAppear:(BOOL)animated {
     
     NSLog(@"%s", __func__);
     
-    __weak TimelineViewController *wself = self;
+    [super viewDidAppear:animated];
     
-    dispatch_queue_t asyncQueue = GLOBAL_QUEUE_DEFAULT;
-    dispatch_async(asyncQueue, ^{
-
-        if ( _viewReloaded ) {
+    if ( self.listSelect ) {
+        
+        if ( [[TWTweets listID] isNotEmpty] ) {
             
-            _viewReloaded = NO;
-            
-            [wself setDefault];
+            [self requestList:[TWTweets listID]];
+            [self setListSelect:NO];
         }
-        
-        SYNC_MAIN_QUEUE ^{
-            
-            //ツールバーにボタンを設定
-            [wself setTimelineBarItems];
-            
-            wself.accountIconView.userInteractionEnabled = NO;
-            wself.timelineControlButton.image = wself.startImage;
-            
-            wself.timelineSegment.frame = CGRectMake(-4,
-                                                     wself.timelineSegment.frame.origin.y,
-                                                     wself.timelineSegment.frame.size.width + 8,
-                                                     wself.timelineSegment.frame.size.height);
-            
-            wself.grayView = [ActivityGrayView grayViewWithTaskName:@"FirstLoad"];
-            [wself.view addSubview:wself.grayView];
-            
-            wself.imageWindow = [[ImageWindow alloc] init];
-            [wself.view addSubview:wself.imageWindow];
-            
-            [wself setTimelineHeight];
-            
-            //アイコン表示の角を丸める
-            [wself setMyAccountIconCorner];
-            
-            [wself createPullDownRefreshHeader];
-        });
-        
-        //各種通知設定
-        [wself setNotifications];
-        
-        //インターネット接続を確認
-        if ( [InternetConnection disable] ) return;
-        
-        //タイムライン生成
-        [wself performSelectorInBackground:@selector(createTimeline) withObject:nil];
-    });
+    }
 }
 
-- (void)setDefault {
+- (void)applicationDidBecomeActive:(UIApplication *)application {
     
-    //各種初期化
-    self.timelineArray = BLANK_ARRAY;
-    self.inReplyTo = BLANK_M_ARRAY;
-    self.currentList = BLANK_M_ARRAY;
-    self.searchStreamTemp = BLANK_M_ARRAY;
-    self.requestedUser = [NSMutableSet set];
-    self.mentionsArray = BLANK_ARRAY;
-    self.allLists = BLANK_M_DIC;
-    self.selectTweet = BLANK_DIC;
-    self.selectAccount = BLANK;
-    self.alertSearchUserName = BLANK;
+    NSLog(@"%s", __func__);
     
-    self.startImage = [UIImage imageNamed:@"ForwardIcon.png"];
-    self.stopImage = [UIImage imageNamed:@"stop.png"];
-    self.listImage = [UIImage imageNamed:@"list.png"];
-    
-    self.userStream = NO;
-    self.userStreamFirstResponse = NO;
-    self.pickerVisible = NO;
-    self.showMenu = NO;
-    
-    //アイコン保存用ディレクトリ確認
-    BOOL isDir = NO;
-    BOOL directoryExists = ( [FILE_MANAGER fileExistsAtPath:ICONS_DIRECTORY isDirectory:&isDir] && isDir );
-    
-    if ( !directoryExists ) {
+    if ( [D boolForKey:@"BecomeActiveUSConnect"] &&
+         self.segment.selectedSegmentIndex == 0 ) {
         
-        //存在しない場合作成
-        [FILE_MANAGER createDirectoryAtPath:ICONS_DIRECTORY
-                withIntermediateDirectories:YES
-                                 attributes:nil
-                                      error:nil];
+        if ( !self.userStream ) [self pushReloadButton];
     }
-    
-    //クラッシュログ保存用ディレクトリ確認
-    isDir = NO;
-    directoryExists = ( [FILE_MANAGER fileExistsAtPath:LOGS_DIRECTORY isDirectory:&isDir] && isDir );
-    
-    if ( !directoryExists ) {
-        
-        //存在しない場合作成
-        [FILE_MANAGER createDirectoryAtPath:LOGS_DIRECTORY
-                withIntermediateDirectories:YES
-                                 attributes:nil
-                                      error:nil];
-    }
-    
-    [self startConnectionCheckTimer];
-    self.searchStreamTimer = nil;
 }
 
-- (void)setNotifications {
+- (void)applicationDidEnterBackground:(UIApplication *)application {
     
-    //タイムライン取得完了通知を受け取る設定
-    [[NSNotificationCenter defaultCenter] addObserver:self
-                                             selector:@selector(loadTimeline:)
-                                                 name:@"GetTimeline"
-                                               object:nil];
+    NSLog(@"%s", __func__);
     
-    //ユーザータイムライン取得完了通知を受け取る設定
-    [[NSNotificationCenter defaultCenter] addObserver:self
-                                             selector:@selector(loadUserTimeline:)
-                                                 name:@"GetUserTimeline"
-                                               object:nil];
+    if ( [D boolForKey:@"EnterBackgroundUSDisConnect"] ) {
+        
+        if ( self.userStream ) [self closeStream];
+    }
+}
+
+- (void)createPullDownRefreshHeader {
     
-    //Mentions取得完了通知を受け取る設定
-    [[NSNotificationCenter defaultCenter] addObserver:self
-                                             selector:@selector(loadMentions:)
-                                                 name:@"GetMentions"
-                                               object:nil];
+    NSLog(@"createPullDownRefreshHeader");
     
-    //Favorites取得完了通知を受け取る設定
-    [[NSNotificationCenter defaultCenter] addObserver:self
-                                             selector:@selector(loadFavorites:)
-                                                 name:@"GetFavorites"
-                                               object:nil];
+    CGRect timelineBounds = self.timeline.bounds;
     
-    //Twitter Search取得完了通知を受け取る設定
-    [[NSNotificationCenter defaultCenter] addObserver:self
-                                             selector:@selector(loadSearch:)
-                                                 name:@"GetSearch"
-                                               object:nil];
+    CGRect headerRect = CGRectMake(0.0f,
+                                   -timelineBounds.size.height,
+                                   timelineBounds.size.width,
+                                   timelineBounds.size.height);
     
-    //リスト取得完了通知を受け取る設定
-    [[NSNotificationCenter defaultCenter] addObserver:self
-                                             selector:@selector(loadList:)
-                                                 name:@"ReceiveList"
-                                               object:nil];
+    self.headerView = [[TTTableHeaderDragRefreshView alloc] initWithFrame:headerRect];
+    [self.headerView setAutoresizingMask:UIViewAutoresizingFlexibleWidth];
+    [self.headerView setBackgroundColor:TTSTYLEVAR(tableRefreshHeaderBackgroundColor)];
+    [self.headerView setStatus:TTTableHeaderDragRefreshPullToReload];
+    [self.timeline addSubview:self.headerView];
+    [self.headerView setUpdateDate:nil];
     
-    //プロフィール取得完了を受け取る設定
-    [[NSNotificationCenter defaultCenter] addObserver:self
-                                             selector:@selector(receiveProfile:)
-                                                 name:@"GetProfile"
-                                               object:nil];
+    CGRect activityRect = CGRectMake(0.0f,
+                                     44.0f,
+                                     CGRectGetWidth(self.view.frame),
+                                     CGRectGetHeight(self.view.bounds));
+    self.activityTable = [[UIView alloc] initWithFrame:activityRect];
+    [self.activityTable setBackgroundColor:[UIColor whiteColor]];
     
-    //Tweet取得完了を受け取る設定
-    [[NSNotificationCenter defaultCenter] addObserver:self
-                                             selector:@selector(receiveTweet:)
-                                                 name:@"GetTweet"
-                                               object:nil];
+    TTActivityLabel *label = [[TTActivityLabel alloc] initWithStyle:TTActivityLabelStyleGray];
+    [self.activityTable addSubview:label];
+    CGRect frame = self.activityTable.bounds;
+    frame.origin.y -= 44.0f;
+    [label setFrame:frame];
+}
+
+- (void)createTimelineGuesture {
     
-    //削除完了を受け取る設定
-    [[NSNotificationCenter defaultCenter] addObserver:self
-                                             selector:@selector(destroyTweet:)
-                                                 name:@"Destroy"
-                                               object:nil];
+    UISwipeGestureRecognizer *swipeRight = [[UISwipeGestureRecognizer alloc] initWithTarget:self
+                                                                                     action:@selector(swipeTimelineRight:)];
+    [swipeRight setDirection:UISwipeGestureRecognizerDirectionRight];
+    [self.timeline addGestureRecognizer:swipeRight];
+    
+    UISwipeGestureRecognizer *swipeLeft = [[UISwipeGestureRecognizer alloc] initWithTarget:self
+                                                                                    action:@selector(swipeTimelineLeft:)];
+    [swipeLeft setDirection:UISwipeGestureRecognizerDirectionLeft];
+    [self.timeline addGestureRecognizer:swipeLeft];
+    
+    UILongPressGestureRecognizer *longPress = [[UILongPressGestureRecognizer alloc] initWithTarget:self
+                                                                                            action:@selector(longPressTimeline:)];
+    [longPress setMinimumPressDuration:0.5f];
+    [self.timeline addGestureRecognizer:longPress];
+}
+
+- (void)addNotificationObservers {
+ 
+    NSLog(@"%s", __func__);
     
     //アプリがアクティブになった場合の通知を受け取る設定
     [[NSNotificationCenter defaultCenter] addObserver:self
-                                             selector:@selector(becomeActive:)
+                                             selector:@selector(applicationDidBecomeActive:)
                                                  name:UIApplicationDidBecomeActiveNotification
                                                object:nil];
     
     //バックグラウンドに移行した際にストリームを切断
     [[NSNotificationCenter defaultCenter] addObserver:self
-                                             selector:@selector(enterBackground:)
+                                             selector:@selector(applicationDidEnterBackground:)
                                                  name:UIApplicationDidEnterBackgroundNotification
                                                object:nil];
     
@@ -239,20 +521,60 @@
                                                  name:@"ChangeAccount"
                                                object:nil];
     
-    //オフライン通知を受け取る
+    //APIエラー
     [[NSNotificationCenter defaultCenter] addObserver:self
-                                             selector:@selector(receiveOfflineNotification:)
+                                             selector:@selector(receiveAPIError:)
+                                                 name:GET_API_ERROR_NOTIFICATION
+                                               object:nil];
+    
+    //Timeline取得完了
+    [[NSNotificationCenter defaultCenter] addObserver:self
+                                             selector:@selector(receiveHomeTimeline:)
+                                                 name:HOME_TIMELINE_DONE_NOTIFICATION
+                                               object:nil];
+    
+    //UserTimeline取得完了
+    [[NSNotificationCenter defaultCenter] addObserver:self
+                                             selector:@selector(receiveUserTimeline:)
+                                                 name:USER_TIMELINE_DONE_NOTIFICATION
+                                               object:nil];
+    
+    //Mentions取得完了
+    [[NSNotificationCenter defaultCenter] addObserver:self
+                                             selector:@selector(receiveMentions:)
+                                                 name:MENTIONS_DONE_NOTIFICATION
+                                               object:nil];
+    
+    //Favorites取得完了
+    [[NSNotificationCenter defaultCenter] addObserver:self
+                                             selector:@selector(receiveFavorites:)
+                                                 name:FAVORITES_DONE_NOTIFICATION
+                                               object:nil];
+    
+    //Search取得完了
+    [[NSNotificationCenter defaultCenter] addObserver:self
+                                             selector:@selector(receiveSearch:)
+                                                 name:SEARCH_DONE_NOTIFICATION
+                                               object:nil];
+    
+    [[NSNotificationCenter defaultCenter] addObserver:self
+                                             selector:@selector(receiveTweet:)
+                                                 name:TWEET_DONE_NOTIFICATION
+                                               object:nil];
+    
+    [[NSNotificationCenter defaultCenter] addObserver:self
+                                             selector:@selector(receiveProfile:)
+                                                 name:PROFILE_DONE_NOTIFICATION
+                                               object:nil];
+    
+    [[NSNotificationCenter defaultCenter] addObserver:self
+                                             selector:@selector(receiveList:)
+                                                 name:LIST_DONE_NOTIFICATION
+                                               object:nil];
+    
+    [[NSNotificationCenter defaultCenter] addObserver:self
+                                             selector:@selector(receiveOffline:)
                                                  name:@"Offline"
-                                               object:nil];
-    
-    [[NSNotificationCenter defaultCenter] addObserver:self
-                                             selector:@selector(pboardNotification:)
-                                                 name:@"pboardNotification"
-                                               object:nil];
-    
-    [[NSNotificationCenter defaultCenter] addObserver:self
-                                             selector:@selector(startConnectionCheckTimer)
-                                                 name:@"BecomeOnline"
                                                object:nil];
     
     [[NSNotificationCenter defaultCenter] addObserver:self
@@ -261,71 +583,593 @@
                                                object:nil];
     
     [[NSNotificationCenter defaultCenter] addObserver:self
-                                             selector:@selector(receiveGrayViewDoneNotification:)
-                                                 name:@"GrayViewDone"
-                                               object:nil];
-    
-    [[NSNotificationCenter defaultCenter] addObserver:self
                                              selector:@selector(openTimelineImage:)
                                                  name:@"OpenTimelineImage"
                                                object:nil];
     
-    [[NSNotificationCenter defaultCenter] addObserver:self
-                                             selector:@selector(timelineMenuAction:)
-                                                 name:@"TimelineMenuAction"
-                                               object:nil];
-    
+    //TimelineMenu
     [[NSNotificationCenter defaultCenter] addObserver:self
                                              selector:@selector(hideTimelineMenu:)
-                                                 name:@"TimelineMenuCanceled"
+                                                 name:@"TimelineMenuDone"
                                                object:nil];
+    
+    [[NSNotificationCenter defaultCenter] addObserver:self
+                                             selector:@selector(timelineMenuSelectID:)
+                                                 name:@"TimelineMenuSelectID"
+                                               object:nil];
+    
+    [[NSNotificationCenter defaultCenter] addObserver:self
+                                             selector:@selector(timelineMenuHashTagNG:)
+                                                 name:@"TimelineMenuHashTagNG"
+                                               object:nil];
+    
+    [[NSNotificationCenter defaultCenter] addObserver:self
+                                             selector:@selector(timelineMenuClientNG:)
+                                                 name:@"TimelineMenuClientNG"
+                                               object:nil];
+    
+    [[NSNotificationCenter defaultCenter] addObserver:self
+                                             selector:@selector(timelineMenuInReplyTo:)
+                                                 name:@"TimelineMenuInReplyTo"
+                                               object:nil];
+    
+    [[NSNotificationCenter defaultCenter] addObserver:self
+                                             selector:@selector(timelineMenuDelete:)
+                                                 name:@"TimelineMenuDelete"
+                                               object:nil];
+    
+    [[NSNotificationCenter defaultCenter] addObserver:self
+                                             selector:@selector(timelineMenuEdit:)
+                                                 name:@"TimelineMenuEdit"
+                                               object:nil];
+    //Menuここまで
 }
 
-- (void)setTimelineHeight {
+#pragma mark - Request
+
+- (void)requestHomeTimeline {
     
-    //タイムラインの位置を計算する
-    int timelineY = TOOL_BAR_HEIGHT + SEGMENT_BAR_HEIGHT;
+    NSLog(@"%s", __func__);
     
-    //タイムラインの高さを計算する
-    int timelineHeight = SCREEN_HEIGHT - timelineY - TAB_BAR_HEIGHT;
+    if ( ![InternetConnection enable] ) {
+        
+        return;
+    }
     
-    //タイムラインに位置と高さを設定する
-    _timeline.frame = CGRectMake(0,
-                                 timelineY,
-                                 SCREEN_WIDTH,
-                                 timelineHeight);
+    if ( [self.currentTweets count] == 0 ) {
+        
+        [self.grayView start];
+    }
+    
+    [self getMyAccountIcon];
+    
+    if ( [D boolForKey:@"UseTimelineList"] ) {
+        
+        NSString *listID = [[D objectForKey:@"TimelineList"] objectForKey:[TWAccounts currentAccountName]];
+        
+        if ( [listID isNotEmpty] ) {
+            
+            //代替リスト
+            NSLog(@"TimelineListMode");
+            
+            [self requestList:listID];
+            return;
+        }
+    }
+    
+    NSMutableDictionary *parameters = [@{} mutableCopy];
+    
+    //取得数
+    [parameters setObject:[[NSUserDefaults standardUserDefaults] objectForKey:@"TimelineLoadCount"]
+                   forKey:@"count"];
+    //エンティティの有効化
+    [parameters setObject:@"1"
+                   forKey:@"include_entities"];
+    //RT表示
+    [parameters setObject:@"1"
+                   forKey:@"include_rts"];
+    
+    if ( [[TWTweets topTweetID] isNotEmpty] ) {
+        
+        [parameters setObject:[TWTweets topTweetID]
+                        forKey:@"since_id"];
+    }
+    
+    [FPTRequest requestWithGetType:FPTGetRequestTypeHomeTimeline
+                        parameters:parameters];
 }
 
-- (void)createPullDownRefreshHeader {
+- (void)requestUserTimeline:(NSString *)screenName {
     
-    NSLog(@"createPullDownRefreshHeader");
+    if ( ![InternetConnection enable] ) {
+        
+        return;
+    }
     
-    CGRect headerRect = CGRectMake(0,
-                                   -_timeline.bounds.size.height,
-                                   _timeline.bounds.size.width,
-                                   _timeline.bounds.size.height);
-    self.headerView = nil;
-    self.headerView = [[TTTableHeaderDragRefreshView alloc] initWithFrame:headerRect];
-    _headerView.autoresizingMask = UIViewAutoresizingFlexibleWidth;
-    _headerView.backgroundColor = TTSTYLEVAR(tableRefreshHeaderBackgroundColor);
-    [_headerView setStatus:TTTableHeaderDragRefreshPullToReload];
-    [_timeline addSubview:_headerView];
-    [_headerView setUpdateDate:nil];
+    [self.grayView start];
     
-    CGRect activityRect = CGRectMake(0,
-                                     44,
-                                     self.view.frame.size.width,
-                                     self.view.bounds.size.height);
-    self.activityTable = nil;
-    _activityTable = [[UIView alloc] initWithFrame:activityRect];
-    _activityTable.backgroundColor = [UIColor whiteColor];
+    NSMutableDictionary *parameters = [@{} mutableCopy];
     
-    TTActivityLabel *label = [[TTActivityLabel alloc] initWithStyle:TTActivityLabelStyleGray];
-    [_activityTable addSubview:label];
-    CGRect frame = _activityTable.bounds;
-    frame.origin.y -= 44;
-    label.frame = frame;
-    label = nil;
+    //表示するユーザー
+    [parameters setObject:screenName
+                   forKey:@"screen_name"];
+    //取得数
+    [parameters setObject:[[NSUserDefaults standardUserDefaults] objectForKey:@"TimelineLoadCount"]
+                   forKey:@"count"];
+    //エンティティの有効化
+    [parameters setObject:@"1"
+                   forKey:@"include_entities"];
+    //RT表示
+    [parameters setObject:@"1"
+                   forKey:@"include_rts"];
+    
+    [FPTRequest requestWithGetType:FPTGetRequestTypeUserTimeline
+                        parameters:parameters];
+}
+
+- (void)requestMentions {
+    
+    if ( ![InternetConnection enable] ) {
+        
+        return;
+    }
+    
+    [self.grayView start];
+    
+    NSMutableDictionary *parameters = [@{} mutableCopy];
+    
+    //取得数
+    [parameters setObject:[[NSUserDefaults standardUserDefaults] objectForKey:@"MentionsLoadCount"]
+                   forKey:@"count"];
+    //エンティティの有効化
+    [parameters setObject:@"1"
+                   forKey:@"include_entities"];
+    
+    [FPTRequest requestWithGetType:FPTGetRequestTypeMentions
+                        parameters:parameters];
+}
+
+- (void)requestFavorites {
+    
+    if ( ![InternetConnection enable] ) {
+        
+        return;
+    }
+    
+    [self.grayView start];
+    
+    NSMutableDictionary *parameters = [@{} mutableCopy];
+    
+    //取得数
+    [parameters setObject:[[NSUserDefaults standardUserDefaults] objectForKey:@"FavoritesLoadCount"]
+                   forKey:@"count"];
+    //エンティティの有効化
+    [parameters setObject:@"1"
+                   forKey:@"include_entities"];
+    
+    [FPTRequest requestWithGetType:FPTGetRequestTypeFavorites
+                        parameters:parameters];
+}
+
+- (void)requestSearch:(NSString *)searchWord {
+    
+    if ( ![InternetConnection enable] ) {
+        
+        return;
+    }
+    
+    [self.grayView start];
+    
+    NSMutableDictionary *parameters = [@{} mutableCopy];
+    
+    //サーチワード
+    [parameters setObject:searchWord
+                   forKey:@"q"];
+    //取得数
+    [parameters setObject:[[NSUserDefaults standardUserDefaults] objectForKey:@"TimelineLoadCount"]
+               forKey:@"count"];
+    //エンティティの有効化
+    [parameters setObject:@"1"
+                   forKey:@"include_entities"];
+    //日本
+    [parameters setObject:@"ja"
+                   forKey:@"lang"];
+    
+    [FPTRequest requestWithGetType:FPTGetRequestTypeSearch
+                        parameters:parameters];
+}
+
+- (void)requestTweet:(NSString *)tweetID {
+    
+    NSLog(@"%s", __func__);
+    
+    if ( ![InternetConnection enable] ) {
+        
+        return;
+    }
+    
+    NSMutableDictionary *parameters = [@{} mutableCopy];
+    
+    [parameters setObject:tweetID
+                   forKey:@"id"];
+    
+    //エンティティの有効化
+    [parameters setObject:@"1"
+                   forKey:@"include_entities"];
+    
+    [FPTRequest requestWithGetType:FPTGetRequestTypeTweet
+                        parameters:parameters];
+}
+
+- (void)requestList:(NSString *)listID {
+    
+    NSLog(@"%s", __func__);
+    
+    if ( ![InternetConnection enable] ) {
+        
+        return;
+    }
+
+    if ( self.segment.selectedSegmentIndex == TimelineSegmentList ) {
+    
+        [self.grayView start];
+    }
+    
+    NSMutableDictionary *parameters = [@{} mutableCopy];
+    
+    //取得数
+    [parameters setObject:[[NSUserDefaults standardUserDefaults] objectForKey:@"TimelineLoadCount"]
+                   forKey:@"count"];
+    
+    //エンティティの有効化
+    [parameters setObject:@"1"
+                   forKey:@"include_entities"];
+    
+    [parameters setObject:listID
+                   forKey:LIST_ID];
+    
+    if ( [D boolForKey:@"UseTimelineList"] &&
+          self.segment.selectedSegmentIndex == TimelineSegmentTimeline ) {
+        
+        [parameters setObject:@"YES"
+                       forKey:TIMELINE_LIST_MODE];
+    }
+    
+    [FPTRequest requestWithGetType:FPTGetRequestTypeList
+                        parameters:parameters];
+}
+
+#pragma mark - Receive Response
+- (void)receiveHomeTimeline:(NSNotification *)notification {
+    
+    NSLog(@"%s", __func__);
+    
+    NSString *requestUserName = notification.userInfo[REQUEST_USER_NAME];
+    
+    if ( self.segment.selectedSegmentIndex == TimelineSegmentTimeline &&
+        [requestUserName isEqualToString:[TWAccounts currentAccountName]] ) {
+        
+        BOOL stopped = NO;
+        
+        if ( self.userStream ) {
+            
+            stopped = YES;
+            [self setAddTweetStopMode:YES];
+        }
+        
+        NSString *scrollTweetID = nil;
+        if ( [self.currentTweets isNotEmpty] ) {
+            
+            scrollTweetID = ((TWTweet *)self.currentTweets[0]).tweetID;
+        }
+        
+        NSMutableArray *receiveTweets = notification.userInfo[RESPONSE_DATA];
+        [self getIconWithTweetArray:receiveTweets];
+        
+        NSUInteger beforeCount = [self.currentTweets count];
+        
+        @synchronized(self) {
+            
+            [self setCurrentTweets:[self.currentTweets appendOnlyNewTweetToTop:receiveTweets
+                                                                 returnMutable:YES]];
+        }
+        
+        [self.grayView end];
+        [self finishLoad];
+        
+        if ( beforeCount != [self.currentTweets count] ) {
+            
+            @synchronized(self) {
+                
+                //新着があった場合のみ行う
+                [TWTweets saveCurrentTimeline:self.currentTweets];
+            }
+            
+            [self.timeline reloadData];
+            
+            if ( [D boolForKey:@"TimelineFirstLoad"] ) {
+                
+                [self scrollTimelineToBottom:YES];
+                
+            }else {
+                
+                //新着取得前の最新までスクロール
+                [self scrollTimelineForNewTweet:scrollTweetID];
+            }
+            
+            [self addTackNotification:[NSString stringWithFormat:@"新着Tweet %d件", [self.currentTweets count] - beforeCount]];
+        }
+        
+        if ( [D boolForKey:@"ReloadAfterUSConnect"] &&
+            !self.userStream ) {
+            
+            //UserStream接続
+            [self pushTopBarUSButton];
+        }
+        
+        if ( stopped ) {
+            
+            [self setAddTweetStopMode:NO];
+        }
+    }
+}
+
+- (void)receiveUserTimeline:(NSNotification *)notification {
+    
+    NSLog(@"%s", __func__);
+    
+    [self setOtherTweetsMode];
+    
+    NSString *requestUserName = notification.userInfo[REQUEST_USER_NAME];
+    
+    if ( [requestUserName isEqualToString:[TWAccounts currentAccountName]] ) {
+        
+        NSMutableArray *receiveTweets = notification.userInfo[RESPONSE_DATA];
+        [self getIconWithTweetArray:receiveTweets];
+        [self setCurrentTweets:receiveTweets];
+        [self.timeline reloadData];
+        [self.grayView end];
+        [self finishLoad];
+    }
+}
+
+- (void)receiveMentions:(NSNotification *)notification {
+    
+    NSLog(@"%s", __func__);
+    
+    NSString *requestUserName = notification.userInfo[REQUEST_USER_NAME];
+    
+    if ( self.segment.selectedSegmentIndex == TimelineSegmentMentions &&
+        [requestUserName isEqualToString:[TWAccounts currentAccountName]] ) {
+        
+        NSMutableArray *receiveTweets = notification.userInfo[RESPONSE_DATA];
+        [self getIconWithTweetArray:receiveTweets];
+        [self setCurrentTweets:receiveTweets];
+        [self.timeline reloadData];
+        [self.grayView end];
+        [self finishLoad];
+    }
+}
+
+- (void)receiveFavorites:(NSNotification *)notification {
+    
+    NSLog(@"%s", __func__);
+    
+    NSString *requestUserName = notification.userInfo[REQUEST_USER_NAME];
+    
+    if ( self.segment.selectedSegmentIndex == TimelineSegmentFavorites &&
+        [requestUserName isEqualToString:[TWAccounts currentAccountName]] ) {
+        
+        NSMutableArray *receiveTweets = notification.userInfo[RESPONSE_DATA];
+        [self getIconWithTweetArray:receiveTweets];
+        [self setCurrentTweets:receiveTweets];
+        [self.timeline reloadData];
+        [self.grayView end];
+        [self finishLoad];
+    }
+}
+
+- (void)receiveSearch:(NSNotification *)notification {
+    
+    NSLog(@"%s", __func__);
+    
+    NSString *requestUserName = notification.userInfo[REQUEST_USER_NAME];
+    
+    if ( [requestUserName isEqualToString:[TWAccounts currentAccountName]] ) {
+        
+        [self setOtherTweetsMode];
+        
+        NSMutableArray *receiveTweets = notification.userInfo[RESPONSE_DATA];
+        [self getIconWithTweetArray:receiveTweets];
+        [self setCurrentTweets:receiveTweets];
+        [self.timeline reloadData];
+        [self.grayView end];
+        [self finishLoad];
+    }
+}
+
+- (void)receiveTweet:(NSNotification *)notification {
+    
+    TWTweet *tweet = notification.userInfo[RESPONSE_DATA];
+    [self.otherTweets addObject:tweet];
+    [self createInReplyToChain:tweet];
+}
+
+- (void)receiveList:(NSNotification *)notification {
+    
+    NSString *requestUserName = notification.userInfo[REQUEST_USER_NAME];
+    
+    if ( self.segment.selectedSegmentIndex == TimelineSegmentList &&
+        [requestUserName isEqualToString:[TWAccounts currentAccountName]] ) {
+        
+        NSMutableArray *receiveTweets = notification.userInfo[RESPONSE_DATA];
+        [self getIconWithTweetArray:receiveTweets];
+        [self setCurrentTweets:receiveTweets];
+        [self.timeline reloadData];
+        [self.grayView end];
+        [self finishLoad];
+    }
+}
+
+- (void)receiveProfile:(NSNotification *)notification {
+    
+    NSLog(@"%s", __func__);
+    
+    IconSize iconSize;
+    NSString *iconQualitySetting = [D objectForKey:@"IconQuality"];
+    
+    if ( [iconQualitySetting isEqualToString:@"Mini"] ) {
+        iconSize = IconSizeMini;
+    }else if ( [iconQualitySetting isEqualToString:@"Normal"] ) {
+        iconSize = IconSizeNormal;
+    }else if ( [iconQualitySetting isEqualToString:@"Bigger"] ) {
+        iconSize = IconSizeBigger;
+    }else if ( [iconQualitySetting hasPrefix:@"Original"] ) {
+        iconSize = IconSizeOriginal;
+    }else {
+        iconSize = IconSizeBigger;
+    }
+    
+    NSString *iconURL = [TWIconResizer iconURL:notification.userInfo[@"ResponseData"][@"profile_image_url"]
+                                      iconSize:iconSize];
+    ASIHTTPRequest *request = [ASIHTTPRequest requestWithURL:[NSURL URLWithString:iconURL]];
+    __weak __block ASIHTTPRequest *wRequest = request;
+    
+    [wRequest setCompletionBlock:^ {
+        
+        NSArray *iconList = [FILE_MANAGER contentsOfDirectoryAtPath:ICONS_DIRECTORY
+                                                              error:nil];
+        NSString *myAccountName = [TWAccounts currentAccountName];
+        
+        for ( NSString *accountName in iconList ) {
+            
+            if ( [accountName hasPrefix:myAccountName] ) {
+                
+                NSString *searchName = [NSString stringWithFormat:@"%@", accountName];
+                [FILE_MANAGER removeItemAtPath:FILE_PATH
+                                         error:nil];
+                break;
+            }
+        }
+        
+        UIImage *iconImage = [UIImage imageWithData:wRequest.responseData];
+        
+        if ( [iconQualitySetting isEqualToString:@"Original96"] ) {
+            
+            iconImage = [ResizeImage aspectResizeForMaxSize:iconImage
+                                                    maxSize:96.0f];
+        }
+        
+        [ICON_BUTTON setImage:iconImage
+                     forState:UIControlStateNormal];
+        
+        NSString *fileName = [iconURL lastPathComponent];
+        NSString *screenName = notification.userInfo[REQUEST_USER_NAME];
+        NSString *searchName = [NSString stringWithFormat:@"%@-%@", screenName, fileName];
+        [wRequest.responseData writeToFile:FILE_PATH
+                                atomically:YES];
+        [Share cacheImage:iconImage
+                  forName:screenName
+         doneNotification:NO];
+    }];
+    
+    [wRequest startAsynchronous];
+}
+
+- (void)receiveAPIError:(NSNotification *)notification {
+    
+    NSLog(@"%s", __func__);
+    
+    if ( notification.userInfo ) {
+        
+        NSError *jsonError = nil;
+        NSDictionary *errors = notification.userInfo[@"ErrorResponseData"];
+        
+        if ( !jsonError ) {
+            
+            NSDictionary *error = errors[@"errors"][0];
+            NSLog(@"%@", error);
+            
+            [ShowAlert title:error[@"message"]
+                     message:[NSString stringWithFormat:@"code: %@", [error[@"code"] stringValue]]];
+            
+        }else {
+            
+            [ShowAlert error:errors.description];
+        }
+    }
+    
+    [self.grayView forceEnd];
+}
+
+- (void)receiveOffline:(NSNotification *)notification {
+    
+    [self.grayView forceEnd];
+}
+
+- (void)createInReplyToChain:(TWTweet *)tweet {
+    
+    NSLog(@"%s", __func__);
+    
+    NSString *inReplyToID = tweet.inReplyToID;
+    
+    if ( [inReplyToID isNotEmpty] ) {
+        
+        NSLog(@"inReplyToID: %@", inReplyToID);
+        
+        __block TWTweet *findTweet = nil;
+        
+        [self.currentTweets enumerateObjectsUsingBlock:^(TWTweet *searchTweet,
+                                                         NSUInteger index,
+                                                         BOOL *stop) {
+             
+             NSString *searchTweetID = searchTweet.tweetID;
+             
+             if ( [searchTweetID isNotEmpty] ) {
+                 
+                 if ( [searchTweetID isEqualToString:inReplyToID] ) {
+                     
+                     findTweet = searchTweet;
+                     [self.otherTweets addObject:findTweet];
+                     *stop = YES;
+                 }
+             }
+         }];
+        
+        if ( findTweet ) {
+            
+            [self createInReplyToChain:findTweet];
+            
+        }else {
+            
+            [self requestTweet:inReplyToID];
+        }
+        
+    }else {
+        
+        if ( self.otherTweets.count <= 1 ) {
+            
+            [ShowAlert error:@"InReplyToIDがありません。"];
+            
+        }else {
+            
+            [self setOtherTweetsMode];
+            [self setCurrentTweets:self.otherTweets];
+            [self.timeline reloadData];
+        }
+    }
+}
+
+- (void)addFavorite:(NSString *)tweetID accountIndex:(NSInteger)accountIndex {
+    
+    NSMutableDictionary *parameters = [@{} mutableCopy];
+    [parameters setObject:tweetID
+                   forKey:@"id"];
+    [parameters setObject:@(accountIndex)
+                   forKey:NEED_SELECT_ACCOUNT];
+    
+    [FPTRequest requestWithPostType:FPTPostRequestTypeFavorite
+                         parameters:parameters];
 }
 
 #pragma mark - UIScrollViewDelegate
@@ -334,28 +1178,31 @@
     
     //NSLog(@"scrollViewDidScroll");
     
-    if ( scrollView.dragging && !_isLoading ) {
+    if ( scrollView.dragging && !self.loading ) {
         
         if ( scrollView.contentOffset.y > REFRESH_DERAY &&
-            scrollView.contentOffset.y < 0.0f ) {
+             scrollView.contentOffset.y < 0.0f ) {
             
-            [_headerView setStatus:TTTableHeaderDragRefreshPullToReload];
+            [self.headerView setStatus:TTTableHeaderDragRefreshPullToReload];
             
         }else if ( scrollView.contentOffset.y < REFRESH_DERAY ) {
             
-            [_headerView setStatus:TTTableHeaderDragRefreshReleaseToReload];
+            [self.headerView setStatus:TTTableHeaderDragRefreshReleaseToReload];
         }
     }
     
-    if ( _isLoading ) {
+    if ( self.loading ) {
         
         if ( scrollView.contentOffset.y >= 0 ) {
             
-            _timeline.contentInset = UIEdgeInsetsZero;
+            [self.timeline setContentInset:UIEdgeInsetsZero];
             
         }else if ( scrollView.contentOffset.y < 0 ) {
             
-            _timeline.contentInset = UIEdgeInsetsMake(HEADER_HEIGHT, 0, 0, 0);
+            [self.timeline setContentInset:UIEdgeInsetsMake(HEADER_HEIGHT,
+                                                            0.0f,
+                                                            0.0f,
+                                                            0.0f)];
         }
     }
 }
@@ -365,7 +1212,7 @@
     //NSLog(@"scrollViewDidEndDragging");
     
     if ( scrollView.contentOffset.y <= REFRESH_DERAY &&
-        !_isLoading ) {
+        !self.loading ) {
         
         [self startLoad];
     }
@@ -375,32 +1222,29 @@
 
 - (void)startLoad {
     
-    NSLog(@"startLoad");
+    [self.headerView setStatus:TTTableHeaderDragRefreshLoading];
     
-    [_headerView setStatus:TTTableHeaderDragRefreshLoading];
-    
-    if ( _reloadButton.isEnabled ) {
-        
-        __weak TimelineViewController *wself = self;
-        
-        DISPATCH_AFTER(0.1) ^{
-            
-            [wself pushReloadButton:nil];
-        });
-        
-    }else {
+    if ( ![self.topBarReloadButton isEnabled] ) {
         
         return;
     }
     
-    _isLoading = YES;
+    DISPATCH_AFTER(0.1) ^{
+        
+        [self pushReloadButton];
+    });
+    
+    [self setLoading:YES];
     
     [UIView beginAnimations:nil context:NULL];
     [UIView setAnimationDuration:ttkDefaultFastTransitionDuration];
     
-    if ( _timeline.contentOffset.y < 0 ) {
+    if ( [self.timeline contentOffset].y < 0 ) {
         
-        _timeline.contentInset = UIEdgeInsetsMake(HEADER_HEIGHT, 0, 0, 0);
+        [self.timeline setContentInset:UIEdgeInsetsMake(HEADER_HEIGHT,
+                                                        0.0f,
+                                                        0.0f,
+                                                        0.0f)];
     }
     
     [UIView commitAnimations];
@@ -408,535 +1252,944 @@
 
 - (void)finishLoad {
     
-    NSLog(@"finishLoad");
-    
-    [_headerView setStatus:TTTableHeaderDragRefreshPullToReload];
-    
-    [_grayView end];
-    
     [UIView beginAnimations:nil context:NULL];
     [UIView setAnimationDuration:ttkDefaultTransitionDuration];
-    _timeline.contentInset = UIEdgeInsetsZero;
+    
+    [self.headerView setStatus:TTTableHeaderDragRefreshPullToReload];
+    [self.timeline setContentInset:UIEdgeInsetsZero];
+    [self.headerView setCurrentDate];
+    [self setLoading:NO];
+    
     [UIView commitAnimations];
-    
-    [_headerView setCurrentDate];
-    _isLoading = NO;
 }
 
-#pragma mark - TimelineMethod
-
-- (void)createTimeline {
+- (void)changeAccount:(NSNotification *)notification {
     
-    @autoreleasepool {
+    //Tweet画面でアカウントが切り替えられた際に呼ばれる
+    NSLog(@"changeAccount");
+    
+    //UserStreamが有効な場合切断する
+    if ( self.userStream ) [self closeStream];
+    
+    //自分のアカウントを設定
+    [self getMyAccountIcon];
+    
+    //List一覧のキャッシュを削除
+    
+    //タイムラインをアクティブアカウントの物に切り替え
+    [self setCurrentTweets:[TWTweets currentTimeline]];
+    [self.timeline reloadData];
+    
+    DISPATCH_AFTER(0.1) ^{
         
-        NSLog(@"createTimeline");
+        [self requestHomeTimeline];
+    });
+}
+
+#pragma mark - Button
+- (void)pushActionButton {
+    
+    NSLog(@"%s", __func__);
+    
+    UIActionSheet *sheet = [[UIActionSheet alloc]
+                            initWithTitle:@"外部サービスやユーザー情報を開く"
+                            delegate:self
+                            cancelButtonTitle:@"Cancel"
+                            destructiveButtonTitle:nil
+                            otherButtonTitles:
+                            @"Twilog", @"TwilogSearch", @"favstar", @"Twitpic",
+                            @"UserTimeline", @"TwitterSearch", @"TwitterSearch(Stream)",
+                            @"API Limitを確認", nil];
+    [sheet setTag:ActionMenuTypeService];
+    [sheet showInView:self.tabBarController.view];
+}
+
+- (void)pushTopBarUSButton {
+    
+    NSLog(@"%s", __func__);
+    
+    if ( self.listSelect ) {
         
-        //インターネット接続を確認
-        if ( ![InternetConnection enable] ) return;
+        [self showListView];
         
-        if ( [TWAccounts currentAccount] == nil ) {
+    }else {
+     
+        if ( self.userStream ) {
             
-            [ShowAlert error:@"Twitterアカウントが取得できません。iPhoneの設定より登録の後、ご使用ください。"];
-            return;
+            [self closeStream];
+            
+        }else {
+            
+            [USER_STREAM_BUTTON setEnabled:NO];
+            [self setUserStream:YES];
+            [self openStream];
         }
-        
-        __weak TimelineViewController *wself = self;
-        
-        //アクティブアカウントのタイムラインを反映
-        if ( wself.timelineArray != [TWTweets currentTimeline] ) {
-            
-            ASYNC_MAIN_QUEUE ^{
-                
-                wself.timelineArray = [NSMutableArray arrayWithArray:[TWTweets currentTimeline]];
-                [wself.timeline reloadData];
-            });
-        }
-        
-        ASYNC_MAIN_QUEUE ^{
-            
-            if ( wself.timelineArray.count == 0 ) {
-                
-                [wself.grayView start];
-                wself.firstLoad = YES;
-            }
-        });
-        
-        //タイムライン取得
-        [TWGetTimeline homeTimeline];
     }
 }
 
-- (void)loadTimeline:(NSNotification *)center {
+- (void)pushAccountIconButton {
     
-    @autoreleasepool {
-        
-        __weak TimelineViewController *wself = self;
-        
-        @try {
+    NSLog(@"%s", __func__);
+    
+    UIActionSheet *sheet = [[UIActionSheet alloc]
+                            initWithTitle:@"外部サービスやユーザー情報を開く"
+                            delegate:self
+                            cancelButtonTitle:@"Cancel"
+                            destructiveButtonTitle:nil
+                            otherButtonTitles:
+                            @"Twilog", @"TwilogSearch", @"favstar", @"Twitpic",
+                            @"UserTimeline", @"TwitterSearch", nil];
+    [sheet setTag:ActionMenuTypeMyService];
+    [sheet showInView:self.tabBarController.view];
+}
+
+- (void)pushReloadButton {
+    
+    NSLog(@"%s", __func__);
+    
+    switch (self.segment.selectedSegmentIndex) {
             
-            dispatch_queue_t globalQueue = GLOBAL_QUEUE_DEFAULT;
-            dispatch_async(globalQueue, ^{
+        case TimelineSegmentTimeline:
+            
+            [self requestHomeTimeline];
+            break;
+            
+        case TimelineSegmentMentions:
+            
+            [self requestMentions];
+            break;
+            
+        case TimelineSegmentFavorites:
+            
+            [self requestFavorites];
+            break;
+            
+        case TimelineSegmentList:
+            
+            break;
+            
+        default:
+            break;
+    }
+}
+
+- (void)pushComposeButton {
+    
+    NSLog(@"%s", __func__);
+    
+    [[TWTweets manager] setTabChangeFunction:@"Post"];
+    [self.tabBarController setSelectedIndex:0];
+}
+
+- (void)pushCloseButton {
+    
+    [self setDefaultTweetsMode];
+    [self.segment setSelectedSegmentIndex:TimelineSegmentTimeline];
+    [USER_STREAM_BUTTON setEnabled:YES];
+    [self setCurrentTweets:[TWTweets currentTimeline]];
+    [self.timeline reloadData];
+}
+
+#pragma mark - UIActionSheet
+- (void)actionSheet:(UIActionSheet *)actionSheet clickedButtonAtIndex:(NSInteger)buttonIndex {
+    
+    NSInteger tag = actionSheet.tag;
+    
+    if ( tag == ActionMenuTypeService ) {
+        
+        //Twilog, TwilogSearch, favstar, Twitpic, UserTimeline,
+        //TwitterSearch, TwitterSearch(Stream), API Limitを確認
+        
+        if ( buttonIndex == TextFieldTypeTwilog ) {
+            
+            [self createSearchAlert:@"Twilog"
+                          alertType:TextFieldTypeTwilog];
+            
+        }else if ( buttonIndex == TextFieldTypeTwilogSearch ) {
+            
+            InputAlertView *alert = [[InputAlertView alloc] initWithTitle:@"TwilogSearch"
+                                                                 delegate:self
+                                                        cancelButtonTitle:@"キャンセル"
+                                                          doneButtonTitle:@"確定"
+                                                        isMultiInputField:YES
+                                                               doneAction:@selector(openTwilogSearch:searchWord:)];
+            [alert.multiTextFieldTop setPlaceholder:@"ScreenName"];
+            [alert.multiTextFieldBottom setPlaceholder:@"SearchWord"];
+            [alert show];
+            
+        }else if ( buttonIndex == TextFieldTypeFavStar ) {
+            
+            [self createSearchAlert:@"favstar"
+                          alertType:TextFieldTypeFavStar];
+            
+        }else if ( buttonIndex == TextFieldTypeTwitPic ) {
+            
+            [self createSearchAlert:@"TwitPic"
+                          alertType:TextFieldTypeTwitPic];
+            
+        }else if ( buttonIndex == TextFieldTypeUserTimeline ) {
+            
+            [self createSearchAlert:@"UserTimeline"
+                          alertType:TextFieldTypeUserTimeline];
+            
+        }else if ( buttonIndex == TextFieldTypeSearch ) {
+            
+            [self createSearchAlert:@"TwitterSearch"
+                          alertType:TextFieldTypeSearch];
+            
+        }else if ( buttonIndex == TextFieldTypeSearchStream ) {
+            
+            [self createSearchAlert:@"SearchStream"
+                          alertType:TextFieldTypeSearchStream];
+            
+        }else if ( buttonIndex == 7 ) {
+            
+            [ActivityIndicator on];
+            [self showAPILimit];
+        }
+        
+    }else if ( tag == ActionMenuTypeMyService ) {
+        
+        if ( buttonIndex == TextFieldTypeTwilog ) {
+            
+            [self openTwilog:[TWAccounts currentAccountName]];
+            
+        }else if ( buttonIndex == TextFieldTypeTwilogSearch ) {
+            
+            InputAlertView *alert = [[InputAlertView alloc] initWithTitle:@"TwilogSearch"
+                                                                 delegate:self
+                                                        cancelButtonTitle:@"キャンセル"
+                                                          doneButtonTitle:@"確定"
+                                                        isMultiInputField:YES
+                                                               doneAction:@selector(openTwilogSearch:searchWord:)];
+            [alert.multiTextFieldTop setPlaceholder:@"ScreenName"];
+            [alert.multiTextFieldTop setText:[TWAccounts currentAccountName]];
+            [alert.multiTextFieldBottom setPlaceholder:@"SearchWord"];
+            [alert show];
+            [alert.multiTextFieldBottom becomeFirstResponder];
+            
+        }else if ( buttonIndex == TextFieldTypeFavStar ) {
+            
+            [self openFavStar:[TWAccounts currentAccountName]];
+            
+        }else if ( buttonIndex == TextFieldTypeTwitPic ) {
+            
+            [self openTwitPic:[TWAccounts currentAccountName]];
+            
+        }else if ( buttonIndex == TextFieldTypeUserTimeline ) {
+            
+            [self requestUserTimeline:[TWAccounts currentAccountName]];
+            
+        }else if ( buttonIndex == TextFieldTypeSearch ) {
+            
+            [self requestSearch:[TWAccounts currentAccountName]];
+        }
+    
+    }else if ( tag == ActionMenuTypeTimelineLongPress ) {
+        
+        [self setLongPressControl:0];
+        
+        if ( buttonIndex != 3 && buttonIndex != 4 ) {
+            
+            [self.headerView setUpdateDate:nil];
+            [self.currentTweets removeAllObjects];
+            [self setCurrentTweets:nil];
+            [self setCurrentTweets:BLANK_M_ARRAY];
+            [TWTweets saveCurrentTimeline:self.currentTweets];
+            
+            if ( buttonIndex == 0 ) {
                 
-                NSLog(@"loadTimeline[%d], userStream[%@]",
-                      wself.timelineArray.count,
-                      wself.userStream ? @"ON" : @"OFF");
+            }else if ( buttonIndex == 1 || buttonIndex == 2 ) {
                 
-                //Timelineタブ以外が選択されている場合は終了
-                if ( wself.timelineSegment.selectedSegmentIndex != 0 ) return;
-                if ( ![center.userInfo[@"Type"] isEqualToString:@"Timeline"] ) return;
-                if ( ![center.userInfo[@"Account"] isEqualToString:[TWAccounts currentAccountName]] ) return;
-                
-                //自分のアイコンを設定
-                [wself getMyAccountIcon];
-                
-                //更新アカウントを記憶
-                wself.lastUpdateAccount = [TWAccounts currentAccountName];
-                
-                NSString *result = [[NSString alloc] initWithString:center.userInfo[@"Result"]];
-                
-                if ( [result isEqualToString:@"TimelineSuccess"] ) {
+                //各アカウントのログを削除
+                for ( ACAccount *account in [TWAccounts twitterAccounts] ) {
                     
-                    __block NSArray *newTweet = [[NSArray alloc] initWithArray:center.userInfo[@"Timeline"]];
-                    
-//                    NSLog(@"newTweet: %@", newTweet);
-//                    NSLog(@"newTweet: %d", weakNewTweet.count);
-                    
-                    if ( newTweet.count == 0 ) {
-                        
-                        NSLog(@"newTweet.count == 0");
-                        
-                        ASYNC_MAIN_QUEUE ^{
-                            
-                            wself.reloadButton.enabled = YES;
-                            
-                            if ( wself.viewWillAppear ) {
-                                
-                                wself.viewWillAppear = NO;
-                                [wself.timeline reloadData];
-                            }
-                        });
-                        
-                        if ( [D boolForKey:@"ReloadAfterUSConnect"] && !wself.userStream ) {
-                            
-                            //UserStream接続
-                            [wself pushTimelineControlButton:nil];
-                        }
-                        
-                        return;
-                    }
-                    
-                    if ( newTweet[0][@"errors"] != nil ) {
-                        
-                        NSLog(@"newTweet error");
-                        
-                        [ShowAlert error:@"タイムライン取得時にエラーが発生しました。"];
-                        
-                        if ( [D boolForKey:@"ReloadAfterUSConnect"] && !wself.userStream ) {
-                            
-                            //UserStream接続
-                            [wself pushTimelineControlButton:nil];
-                        }
-                        
-                        return;
-                    }
-                    
-                    if ( [newTweet isNotEmpty] ) {
-                        
-                        __block NSString *scrollTweetID = nil;
-                        
-                        if ( [wself.timelineArray isNotEmpty] ) {
-                            
-                            scrollTweetID = [[NSString alloc] initWithString:wself.timelineArray[0][@"id_str"]];
-                        }
-                        
-                        wself.timelineArray = [wself.timelineArray appendOnlyNewToTop:newTweet
-                                                                             forXPath:@"id_str"
-                                                                        returnMutable:YES];
-                        
-                        //タイムラインを保存
-                        [TWTweets saveCurrentTimeline:wself.timelineArray];
-                        
-                        [wself checkTimelineCount:NO];
-                        
-                        ASYNC_MAIN_QUEUE ^{
-                            
-                            wself.reloadButton.enabled = YES;
-                            
-                            [ActivityIndicator off];
-                            
-                            //タイムラインを再読み込み
-                            [wself.timeline reloadData];
-                            
-                            if ( wself.firstLoad && [D boolForKey:@"TimelineFirstLoad"] ) {
-                                
-                                [wself scrollTimelineToBottom:YES];
-                                wself.firstLoad = NO;
-                                
-                            }else {
-                                
-                                //新着取得前の最新までスクロール
-                                [wself scrollTimelineForNewTweet:scrollTweetID];
-                                scrollTweetID = nil;
-                            }
-                            
-                            [wself.timeline flashScrollIndicators];
-                            
-                            if ( [D boolForKey:@"ReloadAfterUSConnect"] && !wself.userStream ) {
-                                
-                                //UserStream接続
-                                DISPATCH_AFTER(0.1) ^{
-                                    
-                                    [wself pushTimelineControlButton:nil];
-                                });
-                            }
-                        });
-                        
-                        //タイムラインからアイコンのURLを取得
-                        dispatch_async(globalQueue, ^ {
-                            
-                            [wself getIconWithTweetArray:[NSMutableArray arrayWithArray:newTweet]];
-                            newTweet = nil;
-                        });
-                        
-                    }else {
-                        
-                        ASYNC_MAIN_QUEUE ^{
-                            
-                            wself.reloadButton.enabled = YES;
-                            
-                            if ( [D boolForKey:@"ReloadAfterUSConnect"] && !wself.userStream ) {
-                                
-                                //UserStream接続
-                                DISPATCH_AFTER(0.1) ^{
-                                    
-                                    [wself pushTimelineControlButton:nil];
-                                });
-                            }
-                            
-                            //タイムライン表示を更新
-                            [wself.timeline reloadData];
-                        });
-                    }
-                    
-                }else if ( [result isEqualToString:@"TimelineError"] ) {
-                    
-                    wself.reloadButton.enabled = YES;
+                    [[TWTweets timelines] setObject:[NSMutableArray array]
+                                             forKey:account.username];
                 }
-            });
+                
+                [[Share images] removeAllObjects];
+                
+                if ( buttonIndex == 2 ) {
+                    
+                    ASYNC_MAIN_QUEUE ^{
+                        
+                        [ICON_BUTTON setImage:nil
+                                     forState:UIControlStateNormal];
+                    });
+                    
+                    //アイコンファイルを削除
+                    [[NSFileManager defaultManager] removeItemAtPath:ICONS_DIRECTORY
+                                                               error:nil];
+                    
+                    //フォルダを再作成
+                    [FILE_MANAGER createDirectoryAtPath:ICONS_DIRECTORY
+                            withIntermediateDirectories:YES
+                                             attributes:nil
+                                                  error:nil];
+                }
+            }
             
-        }@finally {
+            [self.timeline reloadData];
             
+        }else if ( buttonIndex == 3 ) {
+            
+            //NG情報を再適用
+            
+            //NG判定を行う
             ASYNC_MAIN_QUEUE ^{
                 
-                [wself finishLoad];
-            });
-        }
-    }
-}
-
-- (void)loadUserTimeline:(NSNotification *)center {
-    
-    NSLog(@"loadUserTimeline");
-    
-    __weak TimelineViewController *wself = self;
-    
-    @try {
-        
-        if ( ![center.userInfo[@"Type"] isEqualToString:@"UserTimeline"] ) return;
-        
-        //レスポンスが空の場合は何もしない
-        if ( [center.userInfo[@"UserTimeline"] count] == 0 ) return;
-        
-        //UserStream接続中の場合は切断する
-        if ( _userStream ) [self closeStream];
-        
-        _timelineControlButton.enabled = NO;
-        
-        if ( [center.userInfo[@"Result"] isEqualToString:@"UserTimelineSuccess"] ) {
-            
-            __block NSArray *newTweet = [[NSArray alloc] initWithArray:center.userInfo[@"UserTimeline"]];
-            
-            //NSLog(@"newTweet: %@", newTweet);
-            
-            //InReplyToからの復帰用に保存しておく
-            self.mentionsArray = [NSArray arrayWithArray:newTweet];
-            self.timelineArray = [NSMutableArray arrayWithArray:newTweet];
-            
-            ASYNC_MAIN_QUEUE ^{
+                dispatch_queue_t queue = GLOBAL_QUEUE_DEFAULT;
+                dispatch_semaphore_t semaphore = dispatch_semaphore_create(1);
+                dispatch_sync(queue, ^{
+                    dispatch_semaphore_wait(semaphore, DISPATCH_TIME_FOREVER);
+                    
+                    [self setCurrentTweets:[NSMutableArray arrayWithArray:[TWNgTweet ngAll:self.currentTweets]]];
+                    
+                    dispatch_semaphore_signal(semaphore);
+                    dispatch_release(semaphore);
+                });
                 
-                [ActivityIndicator off];
-                [wself setOtherTweetsBarItems];
-                [wself.timeline reloadData];
-                [wself scrollTimelineToTop:NO];
-                [wself.timeline flashScrollIndicators];
-            });
-            
-            dispatch_queue_t queue = GLOBAL_QUEUE_DEFAULT;
-            dispatch_async(queue, ^ {
-                
-                [wself getIconWithTweetArray:[NSMutableArray arrayWithArray:newTweet]];
-                newTweet = nil;
+                [TWTweets saveCurrentTimeline:self.currentTweets];
+                [self.timeline reloadData];
             });
             
         }else {
             
-            [ShowAlert error:@"UserTimelineが読み込めませんでした。"];
+            //キャンセル
+            return;
         }
-        
-    }@finally {
-        
-        ASYNC_MAIN_QUEUE ^{
-            
-            [wself finishLoad];
-        });
     }
 }
 
-- (void)loadMentions:(NSNotification *)center {
+#pragma mark - AlertView
+- (void)alertView:(UIAlertView *)alertView clickedButtonAtIndex:(NSInteger)buttonIndex {
     
-    NSLog(@"loadMentions");
-    
-    __weak TimelineViewController *wself = self;
-    
-    @try {
+    if ( buttonIndex == 1 ) {
         
-        if ( ![center.userInfo[@"Type"] isEqualToString:@"Mentions"] ) return;
+        NSInteger tag = alertView.tag;
+        NSString *inputText = self.searchAlertTextField.text;
         
-        //Mentionsタブ以外が選択されている場合は終了
-        if ( _timelineSegment.selectedSegmentIndex != 1 ) return;
-        
-        //UserStream接続中の場合は切断する
-        if ( _userStream ) [self closeStream];
-        
-        _reloadButton.enabled = YES;
-        _timelineControlButton.enabled = NO;
-        
-        if ( [center.userInfo[@"Result"] isEqualToString:@"MentionsSuccess"] ) {
+        if ( [inputText isNotEmpty] ) {
             
-            __block NSArray *newTweet = [[NSArray alloc] initWithArray:center.userInfo[@"Mentions"]];
+            switch ( tag ) {
+                    
+                case TextFieldTypeTwilog:
+                    
+                    [self openTwilog:inputText];
+                    break;
+                    
+                case TextFieldTypeTwilogSearch:
+                    
+                    [ShowAlert error:@"未実装"];
+                    break;
+                    
+                case TextFieldTypeFavStar:
+                    
+                    [self openFavStar:inputText];
+                    break;
+                    
+                case TextFieldTypeTwitPic:
+                    
+                    [self openTwitPic:inputText];
+                    break;
+                    
+                case TextFieldTypeUserTimeline:
+                    
+                    [self requestUserTimeline:inputText];
+                    break;
+                    
+                case TextFieldTypeSearch:
+                    
+                    [self requestSearch:inputText];
+                    break;
+                    
+                case TextFieldTypeSearchStream:
+                    
+                    [ShowAlert error:@"未実装"];
+                    break;
+                    
+                default:
+                    break;
+            }
+        }
+    }
+    
+    [self.searchAlertTextField resignFirstResponder];
+    [self setSearchAlert:nil];
+    [self setSearchAlertTextField:nil];
+}
+
+#pragma mark - TextField
+- (BOOL)textFieldShouldReturn:(SSTextField *)sender {
+    
+    NSInteger tag = sender.tag;
+    NSString *inputText = self.searchAlertTextField.text;
+    
+    if ( [inputText isNotEmpty] ) {
+        
+        switch ( tag ) {
+                
+            case TextFieldTypeTwilog:
+                
+                [self openTwilog:inputText];
+                break;
+                
+            case TextFieldTypeTwilogSearch:
+                
+                break;
+                
+            case TextFieldTypeFavStar:
+                
+                [self openFavStar:inputText];
+                break;
+                
+            case TextFieldTypeTwitPic:
+                
+                [self openTwitPic:inputText];
+                break;
+                
+            case TextFieldTypeUserTimeline:
+                
+                [self requestUserTimeline:inputText];
+                break;
+                
+            case TextFieldTypeSearch:
+                
+                [self requestSearch:inputText];
+                break;
+                
+            case TextFieldTypeSearchStream:
+                
+                [ShowAlert error:@"未実装"];
+                break;
+                
+            default:
+                break;
+        }
+    }
+    
+    [sender resignFirstResponder];
+    [self.searchAlert dismissWithClickedButtonIndex:0
+                                           animated:YES];
+    [self setSearchAlert:nil];
+    [self setSearchAlertTextField:nil];
+    
+    return YES;
+}
+
+#pragma mark - Segment
+- (void)changeSegmentIndex {
+    
+    NSLog(@"%s: %d", __func__, self.segment.selectedSegmentIndex);
+    
+    if ( self.pickerVisible ) [self hidePicker];
+    
+    if ( self.segment.selectedSegmentIndex == TimelineSegmentTimeline ) {
+        
+        [USER_STREAM_BUTTON setEnabled:YES];
+        
+    }else {
+        
+        [USER_STREAM_BUTTON setEnabled:NO];
+    }
+    
+    NSString *buttonImageName = nil;
+    
+    if ( self.segment.selectedSegmentIndex == TimelineSegmentList ) {
+        
+        buttonImageName = @"list.png";
+        [USER_STREAM_BUTTON setEnabled:YES];
+        
+    }else {
+        
+        if ( self.userStream ) {
+        
+            buttonImageName = @"stop.png";
             
-            //t.coを展開
-            newTweet = [TWEntities replaceTcoAll:newTweet];
+        }else {
+         
+            buttonImageName = @"play.png";
+        }
+    }
+    
+    [USER_STREAM_BUTTON setImage:[UIImage imageNamed:buttonImageName]
+                        forState:UIControlStateNormal];
+    
+    switch ( self.segment.selectedSegmentIndex ) {
+            
+        case TimelineSegmentTimeline:
+    
+            [self setListSelect:NO];
+            [self setAddTweetStopMode:NO];
+            [self setCurrentTweets:[TWTweets currentTimeline]];
+            [self.timeline reloadData];
+            
+            if ( !self.userStream ) {
+            
+                [self requestHomeTimeline];
+            }
+            break;
+            
+        case TimelineSegmentMentions:
+            
+            [self setListSelect:NO];
+            [self setAddTweetStopMode:YES];
+            [self requestMentions];
+            break;
+            
+        case TimelineSegmentFavorites:
+            
+            [self setListSelect:NO];
+            [self setAddTweetStopMode:YES];
+            [self requestFavorites];
+            break;
+        
+        case TimelineSegmentList:
+            
+            [self setListSelect:YES];
+            [self setAddTweetStopMode:YES];
+            [self showListView];
+            break;
+            
+        default:
+            break;
+    }
+}
+
+#pragma mark - UserStream
+
+- (void)openStream {
+    
+    dispatch_queue_t userStreamQueue = GLOBAL_QUEUE_BACKGROUND;
+    dispatch_async(userStreamQueue, ^{
+        
+        NSLog(@"%s", __func__);
+        
+        if ( [D boolForKey:@"USNoAutoLock"] ) [[UIApplication sharedApplication] setIdleTimerDisabled:YES];
+        
+        //UserStream接続リクエストの作成
+        TWRequest *request = [[TWRequest alloc] initWithURL:[NSURL URLWithString:@"https://userstream.twitter.com/2/user.json"]
+                                                 parameters:nil
+                                              requestMethod:TWRequestMethodPOST];
+        
+        //アカウントの設定
+        [request setAccount:[TWAccounts currentAccount]];
+        
+        [self startUserStreamQueue];
+        
+        //接続開始
+        self.connection = [NSURLConnection connectionWithRequest:request.signedURLRequest
+                                                        delegate:self];
+        [self.connection start];
+        
+        // 終わるまでループさせる
+        while ( self.userStream ) {
+            
+            [[NSRunLoop currentRunLoop] runMode:NSDefaultRunLoopMode
+                                     beforeDate:[NSDate dateWithTimeIntervalSinceNow:0.1]];
+        }
+        
+        request = nil;
+    });
+    
+    dispatch_release(userStreamQueue);
+}
+
+- (void)closeStream {
+    
+    if ( [D boolForKey:@"USNoAutoLock"] ) [[UIApplication sharedApplication] setIdleTimerDisabled:NO];
+    
+    [self setUserStream:NO];
+    [self.connection cancel];
+    [self setConnection:nil];
+    [self stopUserStreamQueue];
+    
+    [USER_STREAM_BUTTON setImage:[UIImage imageNamed:@"play.png"]
+                        forState:UIControlStateNormal];
+    [USER_STREAM_BUTTON setEnabled:YES];
+}
+
+- (void)reOpenStream {
+    
+    [self closeStream];
+    
+    NSLog(@"%s", __func__);
+    
+    DISPATCH_AFTER(10.0) ^{
+     
+        NSLog(@"Connection ReStart");
+        
+        if ( [InternetConnection enable] ) {
+            
+            [self addTackNotification:@"UserStream再接続"];
+            [self pushTopBarUSButton];
+        }
+    });
+}
+
+- (void)startUserStreamQueue {
+    
+    [self setUserStreamQueue:[@[] mutableCopy]];
+    self.userStreamTimer = [NSTimer scheduledTimerWithTimeInterval:0.2
+                                                            target:self
+                                                          selector:@selector(checkUserStreamQueue)
+                                                          userInfo:nil
+                                                           repeats:YES];
+    [self.userStreamTimer fire];
+}
+
+- (void)stopUserStreamQueue {
+    
+    [self.userStreamTimer invalidate];
+}
+
+- (void)checkUserStreamQueue {
+ 
+    if ( [self.userStreamQueue count] != 0 ) {
+        
+        if ( !self.addTweetStopMode ) {
+         
+            TWTweet *addTweet = self.userStreamQueue[0];
+            
+            if ( [addTweet.eventType isNotEmpty] &&
+                  addTweet.favoriteEventeType == FavoriteEventTypeReceive ) {
+                
+                //ふぁぼられ
+                [self userStreamReceiveFavEvent:addTweet];
+                
+            }else {
+            
+                [self userStreamReceiveTweet:addTweet];
+            }
+            
+            [self.userStreamQueue removeObjectAtIndex:0];
+        }
+    }
+}
+
+- (void)userStreamDelete:(TWTweet *)receiveTweet {
+    
+    NSLog(@"%s", __func__);
+    
+    NSString  *tweetID = receiveTweet.tweetID;
+    NSInteger index = 0;
+    BOOL find = NO;
+    
+    @synchronized(self) {
+        
+        for ( TWTweet *tweet in self.currentTweets ) {
+            
+            if ( [tweet.tweetID isEqualToString:tweetID] ) {
+                
+                find = YES;
+                break;
+            }
+            
+            index++;
+        }
+        
+        if ( find ) {
+            
+            [self.currentTweets removeObjectAtIndex:index];
+            [TWTweets saveCurrentTimeline:self.currentTweets];
+            
+            dispatch_queue_t queue;
+            if ( [NSThread isMainThread] ) {
+                queue = dispatch_get_current_queue();
+            }else {
+                queue = dispatch_get_main_queue();
+            }
+            
+            dispatch_async(queue, ^{
+                
+                [self.timeline deleteRowsAtIndexPaths:@[[NSIndexPath indexPathForRow:index
+                                                                           inSection:0]]
+                                     withRowAnimation:UITableViewRowAnimationTop];
+            });
+        }
+    }
+}
+
+- (void)userStreamMyAddFavEvent:(TWTweet *)receiveTweet {
+    
+    NSLog(@"%s", __func__);
+    
+    //自分のふぁぼりイベント
+    NSString *favedTweetID = receiveTweet.tweetID;
+    [self changeFavorite:favedTweetID];
+}
+
+- (void)userStreamMyRemoveFavEvent:(TWTweet *)receiveTweet {
+    
+    NSLog(@"%s", __func__);
+    
+    //自分のふぁぼり外しイベント
+    NSString *unFavedTweetID = receiveTweet.tweetID;
+    
+    @synchronized(self) {
+        
+        NSInteger index = 0;
+        for ( TWTweet *tweet in self.currentTweets ) {
+            
+            if ( [tweet.tweetID isEqualToString:unFavedTweetID] ) {
+                
+                TWTweet *favedTweet = tweet;
+                [favedTweet setIsFavorited:NO];
+                [favedTweet createTimelineCellInfo];
+                
+                [self.currentTweets replaceObjectAtIndex:index withObject:favedTweet];
+                [TWTweets saveCurrentTimeline:self.currentTweets];
+                
+                dispatch_queue_t queue;
+                if ( [NSThread isMainThread] ) {
+                    queue = dispatch_get_current_queue();
+                }else {
+                    queue = dispatch_get_main_queue();
+                }
+                
+                dispatch_async(queue, ^{
+                    
+                    [self.timeline reloadRowsAtIndexPaths:@[[NSIndexPath indexPathForRow:index
+                                                                               inSection:0]]
+                                         withRowAnimation:UITableViewRowAnimationLeft];
+                });
+                
+                break;
+            }
+            
+            index++;
+        }
+    }
+}
+
+- (void)userStreamReceiveFavEvent:(TWTweet *)receiveTweet {
+    
+    NSLog(@"%s", __func__);
+    
+    if ( [[Share images] objectForKey:receiveTweet.favUser] == nil ) {
+        
+        [self getIconWithTweetArray:[NSMutableArray arrayWithArray:@[receiveTweet]]];
+    }
+    
+    @synchronized(self) {
+        
+        [self.currentTweets insertObject:receiveTweet
+                                 atIndex:0];
+        [TWTweets saveCurrentTimeline:self.currentTweets];
+    }
+    
+    dispatch_queue_t queue;
+    if ( [NSThread isMainThread] ) {
+        queue = dispatch_get_current_queue();
+    }else {
+        queue = dispatch_get_main_queue();
+    }
+    
+    dispatch_async(queue, ^{
+        
+        [self.timeline insertRowsAtIndexPaths:@[[NSIndexPath indexPathForRow:0
+                                                                   inSection:0]]
+                             withRowAnimation:UITableViewRowAnimationTop];
+    });
+}
+
+- (void)userStreamReceiveTweet:(TWTweet *)receiveTweet {
+    
+    if ( self.segment.selectedSegmentIndex == TimelineSegmentTimeline ) {
+     
+        NSUInteger beforeCount = self.currentTweets.count;
+        
+        @synchronized(self) {
+            
+            //タイムラインに追加
+            if ( receiveTweet.isReTweet ) {
+                
+                [self.currentTweets insertObject:receiveTweet
+                                         atIndex:0];
+                
+            }else {
+                
+                [self setCurrentTweets:[self.currentTweets appendOnlyNewTweetToTop:@[receiveTweet]
+                                                                     returnMutable:YES]];
+            }
+            
+            //タイムラインを保存
+            [TWTweets saveCurrentTimeline:self.currentTweets];
+        }
+        
+        if ( beforeCount == self.currentTweets.count ) {
+            
+            return;
+        }
+        
+        dispatch_queue_t queue;
+        if ( [NSThread isMainThread] ) {
+            queue = dispatch_get_current_queue();
+        }else {
+            queue = dispatch_get_main_queue();
+        }
+        
+        dispatch_async(queue, ^{
+            
+            [self.timeline insertRowsAtIndexPaths:@[[NSIndexPath indexPathForRow:0
+                                                                       inSection:0]]
+                                 withRowAnimation:UITableViewRowAnimationTop];
+        });
+        
+        //アイコン保存
+        [self getIconWithTweetArray:[NSMutableArray arrayWithArray:@[receiveTweet]]];
+    }
+}
+
+#pragma mark - NSURLConnectionDataDelegate
+- (void)connection:(NSURLConnection *)connection didReceiveData:(NSData *)data {
+    
+    NSError *error = nil;
+    id receiveData = [NSJSONSerialization JSONObjectWithData:data
+                                                     options:NSJSONReadingMutableLeaves
+                                                       error:&error];
+    
+    if ( error != nil ) return;
+    
+    if ( [receiveData isKindOfClass:[NSDictionary class]] ) {
+        
+        NSDictionary *receiveDic = (NSDictionary *)receiveData;
+        
+        if ( receiveDic.count == 0 ) return;
+        if ( receiveDic.count == 1 && receiveDic[@"friends"] != nil ) return;
+        
+        TWTweet *receiveTweet = [TWTweet tweetWithDictionary:receiveDic];
+        
+        if ( [receiveTweet.eventType isNotEmpty] &&
+              receiveTweet.favoriteEventeType == FavoriteEventTypeReceive ) {
+            
+            @synchronized(self) {
+                
+                //ふぁぼられイベント
+                [self.userStreamQueue addObject:receiveTweet];
+            }
+            return;
+        }
+        
+        if ( receiveTweet.isDelete ) {
+            
+            NSLog(@"UserStream Delete Event");
+            
+            //削除イベント
+            [self userStreamDelete:receiveTweet];
+            return;
+        }
+        
+        if ( [receiveTweet.eventType isNotEmpty] &&
+             receiveTweet.favoriteEventeType == FavoriteEventTypeAdd ) {
+            
+            NSLog(@"UserStream Add Fav Event");
+            
+            //自分のふぁぼりイベント
+            [self userStreamMyAddFavEvent:receiveTweet];
+            return;
+            
+        }else if ( [receiveTweet.eventType isNotEmpty] &&
+                    receiveTweet.favoriteEventeType == FavoriteEventTypeRemove ) {
+            
+            if ( self.currentTweets.count == 0 ) return;
+            
+            NSLog(@"UserStream Remove Fav Event");
+            
+            //自分のふぁぼ外しイベント
+            [self userStreamMyRemoveFavEvent:receiveTweet];
+            return;
+            
+        }else if ( receiveTweet.isEvent ) {
+            
+            return;
+        }
+        
+        NSArray *newTweet = @[receiveTweet];
+        
+        if ( !receiveTweet.isEvent &&
+             !receiveTweet.isDelete ) {
             
             //NG判定を行う
             newTweet = [TWNgTweet ngAll:newTweet];
             
-            //InReplyToからの復帰用に保存しておく
-            self.mentionsArray = [NSArray arrayWithArray:newTweet];
-            self.timelineArray = [NSMutableArray arrayWithArray:newTweet];
-            
-            ASYNC_MAIN_QUEUE ^{
-                
-                [ActivityIndicator off];
-                [wself.timeline reloadData];
-                [wself scrollTimelineToTop:NO];
-                [wself.timeline flashScrollIndicators];
-            });
-            
-            dispatch_queue_t queue = GLOBAL_QUEUE_DEFAULT;
-            dispatch_async(queue, ^ {
-                
-                [wself getIconWithTweetArray:[NSMutableArray arrayWithArray:newTweet]];
-                newTweet = nil;
-            });
+            //新着が無いので終了
+            if ( newTweet.count == 0 ) return;
         }
         
-    }@finally {
-        
-        ASYNC_MAIN_QUEUE ^{
+        @synchronized(self) {
             
-            [wself finishLoad];
-        });
+            //通常Post向け処理
+            [self.userStreamQueue addObject:receiveTweet];
+        }
     }
 }
 
-- (void)loadFavorites:(NSNotification *)center {
+- (void)connection:(NSURLConnection *)connection didReceiveResponse:(NSURLResponse *)response {
     
-    NSLog(@"loadFavorites");
+    NSHTTPURLResponse *httpResponse = (NSHTTPURLResponse *)response;
+    NSLog(@"didReceiveResponse:%d, %lld", httpResponse.statusCode, response.expectedContentLength);
     
-    __weak TimelineViewController *wself = self;
-    
-    @try {
+    if ( httpResponse.statusCode == 200 ) {
         
-        if ( ![center.userInfo[@"Type"] isEqualToString:@"Favorites"] ) return;
-        
-        //Favoritesタブ以外が選択されている場合は終了
-        if ( _timelineSegment.selectedSegmentIndex != 2 ) return;
-        
-        //UserStream接続中の場合は切断する
-        if ( _userStream ) [self closeStream];
-        
-        _timelineControlButton.enabled = NO;
-        _reloadButton.enabled = YES;
-        
-        NSString *result = [[NSString alloc] initWithString:center.userInfo[@"Result"]];
-        
-        if ( [result isEqualToString:@"FavoritesSuccess"] ) {
-            
-            __block NSArray *newTweet = [[NSArray alloc] initWithArray:center.userInfo[@"Favorites"]];
-            
-            //t.coを展開
-            newTweet = [TWEntities replaceTcoAll:newTweet];
-            
-            //InReplyToからの復帰用に保存しておく
-            self.mentionsArray = [NSArray arrayWithArray:newTweet];
-            self.timelineArray = [NSMutableArray arrayWithArray:newTweet];
-            
-            ASYNC_MAIN_QUEUE ^{
-                
-                [ActivityIndicator off];
-                [wself.timeline reloadData];
-                [wself scrollTimelineToTop:NO];
-                [wself.timeline flashScrollIndicators];
-            });
-            
-            dispatch_queue_t queue = GLOBAL_QUEUE_DEFAULT;
-            dispatch_async(queue, ^ {
-                
-                [wself getIconWithTweetArray:[NSMutableArray arrayWithArray:newTweet]];
-                newTweet = nil;
-            });
+        dispatch_queue_t queue;
+        if ( [NSThread isMainThread] ) {
+            queue = dispatch_get_current_queue();
+        }else {
+            queue = dispatch_get_main_queue();
         }
         
-    }@finally {
+        dispatch_async(queue, ^{
         
-        ASYNC_MAIN_QUEUE ^{
-            
-            [wself finishLoad];
+            [USER_STREAM_BUTTON setImage:[UIImage imageNamed:@"stop.png"]
+                                forState:UIControlStateNormal];
+            [USER_STREAM_BUTTON setEnabled:YES];
         });
+        
+    }else {
+        
+        [self closeStream];
     }
 }
 
-- (void)loadSearch:(NSNotification *)center {
+- (void)connectionDidFinishLoading:(NSURLConnection *)connection {
     
-    NSLog(@"loadSearch");
-    
-    __weak TimelineViewController *wself = self;
-    
-    @try {
-        
-        if ( ![center.userInfo[@"Type"] isEqualToString:@"Search"] ) return;
-        
-        //UserStream接続中の場合は切断する
-        if ( _userStream ) [self closeStream];
-        
-        _timelineControlButton.enabled = NO;
-        
-        NSString *result = [[NSString alloc] initWithString:center.userInfo[@"Result"]];
-        
-        if ( [result isEqualToString:@"SearchSuccess"] ) {
-            
-            __block NSArray *newTweet = [[NSArray alloc] initWithArray:center.userInfo[@"Search"]];
-            
-            //InReplyToからの復帰用に保存しておく
-            self.mentionsArray = [NSArray arrayWithArray:newTweet];
-            self.timelineArray = [NSMutableArray arrayWithArray:newTweet];
-            
-            ASYNC_MAIN_QUEUE ^{
-                
-                [ActivityIndicator off];
-                [wself.timeline reloadData];
-                [wself scrollTimelineToTop:NO];
-                [wself setOtherTweetsBarItems];
-                [wself.timeline flashScrollIndicators];
-            });
-            
-            dispatch_queue_t queue = GLOBAL_QUEUE_DEFAULT;
-            dispatch_async(queue, ^ {
-                
-                [wself getIconWithTweetArray:[NSMutableArray arrayWithArray:newTweet]];
-                newTweet = nil;
-            });
-        }
-        
-    }@finally {
-        
-        ASYNC_MAIN_QUEUE ^{
-            
-            [wself finishLoad];
-        });
-    }
+    NSLog(@"%s", __func__);
+    [self closeStream];
 }
 
-- (void)loadList:(NSNotification *)center {
+#pragma mark - NSURLConnectionDelegate
+- (void)connection:(NSURLConnection *)connection didFailWithError:(NSError *)error {
     
-    NSLog(@"loadList");
+    NSLog(@"%s", __func__);
     
-    __weak TimelineViewController *wself = self;
-    
-    @try {
-        
-        if ( ![center.userInfo[@"Type"] isEqualToString:@"List"] ) return;
-        
-        //Listタブ以外が選択されている場合は終了
-        if ( _timelineSegment.selectedSegmentIndex != 3 ) return;
-        
-        _reloadButton.enabled = YES;
-        
-        NSArray *newTweet = [[NSArray alloc] initWithArray:center.userInfo[@"ResultData"]];
-        
-        //t.coを展開
-        newTweet = [TWEntities replaceTcoAll:newTweet];
-        
-        //NG判定を行う
-        newTweet = [TWNgTweet ngAll:newTweet];
-        
-        _currentList = [NSMutableArray arrayWithArray:newTweet];
-        newTweet = nil;
-        
-        [_allLists setObject:[NSMutableArray arrayWithArray:_currentList]
-                      forKey:[NSString stringWithString:APP_DELEGATE.listId]];
-        
-        self.timelineArray = [NSMutableArray arrayWithArray:_currentList];
-        
-        ASYNC_MAIN_QUEUE ^{
-            
-            [ActivityIndicator off];
-            [wself.timeline reloadData];
-            [wself scrollTimelineToTop:NO];
-            [wself.timeline flashScrollIndicators];
-        });
-        
-        dispatch_queue_t queue = GLOBAL_QUEUE_DEFAULT;
-        dispatch_async(queue, ^ {
-            
-            [wself getIconWithTweetArray:[NSMutableArray arrayWithArray:wself.timelineArray]];
-        });
-        
-    }@finally {
-        
-        ASYNC_MAIN_QUEUE ^{
-            
-            [wself finishLoad];
-        });
-    }
+    [self reOpenStream];
 }
 
+#pragma mark - Timeline
 - (void)getIconWithTweetArray:(NSMutableArray *)tweetArray {
-    
-    //  NSLog(@"getIconWithTweetArray[%d]", tweetArray.count);
-    //  NSLog(@"getIconWithTweetArray: %@", tweetArray);
     
     NSMutableDictionary *userList = [NSMutableDictionary dictionary];
     
     //重複ユーザーを消す
-    for ( NSDictionary *tweet in tweetArray ) {
+    for ( TWTweet *tweet in tweetArray ) {
         
-        NSString *tempScreenName = tweet[@"user"][@"screen_name"];
+        NSString *tempScreenName = tweet.screenName;
         
-        if ( tempScreenName == nil ) {
+        [userList setObject:tweet
+                     forKey:tempScreenName];
+        
+        if ( tweet.isReTweet &&
+             userList[tweet.rtUserName] == nil ) {
             
-            tempScreenName = tweet[@"screen_name"];
-        }
-        
-        [userList setObject:[NSDictionary dictionaryWithDictionary:tweet]
-                     forKey:[NSString stringWithString:tempScreenName]];
-        
-        if ( [tweet[@"retweeted_status"] boolForKey:@"id"] &&
-            userList[tweet[@"retweeted_status"][@"user"][@"screen_name"]] == nil ) {
+            TWTweet *reTweet = [[TWTweet alloc] init];
+            [reTweet setScreenName:tweet.rtUserName];
+            [reTweet setIconURL:tweet.rtIconURL];
+            [reTweet setIconSearchPath:tweet.rtIconSearchPath];
             
-            [userList setObject:[NSDictionary dictionaryWithDictionary:tweet[@"retweeted_status"]]
-                         forKey:[NSString stringWithString:tweet[@"retweeted_status"][@"user"][@"screen_name"]]];
+            [userList setObject:reTweet
+                         forKey:tweet.rtUserName];
         }
     }
     
@@ -944,7 +2197,7 @@
     
     for ( NSString *userName in userList.allKeys ) {
         
-        NSDictionary *dic = userList[userName];
+        TWTweet *tweet = userList[userName];
         
         if ( [[Share images] objectForKey:userName] == nil ) {
             
@@ -952,25 +2205,15 @@
             //NSLog(@"No Cache User: %@", userName);
             
             //アイコンのユーザー名
-            __block NSString *screenName = dic[@"user"][@"screen_name"];
+            __block NSString *screenName = tweet.screenName;
             
-            if ( screenName == nil ) {
-                
-                screenName = dic[@"screen_name"];
-            }
-            
-            //biggerサイズのURL
-            NSString *biggerUrl = [TWIconBigger normal:dic[@"user"][@"profile_image_url"]];
-            
-            if ( biggerUrl == nil ) {
-                
-                biggerUrl = [TWIconBigger normal:dic[@"profile_image_url"]];
-            }
+            //アイコンURL
+            NSString *iconURL = tweet.iconURL;
             
             //検索用の名前
-            __block NSString *searchName = [[NSString alloc] initWithFormat:@"%@_%@", screenName, [biggerUrl lastPathComponent]];
+            __block NSString *searchName = tweet.iconSearchPath;
             
-            if ( [APP_DELEGATE iconExist:searchName] ) {
+            if ( [self iconExist:searchName] ) {
                 
                 //アイコンファイルが保存済み
                 //NSLog(@"File Saved: %@", userName);
@@ -981,22 +2224,17 @@
                 if ( image != nil ) {
                     
                     [Share cacheImage:image
-                              forName:[NSString stringWithString:screenName]
+                              forName:screenName
                      doneNotification:NO];
                     
                     int index = 0;
-                    for ( NSDictionary *tweet in _timelineArray ) {
+                    for ( TWTweet *currentTweet in self.currentTweets ) {
                         
-                        NSString *currentScreenName = tweet[@"user"][@"screen_name"];
-                        
-                        if ( currentScreenName == nil ) {
-                            
-                            currentScreenName = tweet[@"screen_name"];
-                        }
+                        NSString *currentScreenName = currentTweet.screenName;
                         
                         if ( [currentScreenName isEqualToString:screenName] ) {
                             
-                            [self refreshTimelineCell:[NSNumber numberWithInt:index]];
+                            [self refreshTimelineCell:@(index)];
                         }
                         
                         index++;
@@ -1007,30 +2245,26 @@
                     //自分のアイコンの場合は上部バーに設定
                     if ( [screenName isEqualToString:[TWAccounts currentAccountName]] ) {
                         
-                        __weak TimelineViewController *wself = self;
-                        
-                        ASYNC_MAIN_QUEUE ^{
-                            
-                            wself.accountIconView.image = image;
+                            [ICON_BUTTON setImage:image
+                                         forState:UIControlStateNormal];
                             image = nil;
-                        });
                     }
                     
                     [ActivityIndicator off];
                     
                 }else {
                     
-                    [self requestProfileImageWithURL:[NSString stringWithString:biggerUrl]
-                                          screenName:[NSString stringWithString:screenName]
-                                          searchName:[NSString stringWithString:searchName]];
+                    [self requestProfileImageWithURL:iconURL
+                                          screenName:screenName
+                                          searchName:searchName];
                 }
                 
             }else {
                 
                 //アイコンファイルが保存されていない
-                [self requestProfileImageWithURL:[NSString stringWithString:biggerUrl]
-                                      screenName:[NSString stringWithString:screenName]
-                                      searchName:[NSString stringWithString:searchName]];
+                [self requestProfileImageWithURL:iconURL
+                                      screenName:screenName
+                                      searchName:searchName];
             }
             
         }else {
@@ -1051,35 +2285,34 @@
         NSMutableDictionary *tempDic = BLANK_M_DIC;
         
         //ユーザー名を設定
-        [tempDic setObject:[NSString stringWithString:screenName]
+        [tempDic setObject:screenName
                     forKey:@"screen_name"];
         
         //アイコンURLを設定
-        [tempDic setObject:[NSString stringWithString:biggerUrl]
+        [tempDic setObject:biggerUrl
                     forKey:@"profile_image_url"];
         
         //検索用の名前
-        [tempDic setObject:[NSString stringWithString:searchName]
+        [tempDic setObject:searchName
                     forKey:@"SearchName"];
         
-        __weak TimelineViewController *wself = self;
         ASIHTTPRequest *request = [ASIHTTPRequest requestWithURL:[NSURL URLWithString:biggerUrl]];
-        request.userInfo = [NSDictionary dictionaryWithDictionary:tempDic];
-        __block __weak ASIHTTPRequest *wRequest = request;
+        [request setUserInfo:tempDic];
+        __weak __block ASIHTTPRequest *wRequest = request;
         
         [wRequest setCompletionBlock:^ {
             
             //NSLog(@"Request Finished");
             
-            NSString *receiveScreenName = [[NSString alloc] initWithString:wRequest.userInfo[@"screen_name"]];
-            __block __weak NSString *wReceiveScreenName = receiveScreenName;
+            NSString *receiveScreenName = wRequest.userInfo[@"screen_name"];
             
             NSMutableArray *icons = [NSMutableArray array];
-            NSArray *iconList = [FILE_MANAGER contentsOfDirectoryAtPath:ICONS_DIRECTORY error:nil];
-            NSString *searchIconName = [NSString stringWithFormat:@"%@_", receiveScreenName];
+            NSArray *iconList = [FILE_MANAGER contentsOfDirectoryAtPath:ICONS_DIRECTORY
+                                                                  error:nil];
+            NSString *searchIconName = [NSString stringWithFormat:@"%@-", receiveScreenName];
             
             if ( iconList.count != 0 ) {
-            
+                
                 for ( NSString *filePath in iconList ) {
                     
                     if ( [filePath hasPrefix:searchIconName] ) {
@@ -1090,55 +2323,66 @@
                 
                 if ( icons.count != 0 ) {
                     
+                    [[Share images] removeObjectForKey:receiveScreenName];
+                    
                     for ( NSString *deletePath in icons ) {
                         
-                        [FILE_MANAGER removeItemAtPath:[ICONS_DIRECTORY stringByAppendingPathComponent:@"deletePath"] error:nil];
+                        [FILE_MANAGER removeItemAtPath:[ICONS_DIRECTORY stringByAppendingPathComponent:deletePath]
+                                                 error:nil];
                     }
                 }
             }
             
-            icons = nil;
-            iconList = nil;
-            searchIconName = nil;
-            
-            if ( ![APP_DELEGATE iconExist:searchName] ) {
+            if ( ![self iconExist:searchName] ) {
                 
-                [wRequest.responseData writeToFile:[NSString stringWithString:FILE_PATH]
+                [wRequest.responseData writeToFile:FILE_PATH
                                         atomically:YES];
             }
             
             UIImage *receiveImage = [[UIImage alloc] initWithData:wRequest.responseData];
+
+            NSString *iconQualitySetting = [D objectForKey:@"IconQuality"];
+            if ( [iconQualitySetting isEqualToString:@"Original96"] ) {
+                
+                receiveImage = [ResizeImage aspectResizeForMaxSize:receiveImage
+                                                           maxSize:96.0f];
+            }
             
             if ( receiveImage != nil ) {
                 
                 [Share cacheImage:receiveImage
-                          forName:[NSString stringWithString:receiveScreenName]
+                          forName:receiveScreenName
                  doneNotification:NO];
                 
                 receiveImage = nil;
                 
                 if ( [screenName isEqualToString:[TWAccounts currentAccountName]] ) {
                     
-                    ASYNC_MAIN_QUEUE ^{
-                        
-                        wself.accountIconView.image = [[Share images] imageForKey:wReceiveScreenName];
-                        wReceiveScreenName = nil;
-                    });
+                        [ICON_BUTTON setImage:receiveImage
+                                            forState:UIControlStateNormal];
+
                 }
                 
                 int index = 0;
-                for ( NSDictionary *tweet in wself.timelineArray ) {
+                for ( TWTweet *tweet in self.currentTweets ) {
                     
-                    NSString *currentScreenName = tweet[@"user"][@"screen_name"];
-                    
-                    if ( currentScreenName == nil ) {
-                        
-                        currentScreenName = tweet[@"screen_name"];
-                    }
+                    NSString *currentScreenName = tweet.screenName;
                     
                     if ( [currentScreenName isEqualToString:screenName] ) {
                         
-                        [wself refreshTimelineCell:[NSNumber numberWithInt:index]];
+                        [self refreshTimelineCell:@(index)];
+                        
+                    }else {
+                        
+                        if ( tweet.isReTweet ) {
+                            
+                            currentScreenName = tweet.rtUserName;
+                            
+                            if ( [currentScreenName isEqualToString:screenName] ) {
+                                
+                                [self refreshTimelineCell:@(index)];
+                            }
+                        }
                     }
                     
                     index++;
@@ -1152,1799 +2396,184 @@
     }
 }
 
-- (void)changeAccount:(NSNotification *)notification {
-    
-    //Tweet画面でアカウントが切り替えられた際に呼ばれる
-    NSLog(@"changeAccount");
-    
-    //UserStreamが有効な場合切断する
-    if ( _userStream ) [self closeStream];
-    
-    //自分のアカウントを設定
-    [self getMyAccountIcon];
-    
-    //List一覧のキャッシュを削除
-    APP_DELEGATE.listAll = nil;
-    APP_DELEGATE.listAll = BLANK_ARRAY;
-    
-    //タイムラインをアクティブアカウントの物に切り替え
-    self.timelineArray = [NSMutableArray arrayWithArray:[TWTweets currentTimeline]];
-    [_timeline reloadData];
-    
-    __weak TimelineViewController *wself = self;
-    
-    //リロードする
-    DISPATCH_AFTER(0.1) ^{
-        
-        [wself createTimeline];
-    });
-}
-
 - (void)refreshTimelineCell:(NSNumber *)index {
+    
+    NSLog(@"%s", __func__);
     
     int i = [index intValue];
     
-    if ( _timelineArray[i] == nil ||
-         _timelineArray.count - 1 < i ) return;
+    if ( self.currentTweets[i] == nil ||
+         self.currentTweets.count - 1 < i ) return;
     
-    //NSLog(@"refreshTimelineCell: %d", i);
+    dispatch_queue_t queue;
+    if ( [NSThread isMainThread] ) {
+        queue = dispatch_get_current_queue();
+    }else {
+        queue = dispatch_get_main_queue();
+    }
     
-    __weak TimelineViewController *wself = self;
-    
-    ASYNC_MAIN_QUEUE ^{
+    dispatch_async(queue, ^{
         
-        NSIndexPath *indexPath = [NSIndexPath indexPathForRow:i inSection:0];
-        NSArray *indexPaths = [NSArray arrayWithObject:indexPath];
-        [wself.timeline reloadRowsAtIndexPaths:indexPaths
-                              withRowAnimation:UITableViewRowAnimationNone];
+        [self.timeline reloadRowsAtIndexPaths:@[[NSIndexPath indexPathForRow:i
+                                                                   inSection:0]]
+                             withRowAnimation:UITableViewRowAnimationNone];
     });
-}
-
-- (void)copyTweetInUrl:(NSArray *)urlList {
-    
-    NSLog(@"copyTweetInUrl[%d]: %@", urlList.count, urlList);
-    
-    if ( urlList.count == 0 ) {
-        
-        [ShowAlert error:@"Tweet内にURLがありません。"];
-        
-    }else if ( urlList.count == 1 ) {
-        
-        [P_BOARD setString:[urlList objectAtIndex:0]];
-        self.tweetInUrls = nil;
-        _tweetInUrls = BLANK_ARRAY;
-        
-    }else if ( urlList.count == 2 ) {
-        
-        UIActionSheet *sheet = [[UIActionSheet alloc]
-                                initWithTitle:@"Tweet内のURLをコピー"
-                                delegate:self
-                                cancelButtonTitle:@"Cancel"
-                                destructiveButtonTitle:nil
-                                otherButtonTitles:[urlList objectAtIndex:0],
-                                [urlList objectAtIndex:1], nil];
-        sheet.tag = 7;
-        
-        [sheet showInView:APP_DELEGATE.tabBarController.view];
-        
-    }else if ( urlList.count == 3 ) {
-        
-        UIActionSheet *sheet = [[UIActionSheet alloc]
-                                initWithTitle:@"Tweet内のURLをコピー"
-                                delegate:self
-                                cancelButtonTitle:@"Cancel"
-                                destructiveButtonTitle:nil
-                                otherButtonTitles:[urlList objectAtIndex:0],
-                                [urlList objectAtIndex:1],
-                                [urlList objectAtIndex:2], nil];
-        sheet.tag = 8;
-        
-        [sheet showInView:APP_DELEGATE.tabBarController.view];
-        
-    }else if ( urlList.count == 4 ) {
-        
-        UIActionSheet *sheet = [[UIActionSheet alloc]
-                                initWithTitle:@"Tweet内のURLをコピー"
-                                delegate:self
-                                cancelButtonTitle:@"Cancel"
-                                destructiveButtonTitle:nil
-                                otherButtonTitles:[urlList objectAtIndex:0],
-                                [urlList objectAtIndex:1],
-                                [urlList objectAtIndex:2],
-                                [urlList objectAtIndex:3], nil];
-        sheet.tag = 9;
-        
-        [sheet showInView:APP_DELEGATE.tabBarController.view];
-        
-    }else if ( urlList.count == 5 ) {
-        
-        UIActionSheet *sheet = [[UIActionSheet alloc]
-                                initWithTitle:@"Tweet内のURLをコピー"
-                                delegate:self
-                                cancelButtonTitle:@"Cancel"
-                                destructiveButtonTitle:nil
-                                otherButtonTitles:[urlList objectAtIndex:0],
-                                [urlList objectAtIndex:1],
-                                [urlList objectAtIndex:2],
-                                [urlList objectAtIndex:3],
-                                [urlList objectAtIndex:4], nil];
-        sheet.tag = 10;
-        
-        [sheet showInView:APP_DELEGATE.tabBarController.view];
-        
-    }else if ( urlList.count >= 6 ) {
-        
-        UIActionSheet *sheet = [[UIActionSheet alloc]
-                                initWithTitle:@"Tweet内のURLをコピー"
-                                delegate:self
-                                cancelButtonTitle:@"Cancel"
-                                destructiveButtonTitle:nil
-                                otherButtonTitles:[urlList objectAtIndex:0],
-                                [urlList objectAtIndex:1],
-                                [urlList objectAtIndex:2],
-                                [urlList objectAtIndex:3],
-                                [urlList objectAtIndex:4],
-                                [urlList objectAtIndex:5], nil];
-        sheet.tag = 11;
-        
-        [sheet showInView:APP_DELEGATE.tabBarController.view];
-    }
-}
-
-- (void)checkTimelineCount:(BOOL)animated {
-    
-    int max = 400;
-    if ( _searchStream ) max = 100;
-    
-    if ( _timelineArray.count > max ) {
-        
-        __weak TimelineViewController *wself = self;
-        
-        dispatch_queue_t queue = GLOBAL_QUEUE_DEFAULT;
-        dispatch_semaphore_t semaphore = dispatch_semaphore_create(1);
-        dispatch_sync(queue, ^{
-            dispatch_semaphore_wait(semaphore, DISPATCH_TIME_FOREVER);
-            
-            while ( wself.timelineArray.count > max ) {
-                
-                [wself.timelineArray removeLastObject];
-                
-                if ( animated ) {
-                    
-                    [wself.timeline deleteRowsAtIndexPaths:@[[NSIndexPath indexPathForRow:wself.timelineArray.count - 1
-                                                                                inSection:0]]
-                                          withRowAnimation:UITableViewRowAnimationBottom];
-                }
-            }
-            
-            dispatch_semaphore_signal(semaphore);
-            dispatch_release(semaphore);
-        });
-    }
-}
-
-#pragma mark - In reply to
-
-- (void)getInReplyToChain:(NSDictionary *)tweetData {
-    
-    NSString *inReplyToId = tweetData[@"in_reply_to_status_id_str"];
-    
-    NSLog(@"getInReplyToChain: %@", inReplyToId);
-    
-    __weak TimelineViewController *wself = self;
-    
-    if ( ![EmptyCheck check:inReplyToId] ||
-        [inReplyToId isEqualToString:@"END"] ) {
-        
-        //InReplyToIDがもうない場合は表示を行う
-        
-        if ( [EmptyCheck check:_inReplyTo] && _inReplyTo.count > 1 ) {
-            
-            NSLog(@"InReplyTo GET END");
-            
-            [self closeStream];
-            
-            dispatch_queue_t globalQueue = GLOBAL_QUEUE_DEFAULT;
-            dispatch_async(globalQueue, ^{
-                
-                //表示開始
-                ASYNC_MAIN_QUEUE ^{
-                    
-                    //t.coを展開
-                    wself.inReplyTo = [TWEntities replaceTcoAll:wself.inReplyTo];
-                    
-                    [wself setOtherTweetsBarItems];
-                    
-                    wself.timelineArray = BLANK_M_ARRAY;
-                    [wself.timeline reloadData];
-                    
-                    for ( NSDictionary *tweet in wself.inReplyTo ) {
-                        
-                        //タイムラインに追加
-                        [wself.timelineArray insertObject:tweet
-                                                  atIndex:0];
-                        [wself.timeline insertRowsAtIndexPaths:@[[NSIndexPath indexPathForRow:0 inSection:0]]
-                                              withRowAnimation:UITableViewRowAnimationRight];
-                    }
-                    
-                    //タイムラインからアイコンのURLを取得
-                    dispatch_queue_t queue = GLOBAL_QUEUE_DEFAULT;
-                    dispatch_async(queue, ^ {
-                        
-                        [wself getIconWithTweetArray:[NSMutableArray arrayWithArray:wself.timelineArray]];
-                    });
-                });
-            });
-        }
-        
-    }else {
-        
-        dispatch_queue_t globalQueue = GLOBAL_QUEUE_DEFAULT;
-        dispatch_async(globalQueue, ^{
-            
-            [ActivityIndicator on];
-            
-            __block NSDictionary *findTweet = nil;
-            
-            [wself.timelineArray enumerateObjectsUsingBlock:
-             ^( NSDictionary *searchTweet, NSUInteger index, BOOL *stop ) {
-                 
-                 NSString *searchTweetID = [[NSString alloc] initWithString:searchTweet[@"id_str"]];
-                 
-                 if ( [searchTweetID isNotEmpty] ) {
-                     
-                     if ( [searchTweetID isEqualToString:inReplyToId] ) {
-                         
-                         findTweet = [NSDictionary dictionaryWithDictionary:searchTweet];
-                         [wself.inReplyTo insertObject:findTweet atIndex:0];
-                         searchTweet = nil;
-                         searchTweetID = nil;
-                         *stop = YES;
-                     }
-                 }
-                 
-                 searchTweetID = nil;
-             }];
-            
-            if ( findTweet != nil ) {
-                
-                NSLog(@"InReplyTo TL");
-                
-                [wself getInReplyToChain:findTweet];
-                
-            }else {
-                
-                NSLog(@"InReplyTo REST");
-                
-                [TWEvent getTweet:inReplyToId];
-            }
-        });
-    }
-}
-
-#pragma mark - TableView
-
-- (NSInteger)tableView:(UITableView *)tableView numberOfRowsInSection:(NSInteger)section {
-    
-    //TableViewの要素数を返す
-	return _timelineArray.count;
-}
-
-- (UITableViewCell *)tableView:(UITableView *)tableView cellForRowAtIndexPath:(NSIndexPath *)indexPath {
-    
-    //NSLog(@"cellForRowAtIndexPath: %d", indexPath.row);
-    
-    __weak NSDictionary *currentTweet = _timelineArray[indexPath.row];
-    
-    if ( [currentTweet[@"retweeted_status"] boolForKey:@"id"] ) {
-        
-        //公式RT
-        __autoreleasing TimelineAttributedRTCell *cell = (TimelineAttributedRTCell *)[tableView dequeueReusableCellWithIdentifier:RT_CELL_IDENTIFIER];
-        
-        if ( cell == nil ) {
-            
-            cell = [[TimelineAttributedRTCell alloc] initWithStyle:UITableViewCellStyleDefault
-                                                   reuseIdentifier:RT_CELL_IDENTIFIER
-                                                          forWidth:264];
-            [cell.iconView addTarget:self
-                              action:@selector(pushIcon:)
-                    forControlEvents:UIControlEventTouchUpInside];
-        }
-        
-        @autoreleasepool {
-            
-            //Tweetの本文
-            __weak NSString *text = currentTweet[@"text"];
-            
-            //ID
-            __weak NSString *screenName = currentTweet[@"retweeted_status"][@"user"][@"screen_name"];
-            cell.iconView.buttonTitle = [NSString stringWithString:screenName];
-            cell.iconView.index = indexPath.row;
-            
-            //ID - 日付 [クライアント名]
-            __weak NSString *infoLabelText = currentTweet[@"info_text"];
-            
-            if ( [[Share images] objectForKey:screenName] != nil &&
-                cell.iconView.layer.sublayers.count != 0 ) {
-                
-                [cell.iconView.layer.sublayers[0] setContents:(id)[[Share images] imageForKey:screenName].CGImage];
-                
-            }else {
-                
-                [cell.iconView.layer.sublayers[0] setContents:nil];
-            }
-            
-            __weak NSString *userName = currentTweet[@"rt_user"];
-            if ( [[Share images] objectForKey:userName] != nil &&
-                cell.iconView.layer.sublayers.count != 0 ) {
-                
-                [cell.iconView.layer.sublayers[1] setContents:(id)[[Share images] imageForKey:userName].CGImage];
-                
-            }else {
-                
-                [cell.iconView.layer.sublayers[1] setContents:nil];
-            }
-            
-            //Favoriteの色を変えて星をつける
-            if ( [currentTweet boolForKey:@"favorited"] ) {
-                
-                infoLabelText = [NSMutableString stringWithFormat:@"★%@", infoLabelText];
-            }
-            
-            CGFloat contentsHeight = [currentTweet integerForKey:@"contents_height"];
-            
-            //セルへの反映開始
-            cell.infoLabel.text = [NSString stringWithString:infoLabelText];
-            
-            NSMutableAttributedString *mainText = [NSMutableAttributedString attributedStringWithString:text];
-            [mainText setFont:[UIFont systemFontOfSize:12]];
-            [mainText setTextColor:GREEN_COLOR range:NSMakeRange(0, text.length)];
-            [mainText setTextAlignment:kCTLeftTextAlignment
-                         lineBreakMode:kCTLineBreakByCharWrapping
-                         maxLineHeight:14.0
-                         minLineHeight:14.0
-                        maxLineSpacing:1.0
-                        minLineSpacing:1.0
-                                 range:NSMakeRange(0, mainText.length)];
-            cell.mainLabel.attributedText = mainText;
-            
-            //セルの高さを設定
-            cell.mainLabel.frame = CGRectMake(54, 19, 264, contentsHeight);
-        }
-        
-        return cell;
-        
-    }else {
-        
-        __autoreleasing TimelineAttributedCell *cell = (TimelineAttributedCell *)[tableView dequeueReusableCellWithIdentifier:CELL_IDENTIFIER];
-        
-        if ( cell == nil ) {
-            
-            cell = [[TimelineAttributedCell alloc] initWithStyle:UITableViewCellStyleDefault
-                                                 reuseIdentifier:CELL_IDENTIFIER
-                                                        forWidth:264];
-            [cell.iconView addTarget:self
-                              action:@selector(pushIcon:)
-                    forControlEvents:UIControlEventTouchUpInside];
-        }
-        
-        @autoreleasepool {
-            
-            //Tweetの本文
-            __weak NSString *text = currentTweet[@"text"];
-            
-            //ID
-            __weak NSString *screenName = currentTweet[@"user"][@"screen_name"];
-            cell.iconView.buttonTitle = [NSString stringWithString:screenName];
-            cell.iconView.index = indexPath.row;
-            
-            //ID - 日付 [クライアント名]
-            __weak NSString *infoLabelText = currentTweet[@"info_text"];
-            
-            if ( [[Share images] objectForKey:screenName] != nil &&
-                cell.iconView.layer.sublayers.count != 0 &&
-                [[cell.iconView.layer.sublayers.lastObject name] isEqualToString:@"Icon"] ) {
-                
-                [cell.iconView.layer.sublayers.lastObject setContents:(id)[[Share images] imageForKey:screenName].CGImage];
-                
-            }else {
-                
-                [cell.iconView.layer.sublayers.lastObject setContents:nil];
-            }
-            
-            CGFloat contentsHeight = [currentTweet integerForKey:@"contents_height"];
-            
-            //ふぁぼられイベント用
-            if ( currentTweet[@"FavEvent"] != nil ) {
-                
-                NSString *temp = [NSString stringWithString:infoLabelText];
-                infoLabelText = [NSString stringWithFormat:@"【%@がお気に入りに追加】",
-                                 currentTweet[@"addUser"]];
-                
-                text = [NSString stringWithFormat:@"%@\n%@", temp, text];
-                contentsHeight = [text heightForContents:[UIFont systemFontOfSize:12.0]
-                                                 toWidht:264
-                                               minHeight:31
-                                           lineBreakMode:NSLineBreakByCharWrapping];
-                temp = nil;
-            }
-            
-            //セルへの反映開始
-            cell.infoLabel.text = [NSString stringWithString:infoLabelText];
-            cell.infoLabel.textColor = [self getTextColor:[currentTweet integerForKey:@"text_color"]];
-            
-            NSMutableAttributedString *mainText = [NSMutableAttributedString attributedStringWithString:text];
-            [mainText setFont:[UIFont systemFontOfSize:12]];
-            [mainText setTextColor:[self getTextColor:[currentTweet integerForKey:@"text_color"]] range:NSMakeRange(0, text.length)];
-            [mainText setTextAlignment:kCTLeftTextAlignment
-                         lineBreakMode:kCTLineBreakByCharWrapping
-                         maxLineHeight:14.0
-                         minLineHeight:14.0
-                        maxLineSpacing:1.0
-                        minLineSpacing:1.0
-                                 range:NSMakeRange(0, mainText.length)];
-            cell.mainLabel.attributedText = mainText;
-            
-            //セルの高さを設定
-            cell.mainLabel.frame = CGRectMake(54, 19, 264, contentsHeight);
-        }
-        
-        return cell;
-    }
-}
-
-- (UIColor *)getTextColor:(CellTextColor)color {
-    
-    if ( color == CellTextColorBlack ) return BLACK_COLOR;
-    if ( color == CellTextColorRed )   return RED_COLOR;
-    if ( color == CellTextColorBlue )  return BLUE_COLOR;
-    if ( color == CellTextColorGreen ) return GREEN_COLOR;
-    if ( color == CellTextColorGold )  return GOLD_COLOR;
-    
-    return BLACK_COLOR;
-}
-
-- (CGFloat)tableView:(UITableView *)tableView heightForRowAtIndexPath:(NSIndexPath *)indexPath {
-    
-    //セルの高さを設定
-    __weak NSDictionary *currentTweet = _timelineArray[indexPath.row];
-    
-    if ( currentTweet[@"FavEvent"] != nil ) {
-        
-        return [[NSString stringWithFormat:@"【%@がお気に入りに追加】\n%@",
-                 currentTweet[@"addUser"],
-                 currentTweet[@"text"]]
-                heightForContents:[UIFont systemFontOfSize:12]
-                toWidht:264
-                minHeight:31
-                lineBreakMode:NSLineBreakByCharWrapping] + 25;
-    }
-    
-    return [currentTweet[@"contents_height"] integerValue] + 25;
-}
-
-- (void)tableView:(UITableView *)tableView didSelectRowAtIndexPath:(NSIndexPath *)indexPath {
-    
-    NSLog(@"didSelectRowAtIndexPath");
-    
-    //セルの選択状態を解除
-	[tableView deselectRowAtIndexPath:indexPath animated:YES];
-    
-    if ( !_webBrowserMode ) {
-        
-        //ピッカー表示中は何もしない
-        if ( _pickerVisible ) return;
-        
-        if ( _showMenu ) {
-            
-            [self hideTimelineMenu:nil];
-            
-        }else {
-            
-            self.selectRow = indexPath.row;
-            self.selectTweet = _timelineArray[indexPath.row];
-            
-            if ( _selectTweet[@"FavEvent"] == nil ) {
-                
-                _showMenu = YES;
-                [self createTimelineMenu:TimeLineMenuIdentifierMain];
-                
-            }else {
-                
-                NSString *targetId = [[NSString alloc] initWithString:_selectTweet[@"id_str"]];
-                NSString *favStarUrl = [[NSString alloc] initWithFormat:@"http://ja.favstar.fm/users/%@/status/%@",
-                                        [TWAccounts currentAccountName],
-                                        targetId];
-                
-                APP_DELEGATE.startupUrlList = [NSArray arrayWithObject:favStarUrl];
-                
-                [self openBrowser];
-            }
-        }
-    }
-}
-
-- (void)createTimelineMenu:(TimeLineMenuIdentifier)menuIdentifier {
-    
-    __weak TimelineViewController *wself = self;
-    
-    if ( wself.selectTweet[@"FavEvent"] == nil ) {
-        
-        wself.topBar.userInteractionEnabled = NO;
-        wself.timelineSegment.userInteractionEnabled = NO;
-        
-        wself.timelineMenu = [[TimelineMenu alloc] initWithTweet:wself.selectTweet forMenu:TimeLineMenuIdentifierMain];
-        wself.timelineMenu.alpha = 0.0;
-        [wself.view addSubview:wself.timelineMenu];
-        
-        DISPATCH_AFTER(0.1) ^{
-            
-            [UIView animateWithDuration:0.3
-                             animations:^{
-                                 
-                                 wself.timelineMenu.alpha = 1.0;
-                                 wself.timelineMenu.frame = CGRectMake(wself.timelineMenu.frame.origin.x,
-                                                                       0,
-                                                                       wself.timelineMenu.frame.size.width,
-                                                                       wself.timelineMenu.frame.size.height);
-                             }
-             ];
-        });
-        
-        [UIView animateWithDuration:0.2
-                         animations:^{
-                             
-                             wself.topBar.frame = CGRectMake(266,
-                                                             wself.topBar.frame.origin.y,
-                                                             wself.topBar.frame.size.width,
-                                                             wself.topBar.frame.size.height);
-                             
-                             wself.accountIconView.frame = CGRectMake(wself.accountIconView.frame.origin.x + 266,
-                                                                      wself.accountIconView.frame.origin.y,
-                                                                      wself.accountIconView.frame.size.width,
-                                                                      wself.accountIconView.frame.size.height);
-                             
-                             wself.timelineSegment.frame = CGRectMake(266,
-                                                                      wself.timelineSegment.frame.origin.y,
-                                                                      wself.timelineSegment.frame.size.width,
-                                                                      wself.timelineSegment.frame.size.height);
-                             
-                             wself.timeline.frame = CGRectMake(266,
-                                                               wself.timeline.frame.origin.y,
-                                                               wself.timeline.frame.size.width,
-                                                               wself.timeline.frame.size.height);
-                         }
-         ];
-        
-    }
-}
-
-//- (void)tableView:(UITableView *)tableView accessoryButtonTappedForRowWithIndexPath:(NSIndexPath *)indexPath {
-//
-//}
-
-//- (void)tableView:(UITableView *)tableView commitEditingStyle:(UITableViewCellEditingStyle)editingStyle forRowAtIndexPath:(NSIndexPath *)indexPath {
-//
-//}
-
-- (void)scrollTimelineForNewTweet:(NSString *)tweetID {
-    
-    __weak TimelineViewController *wself = self;
-    
-    dispatch_queue_t globalQueue = GLOBAL_QUEUE_DEFAULT;
-    dispatch_async(globalQueue, ^{
-        
-        //Tweetがない場合はスクロールしない
-        if ( wself.timelineArray == nil ||
-            wself.timelineArray.count == 0 ) return;
-        
-        //スクロールするIDがない場合は終了
-        if ( tweetID == nil ||
-            [tweetID isEqualToString:@""] ) return;
-        
-        //スクロールするインデックスを検索
-        int index = 0;
-        BOOL find = NO;
-        for ( NSDictionary *tweet in [TWTweets currentTimeline] ) {
-            
-            if ( tweet[@"id_str"] != nil &&
-                [tweet[@"id_str"] isEqualToString:tweetID] ) {
-                
-                find = YES;
-                break;
-            }
-            
-            index++;
-        }
-        
-        if ( find ) {
-            
-            if ( wself.timelineArray.count < index ||
-                [wself.timelineArray objectAtIndex:index] == nil ) return;
-            
-            ASYNC_MAIN_QUEUE ^{
-                
-                //スクロールする
-                [wself.timeline scrollToRowAtIndexPath:[NSIndexPath indexPathForRow:index
-                                                                          inSection:0]
-                                      atScrollPosition:UITableViewScrollPositionBottom
-                                              animated:YES];
-            });
-        }
-    });
-}
-
-- (void)scrollTimelineToTop:(BOOL)animation {
-    
-    //Tweetがない場合はスクロールしない
-    if ( _timelineArray == nil ||
-        _timelineArray.count == 0 ) return;
-    
-    //一番上にスクロールする
-    [_timeline scrollToRowAtIndexPath:[NSIndexPath indexPathForRow:0 inSection:0]
-                     atScrollPosition:UITableViewScrollPositionBottom
-                             animated:animation];
-}
-
-- (void)scrollTimelineToBottom:(BOOL)animation {
-    
-    //Tweetがない場合はスクロールしない
-    if ( _timelineArray == nil ||
-        _timelineArray.count == 0 ) return;
-    
-    //一番下にスクロールする
-    [_timeline scrollToRowAtIndexPath:[NSIndexPath indexPathForRow:_timelineArray.count - 1
-                                                         inSection:0]
-                     atScrollPosition:UITableViewScrollPositionBottom
-                             animated:animation];
-}
-
-- (void)pushIcon:(TitleButton *)sender {
-    
-//  NSLog(@"pushIconName: %@, index: %d", sender.buttonTitle, sender.index);
-    
-    if ( _showMenu ) {
-        
-        [self hideTimelineMenu:nil];
-        
-    }else {
-        
-        _selectTweet = _timelineArray[sender.index];
-        
-        if ( [D integerForKey:@"TimelineIconAction"] == 0 ) {
-            
-            _alertSearchUserName = sender.buttonTitle;
-            _selectAccount = _alertSearchUserName;
-            
-            UIActionSheet *sheet = [[UIActionSheet alloc]
-                                    initWithTitle:@"外部サービスやユーザー情報を開く"
-                                    delegate:self
-                                    cancelButtonTitle:@"Cancel"
-                                    destructiveButtonTitle:nil
-                                    otherButtonTitles:@"Twilog", @"TwilogSearch", @"favstar", @"Twitpic", @"UserTimeline", @"TwitterSearch", @"TwitterSearch(Stream)", nil];
-            
-            sheet.tag = 1;
-            _alertSearchType = NO;
-            [sheet showInView:APP_DELEGATE.tabBarController.view];
-            
-        }else if ( [D integerForKey:@"TimelineIconAction"] == 1 ) {
-            [self timelineMenuActionReply];
-        }else if ( [D integerForKey:@"TimelineIconAction"] == 2 ) {
-            [self timelineMenuActionFavorite];
-        }else if ( [D integerForKey:@"TimelineIconAction"] == 3 ) {
-            [self timelineMenuActionReTweet];
-        }else if ( [D integerForKey:@"TimelineIconAction"] == 4 ) {
-            [self timelineMenuActionFavRT];
-        }else if ( [D integerForKey:@"TimelineIconAction"] == 5 ) {
-            [self timelineMenuActionSelectID];
-        }
-    }
-}
-
-- (void)openTimelineURL:(NSNotification *)notification {
-    
-    NSString *urlString = [[NSString alloc] initWithString:notification.userInfo[@"URL"]];
-    
-    if ( urlString == nil ) {
-        
-        return;
-    }
-    
-    APP_DELEGATE.startupUrlList = @[urlString];
-    [self openBrowser];
 }
 
 - (void)openTimelineImage:(NSNotification *)notification {
     
     if ( notification.userInfo[@"URL"] != nil ) {
         
-        NSString *urlString = [[NSString alloc] initWithString:notification.userInfo[@"URL"]];
-        
-        [_imageWindow loadImage:urlString viewRect:_timeline.frame];
+        NSString *urlString = notification.userInfo[@"URL"];
+        [self.imageWindow loadImage:urlString
+                           viewRect:self.timeline.frame];
     }
 }
 
-- (void)timelineMenuAction:(NSNotification *)notification {
+- (void)openTimelineURL:(NSNotification *)notification {
     
-    [self hideTimelineMenu:notification];
+    NSString *urlString = notification.userInfo[@"URL"];
+    
+    if ( urlString == nil ) return;
+    
+    [self openBrowser:urlString];
 }
 
-- (void)hideTimelineMenu:(NSNotification *)notification {
+- (void)swipeTimelineRight:(UISwipeGestureRecognizer *)sender {
     
-    __weak TimelineViewController *wself = self;
-    
-    DISPATCH_AFTER(0.2) ^{
-        
-        [UIView animateWithDuration:0.2
-                         animations:^{
-                             
-                             wself.topBar.frame = CGRectMake(0,
-                                                             wself.topBar.frame.origin.y,
-                                                             wself.topBar.frame.size.width,
-                                                             wself.topBar.frame.size.height);
-                             
-                             wself.accountIconView.frame = CGRectMake(142,
-                                                                      wself.accountIconView.frame.origin.y,
-                                                                      wself.accountIconView.frame.size.width,
-                                                                      wself.accountIconView.frame.size.height);
-                             
-                             wself.timelineSegment.frame = CGRectMake(-4,
-                                                                      wself.timelineSegment.frame.origin.y,
-                                                                      wself.timelineSegment.frame.size.width,
-                                                                      wself.timelineSegment.frame.size.height);
-                             
-                             wself.timeline.frame = CGRectMake(0,
-                                                               wself.timeline.frame.origin.y,
-                                                               wself.timeline.frame.size.width,
-                                                               wself.timeline.frame.size.height);
-                         }
-                         completion:^(BOOL finished) {
-                             
-                             wself.showMenu = NO;
-                             wself.topBar.userInteractionEnabled = YES;
-                             wself.timelineSegment.userInteractionEnabled = YES;
-                             
-                             if ( wself.timelineMenu != nil ) [wself.timelineMenu removeFromSuperview];
-                             [wself setTimelineMenu:nil];
-                             
-                             if ( notification.userInfo[@"Action"] != nil ) {
-                                 
-                                 __block NSUInteger actionNo = [notification.userInfo uintegerForKey:@"Action"];
-                                 __block NSString *type = [notification.userInfo stringForKey:@"Type"];
-                                 __block NSString *targetUser = nil;
-                                 
-                                 if ( [type isEqualToString:@"User"] ) {
-                                     
-                                     targetUser = [notification.userInfo stringForKey:@"TargetUser"];
-                                     NSLog(@"targetUser: %@", targetUser);
-                                 }
-                                 
-                                 dispatch_queue_t globalQueue = GLOBAL_QUEUE_DEFAULT;
-                                 dispatch_async(globalQueue, ^{
-                                     
-                                     if ( [type isEqualToString:@"Main"] ) {
-                                         
-                                         switch ( actionNo ) {
-                                                 
-                                             case TimelineMenuActionReply:
-                                                 [wself timelineMenuActionReply];
-                                                 break;
-                                                 
-                                             case TimelineMenuActionFavorite:
-                                                 [wself timelineMenuActionFavorite];
-                                                 break;
-                                                 
-                                             case TimelineMenuActionReTweet:
-                                                 [wself timelineMenuActionReTweet];
-                                                 break;
-                                                 
-                                             case TimelineMenuActionFavRT:
-                                                 [wself timelineMenuActionFavRT];
-                                                 break;
-                                                 
-                                             case TimelineMenuActionSelectID:
-                                                 [wself timelineMenuActionSelectID];
-                                                 break;
-                                                 
-                                             case TimelineMenuActionNGTag:
-                                                 [wself timelineMenuActionNGTag];
-                                                 break;
-                                                 
-                                             case TimelineMenuActionNGClient:
-                                                 [wself timelineMenuActionNGClient];
-                                                 break;
-                                                 
-                                             case TimelineMenuActionInReplyTo:
-                                                 [wself timelineMenuActionInReplyTo];
-                                                 break;
-                                                 
-                                             case TimelineMenuActionCopy:
-                                                 [wself timelineMenuActionCopy];
-                                                 break;
-                                                 
-                                             case TimelineMenuActionDelete:
-                                                 [wself timelineMenuActionDelete];
-                                                 break;
-                                                 
-                                             case TimelineMenuActionEdit:
-                                                 [wself timelineMenuActionEdit];
-                                                 break;
-                                                 
-                                             case TimelineMenuActionUserMenu:
-                                                 [wself timelineMenuActionUserMenu];
-                                                 break;
-                                                 
-                                             default:
-                                                 break;
-                                         }
-                                         
-                                     }else if ( [type isEqualToString:@"Copy"] ) {
-                                         
-                                         switch ( actionNo ) {
-                                                 
-                                             case TimelineCopyMenuSTOT:
-                                                 [wself timelineCopyMenuSTOT];
-                                                 break;
-                                                 
-                                             case TimelineCopyMenuText:
-                                                 [wself timelineCopyMenuText];
-                                                 break;
-                                                 
-                                             case TimelineCopyMenuTweetURL:
-                                                 [wself timelineCopyMenuTweetURL];
-                                                 break;
-                                                 
-                                             case TimelineCopyMenuURL:
-                                                 [wself timelineCopyMenuURL];
-                                                 break;
-                                                 
-                                             default:
-                                                 break;
-                                         }
-                                         
-                                     }else if ( [type isEqualToString:@"User"] ) {
-                                         
-                                         [wself openTwitterService:targetUser serviceType:actionNo];
-                                     }
-                                 });
-                             }
-                         }
-         ];
-    });
-    
-    [UIView animateWithDuration:0.3
-                     animations:^{
-                         
-                         wself.timelineMenu.alpha = 0.0;
-                         wself.timelineMenu.frame = CGRectMake(wself.timelineMenu.frame.origin.x,
-                                                               wself.timelineMenu.frame.size.height,
-                                                               wself.timelineMenu.frame.size.width,
-                                                               wself.timelineMenu.frame.size.height);
-                     }
-     ];
-}
-
-- (void)receiveGrayViewDoneNotification:(NSNotification *)notification {
-    
-    NSLog(@"receiveGrayViewDoneNotification");
-}
-
-#pragma mark - ASIHTTPRequest
-
-- (void)requestFinished:(ASIHTTPRequest *)request {
-    
-}
-
-- (void)requestFailed:(ASIHTTPRequest *)request {
-    
-    NSLog(@"requestFailed: %@", request.responseString);
-    
-    [ActivityIndicator off];
-    
-    if ( [InternetConnection enable] ) {
-        
-        //再送信
-        NSURL *URL = [[NSURL alloc] initWithString:request.userInfo[@"profile_image_url"]];
-        ASIHTTPRequest *reSendRequest = [[ASIHTTPRequest alloc] initWithURL:URL];
-        reSendRequest.userInfo = request.userInfo;
-        [reSendRequest setDelegate:self];
-        [reSendRequest start];
-    }
-}
-
-#pragma mark - IBAction
-
-- (IBAction)pushPostButton:(UIBarButtonItem *)sender {
+    NSLog(@"%s", __func__);
     
     //ピッカー表示中の場合は隠す
-    if ( _pickerVisible ) [self hidePicker];
-    
-    APP_DELEGATE.tabChangeFunction = @"Post";
-    self.tabBarController.selectedIndex = 0;
-}
-
-- (IBAction)pushReloadButton:(UIBarButtonItem *)sender {
-    
-    NSLog(@"pushReloadButton");
-    
-    //ピッカー表示中の場合は隠す
-    if ( _pickerVisible ) [self hidePicker];
-    
-    //インターネット接続を確認
-    if ( ![InternetConnection enable] ) return;
-    
-    //自分のアイコンを取得
-    [self getMyAccountIcon];
-    
-    _reloadButton.enabled = NO;
-    
-    if ( _timelineSegment.selectedSegmentIndex == 0 ) {
+    if ( self.pickerVisible ) [self hidePicker];
+    if ( self.segment.selectedSegmentIndex == 3 ) {
         
-        //タイムラインのセグメントが選択されている場合
-        
-        //アクティブアカウントのタイムラインを反映
-        self.timelineArray = [NSMutableArray arrayWithArray:[TWTweets currentTimeline]];
-        [_timeline reloadData];
-        
-        //リロード
-        [self performSelectorInBackground:@selector(createTimeline) withObject:nil];
-        
-    }else if ( _timelineSegment.selectedSegmentIndex == 1 ) {
-        
-        //Mentionsを取得
-        [TWGetTimeline performSelectorInBackground:@selector(mentions) withObject:nil];
-        
-    }else if ( _timelineSegment.selectedSegmentIndex == 2 ) {
-        
-        //Favoritesを取得
-        [TWGetTimeline performSelectorInBackground:@selector(favotites) withObject:nil];
-        
-    }else if ( _timelineSegment.selectedSegmentIndex == 3 ) {
-        
-        if ( [APP_DELEGATE.listAll isNotEmpty] ) {
-            
-            [self finishLoad];
-            return;
-        }
-        
-        //リストを再読み込み
-        [TWList getList:APP_DELEGATE.listId];
-    }
-}
-
-- (IBAction)pushTimelineControlButton:(UIBarButtonItem *)sender {
-    
-    if ( _listMode ) {
-        
-        //ピッカー表示中の場合は隠す
-        if ( _pickerVisible ) [self hidePicker];
-        
-        //Listモード中はList再選択を行う
-        [self showListSelectView];
-        
-    }else if ( !_userStream && [InternetConnection enable] ) {
-        
-        //UserStream未接続かつインターネットに接続されている場合は接続する
-        _userStream = YES;
-        _timelineControlButton.enabled = NO;
-        _userStreamFirstResponse = NO;
-        
-        __weak TimelineViewController *wself = self;
-        
-        DISPATCH_AFTER(0.6) ^{
-            
-            [wself openStream];
-        });
-        
-    }else {
-        
-        //UserStream接続済み
-        [self closeStream];
-    }
-}
-
-- (IBAction)pushActionButton:(UIBarButtonItem *)sender {
-    
-    //ピッカー表示中の場合は隠す
-    if ( _pickerVisible ) [self hidePicker];
-    
-    if ( sender != nil ) {
-        
-        _alertSearchUserName = [TWAccounts currentAccountName];
-        _alertSearchType = YES;
-        
-    }else {
-        
-        _alertSearchType = NO;
-    }
-    
-    UIActionSheet *sheet = [[UIActionSheet alloc]
-                            initWithTitle:@"外部サービスやユーザー情報を開く"
-                            delegate:self
-                            cancelButtonTitle:@"Cancel"
-                            destructiveButtonTitle:nil
-                            otherButtonTitles:@"Twilog", @"TwilogSearch", @"favstar", @"Twitpic", @"UserTimeline", @"TwitterSearch", @"TwitterSearch(Stream)", nil];
-    
-    sheet.tag = 1;
-    
-    [sheet showInView:APP_DELEGATE.tabBarController.view];
-}
-
-- (IBAction)pushCloseOtherTweetsButton:(UIBarButtonItem *)sender {
-    
-    if ( _pickerVisible ) [self hidePicker];
-    if ( _searchStream ) [self closeSearchStream];
-    
-    if ( !_searchStream ) {
-        
-        _listMode = NO;
-        _otherTweetsMode = NO;
-        [self setTimelineBarItems];
-    }
-    
-    [self changeSegment:nil];
-}
-
-#pragma mark - UserStream
-
-- (void)openStream {
-    
-    __weak TimelineViewController *wself = self;
-    
-    dispatch_queue_t userStreamQueue = GLOBAL_QUEUE_BACKGROUND;
-    dispatch_async(userStreamQueue, ^{
-        
-        @autoreleasepool {
-            
-            NSLog(@"openStream");
-            
-            if ( [D boolForKey:@"USNoAutoLock"] ) [[UIApplication sharedApplication] setIdleTimerDisabled:YES];
-            
-            //UserStream接続リクエストの作成
-            TWRequest *request = [[TWRequest alloc] initWithURL:[NSURL URLWithString:@"https://userstream.twitter.com/2/user.json"]
-                                                     parameters:nil
-                                                  requestMethod:TWRequestMethodPOST];
-            
-            //アカウントの設定
-            [request setAccount:[TWAccounts currentAccount]];
-            
-            //接続開始
-            wself.connection = [NSURLConnection connectionWithRequest:request.signedURLRequest
-                                                             delegate:wself];
-            [wself.connection start];
-            
-            // 終わるまでループさせる
-            while ( wself.userStream ) {
-                
-//                @autoreleasepool {
-                
-                    [[NSRunLoop currentRunLoop] runMode:NSDefaultRunLoopMode beforeDate:[NSDate dateWithTimeIntervalSinceNow:0.25]];
-//                }
-            }
-            
-            request = nil;
-        }
-    });
-}
-
-- (void)closeStream {
-    
-    NSLog(@"closeStream");
-    
-    if ( [D boolForKey:@"USNoAutoLock"] ) [[UIApplication sharedApplication] setIdleTimerDisabled:NO];
-    
-    _userStream = NO;
-    _userStreamFirstResponse = NO;
-    
-    __weak TimelineViewController *wself = self;
-    
-    ASYNC_MAIN_QUEUE ^{
-        
-        wself.timelineControlButton.enabled = YES;
-        wself.timelineControlButton.image = wself.startImage;
-    });
-    
-    if ( self.connection != nil ) {
-        
-        [self.connection cancel];
-        [self.connection setDelegateQueue:nil];
-        self.connection = nil;
-    }
-}
-
-- (void)userStreamDelete:(NSDictionary *)receiveData {
-    
-    if ( _timelineArray.count == 0 ) return;
-    
-    __weak TimelineViewController *wself = self;
-    __block int index = 0;
-    __block BOOL find = NO;
-    
-    dispatch_queue_t globalQueue = GLOBAL_QUEUE_DEFAULT;
-    dispatch_async(globalQueue, ^{
-        
-        //削除イベント
-        NSString *deleteTweetId = [[NSString alloc] initWithString:receiveData[@"delete"][@"status"][@"id_str"]];
-        
-        //削除されたTweetを検索
-        for ( NSDictionary *tweet in wself.timelineArray ) {
-            
-            if ( [tweet[@"id_str"] isEqualToString:deleteTweetId] ) {
-                
-                find = YES;
-                break;
-            }
-            
-            index++;
-        }
-        
-        deleteTweetId = nil;
-    });
-    
-    if ( find ) {
-        
-        SYNC_MAIN_QUEUE ^{
-            
-            //見つかった物を削除
-            [wself.timelineArray removeObjectAtIndex:index];
-            
-            //タイムラインを保存
-            [TWTweets saveCurrentTimeline:wself.timelineArray];
-            
-            [wself.timeline deleteRowsAtIndexPaths:@[[NSIndexPath indexPathForRow:index inSection:0]] withRowAnimation:UITableViewRowAnimationFade];
-        });
-    }
-}
-
-- (void)userStreamMyAddFavEvent:(NSDictionary *)receiveData {
-    
-    //自分のふぁぼりイベント
-    NSString *favedTweetId = [[NSString alloc] initWithString:receiveData[@"target_object"][@"id_str"]];
-    
-    int index = 0;
-    for ( NSDictionary *tweet in _timelineArray ) {
-        
-        if ( [tweet[@"id_str"] isEqualToString:favedTweetId] ) {
-            
-            __block NSMutableDictionary *favedTweet = [[NSMutableDictionary alloc] initWithDictionary:tweet];
-            [favedTweet setObject:@"1"
-                           forKey:@"favorited"];
-            [favedTweet setObject:@(CellTextColorGold)
-                           forKey:@"text_color"];
-            
-            NSString *infoText = [[NSString alloc] initWithString:[favedTweet stringForKey:@"info_text"]];
-            infoText = [NSString stringWithFormat:@"★%@", infoText];
-            [favedTweet setObject:[NSString stringWithString:infoText]
-                           forKey:@"info_text"];
-            infoText = nil;
-            
-            __weak TimelineViewController *wself = self;
-            
-            SYNC_MAIN_QUEUE ^{
-                
-                [wself.timelineArray replaceObjectAtIndex:index withObject:favedTweet];
-                
-                //タイムラインを保存
-                [TWTweets saveCurrentTimeline:wself.timelineArray];
-                
-                //TL更新
-                [wself.timeline reloadRowsAtIndexPaths:@[[NSIndexPath indexPathForRow:index inSection:0]]
-                                      withRowAnimation:UITableViewRowAnimationLeft];
-                favedTweet = nil;
-            });
-            
-            break;
-        }
-        
-        index++;
-    }
-}
-
-- (void)userStreamMyRemoveFavEvent:(NSDictionary *)receiveData {
-    
-    //自分のふぁぼり外しイベント
-    NSString *favedTweetId = [[NSString alloc] initWithString:receiveData[@"target_object"][@"id_str"]];
-    
-    int index = 0;
-    for ( NSDictionary *tweet in _timelineArray ) {
-        
-        if ( [tweet[@"id_str"] isEqualToString:favedTweetId] ) {
-            
-            __block NSMutableDictionary *favedTweet = [[NSMutableDictionary alloc] initWithDictionary:tweet];
-            [favedTweet setObject:@"0"
-                           forKey:@"favorited"];
-
-            NSString *infoText = [[NSString alloc] initWithString:[favedTweet stringForKey:@"info_text"]];
-            infoText = [infoText substringFromIndex:1];
-            [favedTweet setObject:[NSString stringWithString:infoText]
-                           forKey:@"info_text"];
-            infoText = nil;
-            
-            [favedTweet setObject:@(CellTextColorBlue)
-                           forKey:@"text_color"];
-            
-            __weak TimelineViewController *wself = self;
-            
-            SYNC_MAIN_QUEUE ^{
-                
-                [wself.timelineArray replaceObjectAtIndex:index withObject:favedTweet];
-                favedTweet = nil;
-                
-                //タイムラインを保存
-                [TWTweets saveCurrentTimeline:wself.timelineArray];
-                
-                //TL更新
-                [wself.timeline reloadRowsAtIndexPaths:@[[NSIndexPath indexPathForRow:index inSection:0]]
-                                      withRowAnimation:UITableViewRowAnimationRight];
-            });
-            
-            break;
-        }
-        
-        index++;
-    }
-}
-
-- (void)userStreamReceiveFavEvent:(NSDictionary *)receiveData {
-    
-    NSLog(@"%@", receiveData);
-    
-    __block NSMutableDictionary *favDic = BLANK_M_DIC;
-    //user
-    NSMutableDictionary *user = BLANK_M_DIC;
-    
-    //ふぁぼられた人
-    NSString *favUser = [[NSString alloc] initWithString:receiveData[@"target"][@"screen_name"]];
-    
-    //ふぁぼられ人のアイコン
-    NSString *favUserIcon = [[NSString alloc] initWithString:receiveData[@"target"][@"profile_image_url"]];
-    
-    //ふぁぼった人
-    NSString *addUser = [[NSString alloc] initWithString:receiveData[@"source"][@"screen_name"]];
-    
-    //ふぁぼられたTweetの時間
-    NSString *favTime = [[NSString alloc] initWithString:receiveData[@"target_object"][@"created_at"]];
-    
-    //ふぁぼられたTweet
-    NSString *targetText = [[NSString alloc] initWithString:receiveData[@"target_object"][@"text"]];
-    
-    //ふぁぼられたID
-    NSString *targetId = [[NSString alloc] initWithString:receiveData[@"target_object"][@"id_str"]];
-    
-    //クライアント
-    NSString *favClient = [[NSString alloc] initWithString:receiveData[@"target_object"][@"source"]];
-    
-    NSString *infoText = [[NSString alloc] initWithString:receiveData[@"info_text"]];
-    
-    NSString *searchName = [[NSString alloc] initWithString:receiveData[@"search_name"]];
-    
-    if ( favUser == nil || favUserIcon == nil || favTime == nil || favClient == nil ||
-        targetText == nil || targetId == nil || addUser == nil || infoText == nil || searchName == nil ) return;
-    
-    //辞書に追加
-    //ふぁぼられイベントフラグ
-    [favDic setObject:@"YES"
-               forKey:@"FavEvent"];
-    [user setObject:BLANK
-             forKey:@"id_str"];
-    [user setObject:[NSString stringWithString:favUser]
-             forKey:@"screen_name"];
-    [user setObject:[NSString stringWithString:favUserIcon]
-             forKey:@"profile_image_url"];
-    [favDic setObject:[NSString stringWithString:favTime]
-               forKey:@"created_at"];
-    [favDic setObject:[NSString stringWithString:favClient]
-               forKey:@"source"];
-    [favDic setObject:[NSMutableDictionary dictionaryWithDictionary:user]
-               forKey:@"user"];
-    [favDic setObject:[NSString stringWithString:targetText]
-               forKey:@"text"];
-    [favDic setObject:[NSString stringWithString:targetId]
-               forKey:@"id_str"];
-    [favDic setObject:@"1"
-               forKey:@"favorited"];
-    [favDic setObject:[NSString stringWithString:addUser]
-               forKey:@"addUser"];
-    [favDic setObject:[NSString stringWithString:infoText]
-               forKey:@"info_text"];
-    [favDic setObject:[NSString stringWithString:searchName]
-               forKey:@"search_name"];
-    [favDic setObject:@(CellTextColorGold)
-               forKey:@"text_color"];
-    
-    //NSLog(@"favDic: %@", favDic);
-    
-    __weak TimelineViewController *wself = self;
-    
-    if ( [[Share images] objectForKey:favUser] == nil ) {
-        
-        __block NSMutableDictionary *tempDic = [[NSMutableDictionary alloc] init];
-        [tempDic setObject:favDic[@"user"][@"screen_name"]
-                    forKey:@"screen_name"];
-        [tempDic setObject:[TWIconBigger normal:favDic[@"user"][@"profile_image_url"]]
-                    forKey:@"profile_image_url"];
-        
-        //アイコン取得
-        dispatch_queue_t queue = GLOBAL_QUEUE_DEFAULT;
-        dispatch_async(queue, ^ {
-            
-            [wself getIconWithTweetArray:[NSMutableArray arrayWithArray:@[tempDic]]];
-            tempDic = nil;
-        });
-    }
-    
-    SYNC_MAIN_QUEUE ^{
-        
-        //タイムラインに追加
-        wself.timelineArray = [wself.timelineArray appendToTop:@[favDic]
-                                                 returnMutable:YES];
-        favDic = nil;
-        
-        //タイムラインを保存
-        [TWTweets saveCurrentTimeline:wself.timelineArray];
-        
-        //タイムラインを更新
-        [wself.timeline insertRowsAtIndexPaths:@[[NSIndexPath indexPathForRow:0 inSection:0]]
-                              withRowAnimation:UITableViewRowAnimationTop];
-    });
-}
-
-- (void)userStreamReceiveTweet:(NSDictionary *)receiveData newTweet:(NSArray *)newTweet {
-    
-    __weak TimelineViewController *wself = self;
-    __block NSArray *weakNewTweet = newTweet;
-    
-    SYNC_MAIN_QUEUE ^{
-        
-        [wself checkTimelineCount:YES];
-        
-        //タイムラインに追加
-        wself.timelineArray = [wself.timelineArray appendOnlyNewToTop:weakNewTweet
-                                                        returnMutable:YES];
-        
-        //タイムラインを保存
-        [TWTweets saveCurrentTimeline:wself.timelineArray];
-        
-        [wself.timeline insertRowsAtIndexPaths:@[[NSIndexPath indexPathForRow:0 inSection:0]]
-                              withRowAnimation:UITableViewRowAnimationTop];
-    });
-    
-    //アイコン保存
-    dispatch_queue_t queue = GLOBAL_QUEUE_DEFAULT;
-    dispatch_async(queue, ^ {
-        
-        [wself getIconWithTweetArray:[NSMutableArray arrayWithArray:weakNewTweet]];
-        weakNewTweet = nil;
-    });
-}
-
-#pragma mark - SearchStream
-
-- (void)openSearchStream:(NSString *)searchWord {
-    
-    if ( [searchWord isEmpty] ) return;
-    
-    __weak TimelineViewController *wself = self;
-    __block NSString *weakSearchWord = searchWord;
-    
-    dispatch_queue_t userStreamQueue = GLOBAL_QUEUE_BACKGROUND;
-    dispatch_async(userStreamQueue, ^{
-        
-        @autoreleasepool {
-            
-            //          NSLog(@"openSearchStream: %@", weakSearchWord);
-            
-            if ( [D boolForKey:@"USNoAutoLock"] ) [[UIApplication sharedApplication] setIdleTimerDisabled:YES];
-            
-            [wself setOtherTweetsBarItems];
-            
-            //リクエストパラメータを作成
-            NSMutableDictionary *params = [[NSMutableDictionary alloc] init];
-            [params setObject:[NSString stringWithString:weakSearchWord]
-                       forKey:@"track"];
-            [TWGetTimeline twitterSearch:weakSearchWord];
-            
-            //UserStream接続リクエストの作成
-            TWRequest *request = [[TWRequest alloc] initWithURL:[NSURL URLWithString:@"https://stream.twitter.com/1.1/statuses/filter.json"]
-                                                     parameters:params
-                                                  requestMethod:TWRequestMethodPOST];
-            
-            //アカウントの設定
-            [request setAccount:[TWAccounts currentAccount]];
-            
-            //接続開始
-            wself.connection = [NSURLConnection connectionWithRequest:request.signedURLRequest
-                                                             delegate:wself];
-            [wself.connection start];
-            
-            [params removeAllObjects];
-            
-            [wself.searchStreamTemp removeAllObjects];
-            [wself startSearchStreamTimer];
-            
-            // 終わるまでループさせる
-            while ( wself.searchStream ) {
-                
-//                @autoreleasepool {
-                
-                    [[NSRunLoop currentRunLoop] runMode:NSDefaultRunLoopMode beforeDate:[NSDate dateWithTimeIntervalSinceNow:0.25]];
-//                }
-            }
-            
-            params = nil;
-            request = nil;
-            weakSearchWord = nil;
-        }
-    });
-}
-
-- (void)closeSearchStream {
-    
-    NSLog(@"closeSearchStream");
-    
-    if ( [D boolForKey:@"USNoAutoLock"] ) [[UIApplication sharedApplication] setIdleTimerDisabled:NO];
-    
-    _searchStream = NO;
-    _userStreamFirstResponse = NO;
-    
-    __weak TimelineViewController *wself = self;
-    
-    ASYNC_MAIN_QUEUE ^{
-        
-        wself.timelineControlButton.enabled = YES;
-        wself.timelineControlButton.image = wself.startImage;
-    });
-    
-    [self stopSearchStreamTimer];
-    
-    if ( self.connection != nil ) {
-        
-        [self.connection cancel];
-        [self.connection setDelegateQueue:nil];
-        self.connection = nil;
-    }
-    
-    [self setTimelineBarItems];
-    
-    [_timelineArray removeAllObjects];
-    self.timelineArray = [NSMutableArray arrayWithArray:[TWTweets currentTimeline]];
-    [_timeline reloadData];
-}
-
-- (void)searchStreamReceiveTweet:(NSDictionary *)receiveData {
-    
-    //NSLog(@"SearchStream: %@", receiveData);
-    
-    @try {
-        
-        [_searchStreamTemp addObject:receiveData];
-        
-    }@catch ( NSException *e ) {}
-}
-
-- (void)startSearchStreamTimer {
-    
-    NSLog(@"startSearchStreamTimer InterVal: %.3f", APP_DELEGATE.reloadInterval);
-    
-    _searchStreamTemp = [NSMutableArray array];
-    _searchStreamTimer = [NSTimer scheduledTimerWithTimeInterval:APP_DELEGATE.reloadInterval
-                                                          target:self
-                                                        selector:@selector(checkSearchStreamTemp)
-                                                        userInfo:nil
-                                                         repeats:YES];
-    [_searchStreamTimer fire];
-}
-
-- (void)stopSearchStreamTimer {
-    
-    NSLog(@"stopSearchStreamTimer");
-    
-    [_searchStreamTemp removeAllObjects];
-    self.searchStreamTemp = nil;
-    [_searchStreamTimer invalidate];
-}
-
-- (void)checkSearchStreamTemp {
-    
-    //NSLog(@"checkSearchStreamTemp");
-    
-    if ( _searchStreamTemp.count != 0 ) {
-        
-        __weak TimelineViewController *wself = self;
-        
-        dispatch_queue_t queue = GLOBAL_QUEUE_DEFAULT;
-        dispatch_async(queue, ^{
-            
-            SYNC_MAIN_QUEUE ^{
-                
-                NSDictionary *newTweet = [[NSDictionary alloc] initWithDictionary:[wself.searchStreamTemp objectAtIndex:0]];
-                [wself.searchStreamTemp removeObjectAtIndex:0];
-                
-                if ( newTweet != nil ) {
-                    
-                    [wself checkTimelineCount:YES];
-                    
-                    //タイムラインに追加
-                    wself.timelineArray = [wself.timelineArray appendOnlyNewToTop:@[newTweet]
-                                                                    returnMutable:YES];
-                    [wself.timeline insertRowsAtIndexPaths:@[[NSIndexPath indexPathForRow:0 inSection:0]]
-                                          withRowAnimation:UITableViewRowAnimationTop];
-                    
-                    __block NSDictionary *weakNewTweet = newTweet;
-                    
-                    //アイコン保存
-                    dispatch_queue_t queue = GLOBAL_QUEUE_DEFAULT;
-                    dispatch_async(queue, ^ {
-                        
-                        [wself getIconWithTweetArray:[NSMutableArray arrayWithArray:@[weakNewTweet]]];
-                        weakNewTweet = nil;
-                    });
-                }
-            });
-        });
-    }
-}
-
-#pragma mark - NSURLConnectionDataDelegate
-
-- (void)connection:(NSURLConnection *)connection didReceiveData:(NSData *)data {
-    
-    NSError *error = nil;
-    __block NSMutableDictionary *receiveData =
-    [[NSMutableDictionary alloc] initWithDictionary:
-     [NSJSONSerialization JSONObjectWithData:data
-                                     options:NSJSONReadingMutableLeaves
-                                       error:&error]];
-    
-    @try {
-        //          NSLog(@"receiveData[%d]: %@", receiveData.count, receiveData);
-        //          NSLog(@"receiveDataCount: %d", receiveData.count);
-        //          NSLog(@"event: %@", receiveData[@"event"]);
-        
-        //エラーは無視
-        if ( error ) return;
-        
-        if ( !_userStreamFirstResponse ) {
-            
-            //接続初回のレスポンスは無視
-            _userStreamFirstResponse = YES;
-            
-            return;
-        }
-        
-        //定期的に送られてくる空データは無視
-        if ( receiveData.count == 0 ) return;
-        
-        //接続初回のようなデータは無視
-        if ( receiveData.count == 1 && receiveData[@"friends"] != nil ) return;
-        
-        if ( _searchStream ) {
-            
-            __weak TimelineViewController *wself = self;
-            
-            ASYNC_MAIN_QUEUE ^{
-                
-                //SearchStreamの場合
-                [wself searchStreamReceiveTweet:[[TWEntities replaceTcoAll:@[receiveData]] objectAtIndex:0]];
-            });
-            
-            return;
-        }
-        
-        if ( receiveData.count == 1 && receiveData[@"delete"] != nil ) {
-            
-            NSLog(@"UserStream Delete Event");
-            
-            //削除イベント
-            [self userStreamDelete:receiveData];
-            return;
-        }
-        
-        //更新アカウントを記憶
-        _lastUpdateAccount = [TWAccounts currentAccountName];
-        
-        __block NSArray *newTweet = @[receiveData];
-        
-        //t.coを展開
-        newTweet = [TWEntities replaceTcoAll:newTweet];
-        
-        if ( receiveData[@"event"] == nil &&
-             receiveData[@"delete"] == nil ) {
-            
-            //NG判定を行う
-            newTweet = [TWNgTweet ngAll:newTweet];
-            
-            //新着が無いので終了
-            if ( newTweet.count == 0 ) {
-                
-                return;
-            }
-        }
-        
-        if ( receiveData[@"id_str"] != nil &&
-             _timelineArray[0][@"id_str"] != nil ) {
-            
-            //重複する場合は無視
-            if ( [receiveData[@"id_str"] isEqualToString:_timelineArray[0][@"id_str"]] ) {
-                
-                return;
-            }
-        }
-        
-        //      NSLog(@"newTweet: %@", newTweet);
-        
-        receiveData = [newTweet objectAtIndex:0];
-        
-        if ( receiveData.count != 1 && receiveData[@"delete"] == nil ) {
-            
-            if ( [receiveData[@"event"] isEqualToString:@"favorite"] &&
-                 [receiveData[@"source"][@"screen_name"] isEqualToString:[TWAccounts currentAccountName]] ) {
-                
-                NSLog(@"UserStream Add Fav Event");
-                
-                //自分のふぁぼりイベント
-                [self userStreamMyAddFavEvent:receiveData];
-                
-                return;
-                
-            }else if ( [receiveData[@"event"] isEqualToString:@"unfavorite"] &&
-                       [receiveData[@"source"][@"screen_name"] isEqualToString:[TWAccounts currentAccountName]] ) {
-                
-                if ( _timelineArray.count == 0 ) {
-                    
-                    return;
-                }
-                
-                NSLog(@"UserStream Remove Fav Event");
-                
-                //自分のふぁぼ外しイベント
-                [self userStreamMyRemoveFavEvent:receiveData];
-                return;
-                
-            }else if ( [receiveData[@"event"] isEqualToString:@"favorite"] ) {
-                
-                NSLog(@"UserStream Receive Fav Event");
-                
-                //ふぁぼられイベント
-                [self userStreamReceiveFavEvent:receiveData];
-                return;
-                
-            }else if ( receiveData[@"event"] != nil ) {
-                
-                return;
-            }
-            
-            //以下通常Post向け処理
-            [self userStreamReceiveTweet:receiveData newTweet:newTweet];
-        }
-        
-    }@catch ( NSException *e ) {
-        /* 例外は投げ捨てる物 */
-    }@finally {
-        receiveData = nil;
-    }
-}
-
-- (void)connection:(NSURLConnection *)connection didReceiveResponse:(NSURLResponse *)response {
-    
-    NSHTTPURLResponse *httpResponse = (NSHTTPURLResponse*)response;
-    NSLog(@"didReceiveResponse:%d, %lld", httpResponse.statusCode, response.expectedContentLength);
-    
-    if ( httpResponse.statusCode == 200 ) {
-        
-        _userStream = YES;
-        _timelineControlButton.image = _stopImage;
-        
-    }else {
-        
-        [self closeStream];
-        if ( _searchStream ) [self closeSearchStream];
-    }
-    
-    _timelineControlButton.enabled = YES;
-}
-
-- (void)connectionDidFinishLoading:(NSURLConnection *)connection {
-    
-    NSLog(@"connectionDidFinishLoading");
-    
-    [self closeStream];
-    if ( _searchStream ) [self closeSearchStream];
-    [self pushReloadButton:nil];
-}
-
-#pragma mark - NSURLConnectionDelegate
-
-- (void)connection:(NSURLConnection *)connection didFailWithError:(NSError *)error {
-    
-    NSLog(@"didFailWithError: %@", error);
-    NSLog(@"TimelineCount: %d", _timelineArray.count);
-    
-    [self closeStream];
-    if ( _searchStream ) [self closeSearchStream];
-    [self pushReloadButton:nil];
-}
-
-#pragma mark - GestureRecognizer
-
-- (IBAction)swipeTimelineRight:(UISwipeGestureRecognizer *)sender {
-    
-    NSLog(@"swipeTimelineRight");
-    
-    //ピッカー表示中の場合は隠す
-    if ( _pickerVisible ) [self hidePicker];
-    
-    if ( _timelineSegment.selectedSegmentIndex == 3 ) {
-        
-        [self showListSelectView];
+//        [self showListSelectView];
         
     }else {
         
         //InReplyTto表示中は何もしない
-        if ( _otherTweetsMode ) return;
+//        if ( _otherTweetsMode ) return;
         
-        int num = [D integerForKey:@"UseAccount"] - 1;
+        NSInteger num = [D integerForKey:@"UseAccount"] - 1;
         
         if ( num < 0 ) return;
         
-        int accountCount = [TWAccounts accountCount] - 1;
+        NSInteger accountCount = [TWAccounts accountCount] - 1;
         
         if ( accountCount >= num ) {
             
-            if ( _userStream ) [self closeStream];
+            if ( self.userStream ) [self closeStream];
             
-            APP_DELEGATE.listAll = BLANK_ARRAY;
-            APP_DELEGATE.listId = BLANK;
-            
-            [D setInteger:num forKey:@"UseAccount"];
-            
-            [self changeSegment:nil];
+            [D setInteger:num
+                   forKey:@"UseAccount"];
+            [self setCurrentTweets:[TWTweets currentTimeline]];
+            [self.timeline reloadData];
+            [self.segment setSelectedSegmentIndex:0];
+            [self requestHomeTimeline];
         }
     }
 }
 
-- (IBAction)swipeTimelineLeft:(UISwipeGestureRecognizer *)sender {
+- (void)swipeTimelineLeft:(UISwipeGestureRecognizer *)sender {
     
-    NSLog(@"swipeTimelineLeft");
+    NSLog(@"%s", __func__);
     
     //ピッカー表示中の場合は隠す
-    if ( _pickerVisible ) [self hidePicker];
-    
-    if ( _showMenu ) {
+    if ( self.pickerVisible ) [self hidePicker];
+    if ( !self.timeline.isScrollEnabled ) {
         
         [self hideTimelineMenu:nil];
         return;
     }
-    
-    if ( _timelineSegment.selectedSegmentIndex == 3 ) return;
-    
+
+    if ( self.segment.selectedSegmentIndex == 3 ) return;
+
     //InReplyTto表示中は何もしない
-    if ( _otherTweetsMode ) return;
-    
-    int num = [D integerForKey:@"UseAccount"] + 1;
-    int accountCount = [TWAccounts accountCount] - 1;
+//    if ( _otherTweetsMode ) return;
+
+    NSInteger num = [D integerForKey:@"UseAccount"] + 1;
+    NSInteger accountCount = [TWAccounts accountCount] - 1;
     
     if ( accountCount >= num ) {
         
-        if ( _userStream ) [self closeStream];
+        if ( self.userStream ) [self closeStream];
         
-        APP_DELEGATE.listAll = BLANK_ARRAY;
-        APP_DELEGATE.listId = BLANK;
-        
-        [D setInteger:num forKey:@"UseAccount"];
-        
-        [self changeSegment:nil];
+        [D setInteger:num
+               forKey:@"UseAccount"];
+        [self setCurrentTweets:[TWTweets currentTimeline]];
+        [self.timeline reloadData];
+        [self.segment setSelectedSegmentIndex:0];
+        [self requestHomeTimeline];
     }
 }
 
-- (IBAction)longPressTimeline:(UILongPressGestureRecognizer *)sender {
+- (void)scrollTimelineToTop:(BOOL)animation {
     
-    //ピッカー表示中の場合は隠す
-    if ( _pickerVisible ) [self hidePicker];
+    NSLog(@"%s", __func__);
     
-    if ( _longPressControl == 0 ) {
+    if ( self.currentTweets == nil ||
+         self.currentTweets.count == 0 ) return;
+    
+    [self.timeline scrollToRowAtIndexPath:[NSIndexPath indexPathForRow:0
+                                                             inSection:0]
+                         atScrollPosition:UITableViewScrollPositionBottom
+                                 animated:animation];
+}
+
+- (void)scrollTimelineToBottom:(BOOL)animation {
+    
+    NSLog(@"%s", __func__);
+    
+    if ( self.currentTweets == nil ||
+         self.currentTweets.count == 0 ) return;
+    
+    [self.timeline scrollToRowAtIndexPath:[NSIndexPath indexPathForRow:[self.currentTweets count] - 1
+                                                             inSection:0]
+                         atScrollPosition:UITableViewScrollPositionBottom
+                                 animated:animation];
+}
+
+- (void)scrollTimelineForNewTweet:(NSString *)tweetID {
+    
+    NSLog(@"%s", __func__);
+    
+    if ( self.currentTweets == nil ||
+         self.currentTweets.count == 0 ) return;
+    
+    if ( tweetID == nil ||
+        [tweetID isEmpty] ) return;
+    
+    int index = 0;
+    BOOL find = NO;
+    for ( TWTweet *tweet in [TWTweets currentTimeline] ) {
         
-        _longPressControl = 1;
+        if ( tweet.tweetID != nil &&
+            [tweet.tweetID isEqualToString:tweetID] ) {
+            
+            find = YES;
+            break;
+        }
+        
+        index++;
+    }
+    
+    if ( find ) {
+        
+        if ( self.currentTweets.count < index ||
+            [self.currentTweets objectAtIndex:index] == nil ) return;
+        
+        [self.timeline scrollToRowAtIndexPath:[NSIndexPath indexPathForRow:index
+                                                                 inSection:0]
+                             atScrollPosition:UITableViewScrollPositionBottom
+                                     animated:YES];
+    }
+}
+
+- (void)longPressTimeline:(UILongPressGestureRecognizer *)sender {
+    
+    if ( self.longPressControl == 0 ) {
+        
+        [self setLongPressControl:1];
         
         UIActionSheet *sheet = [[UIActionSheet alloc]
                                 initWithTitle:@"ログ削除"
@@ -2953,749 +2582,194 @@
                                 destructiveButtonTitle:nil
                                 otherButtonTitles:@"現在のアカウントのTimelineログを削除", @"全てのTimelineログを削除",
                                 @"全てのログとアイコンキャッシュを削除", @"タイムラインにNG情報を再適用", nil];
-        
-        sheet.tag = 2;
-        
-        [sheet showInView:APP_DELEGATE.tabBarController.view];
+        [sheet setTag:ActionMenuTypeTimelineLongPress];
+        [sheet showInView:self.tabBarController.view];
     }
 }
 
-#pragma mark - SegmentControl
-
-- (IBAction)changeSegment:(UISegmentedControl *)sender {
+- (void)pushIcon:(IconButton *)sender {
     
-    NSLog(@"changeSegment[%d]", _timelineSegment.selectedSegmentIndex);
-    
-    //ピッカー表示中の場合は隠す
-    if ( _pickerVisible ) [self hidePicker];
-    
-    if ( _searchStream ) [self closeSearchStream];
-    
-    __weak TimelineViewController *wself = self;
-    
-    //InReplyTo表示中なら閉じる
-    if ( _otherTweetsMode ) {
+    if ( !self.timeline.isScrollEnabled ) {
         
-        [self pushCloseOtherTweetsButton:nil];
+        [self hideTimelineMenu:nil];
         
     }else {
         
-        //インターネット接続を確認
-        if ( ![InternetConnection enable] ) return;
+        NSString *screenName = sender.targetTweet.screenName;
+        NSString *tweetID = sender.targetTweet.tweetID;
         
-        if ( _timelineSegment.selectedSegmentIndex == 0 ) {
+        if ( [D integerForKey:@"TimelineIconAction"] == TimelineIconActionTypeUserMenu ) {
             
-            //Timelineに切り替わった
-            self.timelineArray = [NSMutableArray arrayWithArray:[TWTweets currentTimeline]];
             
-            ASYNC_MAIN_QUEUE ^{
+            
+        }else if ( [D integerForKey:@"TimelineIconAction"] == TimelineIconActionTypeReply ) {
+            
+            [[TWTweets manager] setText:screenName];
+            [[TWTweets manager] setInReplyToID:tweetID];
+            [[TWTweets manager] setTabChangeFunction:@"Reply"];
+            [self.tabBarController setSelectedIndex:0];
+            
+        }else if ( [D integerForKey:@"TimelineIconAction"] == TimelineIconActionTypeFav ) {
+            
+            BOOL favorited = sender.targetTweet.isFavorited;
+            
+            if ( favorited ) {
                 
-                [wself.timeline reloadData];
-                wself.listMode = NO;
-                wself.timelineControlButton.image = wself.startImage;
-                wself.timelineControlButton.enabled = YES;
-            });
-            
-            self.mentionsArray = BLANK_ARRAY;
-            
-            [self pushReloadButton:nil];
-            
-        }else if ( _timelineSegment.selectedSegmentIndex == 1 ) {
-            
-            ASYNC_MAIN_QUEUE ^{
+                [TWEvent unFavorite:tweetID
+                       accountIndex:[D integerForKey:@"UseAccount"]];
                 
-                wself.listMode = NO;
-                wself.timelineControlButton.image = wself.startImage;
-            });
-            
-            //Mentionsに切り替わった
-            [TWGetTimeline performSelectorInBackground:@selector(mentions) withObject:nil];
-            
-        }else if ( _timelineSegment.selectedSegmentIndex == 2 ) {
-            
-            ASYNC_MAIN_QUEUE ^{
+            }else {
                 
-                wself.listMode = NO;
-                wself.timelineControlButton.image = wself.startImage;
-            });
+                [self changeFavorite:tweetID];
+                [self addFavorite:tweetID
+                     accountIndex:[D integerForKey:@"UseAccount"]];
+            }
             
-            //Favoritesに切り替わった
-            [TWGetTimeline performSelectorInBackground:@selector(favotites) withObject:nil];
+        }else if ( [D integerForKey:@"TimelineIconAction"] == TimelineIconActionTypeRT ) {
             
-        }else if ( _timelineSegment.selectedSegmentIndex == 3 ) {
+            [TWEvent reTweet:tweetID
+                accountIndex:[D integerForKey:@"UseAccount"]];
             
-            //リスト選択画面を表示
-            [self timelineDidListChanged];
+        }else if ( [D integerForKey:@"TimelineIconAction"] == TimelineIconActionTypeFavRT ) {
+            
+            [TWEvent favoriteReTweet:tweetID
+                        accountIndex:[D integerForKey:@"UseAccount"]];
+            
+        }else if ( [D integerForKey:@"TimelineIconAction"] == TimelineIconActionTypeSelectIDFavRT ) {
+            
+            [self setSelectedTweet:sender.targetTweet];
+            [self timelineMenuSelectID:nil];
         }
     }
-    
-    ASYNC_MAIN_QUEUE ^{
-        
-        if ( wself.timelineSegment.selectedSegmentIndex != 0 &&
-            wself.timelineSegment.selectedSegmentIndex != 3 ) {
-            
-            [wself.grayView start];
-        }
-    });
 }
 
-#pragma mark - ActionSheet
-
-- (void)actionSheet:(UIActionSheet *)actionSheet clickedButtonAtIndex:(NSInteger)buttonIndex {
+- (void)changeFavorite:(NSString *)targerTweetID {
     
-    __weak TimelineViewController *wself = self;
+    NSLog(@"%s", __func__);
     
-    dispatch_queue_t globalQueue = GLOBAL_QUEUE_DEFAULT;
-    dispatch_async(globalQueue, ^{
+    NSInteger index = 0;
+    for ( TWTweet *tweet in self.currentTweets ) {
         
-        if ( actionSheet.tag == 1 ) {
+        if ( [tweet.tweetID isEqualToString:targerTweetID] ) {
             
-            [wself openTwitterService:_alertSearchUserName serviceType:buttonIndex];
-            
-        }else if ( actionSheet.tag == 2 ) {
-            
-            wself.longPressControl = 0;
-            
-            if ( buttonIndex != 3 && buttonIndex != 4 ) {
+            if ( !tweet.isFavorited ) {
                 
-                ASYNC_MAIN_QUEUE ^{
-                    
-                    [wself.grayView forceEnd];
-                    [wself closeStream];
-                    
-                    [wself.grayView removeFromSuperview];
-                    [wself setGrayView:nil];
-                    [wself.imageWindow removeFromSuperview];
-                    [wself setImageWindow:nil];
-                    
-                    //タイムラインからログを削除
-                    [wself.timelineArray removeAllObjects];
-                    wself.timelineArray = nil;
-                    wself.timelineArray = BLANK_M_ARRAY;
-                    
-                    CGRect timelineRect = wself.timeline.frame;
-                    
-                    for ( UIView *subView in wself.timeline.subviews ) {
-                        
-                        [subView removeAllSubViews];
-                    }
-                    
-                    [wself.timeline removeAllSubViews];
-                    
-                    wself.timeline.delegate = nil;
-                    wself.timeline.dataSource = nil;
-                    [wself.timeline removeFromSuperview];
-                    wself.timeline = nil;
-                    
-                    wself.timeline = [[UITableView alloc] initWithFrame:timelineRect style:UITableViewStylePlain];
-                    wself.timeline.delegate = wself;
-                    wself.timeline.dataSource = wself;
-                    [wself.view addSubview:wself.timeline];
-                    
-                    [wself createPullDownRefreshHeader];
-                    
-                    wself.grayView = [ActivityGrayView grayViewWithTaskName:@"FirstLoad"];
-                    [wself.view addSubview:wself.grayView];
-                    
-                    wself.imageWindow = [[ImageWindow alloc] init];
-                    [wself.view addSubview:wself.imageWindow];
-                    
-                    UISwipeGestureRecognizer *swipeRight = [[UISwipeGestureRecognizer alloc] initWithTarget:wself action:@selector(swipeTimelineRight:)];
-                    swipeRight.direction = UISwipeGestureRecognizerDirectionRight;
-                    [wself.timeline addGestureRecognizer:swipeRight];
-                    swipeRight = nil;
-                    
-                    UISwipeGestureRecognizer *swipeLeft = [[UISwipeGestureRecognizer alloc] initWithTarget:wself action:@selector(swipeTimelineLeft:)];
-                    swipeLeft.direction = UISwipeGestureRecognizerDirectionLeft;
-                    [wself.timeline addGestureRecognizer:swipeLeft];
-                    swipeLeft = nil;
-                    
-                    UILongPressGestureRecognizer *longPress = [[UILongPressGestureRecognizer alloc] initWithTarget:wself action:@selector(longPressTimeline:)];
-                    longPress.minimumPressDuration = 0.5;
-                    [wself.timeline addGestureRecognizer:longPress];
-                    longPress = nil;
-                });
+                TWTweet *favedTweet = tweet;
+                [favedTweet setIsFavorited:YES];
+                [favedTweet setTextColor:CellTextColorGold];
                 
-                if ( buttonIndex == 0 ) {
+                @synchronized(self) {
                     
-                    //タイムラインを保存
-                    [TWTweets saveCurrentTimeline:wself.timelineArray];
-                    
-                }else if ( buttonIndex == 1 || buttonIndex == 2 ) {
-                    
-                    //各アカウントのログを削除
-                    for ( ACAccount *account in [TWAccounts twitterAccounts] ) {
-                        
-                        [[TWTweets timelines] setObject:[NSMutableArray array]
-                                                 forKey:[NSString stringWithString:account.username]];
-                    }
-                    
-                    APP_DELEGATE.listId = BLANK;
-                    APP_DELEGATE.startupUrlList = nil;
-                    APP_DELEGATE.startupUrlList = BLANK_ARRAY;
-                    APP_DELEGATE.listAll = nil;
-                    APP_DELEGATE.listAll = BLANK_ARRAY;
-                    
-                    [wself.requestedUser removeAllObjects];
-                    
-                    [[Share images] removeAllObjects];
-                    
-                    //タイムラインログを削除
-                    wself.mentionsArray = nil;
-                    wself.mentionsArray = BLANK_ARRAY;
-                    [wself.allLists removeAllObjects];
-                    wself.allLists = nil;
-                    wself.allLists = BLANK_M_DIC;
-                    
-                    if ( buttonIndex == 2 ) {
-                        
-                        ASYNC_MAIN_QUEUE ^{
-                            
-                            wself.accountIconView.image = nil;
-                        });
-                        
-                        //アイコンファイルを削除
-                        [[NSFileManager defaultManager] removeItemAtPath:ICONS_DIRECTORY error:nil];
-                        
-                        //フォルダを再作成
-                        [FILE_MANAGER createDirectoryAtPath:ICONS_DIRECTORY
-                                withIntermediateDirectories:YES
-                                                 attributes:nil
-                                                      error:nil];
-                    }
+                    [self.currentTweets replaceObjectAtIndex:index
+                                                  withObject:favedTweet];
+                    [TWTweets saveCurrentTimeline:self.currentTweets];
                 }
                 
-            }else if ( buttonIndex == 3 ) {
-                
-                //NG情報を再適用
-                
-                //NG判定を行う
-                ASYNC_MAIN_QUEUE ^{
-                    
-                    dispatch_queue_t queue = GLOBAL_QUEUE_DEFAULT;
-                    dispatch_semaphore_t semaphore = dispatch_semaphore_create(1);
-                    dispatch_sync(queue, ^{
-                        dispatch_semaphore_wait(semaphore, DISPATCH_TIME_FOREVER);
-                        
-                        wself.timelineArray = [NSMutableArray arrayWithArray:[TWNgTweet ngAll:wself.timelineArray]];
-                        
-                        dispatch_semaphore_signal(semaphore);
-                        dispatch_release(semaphore);
-                    });
-                    
-                    [TWTweets saveCurrentTimeline:wself.timelineArray];
-                    [wself.timeline reloadData];
-                });
-                
-            }else {
-                
-                //キャンセル
-                return;
-            }
-            
-        }else if ( actionSheet.tag == 3 ) {
-            
-            if ( buttonIndex == wself.selectTweetIds.count ) {
-                
-                NSLog(@"buttonIndex == _selectTweetIds.count");
-                
-                wself.selectAccount = BLANK;
-                wself.selectTweetIds = nil;
-                wself.selectTweetIds = BLANK_ARRAY;
-                return;
-            }
-            
-            ASYNC_MAIN_QUEUE ^{
-                
-                wself.selectAccount = [wself.selectTweetIds objectAtIndex:buttonIndex];
-                
-                if ( [wself.selectAccount hasPrefix:@"@"] ) {
-                    
-                    //@から始まっている場合取り除く
-                    wself.selectAccount = [wself.selectAccount substringFromIndex:1];
+                dispatch_queue_t queue;
+                if ( [NSThread isMainThread] ) {
+                    queue = dispatch_get_current_queue();
+                }else {
+                    queue = dispatch_get_main_queue();
                 }
                 
-                //前後の空白文字を取り除く
-                wself.selectAccount = [DeleteWhiteSpace string:wself.selectAccount];
+                dispatch_async(queue, ^{
                 
-                wself.alertSearchUserName = [NSString stringWithString:wself.selectAccount];
-                
-                UIActionSheet *sheet = [[UIActionSheet alloc]
-                                        initWithTitle:wself.selectAccount
-                                        delegate:self
-                                        cancelButtonTitle:@"Cancel"
-                                        destructiveButtonTitle:nil
-                                        otherButtonTitles:@"外部サービスやユーザー情報を開く", @"フォロー関連", nil];
-                
-                sheet.tag = 4;
-                [sheet showInView:APP_DELEGATE.tabBarController.view];
-            });
-            
-        }else if ( actionSheet.tag == 4 ) {
-            
-            if ( buttonIndex == 0 ) {
-                
-                ASYNC_MAIN_QUEUE ^{
-                    
-                    [wself pushActionButton:nil];
+                    [self.timeline reloadRowsAtIndexPaths:@[[NSIndexPath indexPathForRow:index
+                                                                               inSection:0]]
+                                         withRowAnimation:UITableViewRowAnimationLeft];
                 });
-                
-                //後処理
-                wself.selectAccount = BLANK;
-                wself.selectTweetIds = nil;
-                wself.selectTweetIds = BLANK_ARRAY;
-                
-            }else if ( buttonIndex == 1 ) {
-                
-                ASYNC_MAIN_QUEUE ^{
-                    
-                    if ( [wself.selectAccount isEqualToString:[TWAccounts currentAccountName]] ) {
-                        
-                        [ShowAlert error:@"それはあなたです！"];
-                        
-                    }else {
-                        
-                        UIActionSheet *sheet = [[UIActionSheet alloc]
-                                                initWithTitle:wself.selectAccount
-                                                delegate:wself
-                                                cancelButtonTitle:@"Cancel"
-                                                destructiveButtonTitle:@"スパム報告"
-                                                otherButtonTitles:@"ブロック", @"ブロック解除", @"フォロー", @"フォロー解除", nil];
-                        
-                        sheet.tag = 5;
-                        [sheet showInView:APP_DELEGATE.tabBarController.view];
-                    }
-                });
+                break;
             }
-            
-        }else if ( actionSheet.tag == 5 ) {
-            
-            if ( buttonIndex == 0 ) {
-                
-                //スパム報告
-                [TWFriends reportSpam:wself.selectAccount];
-                
-            }else if ( buttonIndex == 1 ) {
-                
-                //ブロック
-                [TWFriends block:wself.selectAccount];
-                
-            }else if ( buttonIndex == 2 ) {
-                
-                //ブロック解除
-                [TWFriends unblock:wself.selectAccount];
-                
-            }else if ( buttonIndex == 3 ) {
-                
-                //フォロー
-                [TWFriends follow:wself.selectAccount];
-                
-            }else if ( buttonIndex == 4 ) {
-                
-                //フォロー解除
-                [TWFriends unfollow:wself.selectAccount];
-            }
-            
-        }else if ( actionSheet.tag == 6 ) {
-            
-        }else if ( actionSheet.tag >= 7 && actionSheet.tag <= 11 ) {
-            
-            int cancelIndex = actionSheet.tag - 5;
-            
-            //キャンセルボタンが押された
-            if ( buttonIndex == cancelIndex ) {
-                
-                NSLog(@"Tweet in URL copy cancel");
-                
-                wself.tweetInUrls = BLANK_ARRAY;
-                return;
-            }
-            
-            NSLog(@"Copy URL: %@", [wself.tweetInUrls objectAtIndex:buttonIndex]);
-            
-            [P_BOARD setString:[wself.tweetInUrls objectAtIndex:buttonIndex]];
-            wself.tweetInUrls = BLANK_ARRAY;
-        }
-    });
-}
-
-- (void)showTwitterAccountSelectActionSheet:(NSArray *)ids {
-    
-    NSLog(@"showTwitterAccountSelectActionSheet[%d]", ids.count);
-    
-    UIActionSheet *sheet = nil;
-    
-    if ( ids.count == 1 ) {
-        
-        _selectAccount = [ids objectAtIndex:0];
-        
-        if ( [_selectAccount hasPrefix:@"@"] ) {
-            
-            //@から始まっている場合取り除く
-            _selectAccount = [_selectAccount substringFromIndex:1];
         }
         
-        //前後の空白文字を取り除く
-        _selectAccount = [DeleteWhiteSpace string:_selectAccount];
-        
-        _alertSearchUserName = _selectAccount;
-        
-        UIActionSheet *oneUserSheet = [[UIActionSheet alloc]
-                                       initWithTitle:_selectAccount
-                                       delegate:self
-                                       cancelButtonTitle:@"Cancel"
-                                       destructiveButtonTitle:nil
-                                       otherButtonTitles:@"外部サービスやユーザー情報を開く", @"フォロー関連", nil];
-        
-        oneUserSheet.tag = 4;
-        [oneUserSheet showInView:APP_DELEGATE.tabBarController.view];
-        oneUserSheet = nil;
-        
-        return;
-        
-    }else if ( ids.count == 2 ) {
-        
-        sheet = [[UIActionSheet alloc]
-                 initWithTitle:@"ユーザー選択"
-                 delegate:self
-                 cancelButtonTitle:@"Cancel"
-                 destructiveButtonTitle:nil
-                 otherButtonTitles:[ids objectAtIndex:0],
-                 [ids objectAtIndex:1], nil];
-        
-    }else if ( ids.count == 3 ) {
-        
-        sheet = [[UIActionSheet alloc]
-                 initWithTitle:@"ユーザー選択"
-                 delegate:self
-                 cancelButtonTitle:@"Cancel"
-                 destructiveButtonTitle:nil
-                 otherButtonTitles:[ids objectAtIndex:0],
-                 [ids objectAtIndex:1],
-                 [ids objectAtIndex:2], nil];
-        
-    }else if ( ids.count == 4 ) {
-        
-        sheet = [[UIActionSheet alloc]
-                 initWithTitle:@"ユーザー選択"
-                 delegate:self
-                 cancelButtonTitle:@"Cancel"
-                 destructiveButtonTitle:nil
-                 otherButtonTitles:[ids objectAtIndex:0],
-                 [ids objectAtIndex:1],
-                 [ids objectAtIndex:2],
-                 [ids objectAtIndex:3], nil];
-        
-    }else if ( ids.count == 5 ) {
-        
-        sheet = [[UIActionSheet alloc]
-                 initWithTitle:@"ユーザー選択"
-                 delegate:self
-                 cancelButtonTitle:@"Cancel"
-                 destructiveButtonTitle:nil
-                 otherButtonTitles:[ids objectAtIndex:0],
-                 [ids objectAtIndex:1],
-                 [ids objectAtIndex:2],
-                 [ids objectAtIndex:3],
-                 [ids objectAtIndex:4], nil];
-        
-    }else if ( ids.count >= 6 ) {
-        
-        sheet = [[UIActionSheet alloc]
-                 initWithTitle:@"ユーザー選択"
-                 delegate:self
-                 cancelButtonTitle:@"Cancel"
-                 destructiveButtonTitle:nil
-                 otherButtonTitles:[ids objectAtIndex:0],
-                 [ids objectAtIndex:1],
-                 [ids objectAtIndex:2],
-                 [ids objectAtIndex:3],
-                 [ids objectAtIndex:4],
-                 [ids objectAtIndex:5], nil];
-    }
-    
-    if ( sheet != nil ) {
-        
-        sheet.tag = 3;
-        [sheet showInView:APP_DELEGATE.tabBarController.view];
-        sheet = nil;
+        index++;
     }
 }
 
-- (void)openTwitterService:(NSString *)username serviceType:(int)serviceType {
+- (void)hideTimelineMenu:(NSNotification *)notification {
     
-    if ( username == nil ||
-        [username isEqualToString:@""] ) return;
+    DISPATCH_AFTER(0.2) ^{
+        
+        [UIView animateWithDuration:0.2
+                         animations:^{
+                             
+                             [self.topBar setFrame:CGRectMake(0.0f,
+                                                              self.topBar.frame.origin.y,
+                                                              self.topBar.frame.size.width,
+                                                              self.topBar.frame.size.height)];
+                             
+                             [self.segment setFrame:CGRectMake(0.0f,
+                                                               self.segment.frame.origin.y,
+                                                               self.segment.frame.size.width,
+                                                               self.segment.frame.size.height)];
+                             
+                             [self.timeline setFrame:CGRectMake(0.0f,
+                                                                self.timeline.frame.origin.y,
+                                                                self.timeline.frame.size.width,
+                                                                self.timeline.frame.size.height)];
+                         }
+                         completion:^(BOOL finished) {
+                             
+                             [self.topBar setUserInteractionEnabled:YES];
+                             [self.segment setUserInteractionEnabled:YES];
+                             [self.timeline setScrollEnabled:YES];
+                             
+                             if ( self.timelineMenu != nil ) [self.timelineMenu removeFromSuperview];
+                             [self setTimelineMenu:nil];
+                         }
+         ];
+    });
     
-    __weak TimelineViewController *wself = self;
-    __block __weak NSString *weakUserName = username;
-    
-    APP_DELEGATE.reOpenUrl = BLANK;
-    
-    NSString *serviceUrl = nil;
-    
-    if ( serviceType == 0 ) {
-        
-        //Twilog
-        serviceUrl = [NSString stringWithFormat:@"http://twilog.org/%@", username];
-        
-    }else if ( serviceType == 1 ) {
-        
-        ASYNC_MAIN_QUEUE ^{
-            
-            wself.alertSearch = nil;
-            wself.alertSearch = [[UIAlertView alloc] initWithTitle:@"TwilogSearch"
-                                                           message:@"\n"
-                                                          delegate:wself
-                                                 cancelButtonTitle:@"キャンセル"
-                                                 otherButtonTitles:@"確定", nil];
-            
-            wself.alertSearch.tag = 0;
-            
-            wself.alertSearchText = nil;
-            wself.alertSearchText = [[SSTextField alloc] initWithFrame:CGRectMake(12, 40, 260, 25)];
-            [wself.alertSearchText setBackgroundColor:[UIColor whiteColor]];
-            wself.alertSearchText.contentVerticalAlignment = UIControlContentVerticalAlignmentCenter;
-            wself.alertSearchText.delegate = wself;
-            wself.alertSearchText.text = BLANK;
-            wself.alertSearchText.tag = 0;
-            
-            [wself.alertSearch addSubview:wself.alertSearchText];
-            [wself.alertSearch show];
-            [wself.alertSearchText becomeFirstResponder];
-        });
-        
-        return;
-        
-    }else if ( serviceType == 2 ) {
-        
-        //favstar
-        serviceUrl = [NSString stringWithFormat:@"http://ja.favstar.fm/users/%@/recent", username];
-        
-    }else if ( serviceType == 3 ) {
-        
-        //Twitpic
-        serviceUrl = [NSString stringWithFormat:@"http://twitpic.com/photos/%@", username];
-        
-    }else if ( serviceType == 4 ) {
-        
-        ASYNC_MAIN_QUEUE ^{
-            
-            if ( wself.alertSearchType ) {
-                
-                wself.alertSearch = nil;
-                wself.alertSearch = [[UIAlertView alloc] initWithTitle:@"ID入力 (screen_name)"
-                                                               message:@"\n"
-                                                              delegate:wself
-                                                     cancelButtonTitle:@"キャンセル"
-                                                     otherButtonTitles:@"確定", nil];
-                
-                wself.alertSearch.tag = 1;
-                
-                wself.alertSearchText = nil;
-                wself.alertSearchText = [[SSTextField alloc] initWithFrame:CGRectMake(12, 40, 260, 25)];
-                [wself.alertSearchText setBackgroundColor:[UIColor whiteColor]];
-                wself.alertSearchText.contentVerticalAlignment = UIControlContentVerticalAlignmentCenter;
-                wself.alertSearchText.delegate = wself;
-                wself.alertSearchText.text = BLANK;
-                wself.alertSearchText.tag = 1;
-                
-                [wself.alertSearch addSubview:wself.alertSearchText];
-                [wself.alertSearch show];
-                [wself.alertSearchText becomeFirstResponder];
-                
-            }else {
-                
-                [TWGetTimeline userTimeline:weakUserName];
-                weakUserName = nil;
-            }
-        });
-        
-        return;
-        
-    }else if ( serviceType == 5 ) {
-        
-        ASYNC_MAIN_QUEUE ^{
-            
-            wself.otherTweetsMode = YES;
-            
-            if ( wself.alertSearchType ) {
-                
-                wself.alertSearch = nil;
-                wself.alertSearch = [[UIAlertView alloc] initWithTitle:@"Twitter Search"
-                                                               message:@"\n"
-                                                              delegate:wself
-                                                     cancelButtonTitle:@"キャンセル"
-                                                     otherButtonTitles:@"確定", nil];
-                
-                wself.alertSearch.tag = 2;
-                
-                wself.alertSearchText = nil;
-                wself.alertSearchText = [[SSTextField alloc] initWithFrame:CGRectMake(12, 40, 260, 25)];
-                [wself.alertSearchText setBackgroundColor:[UIColor whiteColor]];
-                wself.alertSearchText.contentVerticalAlignment = UIControlContentVerticalAlignmentCenter;
-                wself.alertSearchText.delegate = wself;
-                wself.alertSearchText.text = BLANK;
-                wself.alertSearchText.tag = 2;
-                
-                [wself.alertSearch addSubview:wself.alertSearchText];
-                [wself.alertSearch show];
-                [wself.alertSearchText becomeFirstResponder];
-                
-            }else {
-                
-                [TWGetTimeline twitterSearch:[CreateSearchURL encodeWord:weakUserName
-                                                                encoding:kCFStringEncodingUTF8]];
-                weakUserName = nil;
-            }
-        });
-        
-        return;
-        
-    }else if ( serviceType == 6 ) {
-        
-        ASYNC_MAIN_QUEUE ^{
-            
-            //UserStreamを切断
-            if ( weakUserName ) [wself closeStream];
-            
-            if ( wself.timelineSegment.selectedSegmentIndex == 0 ) {
-                
-                [TWTweets saveCurrentTimeline:wself.timelineArray];
-            }
-            
-            wself.searchStream =YES;
-            
-            wself.alertSearch = nil;
-            wself.alertSearch = [[UIAlertView alloc] initWithTitle:@"Twitter Search(Stream)"
-                                                           message:@"\n"
-                                                          delegate:wself
-                                                 cancelButtonTitle:@"キャンセル"
-                                                 otherButtonTitles:@"確定", nil];
-            
-            wself.alertSearch.tag = 3;
-            
-            wself.alertSearchText = nil;
-            wself.alertSearchText = [[SSTextField alloc] initWithFrame:CGRectMake(12, 40, 260, 25)];
-            [wself.alertSearchText setBackgroundColor:[UIColor whiteColor]];
-            wself.alertSearchText.contentVerticalAlignment = UIControlContentVerticalAlignmentCenter;
-            wself.alertSearchText.delegate = wself;
-            wself.alertSearchText.text = BLANK;
-            wself.alertSearchText.tag = 3;
-            
-            [wself.alertSearch addSubview:wself.alertSearchText];
-            [wself.alertSearch show];
-            [wself.alertSearchText becomeFirstResponder];
-            weakUserName = nil;
-        });
-        
-        return;
-        
-    }else {
-        
-        return;
-    }
-    
-    APP_DELEGATE.startupUrlList = [NSArray arrayWithObject:serviceUrl];
-    
-    [self openBrowser];
+    [UIView animateWithDuration:0.3f
+                     animations:^{
+                         
+                         [self.timelineMenu setAlpha:0.0f];
+                         [self.timelineMenu setFrame:CGRectMake(self.timelineMenu.frame.origin.x,
+                                                                self.timelineMenu.frame.size.height,
+                                                                self.timelineMenu.frame.size.width,
+                                                                self.timelineMenu.frame.size.height)];
+                     }
+     ];
 }
 
-- (void)timelineMenuActionReply {
+- (void)timelineMenuSelectID:(NSNotification *)notification {
     
-    __weak TimelineViewController *wself = self;
+    [self hideTimelineMenu:nil];
     
-    ASYNC_MAIN_QUEUE ^{
-        
-        if ( wself.otherTweetsMode ) [wself pushCloseOtherTweetsButton:nil];
-        
-        [APP_DELEGATE.postData removeAllObjects];
-        
-        NSString *screenName = wself.selectTweet[@"user"][@"screen_name"];
-        NSString *inReplyToId = [[NSString alloc] initWithString:wself.selectTweet[@"id_str"]];
-        
-        if ( screenName == nil || inReplyToId == nil ) return;
-        
-        [APP_DELEGATE.postData setObject:[NSString stringWithString:screenName]
-                                  forKey:@"ScreenName"];
-        [APP_DELEGATE.postData setObject:[NSString stringWithString:inReplyToId]
-                                  forKey:@"InReplyToId"];
-        
-        APP_DELEGATE.tabChangeFunction = @"Reply";
-        wself.tabBarController.selectedIndex = 0;
+    DISPATCH_AFTER(0.5) ^{
+       
+        [self showPickerView];
     });
 }
 
-- (void)timelineMenuActionFavorite {
+- (void)timelineMenuHashTagNG:(NSNotification *)notification {
     
-    NSString *tweetId = _selectTweet[@"id_str"];
-    BOOL favorited = [_selectTweet[@"favorited"] boolValue];
+    NSLog(@"%s", __func__);
     
-    if ( favorited ) {
-        
-        [TWEvent unFavorite:tweetId accountIndex:[D integerForKey:@"UseAccount"]];
-        
-    }else {
-        
-        [TWEvent favorite:tweetId accountIndex:[D integerForKey:@"UseAccount"]];
-    }
-}
-
-- (void)timelineMenuActionReTweet {
-    
-    NSString *tweetId = _selectTweet[@"id_str"];
-    [TWEvent reTweet:tweetId accountIndex:[D integerForKey:@"UseAccount"]];
-}
-
-- (void)timelineMenuActionFavRT {
-    
-    NSString *tweetId = _selectTweet[@"id_str"];
-    [TWEvent favoriteReTweet:tweetId accountIndex:[D integerForKey:@"UseAccount"]];
-}
-
-- (void)timelineMenuActionSelectID {
-    
-    __weak TimelineViewController *wself = self;
-    
-    ASYNC_MAIN_QUEUE ^{
-        
-        [wself showPickerView];
-    });
-}
-
-- (void)timelineMenuActionNGTag {
-    
-    NSString *hashTag = [[_selectTweet stringForKey:@"text"] strWithRegExp:@"((?:\\A|\\z|[\x0009-\x000D\x0020\xC2\x85\u00A0\u1680\u180E\u2000-\u200A\u2028\u2029\u202F\u205F\u3000]|[\\[\\]［］()（）{}｛｝‘’“”\"\'｟｠⸨⸩「」｢｣『』〚〛⟦⟧〔〕❲❳〘〙⟬⟭〈〉〈〉⟨⟩《》⟪⟫<>＜＞«»‹›【】〖〗]|。|、|\\.|!))(#|＃)([a-z0-9_\u00C0-\u00D6\u00D8-\u00F6\u00F8-\u00FF\u0400-\u04FF\u0500-\u0527\u1100-\u11FF\u3130-\u3185\uA960-\uA97F\uAC00-\uD7AF\uD7B0-\uD7FF\u30A1-\u30FA\uFF66-\uFF9D\uFF10-\uFF19\uFF21-\uFF3A\uFF41-\uFF5A\u3041-\u3096\u3400-\u4DBF\u4E00-\u9FFF\u020000-\u02A6DF\u02A700-\u02B73F\u02B740-\u02B81F\u02F800-\u02FA1F\u30FC\u3005]*[a-z_\u00C0-\u00D6\u00D8-\u00F6\u00F8-\u00FF\u0400-\u04FF\u0500-\u0527\u1100-\u11FF\u3130-\u3185\uA960-\uA97F\uAC00-\uD7AF\uD7B0-\uD7FF\u30A1-\u30FA\uFF66-\uFF9D\uFF10-\uFF19\uFF21-\uFF3A\uFF41-\uFF5A\u3041-\u3096\u3400-\u4DBF\u4E00-\u9FFF\u020000-\u02A6DF\u02A700-\u02B73F\u02B740-\u02B81F\u02F800-\u02FA1F\u30FC\u3005][a-z0-9_\u00C0-\u00D6\u00D8-\u00F6\u00F8-\u00FF\u0400-\u04FF\u0500-\u0527\u1100-\u11FF\u3130-\u3185\uA960-\uA97F\uAC00-\uD7AF\uD7B0-\uD7FF\u30A1-\u30FA\uFF66-\uFF9D\uFF10-\uFF19\uFF21-\uFF3A\uFF41-\uFF5A\u3041-\u3096\u3400-\u4DBF\u4E00-\u9FFF\u020000-\u02A6DF\u02A700-\u02B73F\u02B740-\u02B81F\u02F800-\u02FA1F\u30FC\u3005]*)(?=(?:\\A|\\z|[\x0009-\x000D\x0020\xC2\x85\u00A0\u1680\u180E\u2000-\u200A\u2028\u2029\u202F\u205F\u3000]|[\\[\\]［］()（）{}｛｝‘’“”\"\'｟｠⸨⸩「」｢｣『』〚〛⟦⟧〔〕❲❳〘〙⟬⟭〈〉〈〉⟨⟩《》⟪⟫<>＜＞«»‹›【】〖〗]|。|、|\\.|!))"];
+    NSString *hashTag = [self.selectedTweet.text stringWithRegExp:@"((?:\\A|\\z|[\x0009-\x000D\x0020\xC2\x85\u00A0\u1680\u180E\u2000-\u200A\u2028\u2029\u202F\u205F\u3000]|[\\[\\]［］()（）{}｛｝‘’“”\"\'｟｠⸨⸩「」｢｣『』〚〛⟦⟧〔〕❲❳〘〙⟬⟭〈〉〈〉⟨⟩《》⟪⟫<>＜＞«»‹›【】〖〗]|。|、|\\.|!))(#|＃)([a-z0-9_\u00C0-\u00D6\u00D8-\u00F6\u00F8-\u00FF\u0400-\u04FF\u0500-\u0527\u1100-\u11FF\u3130-\u3185\uA960-\uA97F\uAC00-\uD7AF\uD7B0-\uD7FF\u30A1-\u30FA\uFF66-\uFF9D\uFF10-\uFF19\uFF21-\uFF3A\uFF41-\uFF5A\u3041-\u3096\u3400-\u4DBF\u4E00-\u9FFF\u020000-\u02A6DF\u02A700-\u02B73F\u02B740-\u02B81F\u02F800-\u02FA1F\u30FC\u3005]*[a-z_\u00C0-\u00D6\u00D8-\u00F6\u00F8-\u00FF\u0400-\u04FF\u0500-\u0527\u1100-\u11FF\u3130-\u3185\uA960-\uA97F\uAC00-\uD7AF\uD7B0-\uD7FF\u30A1-\u30FA\uFF66-\uFF9D\uFF10-\uFF19\uFF21-\uFF3A\uFF41-\uFF5A\u3041-\u3096\u3400-\u4DBF\u4E00-\u9FFF\u020000-\u02A6DF\u02A700-\u02B73F\u02B740-\u02B81F\u02F800-\u02FA1F\u30FC\u3005][a-z0-9_\u00C0-\u00D6\u00D8-\u00F6\u00F8-\u00FF\u0400-\u04FF\u0500-\u0527\u1100-\u11FF\u3130-\u3185\uA960-\uA97F\uAC00-\uD7AF\uD7B0-\uD7FF\u30A1-\u30FA\uFF66-\uFF9D\uFF10-\uFF19\uFF21-\uFF3A\uFF41-\uFF5A\u3041-\u3096\u3400-\u4DBF\u4E00-\u9FFF\u020000-\u02A6DF\u02A700-\u02B73F\u02B740-\u02B81F\u02F800-\u02FA1F\u30FC\u3005]*)(?=(?:\\A|\\z|[\x0009-\x000D\x0020\xC2\x85\u00A0\u1680\u180E\u2000-\u200A\u2028\u2029\u202F\u205F\u3000]|[\\[\\]［］()（）{}｛｝‘’“”\"\'｟｠⸨⸩「」｢｣『』〚〛⟦⟧〔〕❲❳〘〙⟬⟭〈〉〈〉⟨⟩《》⟪⟫<>＜＞«»‹›【】〖〗]|。|、|\\.|!))"];
     
     if ( [hashTag isNotEmpty] ) {
         
-        NSMutableDictionary *addDic = [[NSMutableDictionary alloc] initWithDictionary:BLANK_M_DIC];
+        NSMutableDictionary *addDic = BLANK_M_DIC;
         
         //NGワード設定を読み込む
-        NSMutableArray *ngWordArray = [[NSMutableArray alloc] initWithArray:[D objectForKey:@"NGWord"]];
+        NSMutableArray *ngWordArray = [NSMutableArray arrayWithArray:[D objectForKey:@"NGWord"]];
         
         //NGワードに追加
-        [addDic setObject:[NSString stringWithString:[DeleteWhiteSpace string:hashTag]]
+        [addDic setObject:[DeleteWhiteSpace string:hashTag]
                    forKey:@"Word"];
         [ngWordArray addObject:addDic];
         
         //設定に反映
-        [D setObject:[NSMutableArray arrayWithArray:ngWordArray]
+        [D setObject:ngWordArray
               forKey:@"NGWord"];
         
         //タイムラインにNGワードを適用
-        self.timelineArray = [NSMutableArray arrayWithArray:[TWNgTweet ngWord:[NSArray arrayWithArray:_timelineArray]]];
+        [self setCurrentTweets:[NSMutableArray arrayWithArray:[TWNgTweet ngWord:[NSArray arrayWithArray:self.currentTweets]]]];
         
         //タイムラインを保存
-        [TWTweets saveCurrentTimeline:_timelineArray];
-        
-        __weak TimelineViewController *wself = self;
-        
-        ASYNC_MAIN_QUEUE ^{
-            
-            //リロード
-            [wself.timeline reloadData];
-        });
+        [TWTweets saveCurrentTimeline:self.currentTweets];
+        [self.timeline reloadData];
         
     }else {
         
@@ -3706,260 +2780,453 @@
     }
 }
 
-- (void)timelineMenuActionNGClient {
+- (void)timelineMenuClientNG:(NSNotification *)notification {
     
-    NSMutableDictionary *addDic = [[NSMutableDictionary alloc] initWithDictionary:BLANK_M_DIC];
+    NSLog(@"%s", __func__);
     
-    NSString *clientName = [[NSString alloc] initWithString:[TWParser client:_selectTweet[@"source"]]];
+    NSMutableDictionary *addDic = BLANK_M_DIC;
+    
+    NSString *clientName = self.selectedTweet.source;
     
     //NGクライアント設定を読み込む
-    NSMutableArray *ngClientArray = [[NSMutableArray alloc] initWithArray:[D objectForKey:@"NGClient"]];
+    NSMutableArray *ngClientArray = [NSMutableArray arrayWithArray:[D objectForKey:@"NGClient"]];
     
-    if ( clientName == nil ) {
+    if ( clientName != nil ) {
         
-        return;
+        [addDic setObject:clientName
+                   forKey:@"Client"];
+        [ngClientArray addObject:addDic];
+        
+        [D setObject:ngClientArray
+              forKey:@"NGClient"];
+        
+        //タイムラインにNGワードを適用
+        [self setCurrentTweets:[NSMutableArray arrayWithArray:[TWNgTweet ngClient:[NSArray arrayWithArray:self.currentTweets]]]];
+        
+        //タイムラインを保存
+        [TWTweets saveCurrentTimeline:self.currentTweets];
+        [self.timeline reloadData];
     }
-    
-    //NGクライアント
-    [addDic setObject:[NSString stringWithString:clientName]
-               forKey:@"Client"];
-    [ngClientArray addObject:addDic];
-    
-    //NSLog(@"ngClientArray: %@", ngClientArray);
-    
-    [D setObject:[NSMutableArray arrayWithArray:ngClientArray]
-          forKey:@"NGClient"];
-    
-    //タイムラインにNGワードを適用
-    self.timelineArray = [NSMutableArray arrayWithArray:[TWNgTweet ngClient:[NSArray arrayWithArray:_timelineArray]]];
-    
-    //タイムラインを保存
-    [TWTweets saveCurrentTimeline:_timelineArray];
-    
-    __weak TimelineViewController *wself = self;
-    
-    ASYNC_MAIN_QUEUE ^{
-        
-        //リロード
-        [wself.timeline reloadData];
-    });
 }
 
-- (void)timelineMenuActionInReplyTo {
+- (void)timelineMenuInReplyTo:(NSNotification *)notification {
     
-    if ( _inReplyTo != nil || _inReplyTo.count != 0 ) {
-        
-        [self setInReplyTo:nil];
-        _inReplyTo = [NSMutableArray array];
-    }
+    NSLog(@"%s", __func__);
+    [self setOtherTweets:nil];
+    [self setOtherTweets:[@[] mutableCopy]];
+    [self.otherTweets addObject:self.selectedTweet];
+    [self createInReplyToChain:self.selectedTweet];
+}
+
+- (void)timelineMenuDelete:(NSNotification *)notification {
     
-    NSString *inReplyToId = _selectTweet[@"in_reply_to_status_id_str"];
+    NSLog(@"%s", __func__);
     
-    if ( [inReplyToId isNotEmpty] ) {
+    NSString *tweetID = self.selectedTweet.tweetID;
+    [TWEvent destroy:tweetID];
+    
+    NSUInteger index = 0;
+    BOOL find = NO;
+    for ( TWTweet *tweet in self.currentTweets ) {
         
-        NSLog(@"InReplyTo GET START");
-        
-        _otherTweetsMode = YES;
-        
-        [_inReplyTo addObject:_selectTweet];
-        [self getInReplyToChain:_selectTweet];
-        
-    }else {
-        
-        ASYNC_MAIN_QUEUE ^{
+        if ( [tweet.tweetID isEqualToString:tweetID] ) {
             
-            [ShowAlert error:@"InReplyToIDがありません。"];
-        });
-    }
-}
-
-- (void)timelineMenuActionCopy {
-    
-    __weak TimelineViewController *wself = self;
-    
-    ASYNC_MAIN_QUEUE ^{
-        
-        UIActionSheet *sheet = [[UIActionSheet alloc]
-                                initWithTitle:@"Tweetをコピー"
-                                delegate:wself
-                                cancelButtonTitle:@"Cancel"
-                                destructiveButtonTitle:nil
-                                otherButtonTitles:@"STOT形式", @"本文", @"TweetへのURL", @"Tweet内のURL", nil];
-        
-        sheet.tag = 6;
-        [sheet showInView:APP_DELEGATE.tabBarController.view];
-    });
-}
-
-- (void)timelineMenuActionDelete {
-    
-    if (  [_selectTweet[@"user"][@"screen_name"] isEqualToString:[TWAccounts currentAccountName]] ) {
-        
-        NSString *tweetId = _selectTweet[@"id_str"];
-        [TWEvent destroy:tweetId];
-        
-    }else if ( [_selectTweet[@"retweeted_status"] boolForKey:@"id"] &&
-               [_selectTweet[@"rt_user"] isEqualToString:[TWAccounts currentAccountName]] ) {
-        
-        NSString *tweetId = _selectTweet[@"retweeted_status"][@"id_str"];
-        [TWEvent destroy:tweetId];
-    
-    }else {
-        
-        ASYNC_MAIN_QUEUE ^{
-            
-            [ShowAlert error:@"自分のTweetではありません。"];
-        });
-    }
-}
-
-- (void)timelineMenuActionEdit {
-    
-    if ( [_selectTweet[@"user"][@"screen_name"] isEqualToString:[TWAccounts currentAccountName]] ) {
-        
-        [APP_DELEGATE.postData removeAllObjects];
-        
-        NSString *text = _selectTweet[@"text"];
-        NSString *inReplyToId = _selectTweet[@"in_reply_to_status_id_str"];
-        
-        if  ( text == nil ) return;
-        
-        [APP_DELEGATE.postData setObject:[NSString stringWithString:text]
-                                  forKey:@"Text"];
-        
-        if ( [inReplyToId isNotEmpty] ) {
-        
-            [APP_DELEGATE.postData setObject:[NSString stringWithString:inReplyToId]
-                                      forKey:@"InReplyToId"];
+            find = YES;
+            break;
         }
         
-        APP_DELEGATE.tabChangeFunction = @"Edit";
+        index++;
+    }
+    
+    if ( find ) {
         
-        NSString *tweetId = _selectTweet[@"id_str"];
-        [TWEvent destroy:tweetId];
+        dispatch_queue_t queue;
+        if ( [NSThread isMainThread] ) {
+            queue = dispatch_get_current_queue();
+        }else {
+            queue = dispatch_get_main_queue();
+        }
         
-        __weak TimelineViewController *wself = self;
-        
-        ASYNC_MAIN_QUEUE ^{
+        dispatch_async(queue, ^{
             
-            if ( !wself.userStream ) {
-                
-                //削除
-                [wself.timelineArray removeObjectAtIndex:wself.selectRow];
-                
-                //タイムラインを保存
-                [TWTweets saveCurrentTimeline:wself.timelineArray];
-                
-                NSIndexPath *indexPath = [NSIndexPath indexPathForRow:wself.selectRow
-                                                            inSection:0];
-                [wself.timeline deleteRowsAtIndexPaths:@[indexPath]
-                                      withRowAnimation:UITableViewRowAnimationBottom];
-            }
-            
-            wself.tabBarController.selectedIndex = 0;
+            [self.currentTweets removeObjectAtIndex:index];
+            [TWTweets saveCurrentTimeline:self.currentTweets];
+            [self.timeline deleteRowsAtIndexPaths:@[[NSIndexPath indexPathForRow:index
+                                                                       inSection:0]]
+                                 withRowAnimation:UITableViewRowAnimationTop];
         });
+    }
+}
+
+- (void)timelineMenuEdit:(NSNotification *)notification {
+    
+    NSLog(@"%s", __func__);
+}
+
+#pragma mark - TableView
+
+- (NSInteger)tableView:(UITableView *)tableView numberOfRowsInSection:(NSInteger)section {
+    
+    //TableViewの要素数を返す
+	return [self.currentTweets count];
+}
+
+- (UITableViewCell *)tableView:(UITableView *)tableView cellForRowAtIndexPath:(NSIndexPath *)indexPath {
+
+    //NSLog(@"cellForRowAtIndexPath: %d", indexPath.row);
+    
+    TWTweet *currentTweet = self.currentTweets[indexPath.row];
+    
+    if ( currentTweet.isReTweet ) {
+        
+        //公式RT
+        TimelineAttributedRTCell *cell = (TimelineAttributedRTCell *)[tableView dequeueReusableCellWithIdentifier:RT_CELL_IDENTIFIER];
+        
+        if ( cell == nil ) {
+            
+            cell = [[TimelineAttributedRTCell alloc] initWithStyle:UITableViewCellStyleDefault
+                                                   reuseIdentifier:RT_CELL_IDENTIFIER
+                                                          forWidth:264.0f];
+            [cell.iconView addTarget:self
+                              action:@selector(pushIcon:)
+                    forControlEvents:UIControlEventTouchUpInside];
+        }
+        
+//        dispatch_async(dispatch_get_global_queue(0, 0), ^{
+        
+            [cell setTweetData:currentTweet
+                     cellWidth:CELL_WIDTH];
+//        });
+        
+        return cell;
         
     }else {
         
-        ASYNC_MAIN_QUEUE ^{
+        TimelineAttributedCell *cell = (TimelineAttributedCell *)[tableView dequeueReusableCellWithIdentifier:CELL_IDENTIFIER];
+        
+        if ( cell == nil ) {
             
-            [ShowAlert error:@"自分のTweetではありません。"];
-        });
+            cell = [[TimelineAttributedCell alloc] initWithStyle:UITableViewCellStyleDefault
+                                                 reuseIdentifier:CELL_IDENTIFIER
+                                                        forWidth:264.0f];
+            [cell.iconView addTarget:self
+                              action:@selector(pushIcon:)
+                    forControlEvents:UIControlEventTouchUpInside];
+        }
+        
+//        dispatch_async(dispatch_get_global_queue(0, 0), ^{
+        
+            [cell setTweetData:currentTweet
+                     cellWidth:CELL_WIDTH];
+//        });
+        
+        return cell;
     }
 }
 
-- (void)timelineMenuActionUserMenu {
+- (CGFloat)tableView:(UITableView *)tableView heightForRowAtIndexPath:(NSIndexPath *)indexPath {
     
-    NSMutableArray *ids = [[NSMutableArray alloc] initWithArray:[_selectTweet[@"text"] twitterIds]];
-    [ids insertObject:[NSString stringWithFormat:@"@%@", _selectTweet[@"user"][@"screen_name"]] atIndex:0];
+    //セルの高さを設定
+    TWTweet *currentTweet = self.currentTweets[indexPath.row];
+    CGFloat heightOffset = 25.0f;
     
-    _selectTweetIds = [NSArray arrayWithArray:ids.deleteDuplicate];
-    
-    if ( ids.count == 0 ) {
+    if ( currentTweet.favoriteEventeType == FavoriteEventTypeReceive ) {
         
-        ids = nil;
+        return [[NSString stringWithFormat:@"【%@がお気に入りに追加】\n%@",
+                 currentTweet.favUser,
+                 currentTweet.text]
+                heightForContents:[UIFont systemFontOfSize:12.0f]
+                toWidht:264.0f
+                minHeight:31.0f
+                lineBreakMode:NSLineBreakByCharWrapping] + heightOffset;
+    }
+    
+    if ( currentTweet.isReTweet &&
+         currentTweet.cellHeight == 31.0f ) {
+        
+        heightOffset += 6.0f;
+    }
+    
+    return currentTweet.cellHeight + heightOffset;
+}
+
+- (void)tableView:(UITableView *)tableView didSelectRowAtIndexPath:(NSIndexPath *)indexPath {
+    
+    [tableView deselectRowAtIndexPath:indexPath
+                             animated:YES];
+    
+    if ( !self.timeline.isScrollEnabled ) {
+        
+        [self hideTimelineMenu:nil];
+        
+    }else {
+     
+        TWTweet *selectedTweet = self.currentTweets[indexPath.row];
+        
+        if ( selectedTweet.isEvent ) {
+            
+            NSString *targetId = self.selectedTweet.tweetID;
+            NSString *favStarUrl = [NSString stringWithFormat:@"http://ja.favstar.fm/users/%@/status/%@",
+                                    [TWAccounts currentAccountName],
+                                    targetId];
+            [self openBrowser:favStarUrl];
+            
+        }else {
+            
+            [self.timeline setScrollEnabled:NO];
+            [self setSelectedTweet:selectedTweet];
+            [self createTimelineMenu:TimeLineMenuIdentifierMain];
+        }
+    }
+}
+
+- (void)createTimelineMenu:(TimeLineMenuIdentifier)menuIdentifier {
+    
+    [self.topBar setUserInteractionEnabled:NO];
+    [self.segment setUserInteractionEnabled:NO];
+    
+    self.timelineMenu = [[TimelineMenu alloc] initWithTweet:self.selectedTweet
+                                                    forMenu:TimeLineMenuIdentifierMain
+                                                 controller:self];
+    [self.timelineMenu setAlpha:0.0f];
+    [self.view addSubview:self.timelineMenu];
+    
+    DISPATCH_AFTER(0.1) ^{
+        
+        [UIView animateWithDuration:0.3f
+                         animations:^{
+                             
+                             [self.timelineMenu setAlpha:1.0f];
+                             [self.timelineMenu setFrame:CGRectMake(self.timelineMenu.frame.origin.x,
+                                                                    0.0f,
+                                                                    self.timelineMenu.frame.size.width,
+                                                                    self.timelineMenu.frame.size.height)];
+                         }
+         ];
+    });
+    
+    [UIView animateWithDuration:0.2f
+                     animations:^{
+                         
+                         self.topBar.frame = CGRectMake(266.0f,
+                                                        self.topBar.frame.origin.y,
+                                                        self.topBar.frame.size.width,
+                                                        self.topBar.frame.size.height);
+                         
+                         self.segment.frame = CGRectMake(266.0f,
+                                                         self.segment.frame.origin.y,
+                                                         self.segment.frame.size.width,
+                                                         self.segment.frame.size.height);
+                         
+                         self.timeline.frame = CGRectMake(266.0f,
+                                                          self.timeline.frame.origin.y,
+                                                          self.timeline.frame.size.width,
+                                                          self.timeline.frame.size.height);
+                     }
+     ];
+}
+
+- (void)createSearchAlert:(NSString *)title alertType:(TextFieldType)alertType {
+    
+    self.searchAlert = [[UIAlertView alloc] initWithTitle:title
+                                                  message:@"\n"
+                                                 delegate:self
+                                        cancelButtonTitle:@"キャンセル"
+                                        otherButtonTitles:@"確定", nil];
+    [self.searchAlert setTag:alertType];
+    
+    self.searchAlertTextField = [[SSTextField alloc] initWithFrame:CGRectMake(12.0f,
+                                                                              40.0f,
+                                                                              260.0f,
+                                                                              25.0f)];
+    [self.searchAlertTextField setBackgroundColor:[UIColor whiteColor]];
+    [self.searchAlertTextField setContentVerticalAlignment:UIControlContentVerticalAlignmentCenter];
+    [self.searchAlertTextField setDelegate:self];
+    [self.searchAlertTextField setText:BLANK];
+    [self.searchAlertTextField setTag:alertType];
+    [self.searchAlert addSubview:self.searchAlertTextField];
+    [self.searchAlert show];
+    [self.searchAlertTextField becomeFirstResponder];
+}
+
+- (void)getMyAccountIcon {
+    
+    if ( [Share images].count == 0 ) {
+        
+        NSLog(@"icon file 0");
+        
+        //アイコンが1つもない場合は自分のアイコンがないので保存を行う
+        [FPTRequest requestWithGetType:FPTGetRequestTypeProfile
+                            parameters:@{@"screen_name" : [TWAccounts currentAccountName]}];
         return;
     }
     
-    ids = nil;
-    __weak TimelineViewController *wself = self;
+    NSString *string = BLANK;
+    BOOL find = NO;
     
-    ASYNC_MAIN_QUEUE ^{
+    //NSLog(@"icons key: %@", array);
+    
+    NSArray *allKeys = [Share images].allKeys;
+    
+    for ( string in allKeys ) {
         
-        [wself showTwitterAccountSelectActionSheet:wself.selectTweetIds];
-    });
-}
-
-- (void)timelineCopyMenuSTOT {
-    
-    NSString *tweetId = _selectTweet[@"id_str"];
-    NSString *screenName = _selectTweet[@"user"][@"screen_name"];
-    NSString *text = _selectTweet[@"text"];
-    
-    //公式RTであるか
-    if ( _selectTweet[@"retweeted_status"][@"id"] ) {
+        if ( [string hasPrefix:[TWAccounts currentAccountName]] ) {
+            
+            NSLog(@"icon find");
+            
+            [ICON_BUTTON setImage:[[Share images] objectForKey:[TWAccounts currentAccountName]]
+                         forState:UIControlStateNormal];
+            find = YES;
+            break;
+        }
         
-        text = [TWEntities openTcoWithReTweet:_selectTweet];
-        screenName = _selectTweet[@"retweeted_status"][@"user"][@"screen_name"];
-        tweetId = _selectTweet[@"retweeted_status"][@"id_str"];
+        if ( find ) break;
     }
     
-    //STOT形式
-    NSString *copyText = [[NSString alloc] initWithFormat:@"%@: %@ [https://twitter.com/%@/status/%@]",
-                          screenName,
-                          text,
-                          screenName,
-                          tweetId];
-    [P_BOARD setString:copyText];
+    if ( !find ) {
+        
+        NSLog(@"icon not found");
+        
+        [ICON_BUTTON setImage:nil
+                     forState:UIControlStateNormal];
+        [FPTRequest requestWithGetType:FPTGetRequestTypeProfile
+                            parameters:@{@"screen_name" : [TWAccounts currentAccountName]}];
+    }
 }
 
-- (void)timelineCopyMenuText {
+- (void)setDefaultTweetsMode {
     
-    NSString *text = _selectTweet[@"text"];
+    if ( self.pickerVisible ) [self hidePicker];
+    [self.topBar setItems:TOP_BAR_ITEM_DEFAULT];
+    [self setAddTweetStopMode:NO];
     
-    //公式RTであるか
-    if ( _selectTweet[@"retweeted_status"][@"id"] ) {
+    if ( [self.otherTweets isNotEmpty] ) {
         
-        text = [TWEntities openTcoWithReTweet:_selectTweet];
+        [self.otherTweets removeAllObjects];
     }
-    
-    //本文
-    [P_BOARD setString:text];
 }
 
-- (void)timelineCopyMenuTweetURL {
+- (void)setOtherTweetsMode {
     
-    NSString *screenName = _selectTweet[@"user"][@"screen_name"];
-    NSString *tweetId = _selectTweet[@"id_str"];
-    
-    //公式RTであるか
-    if ( _selectTweet[@"retweeted_status"][@"id"] ) {
-        
-        screenName = _selectTweet[@"retweeted_status"][@"user"][@"screen_name"];
-        tweetId = _selectTweet[@"retweeted_status"][@"id_str"];
-    }
-    
-    //URL
-    [P_BOARD setString:[NSString stringWithFormat:@"https://twitter.com/%@/status/%@", screenName, tweetId]];
+    if ( self.pickerVisible ) [self hidePicker];
+    [self.topBar setItems:TOP_BAR_ITEM_OTHER];
+    [self setAddTweetStopMode:YES];
 }
 
-- (void)timelineCopyMenuURL {
+- (void)showAPILimit {
     
-    NSString *text = _selectTweet[@"text"];
-    __block __weak NSString *weakText = text;
+    NSString *requestURL = [NSString stringWithFormat:@"https://api.twitter.com/1.1/application/rate_limit_status.json"];
+    TWRequest *getRequest = [[TWRequest alloc] initWithURL:[NSURL URLWithString:requestURL]
+                                                parameters:nil
+                                             requestMethod:TWRequestMethodGET];
+    [getRequest setAccount:[TWAccounts currentAccount]];
     
-    if ( _selectTweet[@"retweeted_status"][@"id"] ) {
+    [getRequest performRequestWithHandler:^(NSData *responseData,
+                                            NSHTTPURLResponse *urlResponse,
+                                            NSError *error) {
         
-        text = [TWEntities openTcoWithReTweet:_selectTweet];
+        dispatch_async(dispatch_get_main_queue(), ^{
+            
+            if ( responseData  ) {
+                
+                NSError *jsonError = nil;
+                NSDictionary *result = [NSJSONSerialization JSONObjectWithData:responseData
+                                                                       options:NSJSONReadingMutableLeaves
+                                                                         error:&jsonError];
+                
+                if ( !jsonError ) {
+                    
+                    NSDictionary *limits = result[@"resources"];
+                    NSMutableString *resultString = [NSMutableString string];
+                    
+                    for ( NSString *typeKey in limits ) {
+                        
+                        NSDictionary *type = limits[typeKey];
+                        
+                        for ( NSString *limitKey in type ) {
+                            
+                            NSDictionary *limitData = type[limitKey];
+                            
+                            [resultString appendFormat:@"【%@】\n%@ / %@\n",
+                             limitKey,
+                             [limitData[@"remaining"] stringValue],
+                             [limitData[@"limit"] stringValue]];
+                        }
+                    }
+                    
+                    [ShowAlert title:@"API Limit"
+                             message:resultString];
+                    
+                }else {
+                    
+                    [ShowAlert error:error.description];
+                }
+                
+            }else {
+                
+                [ShowAlert error:@"API Limit取得エラー"];
+            }
+            
+            [ActivityIndicator off];
+        });
+    }];
+}
+
+- (void)showListView {
+    
+    NSLog(@"%s", __func__);
+    
+    ListViewController *modalView = [[ListViewController alloc] initWithListSelectMode:NO];
+    [modalView setModalTransitionStyle:UIModalTransitionStyleCoverVertical];
+    [self showModalViewController:modalView];
+}
+
+- (void)openTwilog:(NSString *)userName {
+    
+    NSString *URL = [NSString stringWithFormat:@"http://twilog.org/%@", userName];
+    [self openBrowser:URL];
+}
+
+- (void)openTwilogSearch:(NSString *)userName searchWord:(NSString *)searchWord {
+    
+    NSString *URL = [CreateSearchURL twilog:userName searchWord:searchWord];
+    [self openBrowser:URL];
+}
+
+- (void)openFavStar:(NSString *)userName {
+    
+    NSString *URL = [NSString stringWithFormat:@"http://ja.favstar.fm/users/%@/recent", userName];
+    [self openBrowser:URL];
+}
+
+- (void)openTwitPic:(NSString *)userName {
+    
+    NSString *URL = [NSString stringWithFormat:@"http://twitpic.com/photos/%@", userName];
+    [self openBrowser:URL];
+}
+
+- (void)openBrowser:(NSString *)URL {
+    
+    NSString *useragent = IPHONE_USERAGENT;
+    
+    if ( [[D objectForKey:@"UserAgent"] isEqualToString:@"FireFox"] ) {
+        
+        useragent = FIREFOX_USERAGENT;
+        
+    }else if ( [[D objectForKey:@"UserAgent"] isEqualToString:@"iPad"] ) {
+        
+        useragent = IPAD_USERAFENT;
     }
     
-    ASYNC_MAIN_QUEUE ^{
-        
-        //Tweet内のURL
-        _tweetInUrls = [weakText urls];
-        [self copyTweetInUrl:_tweetInUrls];
-        weakText = nil;
-    });
+    NSDictionary *dictionary = [[NSDictionary alloc] initWithObjectsAndKeys:useragent, @"UserAgent", nil];
+    [D registerDefaults:dictionary];
+    
+    [self setWebBrowserMode:YES];
+    
+    WebViewExController *dialog = [[WebViewExController alloc] initWithURL:URL];
+    [dialog setHidesBottomBarWhenPushed:YES];
+    [self.navigationController pushViewController:dialog
+                                         animated:YES];
 }
 
 #pragma mark - UIPickerView
@@ -3969,21 +3236,21 @@
     //NSLog(@"showPickerView");
     
     //表示フラグ
-    _pickerVisible = YES;
-    APP_DELEGATE.tabBarController.tabBar.userInteractionEnabled = NO;
+    [self setPickerVisible:YES];
+    [self.tabBarController.tabBar setUserInteractionEnabled:NO];
     
-    self.pickerBase = [[UIView alloc] initWithFrame:CGRectMake(0,
+    self.pickerBase = [[UIView alloc] initWithFrame:CGRectMake(0.0f,
                                                                SCREEN_HEIGHT,
                                                                SCREEN_WIDTH,
                                                                TOOL_BAR_HEIGHT + PICKER_HEIGHT)];
-    _pickerBase.backgroundColor = [UIColor clearColor];
-    [APP_DELEGATE.tabBarController.view addSubview:_pickerBase];
+    [self.pickerBase setBackgroundColor:[UIColor clearColor]];
+    [self.tabBarController.view addSubview:self.pickerBase];
     
-    self.pickerBar = [[UIToolbar alloc] initWithFrame:CGRectMake(0,
-                                                                 0,
+    self.pickerBar = [[UIToolbar alloc] initWithFrame:CGRectMake(0.0f,
+                                                                 0.0f,
                                                                  SCREEN_WIDTH,
                                                                  TOOL_BAR_HEIGHT)];
-    _pickerBar.tintColor = _topBar.tintColor;
+    [self.pickerBar setTintColor:self.topBar.tintColor];
     
     self.pickerBarDoneButton = [[UIBarButtonItem alloc]
                                 initWithBarButtonSystemItem:UIBarButtonSystemItemDone
@@ -3995,46 +3262,45 @@
                                   target:self
                                   action:@selector(pickerCancel)];
     
-    [_pickerBar setItems:PICKER_BAR_ITEM animated:NO];
-    [_pickerBase addSubview:_pickerBar];
+    [self.pickerBar setItems:PICKER_BAR_ITEM
+                    animated:NO];
+    [self.pickerBase addSubview:self.pickerBar];
     
     self.eventPicker = [[UIPickerView alloc] initWithFrame:CGRectMake(0,
                                                                       TOOL_BAR_HEIGHT,
                                                                       SCREEN_WIDTH,
                                                                       PICKER_HEIGHT)];
-    _eventPicker.delegate = self;
-    _eventPicker.dataSource = self;
-    _eventPicker.showsSelectionIndicator = YES;
-    [_pickerBase addSubview:_eventPicker];
+    [self.eventPicker setDelegate:self];
+    [self.eventPicker setDataSource:self];
+    [self.eventPicker setShowsSelectionIndicator:YES];
+    [self.pickerBase addSubview:self.eventPicker];
     
     //アカウント初期値
-    [_eventPicker selectRow:[D integerForKey:@"UseAccount"]
+    [self.eventPicker selectRow:[D integerForKey:@"UseAccount"]
                 inComponent:0
                    animated:NO];
     
     //イベント初期値
-    [_eventPicker selectRow:1
+    [self.eventPicker selectRow:1
                 inComponent:1
                    animated:NO];
     
-    _pickerBase.alpha = 0;
-    _pickerBar.alpha = 0;
-    _eventPicker.alpha = 0;
-    
-    __weak TimelineViewController *wself = self;
+    [self.pickerBase setAlpha:0.0f];
+    [self.pickerBar setAlpha:0.0f];
+    [self.eventPicker setAlpha:0.0f];
     
     //アニメーションさせつつ画面に表示
     [UIView animateWithDuration:0.3f
                      animations:^{
                          
-                         wself.pickerBase.frame = CGRectMake(0,
-                                                             STATUS_BAR_HEIGHT + SCREEN_HEIGHT - TAB_BAR_HEIGHT - PICKER_HEIGHT - TOOL_BAR_HEIGHT,
-                                                             SCREEN_WIDTH,
-                                                             TOOL_BAR_HEIGHT + PICKER_HEIGHT);
+                         [self.pickerBase setFrame:CGRectMake(0.0f,
+                                                              STATUS_BAR_HEIGHT + SCREEN_HEIGHT - TAB_BAR_HEIGHT - PICKER_HEIGHT - TOOL_BAR_HEIGHT,
+                                                              SCREEN_WIDTH,
+                                                              TOOL_BAR_HEIGHT + PICKER_HEIGHT)];
                          
-                         wself.pickerBase.alpha = 1;
-                         wself.pickerBar.alpha = 1;
-                         wself.eventPicker.alpha = 1;
+                         [self.pickerBase setAlpha:1.0f];
+                         [self.pickerBar setAlpha:1.0f];
+                         [self.eventPicker setAlpha:1.0f];
                      }
      ];
 }
@@ -4043,35 +3309,36 @@
     
     //NSLog(@"pickerDone");
     
-    int account = [_eventPicker selectedRowInComponent:0];
-    int function = [_eventPicker selectedRowInComponent:1];
-    NSString *tweetId = [[NSString alloc] initWithString:_selectTweet[@"id_str"]];
-    
-    //    NSLog(@"account: %d", account);
-    //    NSLog(@"function: %d", function);
-    
-    [self performSelectorInBackground:@selector(hidePicker) withObject:nil];
+    NSInteger account = [self.eventPicker selectedRowInComponent:0];
+    NSInteger function = [self.eventPicker selectedRowInComponent:1];
+    NSString *tweetID = [[NSString alloc] initWithString:self.selectedTweet.tweetID];
+    [self performSelectorInBackground:@selector(hidePicker)
+                           withObject:nil];
     
     if ( function == 0 ) {
         
-        BOOL favorited = [_selectTweet[@"favorited"] boolValue];
+        BOOL favorited = self.selectedTweet.isFavorited;
         
         if ( favorited ) {
             
-            [TWEvent unFavorite:tweetId accountIndex:account];
+            [TWEvent unFavorite:tweetID
+                   accountIndex:account];
             
         }else {
             
-            [TWEvent favorite:tweetId accountIndex:account];
+            [self addFavorite:tweetID
+                 accountIndex:account];
         }
         
     }else if ( function == 1 ) {
         
-        [TWEvent reTweet:tweetId accountIndex:account];
+        [TWEvent reTweet:tweetID
+            accountIndex:account];
         
     }else if ( function == 2 ) {
         
-        [TWEvent favoriteReTweet:tweetId accountIndex:account];
+        [TWEvent favoriteReTweet:tweetID
+                    accountIndex:account];
     }
     
     [ActivityIndicator on];
@@ -4086,43 +3353,37 @@
 
 - (void)hidePicker {
     
-    _pickerVisible = NO;
-    APP_DELEGATE.tabBarController.tabBar.userInteractionEnabled = YES;
-    
-    __weak TimelineViewController *wself = self;
+    [self setPickerVisible:NO];
+    [self.tabBarController.tabBar setUserInteractionEnabled:YES];
     
     //アニメーションさせつつ画面から消す
     [UIView animateWithDuration:0.4f
-                          delay:0.0f
-                        options:UIViewAnimationOptionTransitionNone
-     
                      animations:^{
                          
-                         wself.pickerBase.frame = CGRectMake(0,
+                         [self.pickerBase setFrame:CGRectMake(0.0f,
                                                              SCREEN_HEIGHT,
                                                              SCREEN_WIDTH,
-                                                             TOOL_BAR_HEIGHT + PICKER_HEIGHT);
+                                                             TOOL_BAR_HEIGHT + PICKER_HEIGHT)];
                          
-                         wself.pickerBase.alpha = 0;
-                         wself.pickerBar.alpha = 0;
-                         wself.eventPicker.alpha = 0;
+                         [self.pickerBase setAlpha:0.0f];
+                         [self.pickerBar setAlpha:0.0f];
+                         [self.eventPicker setAlpha:0.0f];
                      }
      
                      completion:^( BOOL finished ){
                          
-                         //NSLog(@"remove pickers");
-                         wself.pickerBarCancelButton = nil;
-                         wself.pickerBarDoneButton = nil;
+                         [self setPickerBarCancelButton:nil];
+                         [self setPickerBarDoneButton:nil];
                          
-                         while ( wself.pickerBase.subviews.count ) {
+                         while ( self.pickerBase.subviews.count ) {
                              
-                             UIView *subView = wself.pickerBase.subviews.lastObject;
+                             UIView *subView = self.pickerBase.subviews.lastObject;
                              [subView removeFromSuperview];
                              subView = nil;
                          }
                          
-                         [wself.pickerBase removeFromSuperview];
-                         wself.pickerBase = nil;
+                         [self.pickerBase removeFromSuperview];
+                         [self setPickerBase:nil];
                      }
      ];
 }
@@ -4146,7 +3407,6 @@
     }
 }
 
-
 - (NSString *)pickerView:(UIPickerView *)pickerView
              titleForRow:(NSInteger)row
             forComponent:(NSInteger)component {
@@ -4160,748 +3420,16 @@
         
     }else {
         
-        result = [@[@"Fav／UnFav", @"ReTweet", @"Fav+RT"] objectAtIndex:row];
+        result = @[@"Fav／UnFav", @"ReTweet", @"Fav+RT"][row];
     }
     
     return result;
 }
 
-#pragma mark - UIAlertView
-
-- (void)alertView:(UIAlertView *)alertView clickedButtonAtIndex:(NSInteger)buttonIndex {
-    
-    if ( [_alertSearchUserName hasPrefix:@"@"] ) {
-        
-        _alertSearchUserName = [_alertSearchUserName substringFromIndex:1];
-    }
-    
-    //確定が押された
-    if ( alertView.tag == 0 && buttonIndex == 1 ) {
-        
-        APP_DELEGATE.startupUrlList = [NSArray arrayWithObject:[CreateSearchURL twilog:_alertSearchUserName
-                                                                            searchWord:_alertSearchText.text]];
-        
-        [self openBrowser];
-        
-    }else if ( alertView.tag == 1 && buttonIndex == 1 ) {
-        
-        _alertSearchText.text = [_alertSearchText.text deleteWhiteSpace];
-        _alertSearchText.text = [_alertSearchText.text deleteWord:@"@"];
-        
-        if ( [_alertSearchText.text boolWithRegExp:@"[a-zA-Z0-9_]{1,15}"] ) {
-            
-            [TWGetTimeline userTimeline:_alertSearchText.text];
-        }
-        
-    }else if ( alertView.tag == 2 && buttonIndex == 1 ) {
-        
-        [TWGetTimeline twitterSearch:[CreateSearchURL encodeWord:_alertSearchText.text
-                                                        encoding:kCFStringEncodingUTF8]];
-        
-    }else if ( alertView.tag == 3 ) {
-        
-        if ( buttonIndex == 1 ) {
-            
-            if ( [_alertSearchText.text isNotEmpty] ) {
-                
-                [_timelineArray removeAllObjects];
-                self.timelineArray = BLANK_M_ARRAY;
-                [_timeline reloadData];
-                
-                __weak TimelineViewController *wself = self;
-                
-                DISPATCH_AFTER(0.6) ^{
-                    
-                    [wself openSearchStream: wself.alertSearchText.text];
-                });
-            }
-        }
-    }
-}
-
-#pragma mark - UIWebViewEx
-
-- (void)openBrowser {
-    
-    NSLog(@"openBrowser");
-    
-    NSString *useragent = IPHONE_USERAGENT;
-    
-    if ( [[D objectForKey:@"UserAgent"] isEqualToString:@"FireFox"] ) {
-        
-        useragent = FIREFOX_USERAGENT;
-        
-    }else if ( [[D objectForKey:@"UserAgent"] isEqualToString:@"iPad"] ) {
-        
-        useragent = IPAD_USERAFENT;
-    }
-    
-    NSDictionary *dictionary = [[NSDictionary alloc] initWithObjectsAndKeys:useragent, @"UserAgent", nil];
-    [D registerDefaults:dictionary];
-    dictionary = nil;
-    
-    _webBrowserMode = YES;
-    APP_DELEGATE.reOpenUrl = BLANK;
-    
-    __weak TimelineViewController *wself = self;
-    
-    ASYNC_MAIN_QUEUE ^{
-        
-        WebViewExController *dialog = [[WebViewExController alloc] init];
-        dialog.hidesBottomBarWhenPushed = YES;
-        [wself.navigationController pushViewController:dialog
-                                              animated:YES];
-        dialog = nil;
-    });
-}
-
-#pragma mark - UITextField
-
-- (BOOL)textFieldShouldReturn:(SSTextField *)sender {
-    
-    //NSLog(@"Textfield Enter: %@", sender.text);
-    
-    if ( sender.tag == 0 ) {
-        
-        NSString *searchURL = [[NSString alloc] initWithString:[CreateSearchURL twilog:[TWAccounts currentAccountName] searchWord:_alertSearchText.text]];
-        APP_DELEGATE.startupUrlList = [NSArray arrayWithObject:searchURL];
-        
-        [self openBrowser];
-        searchURL = nil;
-        
-    }else if ( sender.tag == 1 ) {
-        
-        _alertSearchText.text = [_alertSearchText.text deleteWhiteSpace];
-        _alertSearchText.text = [_alertSearchText.text deleteWord:@"@"];
-        
-        if ( [_alertSearchText.text boolWithRegExp:@"[a-zA-Z0-9_]{1,15}"] ) {
-            
-            [TWGetTimeline userTimeline:_alertSearchText.text];
-        }
-        
-    }else if ( sender.tag == 2 ) {
-        
-        [TWGetTimeline twitterSearch:[CreateSearchURL encodeWord:_alertSearchText.text encoding:kCFStringEncodingUTF8]];
-        
-    }else if ( sender.tag == 3 ) {
-        
-        if ( [_alertSearchText.text isNotEmpty] ) {
-            
-            [_timelineArray removeAllObjects];
-            self.timelineArray = BLANK_M_ARRAY;
-            [_timeline reloadData];
-            
-            __weak TimelineViewController *wself = self;
-            
-            DISPATCH_AFTER(0.6) ^{
-                
-                [wself openSearchStream: wself.alertSearchText.text];
-            });
-        }
-    }
-    
-    //キーボードを閉じる
-    [_alertSearchText resignFirstResponder];
-    
-    //アラートを閉じる
-    [_alertSearch dismissWithClickedButtonIndex:0 animated:YES];
-    
-    return YES;
-}
-
-#pragma mark - Notification
-
-- (void)receiveProfile:(NSNotification *)notification {
-    
-    if ( [notification.userInfo[@"Result"] isEqualToString:@"Success"] ) {
-        
-        NSLog(@"receiveProfile Success");
-        
-        NSMutableArray *myIcon = [NSMutableArray array];
-        NSArray *iconList = [FILE_MANAGER contentsOfDirectoryAtPath:ICONS_DIRECTORY error:nil];
-        NSString *searchMyIconName = [NSString stringWithFormat:@"%@_", [TWAccounts currentAccountName]];
-        
-        for ( NSString *filePath in iconList ) {
-            
-            if ( [filePath hasPrefix:searchMyIconName] ) {
-                
-                [myIcon addObject:filePath];
-            }
-        }
-        
-        for ( NSString *deletePath in myIcon ) {
-            
-            [FILE_MANAGER removeItemAtPath:[ICONS_DIRECTORY stringByAppendingPathComponent:@"deletePath"] error:nil];
-        }
-        
-        NSDictionary *result = [[NSDictionary alloc] initWithDictionary:notification.userInfo[@"Profile"]];
-        
-        NSMutableDictionary *tempDic = [[NSMutableDictionary alloc] init];
-        
-        if ( result[@"screen_name"] != nil ) {
-            
-            __block NSString *screenName = result[@"screen_name"];
-            
-            NSString *imageUrl = [[NSString alloc] initWithString:[TWIconBigger normal:result[@"profile_image_url"]]];
-            NSString *fileName = [[NSString alloc] initWithString:[imageUrl lastPathComponent]];
-            NSString *searchName = [[NSString alloc] initWithFormat:@"%@_%@", screenName, fileName];
-            fileName = nil;
-            
-            if ( screenName == nil || searchName == nil ) return;
-            
-            [tempDic setObject:[NSString stringWithString:searchName]
-                        forKey:@"SearchName"];
-            searchName = nil;
-            
-            __weak TimelineViewController *wself = self;
-            ASIHTTPRequest *request = [ASIHTTPRequest requestWithURL:[NSURL URLWithString:[TWIconBigger normal:result[@"profile_image_url"]]]];
-            __block __weak ASIHTTPRequest *wRequest = request;
-            
-            request.userInfo = [NSDictionary dictionaryWithDictionary:tempDic];
-            
-            [wRequest setCompletionBlock:^ {
-                
-                NSString *savePath = [ICONS_DIRECTORY stringByAppendingPathComponent:wRequest.userInfo[@"SearchName"]];
-                [wRequest.responseData writeToFile:savePath
-                                        atomically:YES];
-                savePath = nil;
-                
-                [Share cacheImage:[UIImage imageWithData:wRequest.responseData]
-                          forName:[NSString stringWithString:screenName]
-                 doneNotification:NO];
-                
-                wself.accountIconView.image = [UIImage imageWithData:wRequest.responseData];
-                screenName = nil;
-                wRequest = nil;
-            }];
-            
-            [_requestedUser addObject:screenName];
-            [wRequest startAsynchronous];
-        }
-        
-    }else {
-        
-        NSLog(@"receiveProfile Error");
-        
-        [ShowAlert error:@"ユーザー情報の取得に失敗しました。"];
-        _reloadButton.enabled = YES;
-    }
-}
-
-- (void)receiveTweet:(NSNotification *)notification {
-    
-    if ( [notification.userInfo[@"Result"] isEqualToString:@"Success"] ) {
-        
-        [ActivityIndicator on];
-        [_inReplyTo insertObject:notification.userInfo[@"Tweet"] atIndex:0];
-        [self getInReplyToChain:notification.userInfo[@"Tweet"]];
-        
-    }else if ( [notification.userInfo[@"Result"] isEqualToString:@"AuthorizeError"] ) {
-        
-        [self getInReplyToChain:@{ @"in_reply_to_status_id_str" : @"END" }];
-        
-    }else {
-        
-        [ShowAlert error:@"Tweet取得中にエラーが発生しました。"];
-    }
-}
-
-- (void)postDone:(NSNotification *)center {
-    
-    if ( APP_DELEGATE.postError.count != 0 ) {
-        
-        APP_DELEGATE.tabChangeFunction = @"PostError";
-        _timelineSegment.selectedSegmentIndex = 0;
-    }
-}
-
-- (void)destroyTweet:(NSNotification *)center {
-    
-    if ( center.userInfo[@"Tweet"][@"error"] != nil ) {
-        
-        [ShowAlert error:center.userInfo[@"Tweet"][@"error"]];
-        return;
-    }
-    
-    NSLog(@"deleteTweetId: %@", center.userInfo[@"Tweet"][@"id_str"]);
-    
-    //UserStream接続時は別の箇所で処理
-    if ( _userStream ) return;
-    
-    //削除されたTweetを検索
-    int index = 0;
-    BOOL find = NO;
-    for ( NSDictionary *tweet in _timelineArray ) {
-        
-        if ( [tweet[@"id_str"] isEqualToString:center.userInfo[@"Tweet"][@"id_str"]] ) {
-            
-            find = YES;
-            
-            break;
-        }
-        
-        index++;
-    }
-    
-    if ( find ) {
-        
-        ASYNC_MAIN_QUEUE ^{
-            
-            //見つかった物を削除
-            [_timelineArray removeObjectAtIndex:index];
-            
-            //タイムラインを保存
-            [TWTweets saveCurrentTimeline:_timelineArray];
-            
-            [_timeline deleteRowsAtIndexPaths:@[[NSIndexPath indexPathForRow:index inSection:0]]
-                             withRowAnimation:UITableViewRowAnimationBottom];
-        });
-    }
-}
-
-- (void)receiveOfflineNotification:(NSNotification *)notification {
-    
-    NSLog(@"receiveOfflineNotification");
-    
-    _reloadButton.enabled = YES;
-    if ( _userStream ) [self closeStream];
-    if ( _searchStream ) [self closeSearchStream];
-    if ( _isLoading ) [self finishLoad];
-    [_grayView forceEnd];
-}
-
-- (void)enterBackground:(NSNotification *)notification {
-    
-    if ( [D boolForKey:@"EnterBackgroundUSDisConnect"] ) {
-        
-        if ( _userStream ) [self closeStream];
-        if ( _searchStream ) [self closeSearchStream];
-        if ( _connectionCheckTimer.isValid ) [self stopConnectionCheckTimer];
-        if ( _onlineCheckTimer.isValid ) [self stopOnlineCheckTimer];
-    }
-}
-
-- (void)becomeActive:(NSNotification *)notification {
-    
-    if ( _otherTweetsMode || _listMode ) return;
-    
-    if ( [D boolForKey:@"BecomeActiveUSConnect"] && _timelineSegment.selectedSegmentIndex == 0 ) {
-        
-        if ( !_userStream && !_searchStream ) [self pushReloadButton:nil];
-    }
-    
-    APP_DELEGATE.pboardURLOpenTimeline = NO;
-    
-    if ( !_connectionCheckTimer.isValid ) [self startConnectionCheckTimer];
-}
-
-- (void)pboardNotification:(NSNotification *)notification {
-    
-    NSLog(@"Timeline pboardNotification: %@", notification.userInfo);
-    
-    //Timelineタブを開いていない場合は終了
-    if ( APP_DELEGATE.tabBarController.selectedIndex != 1 ||
-        APP_DELEGATE.browserOpenMode ) return;
-    
-    APP_DELEGATE.startupUrlList = [NSArray arrayWithObject:notification.userInfo[@"pboardURL"]];
-    [self openBrowser];
-}
-
-#pragma mark - NSTimer
-
-- (void)startConnectionCheckTimer {
-    
-    NSLog(@"startConnectionCheckTimer");
-    
-    _connectionCheckTimer = [NSTimer scheduledTimerWithTimeInterval:3.0
-                                                             target:self
-                                                           selector:@selector(checkConnection)
-                                                           userInfo:nil
-                                                            repeats:YES];
-    [_connectionCheckTimer fire];
-}
-
-- (void)stopConnectionCheckTimer {
-    
-    NSLog(@"stopConnectionCheckTimer");
-    
-    [_connectionCheckTimer invalidate];
-    self.connectionCheckTimer = nil;
-}
-
-- (void)checkConnection {
-    
-    //NSLog(@"checkConnection");
-    
-    if ( [InternetConnection disable] ) {
-        
-        [self stopConnectionCheckTimer];
-        
-        NSNotification *notification =
-        [NSNotification notificationWithName:@"Offline"
-                                      object:self
-                                    userInfo:nil];
-        
-        [[NSNotificationCenter defaultCenter] postNotification:notification];
-        
-        [self startOnlineCheckTimer];
-    }
-}
-
-- (void)startOnlineCheckTimer {
-    
-    NSLog(@"startOnlineCheckTimer");
-    
-    _onlineCheckTimer = [NSTimer scheduledTimerWithTimeInterval:3.0
-                                                         target:self
-                                                       selector:@selector(checkOnline)
-                                                       userInfo:nil
-                                                        repeats:YES];
-    [_onlineCheckTimer fire];
-}
-
-- (void)stopOnlineCheckTimer {
-    
-    NSLog(@"stopOnlineCheckTimer");
-    
-    [_onlineCheckTimer invalidate];
-    self.onlineCheckTimer = nil;
-}
-
-- (void)checkOnline {
-    
-    //NSLog(@"checkOnline");
-    
-    if ( [InternetConnection isEnabled] ) {
-        
-        [self stopOnlineCheckTimer];
-        
-        NSNotification *notification =
-        [NSNotification notificationWithName:@"BecomeOnline"
-                                      object:self
-                                    userInfo:nil];
-        
-        [[NSNotificationCenter defaultCenter] postNotification:notification];
-    }
-}
-
-#pragma mark - View
-
-- (void)getMyAccountIcon {
-    
-    if ( [Share images].count == 0 ) {
-        
-        NSLog(@"icon file 0");
-        
-        //アイコンが1つもない場合は自分のアイコンがないので保存を行う
-        [TWEvent getProfile:[TWAccounts currentAccountName]];
-        return;
-    }
-    
-    NSString *string = BLANK;
-    BOOL find = NO;
-    
-    //NSLog(@"icons key: %@", array);
-    
-    NSArray *allKeys = [Share images].allKeys;
-    
-    for ( string in allKeys ) {
-        
-        if ( [string hasPrefix:[TWAccounts currentAccountName]] ) {
-            
-            NSLog(@"icon find");
-            
-            self.accountIconView.image = [[Share images] objectForKey:[TWAccounts currentAccountName]];
-            find = YES;
-            break;
-        }
-        
-        if ( find ) break;
-    }
-    
-    if ( !find ) {
-        
-        NSLog(@"icon not found");
-        
-        self.accountIconView.image = nil;
-        [TWEvent getProfile:[TWAccounts currentAccountName]];
-    }
-}
-
-- (void)setMyAccountIconCorner {
-    
-    [[_accountIconView layer] setMasksToBounds:YES];
-    [[_accountIconView layer] setCornerRadius:5.0f];
-}
-
-- (void)timelineDidListChanged {
-    
-    //UserStream接続中の場合は切断する
-    if ( _userStream ) [self closeStream];
-    
-    _reloadButton.enabled = YES;
-    _timelineControlButton.enabled = YES;
-    _listMode = YES;
-    _timelineControlButton.image = _listImage;
-    
-    [TWTweets saveCurrentTimeline:_timelineArray];
-    
-    if ( [APP_DELEGATE.listId isNotEmpty] ) {
-        
-        self.timelineArray = [NSMutableArray arrayWithArray:_allLists[APP_DELEGATE.listId]];
-        
-    }else {
-        
-        self.timelineArray = BLANK_M_ARRAY;
-    }
-    
-    [_timeline reloadData];
-    
-    if ( _timelineArray.count == 0 ) {
-        
-        [self showListSelectView];
-    }
-}
-
-- (void)showListSelectView {
-    
-    ListViewController *dialog = [[ListViewController alloc] init];
-    dialog.modalTransitionStyle = UIModalTransitionStyleCoverVertical;
-    [self presentModalViewController:dialog animated:YES];
-}
-
-- (void)setTimelineBarItems {
-    
-    _reloadButton.enabled = YES;
-    [_topBar setItems:TOP_BAR animated:NO];
-}
-
-- (void)setOtherTweetsBarItems {
-    
-    _reloadButton.enabled = NO;
-    [_topBar setItems:OTHER_TWEETS_BAR animated:NO];
-}
-
-- (void)viewDidAppear:(BOOL)animated {
-    
-    //NSLog(@"%@: viewDidAppear", NSStringFromClass([self class]));
-    
-    [super viewDidAppear:animated];
-    
-    [_timeline flashScrollIndicators];
-    
-    if ( _webBrowserMode ) {
-        
-        _webBrowserMode = NO;
-        
-        if ( APP_DELEGATE.pcUaMode ) {
-            
-            APP_DELEGATE.pcUaMode = NO;
-            [self openBrowser];
-            return;
-        }
-    }
-    
-    if ( _listMode && [APP_DELEGATE.listId isNotEmpty] ) {
-        
-        if ( _userStream ) [self closeStream];
-        
-        if ( _allLists[APP_DELEGATE.listId] != nil ) {
-            
-            self.timelineArray = [NSMutableArray arrayWithArray:_allLists[APP_DELEGATE.listId]];
-            
-        }else {
-            
-            self.timelineArray = BLANK_M_ARRAY;
-        }
-        
-        [_timeline reloadData];
-        
-        if ( _timelineArray.count == 0 ) {
-            
-            [TWList getList:APP_DELEGATE.listId];
-            [_grayView start];
-        }
-    }
-}
-
-- (void)viewWillAppear:(BOOL)animated {
-    
-    [super viewWillAppear:animated];
-    
-    //NSLog(@"viewWillAppear");
-    
-    if ( ![_lastUpdateAccount isEqualToString:[TWAccounts currentAccountName]] &&
-        [_lastUpdateAccount isNotEmpty] ) {
-        
-        self.viewWillAppear = YES;
-        
-        if ( _userStream ) [self closeStream];
-        
-        [self createTimeline];
-    }
-}
-
-- (void)didReceiveMemoryWarning {
-    
-    NSLog(@"%s", __func__);
-    
-    [super didReceiveMemoryWarning];
-    
-    if ( [APP_DELEGATE.firmwareVersion hasPrefix:@"6"] ) {
-        
-        if ( self.view.window == nil && self.isViewLoaded ) {
-            
-            NSLog(@"iOS6 viewDidUnload");
-            
-            _viewReloaded = YES;
-            
-            [self setTimelineMenu:nil];
-            [self setGrayView:nil];
-            [self setInReplyTo:nil];
-            [self setCurrentList:nil];
-            [self setSearchStreamTemp:nil];
-            [self setAllLists:nil];
-            [self setRequestedUser:nil];
-            [self setMentionsArray:nil];
-            [self setSelectTweetIds:nil];
-            [self setTweetInUrls:nil];
-            [self setSelectTweet:nil];
-            
-            [self setLastUpdateAccount:nil];
-            [self setSelectAccount:nil];
-            [self setAlertSearchUserName:nil];
-            
-            if ( _searchStreamTimer != nil ) {
-                if ( [_searchStreamTimer isValid] ) {
-                    [_searchStreamTimer invalidate];
-                    [self setSearchStreamTimer:nil];
-                }
-            }
-            
-            if ( _connectionCheckTimer != nil ) {
-                if ( [_connectionCheckTimer isValid] ) {
-                    [_connectionCheckTimer invalidate];
-                    [self setConnectionCheckTimer:nil];
-                }
-            }
-            
-            if ( _onlineCheckTimer != nil ) {
-                if ( [_onlineCheckTimer isValid] ) {
-                    [_onlineCheckTimer invalidate];
-                    [self setOnlineCheckTimer:nil];
-                }
-            }
-            
-            [self setConnection:nil];
-            [self setStartImage:nil];
-            [self setStopImage:nil];
-            [self setListImage:nil];
-            
-            [self setAlertSearch:nil];
-            [self setAlertSearchText:nil];
-            [self setPickerBar:nil];
-            [self setEventPicker:nil];
-            [self setPickerBarCancelButton:nil];
-            [self setPickerBarDoneButton:nil];
-            [self setHeaderView:nil];
-            [self setPickerBase:nil];
-            [self setActivityTable:nil];
-            [self setImageWindow:nil];
-            
-            [self setTopBar:nil];
-            [self setTimeline:nil];
-            [self setFlexibleSpace:nil];
-            [self setPostButton:nil];
-            [self setTimelineControlButton:nil];
-            [self setReloadButton:nil];
-            [self setActionButton:nil];
-            [self setCloseOtherTweetsButton:nil];
-            [self setAccountIconView:nil];
-            [self setFixedSpace:nil];
-            [self setTimelineSegment:nil];
-            [self viewDidLoad];
-        }
-    }
-}
-
-- (void)viewDidUnload {
-    
-    NSLog(@"%s", __func__);
-    
-    _viewReloaded = YES;
-    
-    [self setTimelineMenu:nil];
-    [self setGrayView:nil];
-    [self setInReplyTo:nil];
-    [self setCurrentList:nil];
-    [self setSearchStreamTemp:nil];
-    [self setAllLists:nil];
-    [self setRequestedUser:nil];
-    [self setMentionsArray:nil];
-    [self setSelectTweetIds:nil];
-    [self setTweetInUrls:nil];
-    [self setSelectTweet:nil];
-    
-    [self setLastUpdateAccount:nil];
-    [self setSelectAccount:nil];
-    [self setAlertSearchUserName:nil];
-    
-    if ( _searchStreamTimer != nil ) {
-        if ( [_searchStreamTimer isValid] ) {
-            [_searchStreamTimer invalidate];
-            [self setSearchStreamTimer:nil];
-        }
-    }
-    
-    if ( _connectionCheckTimer != nil ) {
-        if ( [_connectionCheckTimer isValid] ) {
-            [_connectionCheckTimer invalidate];
-            [self setConnectionCheckTimer:nil];
-        }
-    }
-    
-    if ( _onlineCheckTimer != nil ) {
-        if ( [_onlineCheckTimer isValid] ) {
-            [_onlineCheckTimer invalidate];
-            [self setOnlineCheckTimer:nil];
-        }
-    }
-    
-    [self setConnection:nil];
-    [self setStartImage:nil];
-    [self setStopImage:nil];
-    [self setListImage:nil];
-    
-    [self setAlertSearch:nil];
-    [self setAlertSearchText:nil];
-    [self setPickerBar:nil];
-    [self setEventPicker:nil];
-    [self setPickerBarCancelButton:nil];
-    [self setPickerBarDoneButton:nil];
-    [self setHeaderView:nil];
-    [self setPickerBase:nil];
-    [self setActivityTable:nil];
-    [self setImageWindow:nil];
-    
-    [self setTopBar:nil];
-    [self setTimeline:nil];
-    [self setFlexibleSpace:nil];
-    [self setPostButton:nil];
-    [self setTimelineControlButton:nil];
-    [self setReloadButton:nil];
-    [self setActionButton:nil];
-    [self setCloseOtherTweetsButton:nil];
-    [self setAccountIconView:nil];
-    [self setFixedSpace:nil];
-    [self setTimelineSegment:nil];
-    
-    [super viewDidUnload];
-}
-
+#pragma mark - Rotation
 - (BOOL)shouldAutorotate {
     
-    return NO;
+    return YES;
 }
 
 - (NSUInteger)supportedInterfaceOrientations {

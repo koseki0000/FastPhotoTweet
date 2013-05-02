@@ -10,7 +10,7 @@
     
 //    NSLog(@"%s", __func__);
     
-    TWTweetEntities *entities = [[TWTweetEntities alloc] init];
+    TWTweetEntities *entities = [[[TWTweetEntities alloc] init] autorelease];
     NSMutableArray *urls = [NSMutableArray array];
     
     for ( id URL in tweet[@"entities"][@"urls"] ) {
@@ -44,7 +44,7 @@
         [urls addObject:mediaURL];
     }
     
-    TWTweetEntities *entities = [[TWTweetEntities alloc] init];
+    TWTweetEntities *entities = [[[TWTweetEntities alloc] init] autorelease];
     [entities setUrls:urls];
     [entities setUserMentions:tweet[@"retweeted_status"][@"entities"][@"user_mentions"]];
     

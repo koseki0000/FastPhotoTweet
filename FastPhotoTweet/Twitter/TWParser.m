@@ -10,6 +10,8 @@
 /////////////////////////////
 
 #import "TWParser.h"
+#import "ShowAlert.h"
+#import "NSString+WordCollect.h"
 
 #define DATE_FORMAT @"HH:mm:ss"
 #define BLANK @""
@@ -106,7 +108,7 @@
         return BLANK;
     }
     
-    return clientName;
+    return [clientName deleteWhiteSpace];
 }
 
 + (NSDictionary *)rtText:(NSDictionary *)tweet {

@@ -25,10 +25,14 @@
 #import "WebViewExController.h"
 #import <MediaPlayer/MediaPlayer.h>
 #import "ResendViewController.h"
+#import "FilteringImage.h"
+#import "FPTRequest.h"
+#import "BaseViewController.h"
 
-@interface TweetViewController : UIViewController <UINavigationControllerDelegate, UIImagePickerControllerDelegate, UIActionSheetDelegate> {
+#import <AssetsLibrary/AssetsLibrary.h>
+
+@interface TweetViewController : BaseViewController <UINavigationControllerDelegate, UIImagePickerControllerDelegate, UIActionSheetDelegate> {
     
-    AppDelegate * appDelegate;
     GrayView *grayView;
     
     NSUserDefaults *d;
@@ -47,6 +51,7 @@
     
     BOOL changeAccount;
     BOOL cameraMode;
+    BOOL editMode;
     BOOL repeatedPost;
     BOOL resendMode;
     BOOL webBrowserMode;
@@ -60,6 +65,12 @@
     
     int actionSheetNo;
 }
+
+@property (retain, nonatomic) ALAssetsLibrary *assetsLibrary;
+@property (retain, nonatomic) NSMutableArray *groups;
+@property (retain, nonatomic) NSMutableArray *assets;
+
+@property (retain, nonatomic) UIImage *originalImage;
 
 @property (retain, nonatomic) IBOutlet UIScrollView *sv;
 @property (retain, nonatomic) IBOutlet UITextView *postText;
@@ -125,7 +136,6 @@
 
 - (void)nowPlayingNotification;
 - (void)tweetNotification:(int)pBoardType;
-- (void)fasttweetNotification:(int)pBoardType;
 - (void)phototweetNotification:(int)pBoardType;
 - (void)webPageShareNotification:(int)pBoardType;
 

@@ -7,7 +7,7 @@
 
 #import "TWFriends.h"
 
-#define API_VERSION @"1"
+#define API_VERSION @"1.1"
 
 @implementation TWFriends
 

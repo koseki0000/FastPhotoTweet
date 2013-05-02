@@ -80,7 +80,7 @@
     appDelegate.twitpicLinkMode = NO;
     
     //閉じる
-    if ( [appDelegate.firmwareVersion hasPrefix:@"6"] ) {
+    if ( [FIRMWARE_VERSION hasPrefix:@"6"] ) {
         
         [self dismissViewControllerAnimated:YES completion:nil];
         
@@ -184,7 +184,7 @@
     [[NSNotificationCenter defaultCenter] postNotification:notification];
     
     //閉じる
-    if ( [appDelegate.firmwareVersion hasPrefix:@"6"] ) {
+    if ( [FIRMWARE_VERSION hasPrefix:@"6"] ) {
         
         [self dismissViewControllerAnimated:YES completion:nil];
         

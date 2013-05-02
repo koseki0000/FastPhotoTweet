@@ -71,7 +71,9 @@
 -(void)setTextUnderlineStyle:(int32_t)style range:(NSRange)range; //!< style is a combination of CTUnderlineStyle & CTUnderlineStyleModifiers
 -(void)setTextBold:(BOOL)isBold range:(NSRange)range;
 
--(void)setTextAlignment:(CTTextAlignment)alignment lineBreakMode:(CTLineBreakMode)lineBreakMode;
+-(void)setTextAlignment:(CTTextAlignment)alignment
+          lineBreakMode:(CTLineBreakMode)lineBreakMode;
+
 -(void)setTextAlignment:(CTTextAlignment)alignment
           lineBreakMode:(CTLineBreakMode)lineBreakMode
           maxLineHeight:(CGFloat)maxLineHeight

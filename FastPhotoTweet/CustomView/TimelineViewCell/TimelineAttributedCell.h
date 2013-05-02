@@ -7,19 +7,17 @@
 //
 
 #import <UIKit/UITableViewCell.h>
-#import <QuartzCore/QuartzCore.h>
 #import "OHAttributedLabel.h"
-#import "TitleButton.h"
-#import "NSAttributedString+Attributes.h"
-#import "UIViewSubViewRemover.h"
+#import "IconButton.h"
 
 @interface TimelineAttributedCell : UITableViewCell
 
 @property (strong, nonatomic) UILabel *infoLabel;
 @property (strong, nonatomic) OHAttributedLabel *mainLabel;
-@property (strong, nonatomic) TitleButton *iconView;
+@property (strong, nonatomic) IconButton *iconView;
 
 - (id)initWithStyle:(UITableViewCellStyle)style reuseIdentifier:(NSString *)reuseIdentifier forWidth:(CGFloat)width;
 - (void)setProperties:(CGFloat)width;
+- (void)setTweetData:(TWTweet *)tweet cellWidth:(CGFloat)cellWidth;
 
 @end

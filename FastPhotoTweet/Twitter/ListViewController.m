@@ -6,6 +6,15 @@
 //
 
 #import "ListViewController.h"
+#import "TWAccounts.h"
+#import "TWTweets.h"
+#import "FPTRequest.h"
+
+@interface ListViewController ()
+
+@property (strong, nonatomic) NSArray *lists;
+
+@end
 
 @implementation ListViewController
 @synthesize topBar;
@@ -23,53 +32,61 @@
     return self;
 }
 
+- (id)initWithListSelectMode:(BOOL)listSelectMode {
+    
+    self = [super init];
+    
+    if ( self ) {
+        
+        [self setListSelectMode:listSelectMode];
+    }
+    
+    return self;
+}
+
 - (void)viewDidLoad {
     
     [super viewDidLoad];
-    
-    appDelegate = (AppDelegate *)[[UIApplication sharedApplication] delegate];
-    appDelegate.listId = BLANK;
     
     NSNotificationCenter *notificationCenter = [NSNotificationCenter defaultCenter];
     
     //リスト一覧取得完了を受け取る設定
     [notificationCenter addObserver:self
                            selector:@selector(receiveListAll:)
-                               name:@"ReceiveListAll"
+                               name:LISTS_LIST_DONE_NOTIFICATION
                              object:nil];
     
-    if ( appDelegate.listAll.count == 0 ) {
+    if ( [[TWTweets lists] count] == 0 ) {
     
         //取得済みリストがない場合は取得
-        [TWList getListAll];
+        NSMutableDictionary *parameters = [@{} mutableCopy];
+        
+        [parameters setObject:[TWAccounts currentAccountName]
+                       forKey:@"screen_name"];
+        
+        [FPTRequest requestWithGetType:FPTGetRequestTypeListsList
+                            parameters:parameters];
         
     }else {
         
         //取得済みリストがある場合は表示
-        listAll = appDelegate.listAll;
+        [self setLists:[TWTweets lists]];
     }
 }
 
 - (void)receiveListAll:(NSNotification *)center {
     
-    listAll = [center.userInfo objectForKey:@"ResultData"];
-    appDelegate.listAll = listAll;
+    [self setLists:[center.userInfo objectForKey:RESPONSE_DATA]];
+    [[TWTweets manager] setLists:[center.userInfo objectForKey:RESPONSE_DATA]];
     
-    NSLog(@"listData: %d", listAll.count);
+    NSLog(@"listData: %d", [[TWTweets lists] count]);
     
     [listTable reloadData];
 }
 
 - (IBAction)pushCloseButton:(id)sender {
     
-    if ( [appDelegate.firmwareVersion hasPrefix:@"6"] ) {
-        
-        [self dismissViewControllerAnimated:YES completion:nil];
-        
-    }else {
-        
-        [self dismissModalViewControllerAnimated:YES];
-    }
+    [self dismissModalViewController:self];
 }
 
 /* TableView必須メソッド */
@@ -77,7 +94,7 @@
 - (NSInteger)tableView:(UITableView *)tableView numberOfRowsInSection:(NSInteger)section {
     
     //TableViewの要素数を返す
-	return [listAll count];
+	return [self.lists count];
 }
 
 - (UITableViewCell *)tableView:(UITableView *)tableView cellForRowAtIndexPath:(NSIndexPath *)indexPath {
@@ -91,13 +108,13 @@
     
     if (cell == nil) {
         
-        cell = [[UITableViewCell alloc] initWithStyle:UITableViewCellStyleDefault reuseIdentifier:identifier];
+        cell = [[UITableViewCell alloc] initWithStyle:UITableViewCellStyleDefault
+                                      reuseIdentifier:identifier];
     }
     
-    cell.textLabel.font = [UIFont systemFontOfSize:14];
-    cell.textLabel.numberOfLines = 0;
-    
-    cell.textLabel.text = [[listAll objectAtIndex:indexPath.row] objectForKey:@"full_name"];
+    [cell.textLabel setFont:[UIFont systemFontOfSize:14.0f]];
+    [cell.textLabel setNumberOfLines:0];
+    [cell.textLabel setText:self.lists[indexPath.row][@"full_name"]];
     
     return cell;
 }
@@ -105,20 +122,29 @@
 - (void)tableView:(UITableView *)tableView didSelectRowAtIndexPath:(NSIndexPath *)indexPath {
     
     //セルの選択状態を解除
-	[tableView deselectRowAtIndexPath:indexPath animated:YES];
+	[tableView deselectRowAtIndexPath:indexPath
+                             animated:YES];
     
-    //リストIDを記憶
-    appDelegate.listId = [[listAll objectAtIndex:indexPath.row] objectForKey:@"id_str"];
-    
-    //閉じる
-    if ( [appDelegate.firmwareVersion hasPrefix:@"6"] ) {
+    if ( self.listSelectMode ) {
         
-        [self dismissViewControllerAnimated:YES completion:nil];
+        NSLog(@"SelectTimelineList: %@ : %@", [TWAccounts currentAccountName], [[self.lists objectAtIndex:indexPath.row] objectForKey:@"id_str"]);
+        
+        NSMutableDictionary *accounts = [[[NSUserDefaults standardUserDefaults] dictionaryForKey:@"TimelineList"] mutableCopy];
+        
+        [accounts setObject:[[self.lists objectAtIndex:indexPath.row] objectForKey:@"id_str"]
+                     forKey:[TWAccounts currentAccountName]];
+        
+        [[NSUserDefaults standardUserDefaults] setObject:accounts
+                                                  forKey:@"TimelineList"];
         
     }else {
         
-        [self dismissModalViewControllerAnimated:YES];
+        //リストIDを記憶
+        [[TWTweets manager] setListID:self.lists[indexPath.row][@"id_str"]];
     }
+    
+    //閉じる
+    [self pushCloseButton:nil];
 }
 
 /* TableView必須メソッドここまで */

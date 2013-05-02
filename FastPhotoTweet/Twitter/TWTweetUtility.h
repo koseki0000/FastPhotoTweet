@@ -11,6 +11,5 @@
 + (NSString *)replaceCharacterReference:(NSString *)text;
 + (NSString *)openTco:(NSString *)text
          fromEntities:(TWTweetEntities *)entities;
-+ (TWTweet *)createTimelineCellInfo:(TWTweet *)tweet;
 
 @end

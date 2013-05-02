@@ -71,6 +71,8 @@
 @property (strong, nonatomic) IBOutlet UIProgressView *progressBar;
 @property (strong, nonatomic) IBOutlet UIButton *downloadCancelButton;
 
+- (id)initWithURL:(NSString *)URL;
+
 - (IBAction)pushSearchButton:(id)sender;
 - (IBAction)pushCloseButton:(id)sender;
 - (IBAction)pushReloadButton:(id)sender;

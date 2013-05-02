@@ -14,6 +14,8 @@
 + (void)postNotificationCenterForName:(NSString *)name withUserInfo:(NSDictionary *)userInfo {
     
     if ( name != nil ) {
+    
+        NSLog(@"Notification: %@", name);
         
         NSNotification *notification = [NSNotification notificationWithName:name
                                                                      object:self

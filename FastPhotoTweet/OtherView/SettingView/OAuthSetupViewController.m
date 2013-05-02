@@ -181,7 +181,7 @@
         
         [grayView off];
         
-		if ( [appDelegate.firmwareVersion hasPrefix:@"6"] ) {
+		if ( [FIRMWARE_VERSION hasPrefix:@"6"] ) {
             
             [self dismissViewControllerAnimated:YES completion:nil];
             
@@ -344,9 +344,7 @@
         
     [ActivityIndicator visible:NO];
     
-    AppDelegate *appDelegate = (AppDelegate *)[[UIApplication sharedApplication] delegate];
-    
-    if ( [appDelegate.firmwareVersion hasPrefix:@"6"] ) {
+    if ( [FIRMWARE_VERSION hasPrefix:@"6"] ) {
         
         [self dismissViewControllerAnimated:YES completion:nil];
         

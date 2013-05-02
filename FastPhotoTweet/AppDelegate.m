@@ -47,16 +47,9 @@ void uncaughtExceptionHandler(NSException *e) {
 @synthesize postTextType;
 @synthesize bookmarkUrl;
 @synthesize urlSchemeDownloadUrl;
-@synthesize tabChangeFunction;
 @synthesize reOpenUrl;
-@synthesize listId;
 @synthesize addTwitpicAccountName;
-@synthesize platformName;
-@synthesize firmwareVersion;
 @synthesize startupUrlList;
-@synthesize listAll;
-@synthesize postError;
-@synthesize postData;
 @synthesize resendNumber;
 @synthesize launchMode;
 @synthesize reloadInterval;
@@ -85,28 +78,24 @@ void uncaughtExceptionHandler(NSException *e) {
         [D setObject:@"http://www.google.co.jp/" forKey:@"HomePageURL"];
     }
     
-    _statusBarInfo = [[StatusBarInfo alloc] initWithShowTime:@2.0
-                                           taskCheckInterval:@1.0
-                                           animationDuration:@0.3
+    _statusBarInfo = [[StatusBarInfo alloc] initWithShowTime:@2.0f
+                                           taskCheckInterval:@0.1f
+                                           animationDuration:@0.3f
                                                animationType:StatusBarInfoAnimationTypeTopInToFadeOut
-                                             backgroundColor:[UIColor colorWithRed:0.4 green:0.8 blue:1.0 alpha:1.0]
+                                             backgroundColor:[UIColor colorWithRed:0.4f
+                                                                             green:0.8f
+                                                                              blue:1.0f
+                                                                             alpha:1.0f]
                                                    textColor:[UIColor whiteColor]];
     [self.window addSubview:_statusBarInfo];
     
     //各種初期化
-    pboard = [UIPasteboard generalPasteboard];
     postText = BLANK;
     postTextType = BLANK;
     bookmarkUrl = BLANK;
     urlSchemeDownloadUrl = BLANK;
-    tabChangeFunction = BLANK;
     reOpenUrl = BLANK;
-    listId = BLANK;
     addTwitpicAccountName = BLANK;
-    firmwareVersion = [[UIDevice currentDevice] systemVersion];
-    platformName = [self getPlatformName];
-    
-    postError = [NSMutableArray array];
     
     resendNumber = 0;
     resendMode = NO;
@@ -124,10 +113,6 @@ void uncaughtExceptionHandler(NSException *e) {
     
     startupUrlList = [NSArray arrayWithObject:[D objectForKey:@"HomePageURL"]];
     
-    listAll = BLANK_ARRAY;
-    
-    postData = [NSMutableDictionary dictionary];
-    
     if ( launchOptions == NULL ) {
         launchMode = 0;
     }else {
@@ -138,8 +123,7 @@ void uncaughtExceptionHandler(NSException *e) {
     
     UIViewController *mainView = [[TweetViewController alloc] initWithNibName:NSStringFromClass([TweetViewController class])
                                                                        bundle:nil];
-    UIViewController *timelineView = [[TimelineViewController alloc] initWithNibName:NSStringFromClass([TimelineViewController class])
-                                                                              bundle:nil];
+    UIViewController *timelineView = [[TimelineViewController alloc] init];
     timelineView.title = @"Timeline";
     
     TimelineNavigationController *timelineNavigation = [[TimelineNavigationController alloc] initWithRootViewController:timelineView];
@@ -192,33 +176,6 @@ void uncaughtExceptionHandler(NSException *e) {
 
 #pragma mark - System
 
-- (BOOL)ios5Check {
-    
-    BOOL result = NO;
-    
-    if ( [[[UIDevice currentDevice] systemVersion] hasPrefix:@"5"] ||
-         [[[UIDevice currentDevice] systemVersion] hasPrefix:@"6"] ) {
-        
-        result = YES;
-        
-    }else {
-        
-        //iOS5以前
-        [ShowAlert error:@"Twitter APIはiOS5以降で使用できます。最新OSに更新してください。"];
-    }
-    
-    return result;
-}
-
-- (BOOL)iconExist:(NSString *)searchName {
-    
-    BOOL isDir = NO;
-    
-    if ( [[NSFileManager defaultManager] fileExistsAtPath:FILE_PATH isDirectory:&isDir] && !isDir ) isDir = YES;
-    
-    return isDir;
-}
-
 - (NSString *)getPlatformName {
     
     struct utsname u;
@@ -255,7 +212,7 @@ void uncaughtExceptionHandler(NSException *e) {
 //        reloadInterval = 0.35;
     }
     
-    NSLog(@"Run with %@@%@", hardwareName, firmwareVersion);
+    NSLog(@"Run with %@@%@", hardwareName, FIRMWARE_VERSION);
     
     reloadInterval = 0.3;
     
@@ -286,11 +243,11 @@ void uncaughtExceptionHandler(NSException *e) {
     
     @try {
         
-        lastCheckPasteBoardURL = pboard.string;
+        lastCheckPasteBoardURL = P_BOARD.string;
         
     }@catch ( NSException *e ) {
         
-        [pboard setString:BLANK];
+        [P_BOARD setString:BLANK];
         lastCheckPasteBoardURL = BLANK;
     }
     
@@ -317,14 +274,14 @@ void uncaughtExceptionHandler(NSException *e) {
         
         //NSLog(@"checkPasteBoard");
         
-        NSString *pBoardString = pboard.string;
+        NSString *pBoardString = P_BOARD.string;
         
 //        NSLog(@"pBoardString: %@", pBoardString);
 //        NSLog(@"lastCheckPasteBoardURL: %@", lastCheckPasteBoardURL);
         
         if ( ![EmptyCheck string:pBoardString] ) {
             
-            pBoardString = pboard.URL.absoluteString;
+            pBoardString = P_BOARD.URL.absoluteString;
         }
         
         //文字列がない場合は終了
@@ -334,7 +291,7 @@ void uncaughtExceptionHandler(NSException *e) {
         if ( ![pBoardString isEqualToString:lastCheckPasteBoardURL] ) {
             
             //URLがあるか確認
-            pBoardUrls = [NSArray arrayWithArray:[pBoardString urls]];
+            pBoardUrls = [NSArray arrayWithArray:[pBoardString URLs]];
             
             if ( pBoardUrls.count == 0 ) return;
             
@@ -398,9 +355,10 @@ void uncaughtExceptionHandler(NSException *e) {
     
     if ( [D boolForKey:@"PasteBoardCheck"] && !pBoardWatchTimer.isValid ) [self startPasteBoardTimer];
     
+    UIBackgroundTaskIdentifier weakTask = backgroundTask;
 	backgroundTask = [application beginBackgroundTaskWithExpirationHandler: ^{
         
-        [application endBackgroundTask:backgroundTask];
+        [application endBackgroundTask:weakTask];
     }];
 }
 

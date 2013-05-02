@@ -11,6 +11,6 @@
 @interface ResizeImage : NSObject
 
 + (UIImage *)aspectResize:(UIImage *)image;
-+ (UIImage *)aspectResizeForMaxSize:(UIImage *)image maxSize:(int)maxSize;
++ (UIImage *)aspectResizeForMaxSize:(UIImage *)image maxSize:(CGFloat)maxSize;
 
 @end

@@ -1,19 +1,17 @@
 //
-//  TitleButton.m
+//  IconButton.m
 //  FastPhotoTweet
 //
 //  Created by peace3884 on 12/10/18.
 //
 //
 
-#import "TitleButton.h"
+#import "IconButton.h"
 
-@implementation TitleButton
+@implementation IconButton
 
 - (void)dealloc {
     
-    [_buttonTitle release];
-    _buttonTitle = nil;
     [super dealloc];
 }
 

@@ -6,6 +6,7 @@
 //
 
 #import "TWNgTweet.h"
+#import "TWTweet.h"
 
 @implementation TWNgTweet
 
@@ -17,14 +18,13 @@
 + (NSArray *)ngWord:(NSArray *)tweets {
     
     NSMutableArray *targets = [NSMutableArray arrayWithArray:tweets];
-    
-    //NSLog(@"ngWord targets.count: %d", targets.count);
+//    NSLog(@"ngWord targets.count: %d", targets.count);
 
     NSUserDefaults *d = [NSUserDefaults standardUserDefaults];
     
     //NG情報を読み込み
     NSArray *ngWords = [d arrayForKey:@"NGWord"];
-    //NSLog(@"ngWords: %@", ngWords);
+//    NSLog(@"ngWords: %@", ngWords);
     
     //タイムラインもしくはNG設定がない場合は終了
     if ( targets.count == 0 || ngWords.count == 0 ) return [NSArray arrayWithArray:tweets];
@@ -52,6 +52,9 @@
     //正規表現
     BOOL regexp = NO;
     
+    //ReTweet
+    BOOL reTweet = NO;
+    
     //自分のTweetもNGを行う
     BOOL myTweetNG = [d boolForKey:@"MyTweetNG"];
     
@@ -65,10 +68,10 @@
     NSMutableArray *ngList = [NSMutableArray array];
     
     //TimelineのTweetを順次読み込む
-    for ( NSDictionary *tweet in targets ) {
+    for ( TWTweet *tweet in targets ) {
         
         //Tweetを読み込み
-        text = [tweet objectForKey:@"text"];
+        text = tweet.text;
         
         //NG設定を順次読み込む
         for ( NSDictionary *ngData in ngWords ) {
@@ -78,9 +81,10 @@
             users = [[ngData objectForKey:@"User"] componentsSeparatedByString:@","];
             exclusionUsers = [[ngData objectForKey:@"ExclusionUser"] componentsSeparatedByString:@","];
             regexp = [[ngData objectForKey:@"RegExp"] boolValue];
+            reTweet = [[ngData objectForKey:@"ReTweet"] boolValue];
             match = NO;
             
-            //NSLog(@"[%d:%@]%@", index, word, text);
+//            NSLog(@"[%d:%@]%@", index, word, text);
             
             if ( ![EmptyCheck string:word] ) {
                 
@@ -89,7 +93,7 @@
             }
             
             //NG対象ユーザーかNG除外ユーザーが指定されている場合
-            screenName = [[tweet objectForKey:@"user"] objectForKey:@"screen_name"];
+            screenName = tweet.screenName;
             
             if ( users.count != 0 ) {
              
@@ -131,15 +135,24 @@
                 if ( notUser ) continue;
             }
             
-            if ( regexp ) {
+            //ReTweetならNGを行う
+            if ( reTweet &&
+                tweet.isReTweet ) {
                 
-                //正規表現を使う場合
-                if ( [text boolWithRegExp:word] ) match = YES;
+                match = YES;
                 
             }else {
-
-                //正規表現を使わない場合
-                if ( [text rangeOfString:word].location != NSNotFound ) match = YES;
+                
+                if ( regexp ) {
+                    
+                    //正規表現を使う場合
+                    if ( [text boolWithRegExp:word] ) match = YES;
+                    
+                }else {
+                    
+                    //正規表現を使わない場合
+                    if ( [text rangeOfString:word].location != NSNotFound ) match = YES;
+                }
             }
             
             //NG条件にマッチしていた場合
@@ -149,7 +162,7 @@
                 if ( !myTweetNG ) {
                     
                     //自分のTweetはNGしない場合
-                    screenName = [[tweet objectForKey:@"user"] objectForKey:@"screen_name"];
+                    screenName = tweet.screenName;
                     
                     if ( ![screenName isEqualToString:myAccont] ) {
                         
@@ -178,7 +191,7 @@
     
     if ( ngList.count != 0 ) {
         
-        //NSLog(@"ngList: %@", ngList);
+//        NSLog(@"ngList: %@", ngList);
         
         [ArrayDuplicate checkArrayInNumber:ngList];
         
@@ -238,10 +251,10 @@
     NSMutableArray *ngList = [NSMutableArray array];
     
     //TimelineのTweetを順次読み込む
-    for ( NSDictionary *tweet in targets ) {
+    for ( TWTweet *tweet in targets ) {
         
         //Tweetを読み込み
-        screenName = [[tweet objectForKey:@"user"] objectForKey:@"screen_name"];
+        screenName = tweet.screenName;
         
         //NG設定を順次読み込む
         for ( NSDictionary *ngData in ngNames ) {
@@ -270,11 +283,20 @@
     
     if ( ngList.count != 0 ) {
         
+        int removeIndex = 0;
+        
         //NGすべきものがある場合
         for ( int i = ngList.count - 1; i >= 0; i-- ) {
             
-            //対象Tweetを削除
-            [targets removeObjectAtIndex:[[ngList objectAtIndex:i] intValue]];
+            removeIndex = [[ngList objectAtIndex:i] intValue];
+            
+            //NSLog(@"i: %d, targets: %d, removeIndex: %d", i, targets.count, removeIndex);
+            
+            if ( targets.count >= removeIndex ) {
+                
+                //対象Tweetを削除
+                [targets removeObjectAtIndex:[[ngList objectAtIndex:i] intValue]];
+            }
         }
     }
     
@@ -317,10 +339,10 @@
     NSMutableArray *ngList = [NSMutableArray array];
     
     //TimelineのTweetを順次読み込む
-    for ( NSDictionary *tweet in targets ) {
+    for ( TWTweet *tweet in targets ) {
         
         //Tweetを読み込み
-        client = [TWParser client:[tweet objectForKey:@"source"]];
+        client = tweet.source;
         
         //NG設定を順次読み込む
         for ( NSDictionary *ngData in ngClients ) {
@@ -349,11 +371,20 @@
     
     if ( ngList.count != 0 ) {
         
+        int removeIndex = 0;
+        
         //NGすべきものがある場合
         for ( int i = ngList.count - 1; i >= 0; i-- ) {
             
-            //対象Tweetを削除
-            [targets removeObjectAtIndex:[[ngList objectAtIndex:i] intValue]];
+            removeIndex = [[ngList objectAtIndex:i] intValue];
+            
+            //NSLog(@"i: %d, targets: %d, removeIndex: %d", i, targets.count, removeIndex);
+            
+            if ( targets.count >= removeIndex ) {
+                
+                //対象Tweetを削除
+                [targets removeObjectAtIndex:[[ngList objectAtIndex:i] intValue]];
+            }
         }
     }
     
@@ -363,6 +394,8 @@
 }
 
 + (id)ngAll:(id)tweets {
+    
+//    NSLog(@"%s", __func__);
     
     BOOL isMutable = NO;
     

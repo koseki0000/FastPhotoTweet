@@ -7,6 +7,7 @@
 //
 
 #import "TWTweets.h"
+#import "TWTweet.h"
 
 #define BLANK @""
 
@@ -20,6 +21,36 @@
 + (NSMutableDictionary *)timelines {
     
     return [TWTweetsBase manager].timelines;
+}
+
++ (NSMutableArray *)sendedTweets {
+    
+    return [TWTweetsBase manager].sendedTweets;
+}
+
++ (NSString *)text {
+    
+    return [TWTweetsBase manager].text;
+}
+
++ (NSString *)inReplyToID {
+    
+    return [TWTweetsBase manager].inReplyToID;
+}
+
++ (NSString *)tabChangeFunction {
+    
+    return [TWTweetsBase manager].tabChangeFunction;
+}
+
++ (NSArray *)lists {
+    
+    return [TWTweetsBase manager].lists;
+}
+
++ (NSString *)listID {
+    
+    return [TWTweetsBase manager].listID;
 }
 
 #pragma mark - Timeline
@@ -60,18 +91,9 @@
     
     if ( [[TWTweets currentTimeline] isNotEmpty] ) {
     
-        for ( NSDictionary *tweet in [TWTweets currentTimeline] ) {
-            
-            BOOL reTweet = [[[[[TWTweets currentTimeline] objectAtIndex:0] objectForKey:@"retweeted_status"] objectForKey:@"id"] boolValue];
+        for ( TWTweet *tweet in [TWTweets currentTimeline] ) {
 
-            if ( reTweet ) {
-                
-                tweetID = [[[[TWTweets currentTimeline] objectAtIndex:0] objectForKey:@"retweeted_status"] objectForKey:@"id_str"];
-                
-            }else {
-            
-                tweetID = [[[TWTweets currentTimeline] objectAtIndex:0] objectForKey:@"id_str"];
-            }
+            tweetID = tweet.tweetID;
             
             if ( tweetID != nil ) break;
         }

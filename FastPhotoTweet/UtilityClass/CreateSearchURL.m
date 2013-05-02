@@ -18,7 +18,7 @@
 
 + (NSString *)twilog:(NSString *)screenName searchWord:(NSString *)searchWord {
     
-    NSString *searchURL = [NSString stringWithFormat:@"http://twilog.org/tweets.cgi?id=%@&word=%@", 
+    NSString *searchURL = [NSString stringWithFormat:@"http://twilog.org/%@/search?word=%@&ao=a",
                            screenName, 
                            [CreateSearchURL encodeWord:searchWord encoding:kCFStringEncodingUTF8]];
     
