@@ -76,7 +76,7 @@
         iconSize = IconSizeOriginal;
     }else if ( [iconQualitySetting isEqualToString:@"Original96"] ) {
         iconSize = IconSizeOriginal96;
-    }else {
+    } else {
         iconSize = IconSizeBigger;
     }
     
@@ -139,7 +139,7 @@
         [tweet setTweetID:tweetDictionary[@"delete"][@"status"][@"id_str"]];
         [tweet setScreenName:tweetDictionary[@"source"][@"screen_name"]];
         
-    }else {
+    } else {
         
         //RT判定
         [tweet setIsReTweet:[tweetDictionary[@"retweeted_status"][@"id"] boolValue]];
@@ -177,7 +177,7 @@
             [tweet setRtID:tweetDictionary[@"id_str"]];
             [tweet setOriginalText:tweetDictionary[@"retweeted_status"][@"text"]];
             
-        }else {
+        } else {
             
             [tweet setText:tweetDictionary[@"text"]];
             
@@ -245,25 +245,25 @@
         
         [self setTextColor:CellTextColorGold];
         
-    }else {
+    } else {
         
         if ( [self isReTweet] ) {
             
             [self setTextColor:CellTextColorGreen];
             
-        }else {
+        } else {
             
             if ( [self isReply] ) {
                 
                 [self setTextColor:CellTextColorRed];
                 
-            }else {
+            } else {
                 
                 if ( [self isMyTweet] ) {
                     
                     [self setTextColor:CellTextColorBlue];
                     
-                }else {
+                } else {
                     
                     [self setTextColor:CellTextColorBlack];
                 }

@@ -33,13 +33,13 @@
             
             template = @"/-22/";
             
-        }else {
+        } else {
             
             if ( [matchString hasPrefix:@"?"] ) {
             
                 template = @"?tag=-22";
                 
-            }else {
+            } else {
                 
                 template = @"&tag=-22";
             }

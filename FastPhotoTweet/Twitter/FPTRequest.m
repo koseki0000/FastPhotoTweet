@@ -41,10 +41,18 @@
 #define RETWEET_URL [NSString stringWithFormat:@"https://api.twitter.com/%@/statuses/retweet/%@.json", API_VERSION , parameters[@"id"]]
 #define DESTROY_URL [NSString stringWithFormat:@"https://api.twitter.com/%@/statuses/destroy/%@.json", API_VERSION, parameters[@"id"]]
 
+@interface FPTRequest()
+
++ (void)postAPIErrorNotificationName:(NSString *)notificationName;
++ (void)postAPIErrorNotificationName:(NSString *)notificationName userInfo:(id)userInfo;
+- (NSArray *)fixTwitterSearchResponse:(NSArray *)twitterSearchResponse;
+
+@end
+
 @implementation FPTRequest
 
 #pragma mark - GET
-+ (void)requestWithGetType:(FPTGetRequestType)getRequestType
++ (oneway void)requestWithGetType:(FPTGetRequestType)getRequestType
                 parameters:(NSDictionary *)parameters {
     
     NSLog(@"%s[%d]: %@", __func__, getRequestType, parameters);
@@ -72,11 +80,12 @@
             dispatch_async(dispatch_get_main_queue(), ^{
                 
                 [ShowAlert error:@"ネットワーク未接続"];
+                [FPTRequest postAPIErrorNotificationName:GET_API_ERROR_NOTIFICATION];
             });
             
             return;
             
-        }else {
+        } else {
             
             dispatch_async(dispatch_get_main_queue(), ^{
                 
@@ -144,6 +153,7 @@
             dispatch_async(dispatch_get_main_queue(), ^{
                 
                 [ShowAlert error:@"RequestError"];
+                [FPTRequest postAPIErrorNotificationName:GET_API_ERROR_NOTIFICATION];
             });
             return;
         }
@@ -164,14 +174,19 @@
                 
                 if ( error ) {
                     
-                    [ShowAlert error:[NSString stringWithFormat:@"ResponseError: %@",
-                                      error.description]];
+                    [ShowAlert error:[error localizedDescription]];
+                    [FPTRequest postAPIErrorNotificationName:GET_API_ERROR_NOTIFICATION];
                     return;
                 }
                 
-                if ( [responseData isEmpty] ) {
+                NSString *responseString = [[NSString alloc] initWithData:responseData
+                                                                 encoding:NSUTF8StringEncoding];
+                
+                if ( [responseData isEmpty] ||
+                     [responseString isEqualToString:@"[]"] ) {
                     
                     [ShowAlert error:@"レスポンスがありません。"];
+                    [FPTRequest postAPIErrorNotificationName:GET_API_ERROR_NOTIFICATION];
                     return;
                 }
                 
@@ -182,12 +197,12 @@
                 if ( jsonError ) {
                     
                     [ShowAlert error:@"レスポンス展開エラー"];
+                    [FPTRequest postAPIErrorNotificationName:GET_API_ERROR_NOTIFICATION];
                     return;
                 }
                 
-                NSLog(@"tweetData class: %@", NSStringFromClass([tweetData class]));
-                
-                if ( [tweetData isKindOfClass:[NSArray class]] ) {
+                if ( [tweetData isKindOfClass:[NSArray class]] ||
+                      getRequestType == FPTGetRequestTypeSearch ) {
                     
                     NSArray *tweetDataArray = nil;
                     
@@ -195,7 +210,7 @@
                         
                         tweetDataArray = [request fixTwitterSearchResponse:[tweetData objectForKey:@"results"]];
                         
-                    }else {
+                    } else {
                         
                         tweetDataArray = (NSArray *)tweetData;
                     }
@@ -213,7 +228,7 @@
                         [NSNotificationCenter postNotificationCenterForName:notificationName
                                                                withUserInfo:userInfo];
                         
-                    }else {
+                    } else {
                         
                         NSMutableArray *convertedTweets = [NSMutableArray array];
                         for ( id tweet in tweetDataArray ) {
@@ -243,7 +258,7 @@
                             [NSNotificationCenter postNotificationCenterForName:notificationName
                                                                    withUserInfo:userInfo];
                             
-                        }else {
+                        } else {
                             
                             TWTweet *convertedTweet = [TWTweet tweetWithDictionary:tweetDataDic];
                             NSDictionary *userInfo = @{RESPONSE_DATA : convertedTweet,
@@ -252,22 +267,15 @@
                                                                    withUserInfo:userInfo];
                         }
                         
-                    }else {
+                    } else {
                         
-                        if ( tweetData ) {
-                            
-                            [NSNotificationCenter postNotificationCenterForName:GET_API_ERROR_NOTIFICATION
-                                                                   withUserInfo:@{@"ErrorResponseData" : tweetData}];
-                            
-                        }else {
-                            
-                            [NSNotificationCenter postNotificationCenterForName:GET_API_ERROR_NOTIFICATION];
-                        }
+                        [FPTRequest postAPIErrorNotificationName:GET_API_ERROR_NOTIFICATION
+                                                     userInfo:tweetData];
                     }
                     
-                }else {
+                } else {
                     
-                    [ShowAlert error:@"不明なレスポンス"];
+                    [FPTRequest postAPIErrorNotificationName:GET_API_ERROR_NOTIFICATION];
                     return;
                 }
                 
@@ -278,7 +286,7 @@
 }
 
 #pragma mark - POST
-+ (void)requestWithPostType:(FPTPostRequestType)postRequestType
++ (oneway void)requestWithPostType:(FPTPostRequestType)postRequestType
                  parameters:(NSDictionary *)parameters {
     
     BOOL needSelectAccount = NO;
@@ -306,6 +314,7 @@
             dispatch_async(dispatch_get_main_queue(), ^{
                 
                 [ShowAlert error:@"パラメータがありません"];
+                [FPTRequest postAPIErrorNotificationName:POST_API_ERROR_NOTIFICATION];
             });
             return;
         }
@@ -315,11 +324,12 @@
             dispatch_async(dispatch_get_main_queue(), ^{
                 
                 [ShowAlert error:@"ネットワーク未接続"];
+                [FPTRequest postAPIErrorNotificationName:POST_API_ERROR_NOTIFICATION];
             });
             
             return;
             
-        }else {
+        } else {
             
             dispatch_async(dispatch_get_main_queue(), ^{
                 
@@ -348,7 +358,7 @@
                     
                     postRequestTypeTemp = FPTPostRequestTypeText;
                     
-                }else {
+                } else {
                     
                     withMedia = YES;
                     
@@ -390,6 +400,7 @@
             dispatch_async(dispatch_get_main_queue(), ^{
                 
                 [ShowAlert error:@"RequestError"];
+                [FPTRequest postAPIErrorNotificationName:POST_API_ERROR_NOTIFICATION];
             });
             return;
         }
@@ -416,7 +427,7 @@
             
             [request setAccount:[TWAccounts selectAccount:index]];
             
-        }else {
+        } else {
             
             [request setAccount:[TWAccounts currentAccount]];
         }
@@ -447,14 +458,19 @@
                 
                 if ( error ) {
                     
-                    [ShowAlert error:[NSString stringWithFormat:@"ResponseError: %@",
-                                      error.description]];
+                    [ShowAlert error:[error localizedDescription]];
+                    [FPTRequest postAPIErrorNotificationName:POST_API_ERROR_NOTIFICATION];
                     return;
                 }
                 
-                if ( responseData == nil ) {
+                NSString *responseString = [[NSString alloc] initWithData:responseData
+                                                                 encoding:NSUTF8StringEncoding];
+                
+                if ( [responseData isEmpty] ||
+                     [responseString isEqualToString:@"[]"] ) {
                     
                     [ShowAlert error:@"レスポンスがありません。"];
+                    [FPTRequest postAPIErrorNotificationName:POST_API_ERROR_NOTIFICATION];
                     return;
                 }
                 
@@ -465,6 +481,7 @@
                 if ( jsonError ) {
                     
                     [ShowAlert error:@"レスポンス展開エラー"];
+                    [FPTRequest postAPIErrorNotificationName:POST_API_ERROR_NOTIFICATION];
                     return;
                 }
                 
@@ -477,10 +494,8 @@
                         
                         if ( [resultDic objectForKey:@"error"] != nil ) {
                             
-                            
-                            [NSNotificationCenter postNotificationCenterForName:POST_API_ERROR_NOTIFICATION
-                                                                   withUserInfo:@{@"ErrorResponseData" : resultData}];
-                            
+                            [FPTRequest postAPIErrorNotificationName:POST_API_ERROR_NOTIFICATION
+                                                            userInfo:resultData];
                         }
                         
                     }else if ( [resultDic objectForKey:@"error"] == nil &&
@@ -495,14 +510,16 @@
                                                                withUserInfo:userInfo];
                         
                         
-                    }else {
+                    } else {
                         
                         [ShowAlert error:@"不明なエラー"];
+                        [FPTRequest postAPIErrorNotificationName:POST_API_ERROR_NOTIFICATION];
                     }
                     
-                }else {
+                } else {
                     
                     [ShowAlert error:@"不明なレスポンス"];
+                    [FPTRequest postAPIErrorNotificationName:POST_API_ERROR_NOTIFICATION];
                 }
                 
                 [ActivityIndicator off];
@@ -558,6 +575,18 @@
     }
     
     return [NSArray arrayWithArray:fixedResponse];
+}
+
++ (void)postAPIErrorNotificationName:(NSString *)notificationName {
+    
+    [FPTRequest postAPIErrorNotificationName:notificationName
+                                    userInfo:nil];
+}
+
++ (void)postAPIErrorNotificationName:(NSString *)notificationName userInfo:(id)userInfo {
+    
+    [NSNotificationCenter postNotificationCenterForName:notificationName
+                                           withUserInfo:userInfo ? @{@"ErrorResponseData" : userInfo} : nil];
 }
 
 @end

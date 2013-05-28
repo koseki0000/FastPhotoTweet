@@ -82,13 +82,13 @@
         
         addButton.enabled = YES;
         
-    }else {
+    } else {
      
         if ( [EmptyCheck string:ngWordField.text] ) {
             
             addButton.enabled = YES;
             
-        }else {
+        } else {
             
             addButton.enabled = NO;
         }
@@ -157,7 +157,7 @@
         [ShowAlert error:@"必須項目が入力されていません。"];
         [ngWordField becomeFirstResponder];
         
-    }else {
+    } else {
         
         NSMutableDictionary *addDic = [NSMutableDictionary dictionary];
         

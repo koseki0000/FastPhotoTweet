@@ -67,7 +67,7 @@
         [FPTRequest requestWithGetType:FPTGetRequestTypeListsList
                             parameters:parameters];
         
-    }else {
+    } else {
         
         //取得済みリストがある場合は表示
         [self setLists:[TWTweets lists]];
@@ -137,7 +137,7 @@
         [[NSUserDefaults standardUserDefaults] setObject:accounts
                                                   forKey:@"TimelineList"];
         
-    }else {
+    } else {
         
         //リストIDを記憶
         [[TWTweets manager] setListID:self.lists[indexPath.row][@"id_str"]];

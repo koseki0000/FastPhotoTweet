@@ -160,7 +160,7 @@
         APP_DELEGATE.reOpenUrl = BLANK;
         APP_DELEGATE.pcUaMode = NO;
         
-    }else {
+    } else {
      
         [self selectOpenUrl];
     }
@@ -176,7 +176,7 @@
         
         [self selectUrl];
         
-    }else {
+    } else {
         
         //NSLog(@"タイムラインから開かれていない場合");
         
@@ -201,7 +201,7 @@
                 
                     [_wv loadRequestWithString:[D objectForKey:@"HomePageURL"]];
                     
-                }else {
+                } else {
                     
                     [_wv loadRequestWithString:[urlList objectAtIndex:0]];
                     [D setObject:[urlList objectAtIndex:0] forKey:@"LastOpendPasteBoardURL"];
@@ -221,7 +221,7 @@
                         
                         [_wv loadRequestWithString:[startupUrlList objectAtIndex:0]];
                         
-                    }else {
+                    } else {
                         
                         //NSLog(@"直前にペーストボードから開いたURLではない場合開く");
                         
@@ -229,7 +229,7 @@
                         [D setObject:[urlList objectAtIndex:0] forKey:@"LastOpendPasteBoardURL"];
                     }
                     
-                }else {
+                } else {
                     
                     //NSLog(@"スタートアップURLがホームページのURLではなかった場合選択して表示");
                     
@@ -237,7 +237,7 @@
                         
                         [_wv loadRequestWithString:[startupUrlList objectAtIndex:0]];
                         
-                    }else {
+                    } else {
                         
                         actionSheetNo = 15;
                         
@@ -262,7 +262,7 @@
                     startupUrlList = urlList;
                     [self selectUrl];
                     
-                }else {
+                } else {
                     
                     //NSLog(@"スタートアップURLがホームページではなかった場合、確認を表示");
                     actionSheetNo = 15;
@@ -297,14 +297,14 @@
                                         otherButtonTitles:@"アプリ指定URLを開く", @"ペーストボードから開く", nil];
                 [sheet showInView:self.view];
                 
-            }else {
+            } else {
                 
                 //NSLog(@"その他の場合");
                 
                 [_wv loadRequestWithString:[D objectForKey:@"HomePageURL"]];
             }
             
-        }else {
+        } else {
             
             //NSLog(@"ペーストボードからURLを開く設定が無効な場合");
             
@@ -318,7 +318,7 @@
                 //NSLog(@"URLが複数個の場合は選択して開く");
                 [self selectUrl];
                 
-            }else {
+            } else {
                 
                 //NSLog(@"その他の場合はホームページを開く");
                 [_wv loadRequestWithString:[D objectForKey:@"HomePageURL"]];
@@ -523,7 +523,7 @@
         [sheet showInView:self.view];
         sheet = nil;
         
-    }else {
+    } else {
     
         [self resetUserAgent];
         
@@ -538,12 +538,12 @@
                     
                     [self dismissViewControllerAnimated:YES completion:nil];
                     
-                }else {
+                } else {
                     
                     [self dismissModalViewControllerAnimated:YES];
                 }
                 
-            }else {
+            } else {
                 
                 [self.navigationController popViewControllerAnimated:YES];
             }
@@ -566,7 +566,7 @@
         [sheet showInView:self.view];
         sheet = nil;
         
-    }else {
+    } else {
      
         [self resetUserAgent];
         
@@ -581,12 +581,12 @@
                     
                     [self dismissViewControllerAnimated:YES completion:nil];
                     
-                }else {
+                } else {
                     
                     [self dismissModalViewControllerAnimated:YES];
                 }
                 
-            }else {
+            } else {
                 
                 [self.navigationController popViewControllerAnimated:YES];
             }
@@ -604,7 +604,7 @@
             [ActivityIndicator off];
             reloadButton.image = reloadButtonImage;
             
-        }else {
+        } else {
             
             [_wv loadRequestWithString:accessURL];
         }
@@ -696,7 +696,7 @@
         searchURL = nil;
         encodedSearchWord = nil;
     
-    }else {
+    } else {
         
         dispatch_queue_t globalQueue = dispatch_get_global_queue( DISPATCH_QUEUE_PRIORITY_DEFAULT, 0 );
         dispatch_async( globalQueue, ^{
@@ -807,12 +807,12 @@
              
                 copyURL = [urlList objectAtIndex:0];
                 
-            }else {
+            } else {
                 
                 copyURL = [startupUrlList objectAtIndex:0];
             }
             
-        }else {
+        } else {
             
             copyURL = loadStartURL;
         }
@@ -853,7 +853,7 @@
             searchEngineName = @"Twitter";
         }else if ( buttonIndex == 5 ) {
             searchEngineName = @"Wikipedia (Suggestion)";
-        }else {
+        } else {
             return;
         }
         
@@ -889,20 +889,20 @@
                         postText = [postText deleteWord:@"this.select()\">"];
                         postText = [postText deleteWord:@"</textarea>"];
                         
-                    }else {
+                    } else {
                         
                         [ShowAlert error:@"データ取得に失敗しました。"];
                         
                         return;
                     }
                     
-                }else {
+                } else {
                     
                     if ( [EmptyCheck check:[D objectForKey:@"WebPagePostFormat"]] ) {
                         
                         postText = [D objectForKey:@"WebPagePostFormat"];
                         
-                    }else {
+                    } else {
                         
                         postText = @" \"[title]\" [url] ";
                         [D setObject:postText forKey:@"WebPagePostFormat"];
@@ -920,12 +920,12 @@
                                 
                                 copyURL = [urlList objectAtIndex:0];
                                 
-                            }else {
+                            } else {
                                 
                                 copyURL = [startupUrlList objectAtIndex:0];
                             }
                             
-                        }else {
+                        } else {
                             
                             copyURL = loadStartURL;
                         }
@@ -941,7 +941,7 @@
                     
                     [self pushComposeButton:nil];
                     
-                }else {
+                } else {
                  
                     APP_DELEGATE.tabBarController.selectedIndex = 0;
                 }
@@ -964,7 +964,7 @@
                                         @"URL･タイトルと選択文字を投稿", nil];
                 [sheet showInView:self.view];
                 
-            }else {
+            } else {
                 
                 [ShowAlert error:@"文字が選択されていません。"];
             }
@@ -1012,7 +1012,7 @@
                         [self performSelectorInBackground:@selector(saveImage) withObject:nil];
                     }
                     
-                }else {
+                } else {
                     
                     //NSLog(@"File save");
                     
@@ -1049,7 +1049,7 @@
                 
                 [D setObject:bookMarkArray forKey:@"Bookmark"];
                 
-            }else {
+            } else {
                 
                 [ShowAlert error:@"登録済みのURLです。"];
             }
@@ -1175,7 +1175,7 @@
                     
                     reqUrl = [NSString stringWithFormat:@"fastever://?text=%@\n%@\n>>%@\n", _wv.pageTitle, accessURL, _wv.selectString];
                     
-                }else {
+                } else {
                     
                     reqUrl = [NSString stringWithFormat:@"fastever://?text=%@\n%@\n", _wv.pageTitle, accessURL];
                 }
@@ -1187,7 +1187,7 @@
                                                                                                             NULL, 
                                                                                                             kCFStringEncodingUTF8)]];
             
-            }else {
+            } else {
                 
                 [ShowAlert error:@"FastEverをインストール後使用してください。"];
             }
@@ -1212,7 +1212,7 @@
             //キャンセルされた場合はホームページを開く
             [_wv loadRequestWithString:[D objectForKey:@"HomePageURL"]];
             
-        }else {
+        } else {
             
             //選択されたURLを開く
             [_wv loadRequestWithString:[startupUrlList objectAtIndex:buttonIndex]];
@@ -1246,7 +1246,7 @@
                 
                 postText = [D objectForKey:@"QuoteFormat"];
                 
-            }else {
+            } else {
                 
                 postText = @" \"[title]\" [url] >>[quote]";
                 [D setObject:postText forKey:@"QuoteFormat"];
@@ -1262,12 +1262,12 @@
                         
                         copyURL = [urlList objectAtIndex:0];
                         
-                    }else {
+                    } else {
                         
                         copyURL = [startupUrlList objectAtIndex:0];
                     }
                     
-                }else {
+                } else {
                     
                     copyURL = loadStartURL;
                 }
@@ -1281,7 +1281,7 @@
             
             [self pushComposeButton:nil];
         
-        }else {
+        } else {
             
             APP_DELEGATE.postTextType = BLANK;
         }
@@ -1309,7 +1309,7 @@
                 searchEngineName = @"Twitter";
             }else if ( buttonIndex == 5 ) {
                 searchEngineName = @"Wikipedia (Suggestion)";
-            }else {
+            } else {
                 return;
             }
             
@@ -1330,7 +1330,7 @@
             
             [self requestStart:urlField.text];
             
-        }else {
+        } else {
             
             [_grayView off];
         }
@@ -1349,7 +1349,7 @@
             
             [self requestStart:[NSString stringWithFormat:@"https://%@", urlField.text]];
             
-        }else {
+        } else {
             
             [_grayView off];
         }
@@ -1364,7 +1364,7 @@
                 
                 [self dismissViewControllerAnimated:YES completion:nil];
                 
-            }else {
+            } else {
                 
                 [self dismissModalViewControllerAnimated:YES];
             }
@@ -1380,7 +1380,7 @@
                 
                 [self dismissViewControllerAnimated:YES completion:nil];
                 
-            }else {
+            } else {
                 
                 [self dismissModalViewControllerAnimated:YES];
             }
@@ -1427,7 +1427,7 @@
             //ペーストボードから開く場合
             startupUrlList = urlList;
             
-        }else {
+        } else {
             
             //キャンセルされた場合はホームページを開く
             [_wv loadRequestWithString:[D objectForKey:@"HomePageURL"]];
@@ -1477,7 +1477,7 @@
         
         [ShowAlert error:@"保存に失敗しました。"];
         
-    }else {
+    } else {
         
         [ShowAlert title:@"保存完了" message:@"カメラロールに保存しました。"];
     }
@@ -1576,7 +1576,7 @@
         //そのままアクセス出来そうなURL
         //NSLog(@"http(s) address");
         
-    }else {
+    } else {
         
         //NSLog(@"not http(s) address");
         
@@ -1593,7 +1593,7 @@
             
             return NO;
             
-        }else {
+        } else {
             
             //そのままアクセス出来なそうでURLSchemeでもない
             //http://を付けてみる
@@ -1696,7 +1696,7 @@
         
         [self requestStart:accessURL];
         
-    }else {
+    } else {
         
         NSString *buttonTitle0 = accessURL;
         NSString *buttonTitle1 = nil;
@@ -1718,7 +1718,7 @@
             [sheet showInView:self.view];
             sheet = nil;
             
-        }else {
+        } else {
             
             buttonTitle1 = [NSString stringWithFormat:@"http://%@", urlField.text];
             buttonTitle2 = [NSString stringWithFormat:@"https://%@", urlField.text];
@@ -1810,7 +1810,7 @@
         //総ファイルサイズをセット
         totalbytes = [response expectedContentLength];
         
-    }else {
+    } else {
      
         [ShowAlert error:@"不明なエラー"];
         [self endDownload];
@@ -1947,13 +1947,13 @@
                 urlField.frame = CGRectMake(12, -44, 75, 31);
                 searchField.frame = CGRectMake(97, -44, 180, 31);
                 
-            }else {
+            } else {
                 
                 urlField.frame = CGRectMake(12, -44, 180, 31);
                 searchField.frame = CGRectMake(202, -44, 75, 31);
             }
             
-        }else {
+        } else {
             
             topBar.frame = CGRectMake(0, 0, SCREEN_WIDTH, TOOL_BAR_HEIGHT);
             _wv.frame = CGRectMake(0, TOOL_BAR_HEIGHT, SCREEN_WIDTH, SCREEN_HEIGHT - TOOL_BAR_HEIGHT * 2);
@@ -1964,7 +1964,7 @@
                 urlField.frame = CGRectMake(12, 7, 75, 31);
                 searchField.frame = CGRectMake(97, 7, 180, 31);
                 
-            }else {
+            } else {
                 
                 urlField.frame = CGRectMake(12, 7, 180, 31);
                 searchField.frame = CGRectMake(202, 7, 75, 31);
@@ -1972,7 +1972,7 @@
         }
      
     //横
-    }else {
+    } else {
         
         if ( fullScreen ) {
 
@@ -1985,13 +1985,13 @@
                 urlField.frame = CGRectMake(12, -44, 135, 31);
                 searchField.frame = CGRectMake(157, -44, 280 + retina4InchOffset, 31);
                 
-            }else {
+            } else {
                 
                 urlField.frame = CGRectMake(12, -44, 280 + retina4InchOffset, 31);
                 searchField.frame = CGRectMake(302, -44, 135, 31);
             }
             
-        }else {
+        } else {
 
             topBar.frame = CGRectMake(0, 0, SCREEN_HEIGHT, TOOL_BAR_HEIGHT);
             _wv.frame = CGRectMake(0, TOOL_BAR_HEIGHT, SCREEN_HEIGHT, SCREEN_WIDTH - TOOL_BAR_HEIGHT * 2);
@@ -2002,7 +2002,7 @@
                 urlField.frame = CGRectMake(12, 7, 135, 31);
                 searchField.frame = CGRectMake(157, 7, 280 + retina4InchOffset, 31);
                 
-            }else {
+            } else {
                 
                 urlField.frame = CGRectMake(12, 7, 280 + retina4InchOffset, 31);
                 searchField.frame = CGRectMake(302 + retina4InchOffset, 7, 135, 31);
@@ -2019,7 +2019,7 @@
      
         fullScreen = NO;
         
-    }else {
+    } else {
         
         fullScreen = YES;
     }
@@ -2044,7 +2044,7 @@
             //縦
             [self rotateView:0];
             
-        }else {
+        } else {
             
             //左右
             [self rotateView:1];
@@ -2111,7 +2111,7 @@
         NSLog(@"setViewSize iOS5");
         [self shouldAutorotateToInterfaceOrientation:ORIENTATION];
         
-    }else {
+    } else {
         
         NSLog(@"setViewSize iOS6");
         
@@ -2122,7 +2122,7 @@
             //左右
             [self rotateView:1];
             
-        }else {
+        } else {
             
             //縦
             [self rotateView:0];

@@ -36,7 +36,7 @@
         
         [self hideWindow];
         
-    }else {
+    } else {
         
         _saveStarted = NO;
         
@@ -54,7 +54,7 @@
             
             [self showWindow];
             
-        }else {
+        } else {
             
             if ( [FullSizeImage isSocialService:imageUrl] ) {
                 
@@ -62,7 +62,7 @@
                 [[UIApplication sharedApplication] openURL:[NSURL URLWithString:imageUrl]];
                 [self performSelector:@selector(hideWindow) withObject:nil afterDelay:0.1];
                 
-            }else {
+            } else {
             
                 NSMutableString *mString = [NSMutableString stringWithString:imageUrl];
                 [mString replaceOccurrencesOfString:@"%2528" withString:@"(" options:0 range:NSMakeRange(0, mString.length)];
@@ -171,7 +171,7 @@
         [sheet showInView:self];
         [sheet release];
         
-    }else {
+    } else {
         
         UIActionSheet *sheet = [[UIActionSheet alloc] initWithTitle:@""
                                                            delegate:self
@@ -382,7 +382,7 @@
         
         [self setImageAtImageView:image];
         
-    }else {
+    } else {
         
         [ShowAlert error:@"未対応パターンのようです。"];
     }

@@ -175,7 +175,7 @@
             
             //NSLog(@"OAuthAccount: %@", [d dictionaryForKey:@"OAuthAccount"]);
             
-        }else {
+        } else {
             
             IDChangeViewController *dialog = [[[IDChangeViewController alloc] init] autorelease];
             dialog.modalTransitionStyle = UIModalTransitionStyleCoverVertical;
@@ -202,7 +202,7 @@
         
         [self dismissViewControllerAnimated:YES completion:nil];
         
-    }else {
+    } else {
         
         [self dismissModalViewControllerAnimated:YES];
     }
@@ -221,7 +221,7 @@
             
             result = @"ON";
             
-        }else {
+        } else {
             
             result = @"OFF";
         }
@@ -243,7 +243,7 @@
             
             result = @"OFF";
             
-        }else {
+        } else {
             
             result = @"ON";
         }
@@ -276,7 +276,7 @@
             
             result = @"ON";
             
-        }else {
+        } else {
             
             result = @"OFF";
         }
@@ -288,7 +288,7 @@
             
             result = @"ON";
             
-        }else {
+        } else {
             
             result = @"OFF";
         }
@@ -320,7 +320,7 @@
             
             result = @"ON";
             
-        }else {
+        } else {
             
             result = @"OFF";
         }
@@ -358,7 +358,7 @@
             
             result = @"ON";
             
-        }else {
+        } else {
             
             result = @"OFF";
         }
@@ -370,7 +370,7 @@
             
             result = @"ON";
             
-        }else {
+        } else {
             
             result = @"OFF";
         }
@@ -385,7 +385,7 @@
             
             result = @"先頭";
             
-        }else {
+        } else {
             
             result = @"末尾";
         }
@@ -398,7 +398,7 @@
             
             result = @"先頭";
             
-        }else {
+        } else {
             
             result = @"末尾";
         }
@@ -468,7 +468,7 @@
             
             result = @"Reeder";
             
-        }else {
+        } else {
             
             result = @"未選択";
         }
@@ -480,7 +480,7 @@
             
             result = @"ON";
             
-        }else {
+        } else {
             
             result = @"OFF";
         }
@@ -491,7 +491,7 @@
             
             result = @"ON";
             
-        }else {
+        } else {
             
             result = @"OFF";
         }
@@ -502,7 +502,7 @@
             
             result = @"ON";
             
-        }else {
+        } else {
             
             result = @"OFF";
         }
@@ -517,7 +517,7 @@
         
             result = @"iPad";
             
-        }else {
+        } else {
             
             result = @"iPhone";
         }
@@ -536,7 +536,7 @@
             
             result = @"iPhone";
             
-        }else {
+        } else {
             
             result = @"OFF";
         }
@@ -547,7 +547,7 @@
             
             result = @"ON";
             
-        }else {
+        } else {
             
             result = @"OFF";
         }
@@ -558,7 +558,7 @@
             
             result = @"ON";
             
-        }else {
+        } else {
             
             result = @"OFF";
         }
@@ -569,7 +569,7 @@
             
             result = @"ON";
             
-        }else {
+        } else {
             
             result = @"OFF";
         }
@@ -580,7 +580,7 @@
             
             result = @"ON";
             
-        }else {
+        } else {
             
             result = @"OFF";
         }
@@ -593,7 +593,7 @@
             
             result = @"ON";
             
-        }else {
+        } else {
             
             result = @"OFF";
         }
@@ -604,7 +604,7 @@
             
             result = @"ON";
             
-        }else {
+        } else {
             
             result = @"OFF";
         }
@@ -615,7 +615,7 @@
             
             result = @"ON";
             
-        }else {
+        } else {
             
             result = @"OFF";
         }
@@ -638,7 +638,7 @@
             
             result = @"最下部";
             
-        }else {
+        } else {
             
             result = @"最上部";
         }
@@ -662,7 +662,7 @@
         
         if ( [d boolForKey:@"UseTimelineList"] ) {
             result = @"ON";
-        }else {
+        } else {
             result = @"OFF";
         }
         
@@ -999,7 +999,7 @@
                 
                 alertMessage = [d objectForKey:@"WebPagePostFormat"];
                 
-            }else {
+            } else {
                 
                 alertMessage = @" \"[title]\" [url] ";
                 [d setObject:alertMessage forKey:@"WebPagePostFormat"];
@@ -1049,7 +1049,7 @@
                 
                 alertMessage = [d objectForKey:@"QuoteFormat"];
                 
-            }else {
+            } else {
                 
                 alertMessage = @" \"[title]\" [url] >>[quote]";
                 [d setObject:alertMessage forKey:@"QuoteFormat"];
@@ -1513,7 +1513,7 @@
                 dialog.modalTransitionStyle = UIModalTransitionStyleCoverVertical;
                 [self presentModalViewController:dialog animated:YES];
                 
-            }else {
+            } else {
                 
                 actionSheetNo = 100;
                 
@@ -1555,7 +1555,7 @@
                     [d setInteger:2 forKey:@"ImageSource"];
                 }
                 
-            }else {
+            } else {
                 
                 //カメラが利用できない場合                
                 [ShowAlert error:@"カメラが利用出来ない端末です。カメラロールが設定されます。"];
@@ -1563,7 +1563,7 @@
                 [d setInteger:0 forKey:@"ImageSource"];
             }
             
-        }else {
+        } else {
             
             [d setInteger:0 forKey:@"ImageSource"];
         }

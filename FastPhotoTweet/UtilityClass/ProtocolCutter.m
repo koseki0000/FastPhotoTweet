@@ -43,7 +43,7 @@
                 }
             }
             
-        }else {
+        } else {
             
             return originalURLString;
         }

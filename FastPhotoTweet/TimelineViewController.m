@@ -152,16 +152,16 @@ typedef enum {
 @property (strong, nonatomic) NSMutableArray *otherTweets;
 
 - (void)createPullDownRefreshHeader;
-- (void)createTimelineGuesture;
-- (void)addNotificationObservers;
-- (void)requestHomeTimeline;
-- (void)requestMentions;
-- (void)requestFavorites;
-- (void)requestTweet:(NSString *)tweetID;
-- (void)requestList:(NSString *)listID;
+- (oneway void)createTimelineGuesture;
+- (oneway void)addNotificationObservers;
+- (oneway void)requestHomeTimeline;
+- (oneway void)requestMentions;
+- (oneway void)requestFavorites;
+- (oneway void)requestTweet:(NSString *)tweetID;
+- (oneway void)requestList:(NSString *)listID;
 - (void)createInReplyToChain:(TWTweet *)tweet;
 
-- (void)addFavorite:(NSString *)tweetID accountIndex:(NSInteger)accountIndex;
+- (oneway void)addFavorite:(NSString *)tweetID accountIndex:(NSInteger)accountIndex;
 
 - (void)startLoad;
 - (void)finishLoad;
@@ -177,32 +177,32 @@ typedef enum {
 
 - (void)changeSegmentIndex;
 
-- (void)receiveHomeTimeline:(NSNotification *)notification;
-- (void)receiveUserTimeline:(NSNotification *)notification;
-- (void)receiveMentions:(NSNotification *)notification;
-- (void)receiveFavorites:(NSNotification *)notification;
-- (void)receiveSearch:(NSNotification *)notification;
-- (void)receiveTweet:(NSNotification *)notification;
-- (void)receiveList:(NSNotification *)notification;
-- (void)receiveProfile:(NSNotification *)notification;
-- (void)receiveAPIError:(NSNotification *)notification;
+- (oneway void)receiveHomeTimeline:(NSNotification *)notification;
+- (oneway void)receiveUserTimeline:(NSNotification *)notification;
+- (oneway void)receiveMentions:(NSNotification *)notification;
+- (oneway void)receiveFavorites:(NSNotification *)notification;
+- (oneway void)receiveSearch:(NSNotification *)notification;
+- (oneway void)receiveTweet:(NSNotification *)notification;
+- (oneway void)receiveList:(NSNotification *)notification;
+- (oneway void)receiveProfile:(NSNotification *)notification;
+- (oneway void)receiveAPIError:(NSNotification *)notification;
 
-- (void)receiveOffline:(NSNotification *)notification;
+- (oneway void)receiveOffline:(NSNotification *)notification;
 
 - (void)openStream;
 - (void)closeStream;
 - (void)reOpenStream;
 - (void)startUserStreamQueue;
 - (void)stopUserStreamQueue;
-- (void)checkUserStreamQueue;
-- (void)userStreamDelete:(TWTweet *)receiveTweet;
-- (void)userStreamMyAddFavEvent:(TWTweet *)receiveTweet;
-- (void)userStreamMyRemoveFavEvent:(TWTweet *)receiveTweet;
-- (void)userStreamReceiveFavEvent:(TWTweet *)receiveTweet;
-- (void)userStreamReceiveTweet:(TWTweet *)receiveTweet;
+- (oneway void)checkUserStreamQueue;
+- (oneway void)userStreamDelete:(TWTweet *)receiveTweet;
+- (oneway void)userStreamMyAddFavEvent:(TWTweet *)receiveTweet;
+- (oneway void)userStreamMyRemoveFavEvent:(TWTweet *)receiveTweet;
+- (oneway void)userStreamReceiveFavEvent:(TWTweet *)receiveTweet;
+- (oneway void)userStreamReceiveTweet:(TWTweet *)receiveTweet;
 
-- (void)getIconWithTweetArray:(NSMutableArray *)tweetArray;
-- (void)requestProfileImageWithURL:(NSString *)biggerUrl screenName:(NSString *)screenName searchName:(NSString *)searchName;
+- (oneway void)getIconWithTweetArray:(NSMutableArray *)tweetArray;
+- (oneway void)requestProfileImageWithURL:(NSString *)biggerUrl screenName:(NSString *)screenName searchName:(NSString *)searchName;
 - (void)refreshTimelineCell:(NSNumber *)index;
 - (void)openTimelineImage:(NSNotification *)notification;
 - (void)swipeTimelineRight:(UISwipeGestureRecognizer *)sender;
@@ -423,7 +423,6 @@ typedef enum {
         if ( [[TWTweets listID] isNotEmpty] ) {
             
             [self requestList:[TWTweets listID]];
-            [self setListSelect:NO];
         }
     }
 }
@@ -433,7 +432,8 @@ typedef enum {
     NSLog(@"%s", __func__);
     
     if ( [D boolForKey:@"BecomeActiveUSConnect"] &&
-         self.segment.selectedSegmentIndex == 0 ) {
+         self.segment.selectedSegmentIndex == 0 &&
+         self.addTweetStopMode ) {
         
         if ( !self.userStream ) [self pushReloadButton];
     }
@@ -481,7 +481,7 @@ typedef enum {
     [label setFrame:frame];
 }
 
-- (void)createTimelineGuesture {
+- (oneway void)createTimelineGuesture {
     
     UISwipeGestureRecognizer *swipeRight = [[UISwipeGestureRecognizer alloc] initWithTarget:self
                                                                                      action:@selector(swipeTimelineRight:)];
@@ -499,7 +499,7 @@ typedef enum {
     [self.timeline addGestureRecognizer:longPress];
 }
 
-- (void)addNotificationObservers {
+- (oneway void)addNotificationObservers {
  
     NSLog(@"%s", __func__);
     
@@ -627,7 +627,7 @@ typedef enum {
 
 #pragma mark - Request
 
-- (void)requestHomeTimeline {
+- (oneway void)requestHomeTimeline {
     
     NSLog(@"%s", __func__);
     
@@ -679,7 +679,7 @@ typedef enum {
                         parameters:parameters];
 }
 
-- (void)requestUserTimeline:(NSString *)screenName {
+- (oneway void)requestUserTimeline:(NSString *)screenName {
     
     if ( ![InternetConnection enable] ) {
         
@@ -707,7 +707,7 @@ typedef enum {
                         parameters:parameters];
 }
 
-- (void)requestMentions {
+- (oneway void)requestMentions {
     
     if ( ![InternetConnection enable] ) {
         
@@ -729,7 +729,7 @@ typedef enum {
                         parameters:parameters];
 }
 
-- (void)requestFavorites {
+- (oneway void)requestFavorites {
     
     if ( ![InternetConnection enable] ) {
         
@@ -751,7 +751,7 @@ typedef enum {
                         parameters:parameters];
 }
 
-- (void)requestSearch:(NSString *)searchWord {
+- (oneway void)requestSearch:(NSString *)searchWord {
     
     if ( ![InternetConnection enable] ) {
         
@@ -779,7 +779,7 @@ typedef enum {
                         parameters:parameters];
 }
 
-- (void)requestTweet:(NSString *)tweetID {
+- (oneway void)requestTweet:(NSString *)tweetID {
     
     NSLog(@"%s", __func__);
     
@@ -801,7 +801,7 @@ typedef enum {
                         parameters:parameters];
 }
 
-- (void)requestList:(NSString *)listID {
+- (oneway void)requestList:(NSString *)listID {
     
     NSLog(@"%s", __func__);
     
@@ -840,7 +840,7 @@ typedef enum {
 }
 
 #pragma mark - Receive Response
-- (void)receiveHomeTimeline:(NSNotification *)notification {
+- (oneway void)receiveHomeTimeline:(NSNotification *)notification {
     
     NSLog(@"%s", __func__);
     
@@ -891,7 +891,7 @@ typedef enum {
                 
                 [self scrollTimelineToBottom:YES];
                 
-            }else {
+            } else {
                 
                 //新着取得前の最新までスクロール
                 [self scrollTimelineForNewTweet:scrollTweetID];
@@ -914,7 +914,7 @@ typedef enum {
     }
 }
 
-- (void)receiveUserTimeline:(NSNotification *)notification {
+- (oneway void)receiveUserTimeline:(NSNotification *)notification {
     
     NSLog(@"%s", __func__);
     
@@ -951,7 +951,7 @@ typedef enum {
     }
 }
 
-- (void)receiveFavorites:(NSNotification *)notification {
+- (oneway void)receiveFavorites:(NSNotification *)notification {
     
     NSLog(@"%s", __func__);
     
@@ -969,7 +969,7 @@ typedef enum {
     }
 }
 
-- (void)receiveSearch:(NSNotification *)notification {
+- (oneway void)receiveSearch:(NSNotification *)notification {
     
     NSLog(@"%s", __func__);
     
@@ -988,14 +988,14 @@ typedef enum {
     }
 }
 
-- (void)receiveTweet:(NSNotification *)notification {
+- (oneway void)receiveTweet:(NSNotification *)notification {
     
     TWTweet *tweet = notification.userInfo[RESPONSE_DATA];
     [self.otherTweets addObject:tweet];
     [self createInReplyToChain:tweet];
 }
 
-- (void)receiveList:(NSNotification *)notification {
+- (oneway void)receiveList:(NSNotification *)notification {
     
     NSString *requestUserName = notification.userInfo[REQUEST_USER_NAME];
     
@@ -1011,7 +1011,7 @@ typedef enum {
     }
 }
 
-- (void)receiveProfile:(NSNotification *)notification {
+- (oneway void)receiveProfile:(NSNotification *)notification {
     
     NSLog(@"%s", __func__);
     
@@ -1026,7 +1026,7 @@ typedef enum {
         iconSize = IconSizeBigger;
     }else if ( [iconQualitySetting hasPrefix:@"Original"] ) {
         iconSize = IconSizeOriginal;
-    }else {
+    } else {
         iconSize = IconSizeBigger;
     }
     
@@ -1076,33 +1076,35 @@ typedef enum {
     [wRequest startAsynchronous];
 }
 
-- (void)receiveAPIError:(NSNotification *)notification {
+- (oneway void)receiveAPIError:(NSNotification *)notification {
     
     NSLog(@"%s", __func__);
     
     if ( notification.userInfo ) {
         
-        NSError *jsonError = nil;
         NSDictionary *errors = notification.userInfo[@"ErrorResponseData"];
         
-        if ( !jsonError ) {
+        if ( errors ) {
             
             NSDictionary *error = errors[@"errors"][0];
             NSLog(@"%@", error);
             
-            [ShowAlert title:error[@"message"]
-                     message:[NSString stringWithFormat:@"code: %@", [error[@"code"] stringValue]]];
+            NSString *message = error[@"message"];
+            NSString *code = [error[@"code"] stringValue];
             
-        }else {
-            
-            [ShowAlert error:errors.description];
+            if ( message && code ) {
+                
+                [ShowAlert title:code
+                         message:message];
+            }
         }
     }
     
     [self.grayView forceEnd];
+    [self finishLoad];
 }
 
-- (void)receiveOffline:(NSNotification *)notification {
+- (oneway void)receiveOffline:(NSNotification *)notification {
     
     [self.grayView forceEnd];
 }
@@ -1140,18 +1142,18 @@ typedef enum {
             
             [self createInReplyToChain:findTweet];
             
-        }else {
+        } else {
             
             [self requestTweet:inReplyToID];
         }
         
-    }else {
+    } else {
         
         if ( self.otherTweets.count <= 1 ) {
             
             [ShowAlert error:@"InReplyToIDがありません。"];
             
-        }else {
+        } else {
             
             [self setOtherTweetsMode];
             [self setCurrentTweets:self.otherTweets];
@@ -1160,7 +1162,7 @@ typedef enum {
     }
 }
 
-- (void)addFavorite:(NSString *)tweetID accountIndex:(NSInteger)accountIndex {
+- (oneway void)addFavorite:(NSString *)tweetID accountIndex:(NSInteger)accountIndex {
     
     NSMutableDictionary *parameters = [@{} mutableCopy];
     [parameters setObject:tweetID
@@ -1312,13 +1314,13 @@ typedef enum {
         
         [self showListView];
         
-    }else {
+    } else {
      
         if ( self.userStream ) {
             
             [self closeStream];
             
-        }else {
+        } else {
             
             [USER_STREAM_BUTTON setEnabled:NO];
             [self setUserStream:YES];
@@ -1554,7 +1556,7 @@ typedef enum {
                 [self.timeline reloadData];
             });
             
-        }else {
+        } else {
             
             //キャンセル
             return;
@@ -1689,7 +1691,7 @@ typedef enum {
         
         [USER_STREAM_BUTTON setEnabled:YES];
         
-    }else {
+    } else {
         
         [USER_STREAM_BUTTON setEnabled:NO];
     }
@@ -1701,13 +1703,13 @@ typedef enum {
         buttonImageName = @"list.png";
         [USER_STREAM_BUTTON setEnabled:YES];
         
-    }else {
+    } else {
         
         if ( self.userStream ) {
         
             buttonImageName = @"stop.png";
             
-        }else {
+        } else {
          
             buttonImageName = @"play.png";
         }
@@ -1844,7 +1846,7 @@ typedef enum {
     [self.userStreamTimer invalidate];
 }
 
-- (void)checkUserStreamQueue {
+- (oneway void)checkUserStreamQueue {
  
     if ( [self.userStreamQueue count] != 0 ) {
         
@@ -1858,7 +1860,7 @@ typedef enum {
                 //ふぁぼられ
                 [self userStreamReceiveFavEvent:addTweet];
                 
-            }else {
+            } else {
             
                 [self userStreamReceiveTweet:addTweet];
             }
@@ -1868,7 +1870,7 @@ typedef enum {
     }
 }
 
-- (void)userStreamDelete:(TWTweet *)receiveTweet {
+- (oneway void)userStreamDelete:(TWTweet *)receiveTweet {
     
     NSLog(@"%s", __func__);
     
@@ -1897,7 +1899,7 @@ typedef enum {
             dispatch_queue_t queue;
             if ( [NSThread isMainThread] ) {
                 queue = dispatch_get_current_queue();
-            }else {
+            } else {
                 queue = dispatch_get_main_queue();
             }
             
@@ -1911,7 +1913,7 @@ typedef enum {
     }
 }
 
-- (void)userStreamMyAddFavEvent:(TWTweet *)receiveTweet {
+- (oneway void)userStreamMyAddFavEvent:(TWTweet *)receiveTweet {
     
     NSLog(@"%s", __func__);
     
@@ -1920,7 +1922,7 @@ typedef enum {
     [self changeFavorite:favedTweetID];
 }
 
-- (void)userStreamMyRemoveFavEvent:(TWTweet *)receiveTweet {
+- (oneway void)userStreamMyRemoveFavEvent:(TWTweet *)receiveTweet {
     
     NSLog(@"%s", __func__);
     
@@ -1944,7 +1946,7 @@ typedef enum {
                 dispatch_queue_t queue;
                 if ( [NSThread isMainThread] ) {
                     queue = dispatch_get_current_queue();
-                }else {
+                } else {
                     queue = dispatch_get_main_queue();
                 }
                 
@@ -1963,7 +1965,7 @@ typedef enum {
     }
 }
 
-- (void)userStreamReceiveFavEvent:(TWTweet *)receiveTweet {
+- (oneway void)userStreamReceiveFavEvent:(TWTweet *)receiveTweet {
     
     NSLog(@"%s", __func__);
     
@@ -1982,7 +1984,7 @@ typedef enum {
     dispatch_queue_t queue;
     if ( [NSThread isMainThread] ) {
         queue = dispatch_get_current_queue();
-    }else {
+    } else {
         queue = dispatch_get_main_queue();
     }
     
@@ -1994,7 +1996,7 @@ typedef enum {
     });
 }
 
-- (void)userStreamReceiveTweet:(TWTweet *)receiveTweet {
+- (oneway void)userStreamReceiveTweet:(TWTweet *)receiveTweet {
     
     if ( self.segment.selectedSegmentIndex == TimelineSegmentTimeline ) {
      
@@ -2008,7 +2010,7 @@ typedef enum {
                 [self.currentTweets insertObject:receiveTweet
                                          atIndex:0];
                 
-            }else {
+            } else {
                 
                 [self setCurrentTweets:[self.currentTweets appendOnlyNewTweetToTop:@[receiveTweet]
                                                                      returnMutable:YES]];
@@ -2026,7 +2028,7 @@ typedef enum {
         dispatch_queue_t queue;
         if ( [NSThread isMainThread] ) {
             queue = dispatch_get_current_queue();
-        }else {
+        } else {
             queue = dispatch_get_main_queue();
         }
         
@@ -2136,7 +2138,7 @@ typedef enum {
         dispatch_queue_t queue;
         if ( [NSThread isMainThread] ) {
             queue = dispatch_get_current_queue();
-        }else {
+        } else {
             queue = dispatch_get_main_queue();
         }
         
@@ -2147,7 +2149,7 @@ typedef enum {
             [USER_STREAM_BUTTON setEnabled:YES];
         });
         
-    }else {
+    } else {
         
         [self closeStream];
     }
@@ -2168,7 +2170,7 @@ typedef enum {
 }
 
 #pragma mark - Timeline
-- (void)getIconWithTweetArray:(NSMutableArray *)tweetArray {
+- (oneway void)getIconWithTweetArray:(NSMutableArray *)tweetArray {
     
     NSMutableDictionary *userList = [NSMutableDictionary dictionary];
     
@@ -2227,7 +2229,7 @@ typedef enum {
                               forName:screenName
                      doneNotification:NO];
                     
-                    int index = 0;
+                    NSInteger index = 0;
                     for ( TWTweet *currentTweet in self.currentTweets ) {
                         
                         NSString *currentScreenName = currentTweet.screenName;
@@ -2252,14 +2254,14 @@ typedef enum {
                     
                     [ActivityIndicator off];
                     
-                }else {
+                } else {
                     
                     [self requestProfileImageWithURL:iconURL
                                           screenName:screenName
                                           searchName:searchName];
                 }
                 
-            }else {
+            } else {
                 
                 //アイコンファイルが保存されていない
                 [self requestProfileImageWithURL:iconURL
@@ -2267,7 +2269,7 @@ typedef enum {
                                       searchName:searchName];
             }
             
-        }else {
+        } else {
             
             //キャッシュ済み
             //NSLog(@"Cached User: %@", userName);
@@ -2275,7 +2277,7 @@ typedef enum {
     }
 }
 
-- (void)requestProfileImageWithURL:(NSString *)biggerUrl screenName:(NSString *)screenName searchName:(NSString *)searchName {
+- (oneway void)requestProfileImageWithURL:(NSString *)biggerUrl screenName:(NSString *)screenName searchName:(NSString *)searchName {
     
     if ( [screenName isNotEmpty] &&
          [biggerUrl isNotEmpty] &&
@@ -2360,10 +2362,9 @@ typedef enum {
                     
                         [ICON_BUTTON setImage:receiveImage
                                             forState:UIControlStateNormal];
-
                 }
                 
-                int index = 0;
+                NSInteger index = 0;
                 for ( TWTweet *tweet in self.currentTweets ) {
                     
                     NSString *currentScreenName = tweet.screenName;
@@ -2372,7 +2373,7 @@ typedef enum {
                         
                         [self refreshTimelineCell:@(index)];
                         
-                    }else {
+                    } else {
                         
                         if ( tweet.isReTweet ) {
                             
@@ -2400,7 +2401,7 @@ typedef enum {
     
     NSLog(@"%s", __func__);
     
-    int i = [index intValue];
+    NSInteger i = [index intValue];
     
     if ( self.currentTweets[i] == nil ||
          self.currentTweets.count - 1 < i ) return;
@@ -2408,7 +2409,7 @@ typedef enum {
     dispatch_queue_t queue;
     if ( [NSThread isMainThread] ) {
         queue = dispatch_get_current_queue();
-    }else {
+    } else {
         queue = dispatch_get_main_queue();
     }
     
@@ -2449,7 +2450,7 @@ typedef enum {
         
 //        [self showListSelectView];
         
-    }else {
+    } else {
         
         //InReplyTto表示中は何もしない
 //        if ( _otherTweetsMode ) return;
@@ -2543,7 +2544,7 @@ typedef enum {
     if ( tweetID == nil ||
         [tweetID isEmpty] ) return;
     
-    int index = 0;
+    NSInteger index = 0;
     BOOL find = NO;
     for ( TWTweet *tweet in [TWTweets currentTimeline] ) {
         
@@ -2593,7 +2594,7 @@ typedef enum {
         
         [self hideTimelineMenu:nil];
         
-    }else {
+    } else {
         
         NSString *screenName = sender.targetTweet.screenName;
         NSString *tweetID = sender.targetTweet.tweetID;
@@ -2618,7 +2619,7 @@ typedef enum {
                 [TWEvent unFavorite:tweetID
                        accountIndex:[D integerForKey:@"UseAccount"]];
                 
-            }else {
+            } else {
                 
                 [self changeFavorite:tweetID];
                 [self addFavorite:tweetID
@@ -2668,7 +2669,7 @@ typedef enum {
                 dispatch_queue_t queue;
                 if ( [NSThread isMainThread] ) {
                     queue = dispatch_get_current_queue();
-                }else {
+                } else {
                     queue = dispatch_get_main_queue();
                 }
                 
@@ -2771,7 +2772,7 @@ typedef enum {
         [TWTweets saveCurrentTimeline:self.currentTweets];
         [self.timeline reloadData];
         
-    }else {
+    } else {
         
         ASYNC_MAIN_QUEUE ^{
             
@@ -2843,7 +2844,7 @@ typedef enum {
         dispatch_queue_t queue;
         if ( [NSThread isMainThread] ) {
             queue = dispatch_get_current_queue();
-        }else {
+        } else {
             queue = dispatch_get_main_queue();
         }
         
@@ -2900,7 +2901,7 @@ typedef enum {
         
         return cell;
         
-    }else {
+    } else {
         
         TimelineAttributedCell *cell = (TimelineAttributedCell *)[tableView dequeueReusableCellWithIdentifier:CELL_IDENTIFIER];
         
@@ -2959,7 +2960,7 @@ typedef enum {
         
         [self hideTimelineMenu:nil];
         
-    }else {
+    } else {
      
         TWTweet *selectedTweet = self.currentTweets[indexPath.row];
         
@@ -2971,7 +2972,7 @@ typedef enum {
                                     targetId];
             [self openBrowser:favStarUrl];
             
-        }else {
+        } else {
             
             [self.timeline setScrollEnabled:NO];
             [self setSelectedTweet:selectedTweet];
@@ -3157,12 +3158,12 @@ typedef enum {
                     [ShowAlert title:@"API Limit"
                              message:resultString];
                     
-                }else {
+                } else {
                     
                     [ShowAlert error:error.description];
                 }
                 
-            }else {
+            } else {
                 
                 [ShowAlert error:@"API Limit取得エラー"];
             }
@@ -3324,7 +3325,7 @@ typedef enum {
             [TWEvent unFavorite:tweetID
                    accountIndex:account];
             
-        }else {
+        } else {
             
             [self addFavorite:tweetID
                  accountIndex:account];
@@ -3418,7 +3419,7 @@ typedef enum {
         
         result = [TWAccounts selectAccount:row].username;
         
-    }else {
+    } else {
         
         result = @[@"Fav／UnFav", @"ReTweet", @"Fav+RT"][row];
     }

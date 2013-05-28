@@ -58,14 +58,11 @@ typedef enum {
 @interface FPTRequest : TWRequest
 
 //GET
-+ (void)requestWithGetType:(FPTGetRequestType)getRequestType
++ (oneway void)requestWithGetType:(FPTGetRequestType)getRequestType
                 parameters:(NSDictionary *)parameters;
 
 //POST
-+ (void)requestWithPostType:(FPTPostRequestType)postRequestType
++ (oneway void)requestWithPostType:(FPTPostRequestType)postRequestType
                  parameters:(NSDictionary *)parameters;
-
-//SEARCH
-- (NSArray *)fixTwitterSearchResponse:(NSArray *)twitterSearchResponse;
 
 @end

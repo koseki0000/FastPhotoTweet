@@ -182,7 +182,7 @@
                              [NSNotificationCenter postNotificationCenterForName:@"APIError" withUserInfo:@{@"JSONData" : responseData}];
                              return;
                              
-                         }else {
+                         } else {
                              
                              NSDictionary *result = [responseDataString JSONValue];
                              
@@ -191,13 +191,13 @@
                                  [resultProfile setObject:@"Success" forKey:@"Result"];
                                  [resultProfile setObject:result forKey:@"Profile"];
                                  
-                             }else {
+                             } else {
                                  
                                  [resultProfile setObject:@"Error" forKey:@"Result"];
                              }
                          }
                          
-                     }else {
+                     } else {
                          
                          [resultProfile setObject:@"Error" forKey:@"Result"];
                      }
@@ -248,7 +248,7 @@
                      
                      [NSNotificationCenter postNotificationCenterForName:@"APIError" withUserInfo:@{@"JSONData" : responseData}];
                      
-                 }else {
+                 } else {
                      
                      NSDictionary *result = [responseDataString JSONValue];
                      TWTweet *tweet = [TWTweet tweetWithDictionary:result];
@@ -262,13 +262,13 @@
                              [resultProfile setObject:@"Success" forKey:@"Result"];
                              [resultProfile setObject:tweet forKey:@"Tweet"];
                              
-                         }else {
+                         } else {
                              
                              [ShowAlert error:[result objectForKey:@"error"]];
                              [resultProfile setObject:@"AuthorizeError" forKey:@"Result"];
                          }
                          
-                     }else {
+                     } else {
                          
                          [resultProfile setObject:@"Error" forKey:@"Result"];
                      }
@@ -322,7 +322,7 @@
                      [resultDestroy setObject:@"Success" forKey:@"Result"];
                      [resultDestroy setObject:tweet forKey:@"Tweet"];
                      
-                 }else {
+                 } else {
                      
                      [resultDestroy setObject:@"Error" forKey:@"Result"];
                  }

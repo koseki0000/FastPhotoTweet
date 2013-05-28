@@ -11,60 +11,72 @@
 
 - (id)objectForXPath:(NSString *)xpath separator:(NSString *)separator {
     
-    if ( [self isEmpty] || [xpath isEmpty] || [separator isEmpty] ) return self;
+    if ( [self isEmpty] ||
+         [xpath isEmpty] ||
+         [separator isEmpty] ) return self;
     
     while ( [xpath hasPrefix:separator] ) {
         
         xpath = [xpath substringFromIndex:1];
     }
     
-    NSMutableArray *separatedXPath = [[xpath componentsSeparatedByString:separator] mutableCopy];
+    NSMutableArray *separatedXPath = [[[xpath componentsSeparatedByString:separator] mutableCopy] autorelease];
     id object = nil;
     
     if ( [separatedXPath isNotEmpty] ) {
         
-        object = [self objectForKey:[separatedXPath objectAtIndex:0]];
+        object = self[separatedXPath[0]];
         [separatedXPath removeObjectAtIndex:0];
         
         if ( [separatedXPath isNotEmpty] ) {
         
-            int count = 0;
+            NSInteger count = 0;
             for ( NSString *path in separatedXPath ) {
                 
-                if ( [object isKindOfClass:[NSDictionary class]] ||
-                     [object isKindOfClass:[NSMutableDictionary class]] ) {
+                if ( [object isKindOfClass:[NSDictionary class]] ) {
                     
-                    if ( [[object objectForKey:path] isNotEmpty] ) {
+                    NSDictionary *dicObject = (NSDictionary *)object;
+                    if ( [dicObject[path] isNotEmpty] ) {
                         
-                        object = [object objectForKey:path];
+                        if ( count == [separatedXPath count] - 1 ) {
                         
-                    }else {
+                            object = dicObject[path];
+                        }
+                    
+                    } else {
                         
                         break;
                     }
                     
-                }else if ( [object isKindOfClass:[NSArray class]] ||
-                           [object isKindOfClass:[NSMutableArray class]] ) {
+                }else if ( [object isKindOfClass:[NSArray class]] ) {
                     
-                    int indexPath = [path intValue];
+                    NSInteger indexPath = [path integerValue];
+                    NSArray *arrayObject = (NSArray *)object;
+                    if ( [arrayObject isNotEmpty] ) {
                     
-                    if ( [(NSArray *)object isNotEmpty] ) {
-                    
-                        if ( ((NSArray *)object).count >= indexPath ) {
+                        if ( [arrayObject count] >= indexPath ) {
                             
-                            object = [object objectAtIndex:indexPath];
-                            
-                        }else {
+                            if ( count == [separatedXPath count] - 1 ) {
+                                
+                                object = arrayObject[indexPath];
+                            }
+                        
+                        } else {
                             
                             break;
                         }
                         
-                    }else {
+                    } else {
                         
                         break;
                     }
                     
-                }else {
+                }else if ( [object isKindOfClass:[NSString class]] ||
+                           [object isKindOfClass:[NSNumber class]] ) {
+                    
+                    return object;
+                    
+                } else {
                     
                     break;
                 }
@@ -72,18 +84,17 @@
                 count++;
             }
             
-            if ( count != separatedXPath.count ) object = nil;
+            if ( count != [separatedXPath count] ) object = nil;
         }
     }
-    
-    [separatedXPath release];
     
     return object;
 }
 
 - (id)objectForXPath:(NSString *)xpath {
     
-    return [self objectForXPath:xpath separator:@"/"];
+    return [self objectForXPath:xpath
+                      separator:@"/"];
 }
 
 @end

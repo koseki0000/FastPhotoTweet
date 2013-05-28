@@ -22,7 +22,7 @@
                            animated:YES
                          completion:nil];
         
-    }else {
+    } else {
         
         [self presentModalViewController:modalViewController
                                 animated:YES];
@@ -36,7 +36,7 @@
         [modalViewController dismissViewControllerAnimated:YES
                                                 completion:nil];
         
-    }else {
+    } else {
         
         [modalViewController dismissModalViewControllerAnimated:YES];
     }

@@ -151,7 +151,7 @@ static NSInteger const kAttributedLabelTag = 100;
 //        
 //        queue = dispatch_get_current_queue();
 //        
-//    }else {
+//    } else {
 //        
 //        queue = dispatch_get_main_queue();
 //    }
@@ -188,7 +188,7 @@ static NSInteger const kAttributedLabelTag = 100;
         
         [self.userIconView setImage:[[Share images] imageForKey:screenName]];
         
-    }else {
+    } else {
         
         [self.userIconView setImage:nil];
     }
@@ -198,7 +198,7 @@ static NSInteger const kAttributedLabelTag = 100;
         
         [self.rtUserIconView setImage:[[Share images] imageForKey:userName]];
         
-    }else {
+    } else {
         
         [self.rtUserIconView setImage:nil];
     }

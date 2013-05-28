@@ -416,7 +416,7 @@ NSDataDetector* sharedReusableDataDetector(NSTextCheckingTypes types)
                     //通知を実行
                     [[NSNotificationCenter defaultCenter] postNotification:notification];
                     
-                }else {
+                } else {
                     
                     NSNotification *notification =[NSNotification notificationWithName:@"OpenTimelineURL"
                                                                                 object:self

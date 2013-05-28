@@ -67,7 +67,7 @@
                 result = ((NSURL *)self).absoluteString.length == 0;
             }
             
-        }else {
+        } else {
             
             result = YES;
         }

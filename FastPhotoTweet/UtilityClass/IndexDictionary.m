@@ -61,7 +61,7 @@
         
         return [[_items allKeys] sortedArrayUsingSelector:@selector(caseInsensitiveCompare:)];
         
-    }else {
+    } else {
         
         return [_items allKeys];
     }
@@ -96,7 +96,7 @@
         
         return nil;
         
-    }else {
+    } else {
         
         return [_items objectForKey:[_sortedIndexKeys objectAtIndex:index]];
     }
@@ -110,7 +110,7 @@
         
         return nil;
         
-    }else {
+    } else {
         
         return [_sortedIndexKeys objectAtIndex:index];
     }
@@ -304,7 +304,7 @@
         _iteratorIndex = 0;
         return [self objectAtIndex:_iteratorIndex];
         
-    }else {
+    } else {
         
         return nil;
     }
@@ -318,7 +318,7 @@
         _iteratorIndex = _sortedIndexKeys.count - 1;
         return [self objectAtIndex:_iteratorIndex];
         
-    }else {
+    } else {
         
         return nil;
     }
@@ -336,7 +336,7 @@
         _iteratorIndex++;
         return [self objectAtIndex:_iteratorIndex];
         
-    }else {
+    } else {
         
         return nil;
     }
@@ -349,7 +349,7 @@
         _iteratorIndex--;
         return [self objectAtIndex:_iteratorIndex];
         
-    }else {
+    } else {
         
         return nil;
     }

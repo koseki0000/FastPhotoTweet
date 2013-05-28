@@ -64,7 +64,7 @@ typedef enum {
             [self.multiTextFieldBottom setTag:TextFieldTypeMultiBottom];
             [self addSubview:self.multiTextFieldBottom];
             
-        }else {
+        } else {
             
             self.singleTextField = [[UITextField alloc] initWithFrame:CGRectMake(12.0f,
                                                                                  40.0f,
@@ -97,7 +97,7 @@ typedef enum {
                             withObject:self.multiTextFieldBottom.text];
 #pragma clang diagnostic pop
         
-    }else {
+    } else {
         
 #pragma clang diagnostic push
 #pragma clang diagnostic ignored "-Warc-performSelector-leaks"
@@ -115,7 +115,7 @@ typedef enum {
         
         [self.multiTextFieldTop becomeFirstResponder];
         
-    }else {
+    } else {
         
         [self.singleTextField becomeFirstResponder];
     }
@@ -136,7 +136,7 @@ typedef enum {
         [self.multiTextFieldBottom becomeFirstResponder];
         return NO;
         
-    }else {
+    } else {
      
         [self doAction];
         [self dismissWithClickedButtonIndex:CANCEL_BUTTON

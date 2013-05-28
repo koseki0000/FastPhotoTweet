@@ -179,7 +179,7 @@
                 
                 urlString = originalURL;
                 
-            }else {
+            } else {
              
                 NSString *fullUrl = [sourceCode stringWithRegExp:@"https?://i[0-9]+\\.pixiv\\.net/img[0-9]+/img/[-_a-zA-Z0-9]+/[0-9]+(_s)?\\.(jpe?g|png)"];
                 
@@ -217,7 +217,7 @@
             
             [request setValue:@"http://www.touch.pixiv.net/" forHTTPHeaderField:@"Referer"];
             
-        }else {
+        } else {
             
             [request setValue:@"http://www.pixiv.net/" forHTTPHeaderField:@"Referer"];
         }

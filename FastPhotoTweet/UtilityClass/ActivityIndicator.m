@@ -17,7 +17,7 @@
             
             [UIApplication sharedApplication].networkActivityIndicatorVisible = YES;
             
-        }else {
+        } else {
             
             [UIApplication sharedApplication].networkActivityIndicatorVisible = NO;
             

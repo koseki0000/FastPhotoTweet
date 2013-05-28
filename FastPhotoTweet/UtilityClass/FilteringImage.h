@@ -38,6 +38,9 @@
 + (BOOL)canUseFilter:(NSString *)checkFilterName;
 + (void)showFilterErrorAlert;
 
+#pragma mark - CornerRadius
+- (UIImage *)maskImage:(UIImage *)image withMask:(UIImage *)maskImage;
+
 #pragma mark - Debug
 + (void)outPutFilterName;
 

@@ -18,7 +18,7 @@
         
         result = YES;
         
-    }else {
+    } else {
         
         [ShowAlert error:@"モバイル回線に接続されていません。"];
     }
@@ -35,7 +35,7 @@
         
         result = YES;
         
-    }else {
+    } else {
         
         [ShowAlert error:@"Wi-Fiに接続されていません。"];
     }
@@ -52,7 +52,7 @@
         
         result = YES;
         
-    }else {
+    } else {
         
         [ShowAlert error:@"インターネットに接続されていません。"];
         

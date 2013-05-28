@@ -168,7 +168,7 @@
         
         self.frame = CGRectMake(x, y, w, h);
         
-    }else {
+    } else {
         
         isInit = NO;
     }
@@ -302,7 +302,7 @@
         URLReq = [NSURLRequest requestWithURL:URL];
         [self loadRequest:URLReq];
         
-    }else {
+    } else {
         
         NSLog(@"not http(s) address");
         
@@ -316,7 +316,7 @@
             [UIApplication sharedApplication].networkActivityIndicatorVisible = NO;
             [[UIApplication sharedApplication] openURL:URL];
             
-        }else {
+        } else {
             
             //そのままアクセス出来なそうでURLSchemeでもない
             //http://を付けてみる

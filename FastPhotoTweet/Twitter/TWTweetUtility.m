@@ -48,7 +48,7 @@
         
         return [NSString stringWithString:replacedText];
         
-    }else {
+    } else {
         
         return @"";
     }
@@ -71,7 +71,7 @@
             
             expandedURL = url[@"expanded_url"];
             
-        }else {
+        } else {
             
             expandedURL = url[@"media_url_https"];
         }

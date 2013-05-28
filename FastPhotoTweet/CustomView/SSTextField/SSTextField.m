@@ -98,7 +98,7 @@
         newRange = [self textRangeFromPosition:newPosition
                                     toPosition:newPosition];
         
-    }else {
+    } else {
         
         newRange = [self textRangeFromPosition:newPosition
                                     toPosition:currentRange.end];

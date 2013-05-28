@@ -45,7 +45,7 @@
         
         [self dismissViewControllerAnimated:YES completion:nil];
         
-    }else {
+    } else {
         
         [self dismissModalViewControllerAnimated:YES];
     }
@@ -143,7 +143,7 @@
         
         [self dismissViewControllerAnimated:YES completion:nil];
         
-    }else {
+    } else {
         
         [self dismissModalViewControllerAnimated:YES];
     }

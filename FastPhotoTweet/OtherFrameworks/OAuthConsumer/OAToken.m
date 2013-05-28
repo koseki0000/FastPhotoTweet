@@ -206,7 +206,7 @@
 	[attributes release];
 	if (theAttributes) {
 		attributes = [[NSMutableDictionary alloc] initWithDictionary:theAttributes];
-	}else {
+	} else {
 		attributes = nil;
 	}
 	

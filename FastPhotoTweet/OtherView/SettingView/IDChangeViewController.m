@@ -84,7 +84,7 @@
         
         [self dismissViewControllerAnimated:YES completion:nil];
         
-    }else {
+    } else {
         
         [self dismissModalViewControllerAnimated:YES];
     }
@@ -119,7 +119,7 @@
     //使用中のアカウントにチェックマークを付ける
     if ( indexPath.row == [d integerForKey:@"UseAccount"] ) {
         cell.numberLabel.text = [NSString stringWithFormat:@"✓ %d", indexPath.row + 1];
-    }else {
+    } else {
         cell.numberLabel.text = [NSString stringWithFormat:@"　 %d", indexPath.row + 1];
     }
     
@@ -188,7 +188,7 @@
         
         [self dismissViewControllerAnimated:YES completion:nil];
         
-    }else {
+    } else {
         
         [self dismissModalViewControllerAnimated:YES];
     }

@@ -100,13 +100,13 @@
                     result = YES;
                 }
                 
-            }else {
+            } else {
                 
                 //わからん
                 //NSLog(@"Unknown Obj type");
             }
             
-        }else {
+        } else {
             
             //NSLog(@"Obj is nil");
         }

@@ -64,7 +64,7 @@
                                                                       [planeFileName length] - 7)];
         resizedIconURL = [NSString stringWithFormat:@"%@%@", planeFileName, URLSuffix];
         
-    }else {
+    } else {
         
         return iconURL;
     }

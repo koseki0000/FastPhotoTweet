@@ -156,7 +156,7 @@
                                                     range:NSMakeRange(0, self.length)
                                              withTemplate:targetWord] mutableCopy] autorelease];
         
-    }else {
+    } else {
         
         return @"";
     }

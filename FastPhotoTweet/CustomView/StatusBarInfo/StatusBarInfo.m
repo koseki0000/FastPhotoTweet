@@ -219,7 +219,7 @@
                 break;
         }
         
-    }else {
+    } else {
         
         DISPATCH_AFTER(0.3) ^{
             

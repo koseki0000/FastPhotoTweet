@@ -108,7 +108,7 @@
         
         [self setMenuViewPosition];
         
-    }else {
+    } else {
         
         [self setDefaultViewPosition];
     }

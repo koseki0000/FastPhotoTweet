@@ -24,7 +24,7 @@
         encodedImageData = UIImageJPEGRepresentation(encodeImage, 0.95);
     }else if ( [[d objectForKey:@"SaveImageType"] isEqualToString:@"PNG"] ) {
         encodedImageData = UIImagePNGRepresentation(encodeImage);
-    }else {
+    } else {
         encodedImageData = UIImageJPEGRepresentation(encodeImage, 0.8);
     }
     

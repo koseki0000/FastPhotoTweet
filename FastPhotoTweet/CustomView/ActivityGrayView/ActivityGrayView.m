@@ -128,7 +128,7 @@
                          }
          ];
         
-    }else {
+    } else {
         
         NSLog(@"start else[%d]", _startCount);
     }

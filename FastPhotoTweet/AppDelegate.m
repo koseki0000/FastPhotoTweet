@@ -115,7 +115,7 @@ void uncaughtExceptionHandler(NSException *e) {
     
     if ( launchOptions == NULL ) {
         launchMode = 0;
-    }else {
+    } else {
         launchMode = 1;
     }
     
@@ -207,7 +207,7 @@ void uncaughtExceptionHandler(NSException *e) {
                [hardwareName hasPrefix:@"i386"] ) {
         hardwareName = @"iOS Simulator";
 //        reloadInterval = 0.3;
-    }else {
+    } else {
         hardwareName = @"OtherDevice";
 //        reloadInterval = 0.35;
     }
@@ -227,7 +227,7 @@ void uncaughtExceptionHandler(NSException *e) {
         stats = nil;
         debugMode = NO;
         
-    }else {
+    } else {
 
         stats = [[Stats alloc] initWithFrame:CGRectMake(5, 25, 100.0, 60.0)];
         [self.window addSubview:stats];

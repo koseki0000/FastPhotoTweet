@@ -141,14 +141,14 @@
                 
                 match = YES;
                 
-            }else {
+            } else {
                 
                 if ( regexp ) {
                     
                     //正規表現を使う場合
                     if ( [text boolWithRegExp:word] ) match = YES;
                     
-                }else {
+                } else {
                     
                     //正規表現を使わない場合
                     if ( [text rangeOfString:word].location != NSNotFound ) match = YES;
@@ -171,7 +171,7 @@
                         [ngList addObject:[NSNumber numberWithInt:index]];
                     }
                     
-                }else {
+                } else {
                     
                     //自分のTweetでもNG
                     //NSLog(@"[%d:%@]%@", index, word, [tweet objectForKey:@"text"]);

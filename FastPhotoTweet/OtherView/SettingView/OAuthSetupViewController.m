@@ -185,12 +185,12 @@
             
             [self dismissViewControllerAnimated:YES completion:nil];
             
-        }else {
+        } else {
             
             [self dismissModalViewControllerAnimated:YES];
         }
 		
-	}else {
+	} else {
         
         //NSLog(@"ticket.didSucceed Error");
         
@@ -260,7 +260,7 @@
 		match = [regexp firstMatchInString:responseString 
                                    options:0 
                                      range:NSMakeRange(0, responseString.length)];
-	}else {
+	} else {
         
         [ShowAlert error:@"PINコードが不正です。"];
         
@@ -276,7 +276,7 @@
         
 		[self performSelector:@selector(finish) withObject:nil afterDelay:0.1];
         
-	}else {
+	} else {
         
         [ShowAlert error:@"PINコードが不正です。"];
                 
@@ -348,7 +348,7 @@
         
         [self dismissViewControllerAnimated:YES completion:nil];
         
-    }else {
+    } else {
         
         [self dismissModalViewControllerAnimated:YES];
     }

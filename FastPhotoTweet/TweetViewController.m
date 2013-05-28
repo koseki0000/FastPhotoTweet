@@ -9,6 +9,7 @@
 #import "Share.h"
 #import "NSNotificationCenter+EasyPost.h"
 #import "TWTweets.h"
+#import "CheckAppVersion.h"
 
 #define APP_VERSION [[[NSBundle mainBundle] infoDictionary] objectForKey:@"CFBundleShortVersionString"]
 
@@ -48,6 +49,10 @@
     
     dispatch_queue_t asyncQueue = GLOBAL_QUEUE_DEFAULT;
     dispatch_async(asyncQueue, ^{
+    
+        CheckAppVersion *checker = [[CheckAppVersion alloc] init];
+        [checker versionInfoURL:@"http://fpt.ktysne.info/latest_version_info.txt"
+                   updateIpaURL:@"itms-services://?action=download-manifest&url=http://fpt.ktysne.info/FastPhotoTweet.plist"];
         
         SYNC_MAIN_QUEUE ^{
             
@@ -176,7 +181,7 @@
         
         [uuidString release];
         
-    }else {
+    } else {
         
         //NSLog(@"UUID: %@", [d objectForKey:@"UUID"]);
     }
@@ -265,7 +270,7 @@
         
         [d setObject:accounts forKey:@"TimelineList"];
         
-    }else {
+    } else {
         
         NSMutableDictionary *accounts = [[[d objectForKey:@"TimelineList"] mutableCopy] autorelease];
         
@@ -349,7 +354,7 @@
             //NSLog(@"newVersion");
             
             [ShowAlert title:[NSString stringWithFormat:@"FastPhotoTweet %@", APP_VERSION]
-                     message:@"・Timelineの表示速度の改善\n・ふぁぼり速度の改善\n・その他細かな修正"];
+                     message:@"・AdHoc版更新確認機能の追加\n・その他多数のバグ修正"];
             
             information = [[[NSMutableDictionary alloc] initWithDictionary:[d dictionaryForKey:@"Information"]] autorelease];
             [information setValue:[NSNumber numberWithInt:1] forKey:APP_VERSION];
@@ -405,7 +410,7 @@
                                          parameters:@{@"status" : text,
                      @"in_reply_to_status_id" : inReplyToId}];
                     
-                }else {
+                } else {
                     
                     //画像投稿先がTwitterの場合
                     if (( [[d objectForKey:@"PhotoService"] isEqualToString:@"Twitter"] ||
@@ -418,7 +423,7 @@
                          @"in_reply_to_status_id" : inReplyToId,
                          @"image" : _imagePreview.image}];
                         
-                    }else {
+                    } else {
                         
                         //画像投稿先がimg.urかTwitpicもしくは画像の再投稿
                         [FPTRequest requestWithPostType:FPTPostRequestTypeText
@@ -555,14 +560,14 @@
             [sheet autorelease];
             [sheet showInView:APP_DELEGATE.tabBarController.self.view];
             
-        }else {
+        } else {
             
             //連続投稿確認がOFF
             repeatedPost = NO;
             [self showImagePicker];
         }
         
-    }else {
+    } else {
         
         //カメラ
         repeatedPost = NO;
@@ -605,7 +610,7 @@
         
         [d setBool:YES forKey:@"CallBack"];
         
-    }else {
+    } else {
         
         [d setBool:NO forKey:@"CallBack"];
     }
@@ -618,7 +623,7 @@
         
         [d setBool:YES forKey:@"PasteBoardCheck"];
         
-    }else {
+    } else {
         
         [d setBool:NO forKey:@"PasteBoardCheck"];
     }
@@ -656,7 +661,7 @@
             [sheet autorelease];
             [sheet showInView:APP_DELEGATE.tabBarController.self.view];
             
-        }else {
+        } else {
             
             actionSheetNo = 7;
             
@@ -787,7 +792,7 @@
 //        _resendButton.enabled = NO;
         _resendButton.enabled = YES;
         
-    }else {
+    } else {
         
         _resendButton.enabled = YES;
     }
@@ -849,7 +854,7 @@
             NSLog(@"  launchMode == 2");
             [self showActionMenu];
             
-        }else {
+        } else {
             
             if ( APP_DELEGATE.launchMode == 1 ) {
                 
@@ -914,7 +919,7 @@
         
         return;
         
-    }else {
+    } else {
         
         picPicker.sourceType = UIImagePickerControllerSourceTypePhotoLibrary;
     }
@@ -939,7 +944,7 @@
             
             [picPicker dismissViewControllerAnimated:YES completion:nil];
             
-        }else {
+        } else {
             
             [picPicker dismissModalViewControllerAnimated:YES];
         }
@@ -949,7 +954,7 @@
         
         image = nil;
         
-    }else {
+    } else {
      
         showImagePicker = NO;
         
@@ -965,7 +970,7 @@
                 
                 [picPicker dismissViewControllerAnimated:YES completion:nil];
                 
-            }else {
+            } else {
                 
                 [picPicker dismissModalViewControllerAnimated:YES];
             }
@@ -978,7 +983,7 @@
                 
                 [picPicker dismissViewControllerAnimated:YES completion:nil];
                 
-            }else {
+            } else {
                 
                 [picPicker dismissModalViewControllerAnimated:YES];
             }
@@ -1023,7 +1028,7 @@
         
         [picPicker dismissViewControllerAnimated:YES completion:nil];
         
-    }else {
+    } else {
         
         [picPicker dismissModalViewControllerAnimated:YES];
     }
@@ -1083,7 +1088,7 @@
                 service = 2;
             }
             
-        }else {
+        } else {
             
             if ( [[d objectForKey:@"PhotoService"] isEqualToString:@"img.ur"] ) {
                 
@@ -1261,7 +1266,7 @@
                     
                     self.assets = [NSMutableArray array];
                     
-                }else {
+                } else {
                     
                     [self.assets removeAllObjects];
                 }
@@ -1270,7 +1275,7 @@
                     
                     self.groups = [NSMutableArray array];
                     
-                }else {
+                } else {
                     
                     [self.groups removeAllObjects];
                 }
@@ -1297,7 +1302,7 @@
                                                                   [self.assets addObject:asset];
                                                                   *stop = YES;
                                                                   
-                                                              }else {
+                                                              } else {
                                                                   
                                                                   if ( self.assets.count != 0 ) {
                                                                       
@@ -1309,7 +1314,7 @@
                                                                       [self.imagePreview setImage:image];
                                                                       [self uploadImage:image];
                                                                       
-                                                                  }else {
+                                                                  } else {
                                                                       
                                                                       [ShowAlert error:@"画像が取得出来ません。"];
                                                                   }
@@ -1331,7 +1336,7 @@
             
             return;
             
-        }else {
+        } else {
             
             //キャンセル
             showImagePicker = NO;
@@ -1352,7 +1357,7 @@
             
             repeatedPost = NO;
             
-        }else {
+        } else {
             
             return;
         }
@@ -1368,7 +1373,7 @@
                                            @selector(savingImageIsFinished:didFinishSavingWithError:contextInfo:),
                                            nil);
             
-        }else {
+        } else {
             
             errorImage = nil;
         }
@@ -1403,7 +1408,7 @@
                 
                 [ShowAlert error:@"Twitterへのアップロードは本文の投稿と同時に行われます。"];
                 
-            }else {
+            } else {
                 
                 [self uploadImage:_imagePreview.image];
             }
@@ -1527,7 +1532,7 @@
             sec = 60 * 90;
         }else if ( buttonIndex == 5 ) {
             sec = 60 * 120;
-        }else {
+        } else {
             return;
         }
         
@@ -1575,7 +1580,7 @@
                 
                 [ShowAlert error:@"Twitterへのアップロードは本文の投稿と同時に行われます。"];
                 
-            }else {
+            } else {
                 
                 [self uploadImage:_imagePreview.image];
             }
@@ -1679,7 +1684,7 @@
         
         _postButton.enabled = NO;
         
-    }else {
+    } else {
         
         _postButton.enabled = YES;
     }
@@ -1745,7 +1750,7 @@
                 [request addPostValue:_postText.text forKey:@"message"];
                 [request addData:imageData forKey:@"media"];
                 
-            }else {
+            } else {
                 
                 [d setObject:@"img.ur" forKey:@"PhotoService"];
                 
@@ -1780,7 +1785,7 @@
                 [_postText resignFirstResponder];
                 self.tabBarController.selectedIndex = 1;
                 
-            }else {
+            } else {
                 
                 //CallbackSchemeがアクセス可能な物がテスト
                 canOpen = [[UIApplication sharedApplication] canOpenURL:[NSURL URLWithString:[d objectForKey:@"CallBackScheme"]]];
@@ -1793,7 +1798,7 @@
                     [ShowAlert error:@"コールバックスキームが有効でありません。"];
                     
                     //コールバックスキームを開くことが出来る
-                }else {
+                } else {
                     
                     //NSLog(@"CallBack");
                     
@@ -1938,7 +1943,7 @@
             resultText = [resultText replaceMutableWord:@"[pc]" replacedWord:playCountStr];
             resultText = [resultText replaceMutableWord:@"[rt]" replacedWord:ratingStr];
             
-        }else {
+        } else {
             
             //NSLog(@"default");
             
@@ -2070,7 +2075,7 @@
                 [request addPostValue:_postText.text forKey:@"message"];
                 [request addData:imageData forKey:@"media"];
                 
-            }else {
+            } else {
                 
                 //Twitpic投稿が不可な場合はimg.urに投稿
                 request.url = [NSURL URLWithString:@"http://api.imgur.com/2/upload.json"];
@@ -2117,7 +2122,7 @@
                         pboardString = [pboard.string substringWithRange:match.range];
                     }
                     
-                }else {
+                } else {
                     
                     [ShowAlert error:[NSString stringWithFormat:@"CODE: 01\n%@", error.localizedDescription]];
                     [ActivityIndicator visible:NO];
@@ -2233,7 +2238,7 @@
         
         [ShowAlert error:@"iPod再生中に使用してください。"];
         
-    }else {
+    } else {
         
         [ShowAlert error:@"文章が140字を超えています。"];
         
@@ -2275,7 +2280,7 @@
         [ShowAlert error:@"iPod再生中に使用してください。"];
         
         //140字を超えていた場合
-    }else {
+    } else {
         
         //NSLog(@"SongTitleOverCapacity");
         
@@ -2303,7 +2308,7 @@
             
         }@catch ( NSException *e ) {}
         
-    }else {
+    } else {
         
         //NSLog(@"pBoardType not text");
     }
@@ -2333,7 +2338,7 @@
         //Post入力状態にする
         [_postText becomeFirstResponder];
         
-    }else {
+    } else {
         
         //NSLog(@"pBoardType not Photo");
         
@@ -2406,7 +2411,7 @@
                     
                     [_postText setSelectedRange:NSMakeRange(0, 0)];
                     
-                }else {
+                } else {
                     
                     [_postText setSelectedRange:NSMakeRange(_postText.text.length, 0)];
                 }
@@ -2417,7 +2422,7 @@
                     
                     [_postText setSelectedRange:NSMakeRange(0, 0)];
                     
-                }else {
+                } else {
                     
                     [_postText setSelectedRange:NSMakeRange(_postText.text.length, 0)];
                 }
@@ -2458,7 +2463,7 @@
             
             _resendButton.enabled = NO;
             
-        }else {
+        } else {
             
             _resendButton.enabled = YES;
         }

@@ -132,16 +132,13 @@
                                                                   forWidth:210.0f];
                 }
                 
-                dispatch_async(dispatch_get_global_queue(0, 0), ^{
-                    
-                    [cell setTweetData:self.tweet
-                             cellWidth:210.0f];
-                });
+                [cell setTweetData:self.tweet
+                         cellWidth:210.0f];
             }
             
             return cell;
             
-        }else {
+        } else {
             
             TimelineAttributedCell *cell = (TimelineAttributedCell *)[tableView dequeueReusableCellWithIdentifier:CELL_IDENTIFIER];
             
@@ -154,17 +151,14 @@
                                                                 forWidth:210.0f];
                 }
                 
-                dispatch_async(dispatch_get_global_queue(0, 0), ^{
-                    
-                    [cell setTweetData:self.tweet
-                             cellWidth:210.0f];
-                });
+                [cell setTweetData:self.tweet
+                         cellWidth:210.0f];
             }
             
             return cell;
         }
         
-    }else {
+    } else {
         
         TimelineMenuCell *cell = (TimelineMenuCell *)[tableView dequeueReusableCellWithIdentifier:@"TimelineMenuCell"];
         
@@ -198,7 +192,7 @@
                                     minHeight:31.0f
                                 lineBreakMode:NSLineBreakByCharWrapping] + 25.0f;
         
-    }else {
+    } else {
         
         return 44.0f;
     }
@@ -236,7 +230,7 @@
                          animated:YES];
                 [self startRemoveAllTimer];
                 
-            }else {
+            } else {
                 
                 NSInteger index = indexPath.row - 1;
                 
@@ -270,7 +264,7 @@
                         [TWEvent unFavorite:tweetId
                                accountIndex:[D integerForKey:@"UseAccount"]];
                         
-                    }else {
+                    } else {
                         
                         [TWEvent favorite:tweetId
                              accountIndex:[D integerForKey:@"UseAccount"]];
@@ -345,7 +339,7 @@
             
                 text = _tweet.originalText;
                 
-            }else {
+            } else {
             
                 text = _tweet.text;
             }
@@ -382,7 +376,7 @@
                     self.menuTable.userInteractionEnabled = NO;
                     [self startRemoveAllTimer];
                     
-                }else {
+                } else {
                     
                     [ShowAlert error:@"URLがありません。"];
                 }
@@ -436,7 +430,7 @@
                                  menuIndex:indexPath.row];
                     });
                     
-                }else {
+                } else {
                     
                     [_nextMenuList insertObject:_tweet atIndex:0];
                     _count = 0;
@@ -447,7 +441,7 @@
                 }
                 /////////////
                 
-            }else {
+            } else {
                 
                 self.selectUser = @"";
                 self.nextMenuList = [NSMutableArray arrayWithArray:FORROW_MENU];
@@ -467,7 +461,7 @@
                 
                 self.selectUser = currentTweet.screenName;
                 
-            }else {
+            } else {
                 
                 self.selectUser = [_menuList objectAtIndex:indexPath.row];
             }
@@ -493,7 +487,7 @@
                 
                 self.selectUser = currentTweet.screenName;
                 
-            }else {
+            } else {
                 
                 self.selectUser = [NSString stringWithString:[_menuList objectAtIndex:0]];
             }
@@ -545,7 +539,7 @@
             }else if ( indexPath.row == 12 ) {
                 //ユーザーメニュー
                 _menuNo = 2;
-            }else {
+            } else {
                 //それ以外
                 _menuNo = 0;
             }
@@ -650,7 +644,7 @@
             [wself startRemoveAllTimer];
         });
         
-    }else {
+    } else {
         
         [self addNewListItems];
     }
@@ -675,7 +669,7 @@
                     
                     [wself addNewListItems];
                     
-                }else {
+                } else {
                     
                     wself.menuTable.userInteractionEnabled = YES;
                 }

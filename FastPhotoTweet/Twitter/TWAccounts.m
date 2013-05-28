@@ -25,7 +25,7 @@
      
         return [accounts objectAtIndex:[[NSUserDefaults standardUserDefaults] integerForKey:@"UseAccount"]];
         
-    }else {
+    } else {
         
         return nil;
     }
@@ -40,7 +40,7 @@
         
         return ((ACAccount *)[accounts objectAtIndex:[[NSUserDefaults standardUserDefaults] integerForKey:@"UseAccount"]]).username;
         
-    }else {
+    } else {
         
         return @"";
     }
@@ -56,7 +56,7 @@
             
             return [[TWAccounts twitterAccounts] objectAtIndex:index];
             
-        }else {
+        } else {
             
             return nil;
         }

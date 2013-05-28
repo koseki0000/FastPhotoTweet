@@ -44,7 +44,7 @@
             resizeWidth = maxSize;
             resizeHeight = maxSize;
             
-        }else {
+        } else {
             
             return image;
         }
@@ -71,13 +71,13 @@
                 resizeWidth = maxSize;
                 resizeHeight = originalHeight / ratio;
                 
-            }else {
+            } else {
                 
                 return image;
             }
             
         //指定サイズ以下、リサイズ無し
-        }else {
+        } else {
             
             //NSLog(@"No resize");
             
@@ -130,7 +130,7 @@
             resizeWidth = maxSize;
             resizeHeight = maxSize;
             
-        }else {
+        } else {
             
             return image;
         }
@@ -157,13 +157,13 @@
                 resizeWidth = maxSize;
                 resizeHeight = originalHeight / ratio;
                 
-            }else {
+            } else {
                 
                 return image;
             }
             
         //指定サイズ以下、リサイズ無し
-        }else {
+        } else {
             
             return image;
         }
