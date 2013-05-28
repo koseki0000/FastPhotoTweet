@@ -433,7 +433,7 @@ typedef enum {
     
     if ( [D boolForKey:@"BecomeActiveUSConnect"] &&
          self.segment.selectedSegmentIndex == 0 &&
-         self.addTweetStopMode ) {
+         !self.addTweetStopMode ) {
         
         if ( !self.userStream ) [self pushReloadButton];
     }
