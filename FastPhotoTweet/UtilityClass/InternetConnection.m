@@ -6,6 +6,7 @@
 //
 
 #import "InternetConnection.h"
+#import "ShowAlert.h"
 
 @implementation InternetConnection
 

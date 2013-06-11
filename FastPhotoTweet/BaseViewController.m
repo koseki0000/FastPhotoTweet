@@ -52,7 +52,7 @@
     return isDir;
 }
 
-- (void)addTackNotification:(NSString *)text {
+- (void)addTaskNotification:(NSString *)text {
     
     NSNotification *notification = [NSNotification notificationWithName:@"AddStatusBarTask"
                                                                  object:self

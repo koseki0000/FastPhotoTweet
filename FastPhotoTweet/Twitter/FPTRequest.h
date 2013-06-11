@@ -21,6 +21,7 @@
 #define SEARCH_DONE_NOTIFICATION @"SearchDoneNotification"
 #define TWEET_DONE_NOTIFICATION @"TweetDoneNotification"
 #define PROFILE_DONE_NOTIFICATION @"ProfileDoneNotification"
+
 #define LISTS_LIST_DONE_NOTIFICATION @"ListsListDoneNotification"
 #define LIST_DONE_NOTIFICATION @"ListDoneNotification"
 
@@ -64,5 +65,8 @@ typedef enum {
 //POST
 + (oneway void)requestWithPostType:(FPTPostRequestType)postRequestType
                  parameters:(NSDictionary *)parameters;
+
+//Util
++ (NSString *)usingAPIVersion;
 
 @end

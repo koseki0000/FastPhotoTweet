@@ -11,34 +11,17 @@
 
 + (void)visible:(BOOL)visible {
     
-    dispatch_async(dispatch_get_main_queue(), ^ {
-        
-        if ( visible ) {
-            
-            [UIApplication sharedApplication].networkActivityIndicatorVisible = YES;
-            
-        } else {
-            
-            [UIApplication sharedApplication].networkActivityIndicatorVisible = NO;
-            
-        }
-    });
+    visible ? [self on] : [self off];
 }
 
 + (void)on {
     
-    dispatch_async(dispatch_get_main_queue(), ^ {
-        
-        [UIApplication sharedApplication].networkActivityIndicatorVisible = YES;
-    });
+    [[UIApplication sharedApplication] setNetworkActivityIndicatorVisible:YES];
 }
 
 + (void)off {
     
-    dispatch_async(dispatch_get_main_queue(), ^ {
-        
-        [UIApplication sharedApplication].networkActivityIndicatorVisible = NO;
-    });
+    [[UIApplication sharedApplication] setNetworkActivityIndicatorVisible:NO];
 }
 
 @end

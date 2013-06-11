@@ -17,23 +17,10 @@
 @synthesize closeButton;
 @synthesize trashButton;
 
-- (id)initWithNibName:(NSString *)nibNameOrNil bundle:(NSBundle *)nibBundleOrNil {
-    
-    //NSLog(@"init ResendViewController");
-    
-    self = [super initWithNibName:nibNameOrNil
-                           bundle:nibBundleOrNil];
-    
-    if ( self ) {
-    
-    }
-    
-    return self;
-}
-
 - (void)viewDidLoad {
     
     [super viewDidLoad];
+    [resendTable reloadData];
 }
 
 - (IBAction)pushTrashButton:(id)sender {
@@ -57,8 +44,6 @@
 
 - (UITableViewCell *)tableView:(UITableView *)tableView cellForRowAtIndexPath:(NSIndexPath *)indexPath {
     
-	//NSLog(@"CreateCell");
-    
     //TableViewCellを生成
 	static NSString *identifier = @"ResendCell";
 
@@ -66,21 +51,19 @@
     
     if (cell == nil) {
 
-        cell = [[[UITableViewCell alloc] initWithStyle:UITableViewCellStyleDefault reuseIdentifier:identifier] autorelease];
+        cell = [[[UITableViewCell alloc] initWithStyle:UITableViewCellStyleDefault
+                                       reuseIdentifier:identifier] autorelease];
     }
 
-    cell.textLabel.font = [UIFont systemFontOfSize:14];
+    cell.textLabel.font = [UIFont systemFontOfSize:14.0f];
     cell.textLabel.numberOfLines = 0;
     
     NSDictionary *resendData = [TWTweets sendedTweets][indexPath.row];
-//    NSDictionary *saveTweet = @{@"UserName" : [TWAccounts currentAccountName],
-//                                @"Parameters" : parameters,
-//                                @"RequestType" : @(postRequestType)};
-    
-    //NSLog(@"Resend[%d]: %@", array.count, array);
+    NSLog(@"%@", resendData);
 
-    cell.textLabel.text = [NSString stringWithFormat:@"%@: %@",
-                           resendData[@"UserName"], resendData[@"Parameters"][@"status"]];
+    NSString *userName = resendData[@"UserName"];
+    NSString *status = resendData[@"Parameters"][@"status"];
+    cell.textLabel.text = [NSString stringWithFormat:@"%@: %@", userName, status];
     
     return cell;
 }
@@ -88,19 +71,23 @@
 - (void)tableView:(UITableView *)tableView didSelectRowAtIndexPath:(NSIndexPath *)indexPath {
     
     //セルの選択状態を解除
-	[tableView deselectRowAtIndexPath:indexPath animated:YES];
+	[tableView deselectRowAtIndexPath:indexPath
+                             animated:YES];
     
     NSDictionary *resendData = [TWTweets sendedTweets][indexPath.row];
-    NSString *accountName = resendData[@"UserName"];
     
-    [[TWTweets manager] setText:resendData[@"Parameters"][@"status"]];
-    [[TWTweets manager] setInReplyToID:resendData[@"Parameters"][@"in_reply_to_status_id"]];
+    NSString *userName = resendData[@"UserName"];
+    NSString *status = resendData[@"Parameters"][@"status"];
+    NSString *inRepltToID = resendData[@"Parameters"][@"in_reply_to_status_id"];
+    
+    [[TWTweets manager] setText:status];
+    [[TWTweets manager] setInReplyToID:inRepltToID];
     
     NSUInteger index = 0;
     BOOL find = NO;
     for ( ACAccount *account in [TWAccounts twitterAccounts] ) {
      
-        if ( [account.username isEqualToString:accountName] ) {
+        if ( [account.username isEqualToString:userName] ) {
             
             find = YES;
             break;

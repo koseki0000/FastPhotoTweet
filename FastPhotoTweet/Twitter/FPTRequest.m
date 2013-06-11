@@ -16,8 +16,6 @@
 #import "InternetConnection.h"
 #import "ActivityIndicator.h"
 #import "ShowAlert.h"
-#import "EncodeImage.h"
-#import "ResizeImage.h"
 #import "NSObject+EmptyCheck.h"
 #import "NSNotificationCenter+EasyPost.h"
 
@@ -43,8 +41,14 @@
 
 @interface FPTRequest()
 
-+ (void)postAPIErrorNotificationName:(NSString *)notificationName;
-+ (void)postAPIErrorNotificationName:(NSString *)notificationName userInfo:(id)userInfo;
++ (NSString *)getRequestURL:(FPTGetRequestType)getRequestType;
++ (NSString *)postRequestURL:(FPTGetRequestType)postRequestType parameters:(NSDictionary *)parameters;
+
++ (NSString *)getRequestNotificationName:(FPTGetRequestType)getRequestType;
++ (NSString *)postRequestNotificationName:(FPTGetRequestType)postRequestType;
+
++ (oneway void)postAPIErrorNotificationName:(NSString *)notificationName;
++ (oneway void)postAPIErrorNotificationName:(NSString *)notificationName userInfo:(id)userInfo;
 - (NSArray *)fixTwitterSearchResponse:(NSArray *)twitterSearchResponse;
 
 @end
@@ -52,8 +56,7 @@
 @implementation FPTRequest
 
 #pragma mark - GET
-+ (oneway void)requestWithGetType:(FPTGetRequestType)getRequestType
-                parameters:(NSDictionary *)parameters {
++ (oneway void)requestWithGetType:(FPTGetRequestType)getRequestType parameters:(NSDictionary *)parameters {
     
     NSLog(@"%s[%d]: %@", __func__, getRequestType, parameters);
     
@@ -93,59 +96,8 @@
             });
         }
         
-        NSString *requestURL = nil;
-        __block NSString *notificationName = nil;
-        
-        switch ( getRequestType ) {
-                
-            case FPTGetRequestTypeHomeTimeline:
-                requestURL = HOMETIMELINE_URL;
-                notificationName = HOME_TIMELINE_DONE_NOTIFICATION;
-                break;
-                
-            case FPTGetRequestTypeUserTimeline:
-                requestURL = USERTIMELINE_URL;
-                notificationName = USER_TIMELINE_DONE_NOTIFICATION;
-                break;
-                
-            case FPTGetRequestTypeMentions:
-                requestURL = MENTIONS_URL;
-                notificationName = MENTIONS_DONE_NOTIFICATION;
-                break;
-                
-            case FPTGetRequestTypeFavorites:
-                requestURL = FAVORITES_URL;
-                notificationName = FAVORITES_DONE_NOTIFICATION;
-                break;
-                
-            case FPTGetRequestTypeSearch:
-                requestURL = SEARCH_URL;
-                notificationName = SEARCH_DONE_NOTIFICATION;
-                break;
-                
-            case FPTGetRequestTypeTweet:
-                requestURL = TWEET_URL;
-                notificationName = TWEET_DONE_NOTIFICATION;
-                break;
-                
-            case FPTGetRequestTypeProfile:
-                requestURL = PROFILE_URL;
-                notificationName = PROFILE_DONE_NOTIFICATION;
-                break;
-                
-            case FPTGetRequestTypeListsList:
-                requestURL = LISTS_LIST_URL;
-                notificationName = LISTS_LIST_DONE_NOTIFICATION;
-                break;
-                
-            case FPTGetRequestTypeList:
-                requestURL = LIST_URL;
-                notificationName = LIST_DONE_NOTIFICATION;
-                break;
-                
-            default:
-                break;
-        }
+        NSString *requestURL = [self getRequestURL:getRequestType];
+        __block NSString *notificationName = [self getRequestNotificationName:getRequestType];
         
         if ( [requestURL isEmpty] ||
              [notificationName isEmpty] ) {
@@ -217,7 +169,7 @@
                 
                     if ( timelineListMode ) {
                         
-                        notificationName = HOME_TIMELINE_DONE_NOTIFICATION;
+                        notificationName = [self getRequestNotificationName:FPTGetRequestTypeHomeTimeline];
                     }
                     
                     if ( getRequestType == FPTGetRequestTypeListsList ) {
@@ -285,9 +237,25 @@
     });
 }
 
++ (NSString *)getRequestURL:(FPTGetRequestType)getRequestType {
+    
+    return @[
+             HOMETIMELINE_URL, USERTIMELINE_URL, MENTIONS_URL,
+             FAVORITES_URL, SEARCH_URL, TWEET_URL,
+             PROFILE_URL, LISTS_LIST_URL, LIST_URL
+             ][getRequestType];
+}
+
++ (NSString *)postRequestURL:(FPTGetRequestType)postRequestType parameters:(NSDictionary *)parameters {
+    
+    return @[
+             POST_URL, POST_WITH_MEDIA_URL, FAVORITE_URL,
+             UN_FAVORITE_URL, RETWEET_URL, DESTROY_URL
+             ][postRequestType];
+}
+
 #pragma mark - POST
-+ (oneway void)requestWithPostType:(FPTPostRequestType)postRequestType
-                 parameters:(NSDictionary *)parameters {
++ (oneway void)requestWithPostType:(FPTPostRequestType)postRequestType parameters:(NSDictionary *)parameters {
     
     BOOL needSelectAccount = NO;
     NSInteger index = 0;
@@ -337,61 +305,24 @@
             });
         }
         
-        NSString *requestURL = nil;
-        NSString *notificationName = nil;
-        UIImage *image = nil;
+        NSString *requestURL = [self postRequestURL:postRequestType
+                                    parameters:parameters];
+        NSString *notificationName = [self postRequestNotificationName:postRequestType];
+        NSData *imageData = nil;
         BOOL withMedia = NO;
         
-        switch ( postRequestTypeTemp ) {
+        if ( postRequestType == FPTPostRequestTypeTextWithMedia ) {
+            
+            imageData = parameters[@"image"];
+            
+            if ( imageData == nil ) {
                 
-            case FPTPostRequestTypeText:
-                requestURL = POST_URL;
-                notificationName = POST_DONE_NOTIFICATION;
-                break;
+                postRequestTypeTemp = FPTPostRequestTypeText;
                 
-            case FPTPostRequestTypeTextWithMedia:
-                requestURL = POST_WITH_MEDIA_URL;
-                notificationName = POST_WITH_MEDIA_DONE_NOTIFICATION;
-                image = parameters[@"image"];
+            } else {
                 
-                if ( image == nil ) {
-                    
-                    postRequestTypeTemp = FPTPostRequestTypeText;
-                    
-                } else {
-                    
-                    withMedia = YES;
-                    
-                    if ( [[NSUserDefaults standardUserDefaults] boolForKey:@"ResizeImage"] ) {
-                        
-                        image = [ResizeImage aspectResize:image];
-                    }
-                }
-                
-                break;
-                
-            case FPTPostRequestTypeFavorite:
-                requestURL = FAVORITE_URL;
-                notificationName = FAVORITE_DONE_NOTIFICATION;
-                break;
-                
-            case FPTPostRequestTypeUnFavorite:
-                requestURL = UN_FAVORITE_URL;
-                notificationName = UN_FAVORITE_DONE_NOTIFICATION;
-                break;
-                
-            case FPTPostRequestTypeReTweet:
-                requestURL = RETWEET_URL;
-                notificationName = RETWEET_DONE_NOTIFICATION;
-                break;
-                
-            case FPTPostRequestTypeDestroy:
-                requestURL = DESTROY_URL;
-                notificationName = DESTORY_DONE_NOTIFICATION;
-                break;
-                
-            default:
-                break;
+                withMedia = YES;
+            }
         }
         
         if ( [requestURL isEmpty] ||
@@ -408,7 +339,8 @@
         NSString *status = nil;
         NSString *inReplyToID = nil;
         
-        if ( postRequestType == (FPTPostRequestTypeText | FPTPostRequestTypeTextWithMedia) ) {
+        if ( postRequestType == FPTPostRequestTypeText ||
+             postRequestType == FPTPostRequestTypeTextWithMedia ) {
         
             status = parameters[@"status"];
             inReplyToID = parameters[@"in_reply_to_status_id"];
@@ -438,7 +370,7 @@
                              withName:@"status"
                                  type:@"multipart/form-data"];
             
-            [request addMultiPartData:[EncodeImage image:image]
+            [request addMultiPartData:imageData
                              withName:@"media[]"
                                  type:@"multipart/form-data"];
             
@@ -528,6 +460,29 @@
     });
 }
 
++ (NSString *)getRequestNotificationName:(FPTGetRequestType)getRequestType {
+    
+    return @[
+             HOME_TIMELINE_DONE_NOTIFICATION, USER_TIMELINE_DONE_NOTIFICATION, MENTIONS_DONE_NOTIFICATION,
+             FAVORITES_DONE_NOTIFICATION, SEARCH_DONE_NOTIFICATION, TWEET_DONE_NOTIFICATION,
+             PROFILE_DONE_NOTIFICATION, LISTS_LIST_DONE_NOTIFICATION, LIST_DONE_NOTIFICATION
+             ][getRequestType];
+}
+
++ (NSString *)postRequestNotificationName:(FPTGetRequestType)postRequestType {
+    
+    return @[
+             POST_DONE_NOTIFICATION, POST_WITH_MEDIA_DONE_NOTIFICATION, FAVORITE_DONE_NOTIFICATION,
+             UN_FAVORITE_DONE_NOTIFICATION, RETWEET_DONE_NOTIFICATION, DESTORY_DONE_NOTIFICATION
+             ][postRequestType];
+}
+
+#pragma mark - Util
++ (NSString *)usingAPIVersion {
+    
+    return API_VERSION;
+}
+
 #pragma mark - SEARCH
 - (NSArray *)fixTwitterSearchResponse:(NSArray *)twitterSearchResponse {
     
@@ -577,13 +532,13 @@
     return [NSArray arrayWithArray:fixedResponse];
 }
 
-+ (void)postAPIErrorNotificationName:(NSString *)notificationName {
++ (oneway void)postAPIErrorNotificationName:(NSString *)notificationName {
     
     [FPTRequest postAPIErrorNotificationName:notificationName
                                     userInfo:nil];
 }
 
-+ (void)postAPIErrorNotificationName:(NSString *)notificationName userInfo:(id)userInfo {
++ (oneway void)postAPIErrorNotificationName:(NSString *)notificationName userInfo:(id)userInfo {
     
     [NSNotificationCenter postNotificationCenterForName:notificationName
                                            withUserInfo:userInfo ? @{@"ErrorResponseData" : userInfo} : nil];

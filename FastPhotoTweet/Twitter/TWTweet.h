@@ -5,10 +5,10 @@
 #import <Foundation/Foundation.h>
 
 #define BLACK_COLOR [UIColor blackColor]
-#define GREEN_COLOR [UIColor colorWithRed:0.0 green:0.4 blue:0.0 alpha:1.0]
+#define GREEN_COLOR [UIColor colorWithRed:0.0f green:0.4f blue:0.0f alpha:1.0f]
 #define BLUE_COLOR  [UIColor blueColor]
 #define RED_COLOR   [UIColor redColor]
-#define GOLD_COLOR  [UIColor colorWithRed:0.5 green:0.4 blue:0.0 alpha:1.0]
+#define GOLD_COLOR  [UIColor colorWithRed:0.5f green:0.4f blue:0.0f alpha:1.0f]
 
 @class TWTweetEntities;
 
@@ -67,6 +67,7 @@ typedef enum {
 
 - (void)debugLog;
 
+//表示用の情報関連
 + (TWTweet *)tweetWithDictionary:(NSDictionary *)tweetDictionary;
 + (UIColor *)getTextColor:(CellTextColor)color;
 - (void)createTimelineCellInfo;

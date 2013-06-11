@@ -8,14 +8,15 @@
 
 + (void)postNotificationCenterForName:(NSString *)name {
     
-    [self postNotificationCenterForName:name withUserInfo:nil];
+    [self postNotificationCenterForName:name
+                           withUserInfo:nil];
 }
 
 + (void)postNotificationCenterForName:(NSString *)name withUserInfo:(NSDictionary *)userInfo {
     
     if ( name != nil ) {
     
-        NSLog(@"Notification: %@", name);
+        NSLog(@"NotificationName: %@", name);
         
         NSNotification *notification = [NSNotification notificationWithName:name
                                                                      object:self

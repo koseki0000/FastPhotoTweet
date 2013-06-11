@@ -20,6 +20,6 @@
 
 - (BOOL)iconExist:(NSString *)searchName;
 
-- (void)addTackNotification:(NSString *)text;
+- (void)addTaskNotification:(NSString *)text;
 
 @end

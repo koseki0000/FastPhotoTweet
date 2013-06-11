@@ -7,7 +7,6 @@
 
 #import <Foundation/Foundation.h>
 #import "Reachability.h"
-#import "ShowAlert.h"
 
 @interface InternetConnection : NSObject
 

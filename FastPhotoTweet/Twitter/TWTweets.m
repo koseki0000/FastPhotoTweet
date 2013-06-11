@@ -56,21 +56,9 @@
 #pragma mark - Timeline
 
 + (void)saveCurrentTimeline:(NSMutableArray *)currentTimeline {
-
-    __block __weak NSMutableDictionary *wTimelines = [TWTweetsBase manager].timelines;
-    __block __weak NSString *wCurrentAccountName = [TWAccounts currentAccountName];
     
-    dispatch_queue_t queue = dispatch_get_global_queue(DISPATCH_QUEUE_PRIORITY_DEFAULT, 0);
-    dispatch_semaphore_t semaphore = dispatch_semaphore_create(1);
-    dispatch_async(queue, ^{
-        dispatch_semaphore_wait(semaphore, DISPATCH_TIME_FOREVER);
-        
-        [wTimelines setObject:currentTimeline
-                       forKey:wCurrentAccountName];
-        
-        dispatch_semaphore_signal(semaphore);
-        dispatch_release(semaphore);
-    });
+    [[TWTweetsBase manager].timelines setObject:currentTimeline
+                                         forKey:[TWAccounts currentAccountName]];
 }
 
 + (NSMutableArray *)currentTimeline {
@@ -109,21 +97,11 @@
 
 + (void)saveSinceID:(NSString *)sinceID {
     
-    __block __weak NSMutableDictionary *wSinceIDs = [TWTweetsBase manager].sinceIDs;
-    __block __weak NSString *wCurrentAccountName = [TWAccounts currentAccountName];
-    __block __weak NSString *wSinceID = sinceID;
+    [[TWTweetsBase manager].sinceIDs[[TWAccounts currentAccountName]] setObject:sinceID
+                                                                         forKey:@"SinceID"];
     
-    dispatch_queue_t queue = dispatch_get_global_queue(DISPATCH_QUEUE_PRIORITY_DEFAULT, 0);
-    dispatch_semaphore_t semaphore = dispatch_semaphore_create(1);
-    dispatch_async(queue, ^{
-        dispatch_semaphore_wait(semaphore, DISPATCH_TIME_FOREVER);
-        
-        [[wSinceIDs objectForKey:wCurrentAccountName] setObject:wSinceID forKey:@"SinceID"];
-        [[wSinceIDs objectForKey:wCurrentAccountName] setObject:@(TimelineRequestStatsSended) forKey:@"Status"];
-        
-        dispatch_semaphore_signal(semaphore);
-        dispatch_release(semaphore);
-    });
+    [[TWTweetsBase manager].sinceIDs[[TWAccounts currentAccountName]] setObject:@(TimelineRequestStatsSended)
+                                                                         forKey:@"Status"];
 }
 
 @end

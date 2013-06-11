@@ -20,6 +20,7 @@
 @interface TweetViewController ()
 
 - (void)nowPlayingMusic;
+- (NSData *)optimizeImage:(UIImage *)image;
 
 @end
 
@@ -354,7 +355,7 @@
             //NSLog(@"newVersion");
             
             [ShowAlert title:[NSString stringWithFormat:@"FastPhotoTweet %@", APP_VERSION]
-                     message:@"・AdHoc版更新確認機能の追加\n・その他多数のバグ修正"];
+                     message:@"・多数のバグ修正"];
             
             information = [[[NSMutableDictionary alloc] initWithDictionary:[d dictionaryForKey:@"Information"]] autorelease];
             [information setValue:[NSNumber numberWithInt:1] forKey:APP_VERSION];
@@ -421,7 +422,7 @@
                         [FPTRequest requestWithPostType:FPTPostRequestTypeTextWithMedia
                                              parameters:@{@"status" : text,
                          @"in_reply_to_status_id" : inReplyToId,
-                         @"image" : _imagePreview.image}];
+                         @"image" : [self optimizeImage:_imagePreview.image]}];
                         
                     } else {
                         
@@ -2326,7 +2327,7 @@
         UIImage *image = pboard.image;
         
         if ( [[d objectForKey:@"PhotoService"] isEqualToString:@"img.ur"] ||
-            [[d objectForKey:@"PhotoService"] isEqualToString:@"Twitpic"] ) {
+             [[d objectForKey:@"PhotoService"] isEqualToString:@"Twitpic"] ) {
             
             //画像アップロード開始
             [self uploadImage:image];
@@ -2346,6 +2347,18 @@
     }
 }
 
+- (NSData *)optimizeImage:(UIImage *)image {
+    
+    if ( [[NSUserDefaults standardUserDefaults] boolForKey:@"ResizeImage"] ) {
+        
+        return [EncodeImage image:[ResizeImage aspectResize:image]];
+        
+    } else {
+      
+        return nil;
+    }
+}
+
 #pragma mark - View
 
 - (void)viewDidAppear:(BOOL)animated {
@@ -2353,6 +2366,23 @@
     [super viewDidAppear:animated];
     
     @try {
+        
+        if ( APP_DELEGATE.resendMode ) {
+            
+            APP_DELEGATE.resendMode = NO;
+            _postText.text = [TWTweets text];
+            inReplyToId = [TWTweets inReplyToID];
+        }
+        
+        //再投稿ボタンの有効･無効切り替え
+        if ( [TWTweets sendedTweets].count == 0 ) {
+            
+            _resendButton.enabled = NO;
+            
+        } else {
+            
+            _resendButton.enabled = YES;
+        }
         
         //タブ切り替え時の動作
         if ( [EmptyCheck check:[TWTweets tabChangeFunction]] ) {
@@ -2450,22 +2480,6 @@
             ACAccountType *accountType = [accountStore accountTypeWithAccountTypeIdentifier:ACAccountTypeIdentifierTwitter];
             NSArray *twitterAccounts = [accountStore accountsWithAccountType:accountType];
             twAccount = [twitterAccounts objectAtIndex:[d integerForKey:@"UseAccount"]];
-            
-        }else if ( APP_DELEGATE.resendMode ) {
-            
-            APP_DELEGATE.resendMode = NO;
-            _postText.text = [TWTweets text];
-            inReplyToId = [TWTweets inReplyToID];
-        }
-        
-        //再投稿ボタンの有効･無効切り替え
-        if ( [TWTweets sendedTweets].count == 0 ) {
-            
-            _resendButton.enabled = NO;
-            
-        } else {
-            
-            _resendButton.enabled = YES;
         }
         
     }@finally {

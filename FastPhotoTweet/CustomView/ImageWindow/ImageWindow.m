@@ -3,6 +3,7 @@
 //
 
 #import "ImageWindow.h"
+#import "UIImage+Convert.h"
 
 #define SUPERVIEW_HEIGHT self.superview.frame.size.height
 #define SUPERVIEW_WIDHT self.superview.frame.size.width
@@ -378,7 +379,7 @@
     
     if ( receivedData.length != 34 ) {
      
-        UIImage *image = [UIImage imageWithData:receivedData];
+        UIImage *image = [UIImage imageWithDataByContext:receivedData];
         
         [self setImageAtImageView:image];
         
@@ -388,9 +389,9 @@
     }
 }
 
-- (void) savingImageIsFinished:(UIImage *)image
-      didFinishSavingWithError:(NSError *)error
-                   contextInfo:(void *)contextInfo {
+- (void)savingImageIsFinished:(UIImage *)image
+     didFinishSavingWithError:(NSError *)error
+                  contextInfo:(void *)contextInfo {
     
     [ShowAlert title:@"保存完了" message:@"カメラロールに保存しました。"];
 

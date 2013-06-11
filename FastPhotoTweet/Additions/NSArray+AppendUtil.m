@@ -21,12 +21,12 @@
         NSMutableArray *tempArray = [NSMutableArray arrayWithArray:self];
         __block __weak NSMutableArray *wTempArray = tempArray;
         
-        dispatch_queue_t semaphoreQueue = dispatch_get_global_queue(DISPATCH_QUEUE_PRIORITY_DEFAULT, 0);
-        dispatch_semaphore_t semaphore = dispatch_semaphore_create(1);
-        
-        dispatch_sync(semaphoreQueue, ^{
-            
-            dispatch_semaphore_wait(semaphore, DISPATCH_TIME_FOREVER);
+//        dispatch_queue_t semaphoreQueue = dispatch_get_global_queue(DISPATCH_QUEUE_PRIORITY_DEFAULT, 0);
+//        dispatch_semaphore_t semaphore = dispatch_semaphore_create(1);
+//        
+//        dispatch_sync(semaphoreQueue, ^{
+//            
+//            dispatch_semaphore_wait(semaphore, DISPATCH_TIME_FOREVER);
         
             int i = 0;
             for ( id item in unitArray ) {
@@ -36,9 +36,9 @@
                 i++;
             }
             
-            dispatch_semaphore_signal(semaphore);
-            dispatch_release(semaphore);
-        });
+//            dispatch_semaphore_signal(semaphore);
+//            dispatch_release(semaphore);
+//        });
         
         return returnMutable ? tempArray : [NSArray arrayWithArray:tempArray];
     }
@@ -57,21 +57,21 @@
         NSMutableArray *tempArray = [NSMutableArray arrayWithArray:self];
         __block __weak NSMutableArray *wTempArray = tempArray;
         
-        dispatch_queue_t semaphoreQueue = dispatch_get_global_queue(DISPATCH_QUEUE_PRIORITY_DEFAULT, 0);
-        dispatch_semaphore_t semaphore = dispatch_semaphore_create(1);
+//        dispatch_queue_t semaphoreQueue = dispatch_get_global_queue(DISPATCH_QUEUE_PRIORITY_DEFAULT, 0);
+//        dispatch_semaphore_t semaphore = dispatch_semaphore_create(1);
+//        
+//        dispatch_sync(semaphoreQueue, ^{
+//            
+//            dispatch_semaphore_wait(semaphore, DISPATCH_TIME_FOREVER);
         
-        dispatch_sync(semaphoreQueue, ^{
-            
-            dispatch_semaphore_wait(semaphore, DISPATCH_TIME_FOREVER);
-            
             for ( id item in unitArray ) {
                 
                 [wTempArray addObject:item];
             }
             
-            dispatch_semaphore_signal(semaphore);
-            dispatch_release(semaphore);
-        });
+//            dispatch_semaphore_signal(semaphore);
+//            dispatch_release(semaphore);
+//        });
         
         return returnMutable ? tempArray : [NSArray arrayWithArray:tempArray];
     }
@@ -91,13 +91,13 @@
         NSMutableArray *tempArray = [NSMutableArray arrayWithArray:self];
         __block __weak NSMutableArray *wTempArray = tempArray;
         
-        dispatch_queue_t semaphoreQueue = dispatch_get_global_queue(DISPATCH_QUEUE_PRIORITY_DEFAULT, 0);
-        dispatch_semaphore_t semaphore = dispatch_semaphore_create(1);
+//        dispatch_queue_t semaphoreQueue = dispatch_get_global_queue(DISPATCH_QUEUE_PRIORITY_DEFAULT, 0);
+//        dispatch_semaphore_t semaphore = dispatch_semaphore_create(1);
+//        
+//        dispatch_sync(semaphoreQueue, ^{
+//            
+//            dispatch_semaphore_wait(semaphore, DISPATCH_TIME_FOREVER);
         
-        dispatch_sync(semaphoreQueue, ^{
-            
-            dispatch_semaphore_wait(semaphore, DISPATCH_TIME_FOREVER);
-            
             int i = 0;
             for ( id item in unitArray ) {
                 
@@ -118,9 +118,9 @@
                 }
             }
             
-            dispatch_semaphore_signal(semaphore);
-            dispatch_release(semaphore);
-        });
+//            dispatch_semaphore_signal(semaphore);
+//            dispatch_release(semaphore);
+//        });
         
         return returnMutable ? tempArray : [NSArray arrayWithArray:tempArray];
     }
@@ -140,13 +140,13 @@
         NSMutableArray *tempArray = [NSMutableArray arrayWithArray:self];
         __block __weak NSMutableArray *wTempArray = tempArray;
         
-        dispatch_queue_t semaphoreQueue = dispatch_get_global_queue(DISPATCH_QUEUE_PRIORITY_DEFAULT, 0);
-        dispatch_semaphore_t semaphore = dispatch_semaphore_create(1);
+//        dispatch_queue_t semaphoreQueue = dispatch_get_global_queue(DISPATCH_QUEUE_PRIORITY_DEFAULT, 0);
+//        dispatch_semaphore_t semaphore = dispatch_semaphore_create(1);
+//        
+//        dispatch_sync(semaphoreQueue, ^{
+//            
+//            dispatch_semaphore_wait(semaphore, DISPATCH_TIME_FOREVER);
         
-        dispatch_sync(semaphoreQueue, ^{
-            
-            dispatch_semaphore_wait(semaphore, DISPATCH_TIME_FOREVER);
-            
             for ( id item in unitArray ) {
                 
                 BOOL notHave = YES;
@@ -162,9 +162,9 @@
                 if ( notHave ) [wTempArray addObject:item];
             }
             
-            dispatch_semaphore_signal(semaphore);
-            dispatch_release(semaphore);
-        });
+//            dispatch_semaphore_signal(semaphore);
+//            dispatch_release(semaphore);
+//        });
         
         return returnMutable ? tempArray : [NSArray arrayWithArray:tempArray];
     }
@@ -184,13 +184,13 @@
         NSMutableArray *tempArray = [NSMutableArray arrayWithArray:self];
         __block __weak NSMutableArray *wTempArray = tempArray;
         
-        dispatch_queue_t semaphoreQueue = dispatch_get_global_queue(DISPATCH_QUEUE_PRIORITY_DEFAULT, 0);
-        dispatch_semaphore_t semaphore = dispatch_semaphore_create(1);
+//        dispatch_queue_t semaphoreQueue = dispatch_get_global_queue(DISPATCH_QUEUE_PRIORITY_DEFAULT, 0);
+//        dispatch_semaphore_t semaphore = dispatch_semaphore_create(1);
+//        
+//        dispatch_sync(semaphoreQueue, ^{
+//            
+//            dispatch_semaphore_wait(semaphore, DISPATCH_TIME_FOREVER);
         
-        dispatch_sync(semaphoreQueue, ^{
-            
-            dispatch_semaphore_wait(semaphore, DISPATCH_TIME_FOREVER);
-            
             BOOL isOnlyDictionary = YES;
             for ( id item in dictionariesArray ) {
                 
@@ -242,9 +242,9 @@
                 }
             }
             
-            dispatch_semaphore_signal(semaphore);
-            dispatch_release(semaphore);
-        });
+//            dispatch_semaphore_signal(semaphore);
+//            dispatch_release(semaphore);
+//        });
         
         return returnMutable ? tempArray : [NSArray arrayWithArray:tempArray];
     }
@@ -272,13 +272,13 @@
         NSMutableArray *tempArray = [NSMutableArray arrayWithArray:self];
         __block __weak NSMutableArray *wTempArray = tempArray;
         
-        dispatch_queue_t semaphoreQueue = dispatch_get_global_queue(DISPATCH_QUEUE_PRIORITY_DEFAULT, 0);
-        dispatch_semaphore_t semaphore = dispatch_semaphore_create(1);
+//        dispatch_queue_t semaphoreQueue = dispatch_get_global_queue(DISPATCH_QUEUE_PRIORITY_DEFAULT, 0);
+//        dispatch_semaphore_t semaphore = dispatch_semaphore_create(1);
+//        
+//        dispatch_sync(semaphoreQueue, ^{
+//            
+//            dispatch_semaphore_wait(semaphore, DISPATCH_TIME_FOREVER);
         
-        dispatch_sync(semaphoreQueue, ^{
-            
-            dispatch_semaphore_wait(semaphore, DISPATCH_TIME_FOREVER);
-            
             int i = 0;
             for ( TWTweet *tweet in tweetDictionariesArray ) {
                 
@@ -306,9 +306,9 @@
                 }
             }
             
-            dispatch_semaphore_signal(semaphore);
-            dispatch_release(semaphore);
-        });
+//            dispatch_semaphore_signal(semaphore);
+//            dispatch_release(semaphore);
+//        });
         
         return returnMutable ? tempArray : [NSArray arrayWithArray:tempArray];
     }

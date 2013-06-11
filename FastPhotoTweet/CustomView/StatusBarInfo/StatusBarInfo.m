@@ -13,10 +13,10 @@
 #define STOP_WAIT_STATUS_BAR_TASK   @"StopWaitStatusBarTask"
 #define ADD_STATUS_BAR_TASK         @"AddStatusBarTask"
 
-#define SHOW_POSITION  CGRectMake(   0,   0, 320, 20)
-#define HIDE_POSITION  CGRectMake(   0, -20, 320, 20)
-#define RIGHT_POSITION CGRectMake( 320,   0, 320, 20)
-#define LEFT_POSITION  CGRectMake(-320,   0, 320, 20)
+#define SHOW_POSITION  CGRectMake(   0.0f,   0.0f, 320.0f, 20.0f)
+#define HIDE_POSITION  CGRectMake(   0.0f, -20.0f, 320.0f, 20.0f)
+#define RIGHT_POSITION CGRectMake( 320.0f,   0.0f, 320.0f, 20.0f)
+#define LEFT_POSITION  CGRectMake(-320.0f,   0.0f, 320.0f, 20.0f)
 
 @interface StatusBarInfo ()
 
@@ -42,15 +42,18 @@
         self.windowLevel = UIWindowLevelStatusBar + 1.0f;
         self.backgroundColor = backgroundColor;
         self.hidden = NO;
-        self.alpha = 1.0;
+        self.alpha = 1.0f;
         
         _tasks = [[NSMutableArray alloc] init];
         
-        _textLabel = [[UILabel alloc] initWithFrame:CGRectMake(0, 0, 320, 20)];
+        _textLabel = [[UILabel alloc] initWithFrame:CGRectMake(0.0f,
+                                                               0.0f,
+                                                               320.0f,
+                                                               20.0f)];
         [self addSubview:_textLabel];
         _textLabel.backgroundColor = backgroundColor;
         _textLabel.textColor = textColor;
-        _textLabel.font = [UIFont systemFontOfSize:14];
+        _textLabel.font = [UIFont systemFontOfSize:14.0f];
         _textLabel.textAlignment = UITextAlignmentCenter;
         
         _showTime = showTime;
@@ -177,7 +180,7 @@
     if ( task != nil ) {
         
         _textLabel.text = task;
-        self.alpha = 1.0;
+        self.alpha = 1.0f;
         
         switch ( _animationType ) {
                 
@@ -243,12 +246,12 @@
                                 options:0
                              animations:^{
                                  
-                                 weakSelf.alpha = 0.0;
+                                 weakSelf.alpha = 0.0f;
                              }
                              completion:^(BOOL finished) {
                                  
                                  weakSelf.frame = HIDE_POSITION;
-                                 weakSelf.alpha = 1.0;
+                                 weakSelf.alpha = 1.0f;
                                  
                                  DISPATCH_AFTER(0.1) ^{
                                      
@@ -315,12 +318,8 @@
     if ( task != nil ) {
         
         [NSNotificationCenter postNotificationCenterForName:ADD_STATUS_BAR_TASK
-                                               withUserInfo:@{@"Task":task}];
+                                               withUserInfo:@{@"Task" : task}];
     }
-}
-
-- (void)dealloc {
-    
 }
 
 @end

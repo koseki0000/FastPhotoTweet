@@ -140,28 +140,15 @@ static NSInteger const kAttributedLabelTag = 100;
                          range:NSMakeRange(0.0f,
                                            mainText.length)];
     
-//    dispatch_queue_t queue;
-//    if ( dispatch_get_current_queue() == dispatch_get_main_queue() ) {
-//        
-//        queue = dispatch_get_current_queue();
-//        
-//    } else {
-//        
-//        queue = dispatch_get_main_queue();
-//    }
-//    
-//    dispatch_sync(queue, ^{
-    
-        //セルへの反映開始
-        [self.infoLabel setText:infoLabelText];
-        [self.infoLabel setTextColor:[TWTweet getTextColor:tweet.textColor]];
-        [self.mainLabel setAttributedText:mainText];
-        [self.mainLabel setFrame:CGRectMake(54.0f,
-                                            19.0f,
-                                            cellWidth,
-                                            contentsHeight)];
-        [self reloadViews:screenName];
-//    });
+    //セルへの反映開始
+    [self.infoLabel setText:infoLabelText];
+    [self.infoLabel setTextColor:[TWTweet getTextColor:tweet.textColor]];
+    [self.mainLabel setAttributedText:mainText];
+    [self.mainLabel setFrame:CGRectMake(54.0f,
+                                        19.0f,
+                                        cellWidth,
+                                        contentsHeight)];
+    [self reloadViews:screenName];
 }
 
 - (void)reloadViews:(NSString *)screenName {

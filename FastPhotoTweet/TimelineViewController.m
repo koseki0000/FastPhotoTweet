@@ -40,6 +40,7 @@
 #import "NSString+RegularExpression.h"
 #import "NSString+WordCollect.h"
 #import "NSString+Calculator.h"
+#import "UIImage+Convert.h"
 #import "TWTwitterHeader.h"
 #import "TWTweets.h"
 #import "ListViewController.h"
@@ -52,12 +53,6 @@
 #import "InputAlertView.h"
 
 #define OCEAN_COLOR [UIColor colorWithRed:0.4 green:0.8 blue:1.0 alpha:1.0]
-
-#define BLACK_COLOR [UIColor blackColor]
-#define GREEN_COLOR [UIColor colorWithRed:0.0 green:0.4 blue:0.0 alpha:1.0]
-#define BLUE_COLOR  [UIColor blueColor]
-#define RED_COLOR   [UIColor redColor]
-#define GOLD_COLOR  [UIColor colorWithRed:0.5 green:0.4 blue:0.0 alpha:1.0]
 
 #define CELL_IDENTIFIER @"TimelineAttributedCell"
 #define RT_CELL_IDENTIFIER @"TimelineAttributedRTCell"
@@ -433,9 +428,10 @@ typedef enum {
     
     if ( [D boolForKey:@"BecomeActiveUSConnect"] &&
          self.segment.selectedSegmentIndex == 0 &&
-         !self.addTweetStopMode ) {
+         !self.addTweetStopMode &&
+         !self.userStream ) {
         
-        if ( !self.userStream ) [self pushReloadButton];
+        [self pushReloadButton];
     }
 }
 
@@ -443,9 +439,10 @@ typedef enum {
     
     NSLog(@"%s", __func__);
     
-    if ( [D boolForKey:@"EnterBackgroundUSDisConnect"] ) {
+    if ( [D boolForKey:@"EnterBackgroundUSDisConnect"] &&
+         self.userStream) {
         
-        if ( self.userStream ) [self closeStream];
+        [self closeStream];
     }
 }
 
@@ -868,22 +865,22 @@ typedef enum {
         
         NSUInteger beforeCount = [self.currentTweets count];
         
-        @synchronized(self) {
-            
+//        @synchronized(self) {
+        
             [self setCurrentTweets:[self.currentTweets appendOnlyNewTweetToTop:receiveTweets
                                                                  returnMutable:YES]];
-        }
+//        }
         
         [self.grayView end];
         [self finishLoad];
         
         if ( beforeCount != [self.currentTweets count] ) {
             
-            @synchronized(self) {
-                
+//            @synchronized(self) {
+            
                 //新着があった場合のみ行う
                 [TWTweets saveCurrentTimeline:self.currentTweets];
-            }
+//            }
             
             [self.timeline reloadData];
             
@@ -897,7 +894,11 @@ typedef enum {
                 [self scrollTimelineForNewTweet:scrollTweetID];
             }
             
-            [self addTackNotification:[NSString stringWithFormat:@"新着Tweet %d件", [self.currentTweets count] - beforeCount]];
+            [self addTaskNotification:[NSString stringWithFormat:@"新着Tweet %d件", [self.currentTweets count] - beforeCount]];
+            
+        }else {
+            
+            [self addTaskNotification:@"新着Tweetなし"];
         }
         
         if ( [D boolForKey:@"ReloadAfterUSConnect"] &&
@@ -1052,7 +1053,7 @@ typedef enum {
             }
         }
         
-        UIImage *iconImage = [UIImage imageWithData:wRequest.responseData];
+        UIImage *iconImage = [UIImage imageWithDataByContext:wRequest.responseData];
         
         if ( [iconQualitySetting isEqualToString:@"Original96"] ) {
             
@@ -1310,7 +1311,7 @@ typedef enum {
     
     NSLog(@"%s", __func__);
     
-    if ( self.listSelect ) {
+    if ( self.segment.selectedSegmentIndex == TimelineSegmentList ) {
         
         [self showListView];
         
@@ -1493,6 +1494,7 @@ typedef enum {
         
         if ( buttonIndex != 3 && buttonIndex != 4 ) {
             
+            [self closeStream];
             [self.headerView setUpdateDate:nil];
             [self.currentTweets removeAllObjects];
             [self setCurrentTweets:nil];
@@ -1824,7 +1826,7 @@ typedef enum {
         
         if ( [InternetConnection enable] ) {
             
-            [self addTackNotification:@"UserStream再接続"];
+            [self addTaskNotification:@"UserStream再接続"];
             [self pushTopBarUSButton];
         }
     });
@@ -2058,8 +2060,8 @@ typedef enum {
         
         NSDictionary *receiveDic = (NSDictionary *)receiveData;
         
-        if ( receiveDic.count == 0 ) return;
-        if ( receiveDic.count == 1 && receiveDic[@"friends"] != nil ) return;
+        if ( [receiveDic count] == 0 ) return;
+        if ( [receiveDic count] == 1 && receiveDic[@"friends"] != nil ) return;
         
         TWTweet *receiveTweet = [TWTweet tweetWithDictionary:receiveDic];
         
@@ -2117,7 +2119,7 @@ typedef enum {
             newTweet = [TWNgTweet ngAll:newTweet];
             
             //新着が無いので終了
-            if ( newTweet.count == 0 ) return;
+            if ( [newTweet count] == 0 ) return;
         }
         
         @synchronized(self) {
@@ -2341,7 +2343,7 @@ typedef enum {
                                         atomically:YES];
             }
             
-            UIImage *receiveImage = [[UIImage alloc] initWithData:wRequest.responseData];
+            UIImage *receiveImage = [UIImage imageWithDataByContext:wRequest.responseData];
 
             NSString *iconQualitySetting = [D objectForKey:@"IconQuality"];
             if ( [iconQualitySetting isEqualToString:@"Original96"] ) {
@@ -2446,9 +2448,9 @@ typedef enum {
     
     //ピッカー表示中の場合は隠す
     if ( self.pickerVisible ) [self hidePicker];
-    if ( self.segment.selectedSegmentIndex == 3 ) {
+    if ( self.segment.selectedSegmentIndex == TimelineSegmentList ) {
         
-//        [self showListSelectView];
+        [self showListView];
         
     } else {
         
@@ -2887,17 +2889,14 @@ typedef enum {
             
             cell = [[TimelineAttributedRTCell alloc] initWithStyle:UITableViewCellStyleDefault
                                                    reuseIdentifier:RT_CELL_IDENTIFIER
-                                                          forWidth:264.0f];
+                                                          forWidth:CELL_WIDTH];
             [cell.iconView addTarget:self
                               action:@selector(pushIcon:)
                     forControlEvents:UIControlEventTouchUpInside];
         }
         
-//        dispatch_async(dispatch_get_global_queue(0, 0), ^{
-        
-            [cell setTweetData:currentTweet
-                     cellWidth:CELL_WIDTH];
-//        });
+        [cell setTweetData:currentTweet
+                 cellWidth:CELL_WIDTH];
         
         return cell;
         
@@ -2909,17 +2908,14 @@ typedef enum {
             
             cell = [[TimelineAttributedCell alloc] initWithStyle:UITableViewCellStyleDefault
                                                  reuseIdentifier:CELL_IDENTIFIER
-                                                        forWidth:264.0f];
+                                                        forWidth:CELL_WIDTH];
             [cell.iconView addTarget:self
                               action:@selector(pushIcon:)
                     forControlEvents:UIControlEventTouchUpInside];
         }
         
-//        dispatch_async(dispatch_get_global_queue(0, 0), ^{
-        
-            [cell setTweetData:currentTweet
-                     cellWidth:CELL_WIDTH];
-//        });
+        [cell setTweetData:currentTweet
+                 cellWidth:CELL_WIDTH];
         
         return cell;
     }

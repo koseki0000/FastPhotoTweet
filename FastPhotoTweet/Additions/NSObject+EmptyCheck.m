@@ -26,48 +26,28 @@
                 
                 result = ((NSString *)self).length == 0;
                 
-            }else if ( [self isKindOfClass:[NSMutableString class]] ) {
-                
-                result = ((NSMutableString *)self).length == 0;
-                
             }else if ( [self isKindOfClass:[NSArray class]] ) {
                 
                 result = ((NSArray *)self).count == 0;
-                
-            }else if ( [self isKindOfClass:[NSMutableArray class]] ) {
-                
-                result = ((NSMutableArray *)self).count == 0;
                 
             }else if ( [self isKindOfClass:[NSSet class]] ) {
                 
                 result = ((NSSet *)self).count == 0;
                 
-            }else if ( [self isKindOfClass:[NSMutableSet class]] ) {
-                
-                result = ((NSMutableSet *)self).count == 0;
-                
             }else if ( [self isKindOfClass:[NSDictionary class]] ) {
                 
                 result = ((NSDictionary *)self).count == 0;
-                
-            }else if ( [self isKindOfClass:[NSMutableDictionary class]] ) {
-
-                result = ((NSMutableDictionary *)self).count == 0;
                 
             }else if ( [self isKindOfClass:[NSData class]] ) {
                 
                 result = ((NSData *)self).length == 0;
                 
-            }else if ( [self isKindOfClass:[NSMutableData class]] ) {
-                
-                result = ((NSMutableData *)self).length == 0;
-                
             }else if ( [self isKindOfClass:[NSURL class]] ) {
-
+                
                 result = ((NSURL *)self).absoluteString.length == 0;
             }
             
-        } else {
+        }else {
             
             result = YES;
         }
@@ -81,60 +61,7 @@
 //NO  is Empty
 - (BOOL)isNotEmpty {
     
-    BOOL result = NO;
-    
-    if ( self != nil ) {
-        
-        if ( ![self isKindOfClass:[NSNull class]] ) {
-            
-            if ( [self isKindOfClass:[NSString class]] ) {
-                
-                result = ((NSString *)self).length != 0;
-                
-            }else if ( [self isKindOfClass:[NSMutableString class]] ) {
-                
-                result = ((NSMutableString *)self).length != 0;
-                
-            }else if ( [self isKindOfClass:[NSArray class]] ) {
-                
-                result = ((NSArray *)self).count != 0;
-                
-            }else if ( [self isKindOfClass:[NSMutableArray class]] ) {
-                
-                result = ((NSMutableArray *)self).count != 0;
-                
-            }else if ( [self isKindOfClass:[NSSet class]] ) {
-                
-                result = ((NSSet *)self).count != 0;
-                
-            }else if ( [self isKindOfClass:[NSMutableSet class]] ) {
-                
-                result = ((NSMutableSet *)self).count != 0;
-                
-            }else if ( [self isKindOfClass:[NSDictionary class]] ) {
-                
-                result = ((NSDictionary *)self).count != 0;
-                
-            }else if ( [self isKindOfClass:[NSMutableDictionary class]] ) {
-                
-                result = ((NSMutableDictionary *)self).count != 0;
-                
-            }else if ( [self isKindOfClass:[NSData class]] ) {
-                
-                result = ((NSData *)self).length != 0;
-                
-            }else if ( [self isKindOfClass:[NSMutableData class]] ) {
-                
-                result = ((NSMutableData *)self).length != 0;
-                
-            }else if ( [self isKindOfClass:[NSURL class]] ) {
-                
-                result = ((NSURL *)self).absoluteString.length != 0;
-            }
-        }
-    }
-    
-    return result;
+    return ( ![self isEmpty] );
 }
 
 - (BOOL)isNil {
