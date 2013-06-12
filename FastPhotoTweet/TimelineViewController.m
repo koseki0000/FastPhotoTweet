@@ -12,6 +12,7 @@
 #import <QuartzCore/CALayer.h>
 #import <Twitter/Twitter.h>
 #import <Accounts/Accounts.h>
+#import <Social/Social.h>
 #import <MobileCoreServices/MobileCoreServices.h>
 #import "ASIHTTPRequest.h"
 #import <CFNetwork/CFNetwork.h>
@@ -22,11 +23,6 @@
 #import "TimelineAttributedCell.h"
 #import "TimelineAttributedRTCell.h"
 #import "NSAttributedString+Attributes.h"
-
-#import "Three20UI/TTTableHeaderDragRefreshView.h"
-#import <Three20UI/TTActivityLabel.h>
-#import <Three20Style/Three20Style.h>
-#import <Three20UICommon/Three20UICommon.h>
 
 #import "TWTweet.h"
 #import "FPTRequest.h"
@@ -111,8 +107,7 @@ typedef enum {
 
 @property (strong, nonatomic) UISegmentedControl *segment;
 
-@property (strong, nonatomic) TTTableHeaderDragRefreshView *headerView;
-@property (strong, nonatomic) UIView *activityTable;
+@property (strong, nonatomic) UIRefreshControl *refreshControl;
 
 @property (strong, nonatomic) UITableView *timeline;
 @property (strong, nonatomic) TimelineMenu *timelineMenu;
@@ -157,9 +152,6 @@ typedef enum {
 - (void)createInReplyToChain:(TWTweet *)tweet;
 
 - (oneway void)addFavorite:(NSString *)tweetID accountIndex:(NSInteger)accountIndex;
-
-- (void)startLoad;
-- (void)finishLoad;
 
 - (void)changeAccount:(NSNotification *)notification;
 
@@ -335,7 +327,7 @@ typedef enum {
             NSString *searchName = [NSString stringWithFormat:@"%@-", accountName];
             NSLog(@"%@", searchName);
             
-            UIImage *image = [[UIImage alloc] initWithContentsOfFile:FILE_PATH];
+            UIImage *image = [UIImage imageWithContentsOfFileByContext:FILE_PATH];
             
             [accountIconButton setImage:image
                                forState:UIControlStateNormal];
@@ -403,7 +395,13 @@ typedef enum {
     
     if ( [InternetConnection enable] ) {
         
-        [self requestHomeTimeline];
+        if ( [TWAccounts accountCount] != 0 ) {
+         
+            DISPATCH_AFTER(0.5) ^{
+               
+                [self requestHomeTimeline];
+            });
+        }
     }
 }
 
@@ -417,7 +415,11 @@ typedef enum {
         
         if ( [[TWTweets listID] isNotEmpty] ) {
             
-            [self requestList:[TWTweets listID]];
+            if ( ![[TWTweets listID] isEqualToString:[TWTweets showingListID]] ) {
+             
+                [TWTweets manager].showingListID = [TWTweets listID];
+                [self requestList:[TWTweets listID]];
+            }
         }
     }
 }
@@ -448,34 +450,13 @@ typedef enum {
 
 - (void)createPullDownRefreshHeader {
     
-    NSLog(@"createPullDownRefreshHeader");
-    
-    CGRect timelineBounds = self.timeline.bounds;
-    
-    CGRect headerRect = CGRectMake(0.0f,
-                                   -timelineBounds.size.height,
-                                   timelineBounds.size.width,
-                                   timelineBounds.size.height);
-    
-    self.headerView = [[TTTableHeaderDragRefreshView alloc] initWithFrame:headerRect];
-    [self.headerView setAutoresizingMask:UIViewAutoresizingFlexibleWidth];
-    [self.headerView setBackgroundColor:TTSTYLEVAR(tableRefreshHeaderBackgroundColor)];
-    [self.headerView setStatus:TTTableHeaderDragRefreshPullToReload];
-    [self.timeline addSubview:self.headerView];
-    [self.headerView setUpdateDate:nil];
-    
-    CGRect activityRect = CGRectMake(0.0f,
-                                     44.0f,
-                                     CGRectGetWidth(self.view.frame),
-                                     CGRectGetHeight(self.view.bounds));
-    self.activityTable = [[UIView alloc] initWithFrame:activityRect];
-    [self.activityTable setBackgroundColor:[UIColor whiteColor]];
-    
-    TTActivityLabel *label = [[TTActivityLabel alloc] initWithStyle:TTActivityLabelStyleGray];
-    [self.activityTable addSubview:label];
-    CGRect frame = self.activityTable.bounds;
-    frame.origin.y -= 44.0f;
-    [label setFrame:frame];
+    UIRefreshControl *refreshControl = [[UIRefreshControl alloc] init];
+    [self setRefreshControl:refreshControl];
+    [refreshControl addTarget:self
+                       action:@selector(refreshOccured:)
+             forControlEvents:UIControlEventValueChanged];
+    [self.timeline setAlwaysBounceVertical:YES];
+    [self.timeline addSubview:refreshControl];
 }
 
 - (oneway void)createTimelineGuesture {
@@ -872,7 +853,7 @@ typedef enum {
 //        }
         
         [self.grayView end];
-        [self finishLoad];
+        [self.refreshControl endRefreshing];
         
         if ( beforeCount != [self.currentTweets count] ) {
             
@@ -930,7 +911,7 @@ typedef enum {
         [self setCurrentTweets:receiveTweets];
         [self.timeline reloadData];
         [self.grayView end];
-        [self finishLoad];
+        [self.refreshControl endRefreshing];
     }
 }
 
@@ -948,7 +929,7 @@ typedef enum {
         [self setCurrentTweets:receiveTweets];
         [self.timeline reloadData];
         [self.grayView end];
-        [self finishLoad];
+        [self.refreshControl endRefreshing];
     }
 }
 
@@ -966,7 +947,7 @@ typedef enum {
         [self setCurrentTweets:receiveTweets];
         [self.timeline reloadData];
         [self.grayView end];
-        [self finishLoad];
+        [self.refreshControl endRefreshing];
     }
 }
 
@@ -985,7 +966,7 @@ typedef enum {
         [self setCurrentTweets:receiveTweets];
         [self.timeline reloadData];
         [self.grayView end];
-        [self finishLoad];
+        [self.refreshControl endRefreshing];
     }
 }
 
@@ -1008,7 +989,7 @@ typedef enum {
         [self setCurrentTweets:receiveTweets];
         [self.timeline reloadData];
         [self.grayView end];
-        [self finishLoad];
+        [self.refreshControl endRefreshing];
     }
 }
 
@@ -1102,7 +1083,7 @@ typedef enum {
     }
     
     [self.grayView forceEnd];
-    [self finishLoad];
+    [self.refreshControl endRefreshing];
 }
 
 - (oneway void)receiveOffline:(NSNotification *)notification {
@@ -1175,97 +1156,14 @@ typedef enum {
                          parameters:parameters];
 }
 
-#pragma mark - UIScrollViewDelegate
-
-- (void)scrollViewDidScroll:(UIScrollView *)scrollView {
-    
-    //NSLog(@"scrollViewDidScroll");
-    
-    if ( scrollView.dragging && !self.loading ) {
-        
-        if ( scrollView.contentOffset.y > REFRESH_DERAY &&
-             scrollView.contentOffset.y < 0.0f ) {
-            
-            [self.headerView setStatus:TTTableHeaderDragRefreshPullToReload];
-            
-        }else if ( scrollView.contentOffset.y < REFRESH_DERAY ) {
-            
-            [self.headerView setStatus:TTTableHeaderDragRefreshReleaseToReload];
-        }
-    }
-    
-    if ( self.loading ) {
-        
-        if ( scrollView.contentOffset.y >= 0 ) {
-            
-            [self.timeline setContentInset:UIEdgeInsetsZero];
-            
-        }else if ( scrollView.contentOffset.y < 0 ) {
-            
-            [self.timeline setContentInset:UIEdgeInsetsMake(HEADER_HEIGHT,
-                                                            0.0f,
-                                                            0.0f,
-                                                            0.0f)];
-        }
-    }
-}
-
-- (void)scrollViewDidEndDragging:(UIScrollView *)scrollView willDecelerate:(BOOL)decelerate {
-    
-    //NSLog(@"scrollViewDidEndDragging");
-    
-    if ( scrollView.contentOffset.y <= REFRESH_DERAY &&
-        !self.loading ) {
-        
-        [self startLoad];
-    }
-}
-
 #pragma mark - PullDownRefresh
 
-- (void)startLoad {
+- (void)refreshOccured:(id)sender {
     
-    [self.headerView setStatus:TTTableHeaderDragRefreshLoading];
-    
-    if ( ![self.topBarReloadButton isEnabled] ) {
-        
-        return;
-    }
-    
-    DISPATCH_AFTER(0.1) ^{
-        
-        [self pushReloadButton];
-    });
-    
-    [self setLoading:YES];
-    
-    [UIView beginAnimations:nil context:NULL];
-    [UIView setAnimationDuration:ttkDefaultFastTransitionDuration];
-    
-    if ( [self.timeline contentOffset].y < 0 ) {
-        
-        [self.timeline setContentInset:UIEdgeInsetsMake(HEADER_HEIGHT,
-                                                        0.0f,
-                                                        0.0f,
-                                                        0.0f)];
-    }
-    
-    [UIView commitAnimations];
+    [self pushReloadButton];
 }
 
-- (void)finishLoad {
-    
-    [UIView beginAnimations:nil context:NULL];
-    [UIView setAnimationDuration:ttkDefaultTransitionDuration];
-    
-    [self.headerView setStatus:TTTableHeaderDragRefreshPullToReload];
-    [self.timeline setContentInset:UIEdgeInsetsZero];
-    [self.headerView setCurrentDate];
-    [self setLoading:NO];
-    
-    [UIView commitAnimations];
-}
-
+#pragma mark - Account Change
 - (void)changeAccount:(NSNotification *)notification {
     
     //Tweet画面でアカウントが切り替えられた際に呼ばれる
@@ -1495,7 +1393,6 @@ typedef enum {
         if ( buttonIndex != 3 && buttonIndex != 4 ) {
             
             [self closeStream];
-            [self.headerView setUpdateDate:nil];
             [self.currentTweets removeAllObjects];
             [self setCurrentTweets:nil];
             [self setCurrentTweets:BLANK_M_ARRAY];
@@ -1551,7 +1448,6 @@ typedef enum {
                     [self setCurrentTweets:[NSMutableArray arrayWithArray:[TWNgTweet ngAll:self.currentTweets]]];
                     
                     dispatch_semaphore_signal(semaphore);
-                    dispatch_release(semaphore);
                 });
                 
                 [TWTweets saveCurrentTimeline:self.currentTweets];
@@ -1773,9 +1669,10 @@ typedef enum {
         if ( [D boolForKey:@"USNoAutoLock"] ) [[UIApplication sharedApplication] setIdleTimerDisabled:YES];
         
         //UserStream接続リクエストの作成
-        TWRequest *request = [[TWRequest alloc] initWithURL:[NSURL URLWithString:@"https://userstream.twitter.com/2/user.json"]
-                                                 parameters:nil
-                                              requestMethod:TWRequestMethodPOST];
+        SLRequest *request = [SLRequest requestForServiceType:SLServiceTypeTwitter
+                                                requestMethod:TWRequestMethodPOST
+                                                          URL:[NSURL URLWithString:@"https://userstream.twitter.com/2/user.json"]
+                                                   parameters:nil];
         
         //アカウントの設定
         [request setAccount:[TWAccounts currentAccount]];
@@ -1783,7 +1680,7 @@ typedef enum {
         [self startUserStreamQueue];
         
         //接続開始
-        self.connection = [NSURLConnection connectionWithRequest:request.signedURLRequest
+        self.connection = [NSURLConnection connectionWithRequest:request.preparedURLRequest
                                                         delegate:self];
         [self.connection start];
         
@@ -1796,8 +1693,6 @@ typedef enum {
         
         request = nil;
     });
-    
-    dispatch_release(userStreamQueue);
 }
 
 - (void)closeStream {
@@ -1898,14 +1793,7 @@ typedef enum {
             [self.currentTweets removeObjectAtIndex:index];
             [TWTweets saveCurrentTimeline:self.currentTweets];
             
-            dispatch_queue_t queue;
-            if ( [NSThread isMainThread] ) {
-                queue = dispatch_get_current_queue();
-            } else {
-                queue = dispatch_get_main_queue();
-            }
-            
-            dispatch_async(queue, ^{
+            dispatch_async(dispatch_get_main_queue(), ^{
                 
                 [self.timeline deleteRowsAtIndexPaths:@[[NSIndexPath indexPathForRow:index
                                                                            inSection:0]]
@@ -1945,14 +1833,7 @@ typedef enum {
                 [self.currentTweets replaceObjectAtIndex:index withObject:favedTweet];
                 [TWTweets saveCurrentTimeline:self.currentTweets];
                 
-                dispatch_queue_t queue;
-                if ( [NSThread isMainThread] ) {
-                    queue = dispatch_get_current_queue();
-                } else {
-                    queue = dispatch_get_main_queue();
-                }
-                
-                dispatch_async(queue, ^{
+                dispatch_async(dispatch_get_main_queue(), ^{
                     
                     [self.timeline reloadRowsAtIndexPaths:@[[NSIndexPath indexPathForRow:index
                                                                                inSection:0]]
@@ -1983,14 +1864,7 @@ typedef enum {
         [TWTweets saveCurrentTimeline:self.currentTweets];
     }
     
-    dispatch_queue_t queue;
-    if ( [NSThread isMainThread] ) {
-        queue = dispatch_get_current_queue();
-    } else {
-        queue = dispatch_get_main_queue();
-    }
-    
-    dispatch_async(queue, ^{
+    dispatch_async(dispatch_get_main_queue(), ^{
         
         [self.timeline insertRowsAtIndexPaths:@[[NSIndexPath indexPathForRow:0
                                                                    inSection:0]]
@@ -2027,14 +1901,7 @@ typedef enum {
             return;
         }
         
-        dispatch_queue_t queue;
-        if ( [NSThread isMainThread] ) {
-            queue = dispatch_get_current_queue();
-        } else {
-            queue = dispatch_get_main_queue();
-        }
-        
-        dispatch_async(queue, ^{
+        dispatch_async(dispatch_get_main_queue(), ^{
             
             [self.timeline insertRowsAtIndexPaths:@[[NSIndexPath indexPathForRow:0
                                                                        inSection:0]]
@@ -2137,14 +2004,7 @@ typedef enum {
     
     if ( httpResponse.statusCode == 200 ) {
         
-        dispatch_queue_t queue;
-        if ( [NSThread isMainThread] ) {
-            queue = dispatch_get_current_queue();
-        } else {
-            queue = dispatch_get_main_queue();
-        }
-        
-        dispatch_async(queue, ^{
+        dispatch_async(dispatch_get_main_queue(), ^{
         
             [USER_STREAM_BUTTON setImage:[UIImage imageNamed:@"stop.png"]
                                 forState:UIControlStateNormal];
@@ -2223,7 +2083,7 @@ typedef enum {
                 //NSLog(@"File Saved: %@", userName);
                 
                 //アイコンファイルを読み込み
-                __block UIImage *image = [[UIImage alloc] initWithContentsOfFile:FILE_PATH];
+                __block UIImage *image = [UIImage imageWithContentsOfFileByContext:FILE_PATH];
                 
                 if ( image != nil ) {
                     
@@ -2408,14 +2268,7 @@ typedef enum {
     if ( self.currentTweets[i] == nil ||
          self.currentTweets.count - 1 < i ) return;
     
-    dispatch_queue_t queue;
-    if ( [NSThread isMainThread] ) {
-        queue = dispatch_get_current_queue();
-    } else {
-        queue = dispatch_get_main_queue();
-    }
-    
-    dispatch_async(queue, ^{
+    dispatch_async(dispatch_get_main_queue(), ^{
         
         [self.timeline reloadRowsAtIndexPaths:@[[NSIndexPath indexPathForRow:i
                                                                    inSection:0]]
@@ -2668,14 +2521,7 @@ typedef enum {
                     [TWTweets saveCurrentTimeline:self.currentTweets];
                 }
                 
-                dispatch_queue_t queue;
-                if ( [NSThread isMainThread] ) {
-                    queue = dispatch_get_current_queue();
-                } else {
-                    queue = dispatch_get_main_queue();
-                }
-                
-                dispatch_async(queue, ^{
+                dispatch_async(dispatch_get_main_queue(), ^{
                 
                     [self.timeline reloadRowsAtIndexPaths:@[[NSIndexPath indexPathForRow:index
                                                                                inSection:0]]
@@ -2843,14 +2689,7 @@ typedef enum {
     
     if ( find ) {
         
-        dispatch_queue_t queue;
-        if ( [NSThread isMainThread] ) {
-            queue = dispatch_get_current_queue();
-        } else {
-            queue = dispatch_get_main_queue();
-        }
-        
-        dispatch_async(queue, ^{
+        dispatch_async(dispatch_get_main_queue(), ^{
             
             [self.currentTweets removeObjectAtIndex:index];
             [TWTweets saveCurrentTimeline:self.currentTweets];
@@ -3113,9 +2952,10 @@ typedef enum {
 - (void)showAPILimit {
     
     NSString *requestURL = [NSString stringWithFormat:@"https://api.twitter.com/1.1/application/rate_limit_status.json"];
-    TWRequest *getRequest = [[TWRequest alloc] initWithURL:[NSURL URLWithString:requestURL]
-                                                parameters:nil
-                                             requestMethod:TWRequestMethodGET];
+    SLRequest *getRequest = [SLRequest requestForServiceType:SLServiceTypeTwitter
+                                            requestMethod:TWRequestMethodGET
+                                                      URL:[NSURL URLWithString:requestURL]
+                                               parameters:nil];
     [getRequest setAccount:[TWAccounts currentAccount]];
     
     [getRequest performRequestWithHandler:^(NSData *responseData,

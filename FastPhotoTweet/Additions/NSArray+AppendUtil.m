@@ -37,7 +37,6 @@
             }
             
 //            dispatch_semaphore_signal(semaphore);
-//            dispatch_release(semaphore);
 //        });
         
         return returnMutable ? tempArray : [NSArray arrayWithArray:tempArray];
@@ -70,7 +69,6 @@
             }
             
 //            dispatch_semaphore_signal(semaphore);
-//            dispatch_release(semaphore);
 //        });
         
         return returnMutable ? tempArray : [NSArray arrayWithArray:tempArray];
@@ -119,7 +117,6 @@
             }
             
 //            dispatch_semaphore_signal(semaphore);
-//            dispatch_release(semaphore);
 //        });
         
         return returnMutable ? tempArray : [NSArray arrayWithArray:tempArray];
@@ -163,7 +160,6 @@
             }
             
 //            dispatch_semaphore_signal(semaphore);
-//            dispatch_release(semaphore);
 //        });
         
         return returnMutable ? tempArray : [NSArray arrayWithArray:tempArray];
@@ -243,7 +239,6 @@
             }
             
 //            dispatch_semaphore_signal(semaphore);
-//            dispatch_release(semaphore);
 //        });
         
         return returnMutable ? tempArray : [NSArray arrayWithArray:tempArray];
@@ -307,7 +302,6 @@
             }
             
 //            dispatch_semaphore_signal(semaphore);
-//            dispatch_release(semaphore);
 //        });
         
         return returnMutable ? tempArray : [NSArray arrayWithArray:tempArray];

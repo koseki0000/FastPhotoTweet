@@ -106,6 +106,8 @@
     
     NSLog(@"retina4InchOffset: %d", retina4InchOffset);
     
+    [self.wv setBackgroundColor:[UIColor underPageBackgroundColor]];
+    
     self.grayView = [[GrayView alloc] init];
     [_wv addSubview:_grayView];
     
@@ -644,7 +646,7 @@
     
     BookmarkViewController *dialog = [[BookmarkViewController alloc] init];
     dialog.modalTransitionStyle = UIModalTransitionStyleCoverVertical;
-    [self presentModalViewController:dialog animated:YES];
+    [self showModalViewController:dialog];
     dialog = nil;
 }
 
@@ -735,8 +737,6 @@
                 
                 suggestion = nil;
             });
-            
-            dispatch_release(syncQueue);
         });
     }
 }
@@ -2066,42 +2066,8 @@
     return UIInterfaceOrientationMaskAllButUpsideDown;
 }
 
-- (BOOL)shouldAutorotateToInterfaceOrientation:(UIInterfaceOrientation)interfaceOrientation {
-    
-    if ( interfaceOrientation == UIInterfaceOrientationPortrait ) {
-        
-        [self rotateView:0];
-        
-        return YES;
-        
-    }else if ( interfaceOrientation == UIInterfaceOrientationLandscapeLeft ||
-               interfaceOrientation == UIInterfaceOrientationLandscapeRight ) {
-        
-        [self rotateView:1];
-                
-        return YES;
-        
-    }else if ( interfaceOrientation == UIInterfaceOrientationPortraitUpsideDown ) {
-        
-        return NO;
-    }
-    
-    return YES;
-}
-
 - (void)adBlock {
     
-//    NSLog(@"adBlock");
-//    NSLog(@"%@", [_wv stringByEvaluatingJavaScriptFromString:@"var delads=document.getElementsByTagName(\'div\'); delads.toString();"]);
-    
-//    [_wv stringByEvaluatingJavaScriptFromString:@"var delads=document.getElementsByTagName(\'div\');for(i=0;i<delads.length;i++){if(delads[i].className==\'_naver_ad_area\'){delads[i].style.display=none}}"];
-//    [_wv stringByEvaluatingJavaScriptFromString:@"var delads=document.getElementsByTagName(\'div\');for(i=0;i<delads.length;i++){if(delads[i].className==\\'adlantis_sp_sticky_container\'){delads[i].style.display=none}}"];
-    
-//    [_wv stringByEvaluatingJavaScriptFromString:
-//     @"var delads=document.getElementsByClassName(\'_naver_ad_area\');for(i=0;i<delads.length;i++){delads[i].style.display=none}"];
-    
-//    [_wv stringByEvaluatingJavaScriptFromString:
-//     @"var delads=document.getElementById(\'ad_cloud_overlay_space\'); alert(delads.length);"];
 }
 
 - (void)setViewSize {
@@ -2109,7 +2075,6 @@
     if ( [[[UIDevice currentDevice] systemVersion] floatValue] < 6.0 ) {
         
         NSLog(@"setViewSize iOS5");
-        [self shouldAutorotateToInterfaceOrientation:ORIENTATION];
         
     } else {
         

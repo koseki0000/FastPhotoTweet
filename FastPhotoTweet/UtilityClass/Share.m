@@ -4,6 +4,7 @@
 
 #import "Share.h"
 #import "NSObject+EmptyCheck.h"
+#import "UIImage+Convert.h"
 
 @implementation Share
 
@@ -85,7 +86,7 @@
 
 + (void)cacheImageWithContentsOfFile:(NSString *)filePath doneNotification:(BOOL)notification {
     
-    UIImage *image = [[UIImage alloc] initWithContentsOfFile:filePath];
+    UIImage *image = [UIImage imageWithContentsOfFileByContext:filePath];
     NSString *fileName = [[NSString alloc] initWithString:[filePath lastPathComponent]];
     
     if ( image != nil && [[Share images] objectForKey:fileName] == nil ) {
@@ -94,7 +95,6 @@
         if ( notification ) [Share imageCachedNotification:fileName classNameOrNil:nil];
     }
     
-    [image release];
     [fileName release];
 }
 
@@ -102,7 +102,7 @@
     
     [Share addClassDirectory:targetClass];
     
-    UIImage *image = [[UIImage alloc] initWithContentsOfFile:filePath];
+    UIImage *image = [UIImage imageWithContentsOfFileByContext:filePath];
     NSString *fileName = [[NSString alloc] initWithString:[filePath lastPathComponent]];
     NSString *className = [[NSString alloc] initWithString:NSStringFromClass(targetClass)];
     
@@ -113,7 +113,6 @@
         if ( notification ) [Share imageCachedNotification:fileName classNameOrNil:className];
     }
     
-    [image release];
     [fileName release];
     [className release];
 }
@@ -122,7 +121,7 @@
     
     for ( NSString *filePath in filePaths ) {
         
-        UIImage *image = [[UIImage alloc] initWithContentsOfFile:filePath];
+        UIImage *image = [UIImage imageWithContentsOfFileByContext:filePath];
         NSString *fileName = [[NSString alloc] initWithString:[filePath lastPathComponent]];
         
         if ( image != nil && [[Share images] objectForKey:fileName] == nil ) {
@@ -131,7 +130,6 @@
             if ( notification ) [Share imageCachedNotification:fileName classNameOrNil:nil];
         }
         
-        [image release];
         [fileName release];
     }
 }
@@ -144,7 +142,7 @@
     
     for ( NSString *filePath in filePaths ) {
         
-        UIImage *image = [[UIImage alloc] initWithContentsOfFile:filePath];
+        UIImage *image = [UIImage imageWithContentsOfFileByContext:filePath];
         NSString *fileName = [[NSString alloc] initWithString:[filePath lastPathComponent]];
         
         if ( image != nil && [[[Share images] objectForKey:className] objectForKey:fileName] == nil ) {
@@ -154,7 +152,6 @@
             if ( notification ) [Share imageCachedNotification:fileName classNameOrNil:className];
         }
         
-        [image release];
         [fileName release];
     }
     

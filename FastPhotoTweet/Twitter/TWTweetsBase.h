@@ -22,6 +22,7 @@
 
 @property (retain, nonatomic) NSArray *lists;
 @property (copy, nonatomic) NSString *listID;
+@property (copy, nonatomic) NSString *showingListID;
 
 + (TWTweetsBase *)manager;
 

@@ -43,6 +43,7 @@ static TWTweetsBase *sharedObject = nil;
             sharedObject.tabChangeFunction = @"";
             sharedObject.lists = @[];
             sharedObject.listID = @"";
+            sharedObject.showingListID = @"";
             
             for ( ACAccount *account in [TWAccountsBase manager].twitterAccounts ) {
                 

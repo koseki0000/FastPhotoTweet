@@ -54,7 +54,7 @@
         _textLabel.backgroundColor = backgroundColor;
         _textLabel.textColor = textColor;
         _textLabel.font = [UIFont systemFontOfSize:14.0f];
-        _textLabel.textAlignment = UITextAlignmentCenter;
+        _textLabel.textAlignment = NSTextAlignmentCenter;
         
         _showTime = showTime;
         _taskCheckInterval = taskCheckInterval;

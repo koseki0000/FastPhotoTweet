@@ -10,6 +10,7 @@
 #import "NSNotificationCenter+EasyPost.h"
 #import "TWTweets.h"
 #import "CheckAppVersion.h"
+#import "UIImage+Convert.h"
 
 #define APP_VERSION [[[NSBundle mainBundle] infoDictionary] objectForKey:@"CFBundleShortVersionString"]
 
@@ -131,11 +132,12 @@
         
         ACAccountStore *accountStore = [[[ACAccountStore alloc] init] autorelease];
         ACAccountType *accountType = [accountStore accountTypeWithAccountTypeIdentifier:ACAccountTypeIdentifierTwitter];
-        
+
         [accountStore requestAccessToAccountsWithType:accountType
-                                withCompletionHandler:^(BOOL granted,
+                                              options:nil
+                                           completion:^(BOOL granted,
                                                         NSError *error) {
-                                    
+        
                                     SYNC_MAIN_QUEUE ^{
                                         
                                         if ( granted ) {
@@ -355,7 +357,7 @@
             //NSLog(@"newVersion");
             
             [ShowAlert title:[NSString stringWithFormat:@"FastPhotoTweet %@", APP_VERSION]
-                     message:@"・多数のバグ修正"];
+                     message:@"・iOS 5.x及び非Retina端末のサポート停止(iOS 7対応の為)\n・表示の高速化\n・バグ修正"];
             
             information = [[[NSMutableDictionary alloc] initWithDictionary:[d dictionaryForKey:@"Information"]] autorelease];
             [information setValue:[NSNumber numberWithInt:1] forKey:APP_VERSION];
@@ -468,7 +470,7 @@
     
     ResendViewController *dialog = [[[ResendViewController alloc] init] autorelease];
     dialog.modalTransitionStyle = UIModalTransitionStyleCoverVertical;
-    [self presentModalViewController:dialog animated:YES];
+    [self showModalViewController:dialog];
 }
 
 - (IBAction)pushTrashButton:(id)sender {
@@ -513,7 +515,7 @@
     
     WebViewExController *dialog = [[[WebViewExController alloc] init] autorelease];
     dialog.modalTransitionStyle = UIModalTransitionStyleCoverVertical;
-    [self presentModalViewController:dialog animated:YES];
+    [self showModalViewController:dialog];
 }
 
 - (IBAction)pushSettingButton:(id)sender {
@@ -525,7 +527,7 @@
     UINavigationController *navigation = [[[UINavigationController alloc] initWithRootViewController:dialog] autorelease];
     navigation.modalTransitionStyle = UIModalTransitionStyleCoverVertical;
     navigation.navigationBar.tintColor = [UIColor colorWithRed:0.4 green:0.8 blue:1.0 alpha:1.0];
-    [self presentModalViewController:navigation animated:YES];
+    [self showModalViewController:navigation];
 }
 
 - (IBAction)pushIDButton:(id)sender {
@@ -536,7 +538,7 @@
     
     IDChangeViewController *dialog = [[[IDChangeViewController alloc] init] autorelease];
     dialog.modalTransitionStyle = UIModalTransitionStyleCoverVertical;
-    [self presentModalViewController:dialog animated:YES];
+    [self showModalViewController:dialog];
 }
 
 - (IBAction)pushImageSettingButton:(id)sender {
@@ -926,7 +928,7 @@
     }
     
     picPicker.delegate = self;
-    [self presentModalViewController:picPicker animated:YES];
+    [self showModalViewController:picPicker];
 }
 
 - (void)imagePickerController:(UIImagePickerController *)picPicker
@@ -1346,7 +1348,7 @@
         }
         
         picPicker.delegate = self;
-        [self presentModalViewController:picPicker animated:YES];
+        [self showModalViewController:picPicker];
         
     }else if ( actionSheetNo == 2 ) {
         
@@ -1501,7 +1503,7 @@
             UIImagePickerController *picPicker = [[[UIImagePickerController alloc] init] autorelease];
             picPicker.sourceType = UIImagePickerControllerSourceTypePhotoLibrary;
             picPicker.delegate = self;
-            [self presentModalViewController:picPicker animated:YES];
+            [self showModalViewController:picPicker];
             
         }else if ( buttonIndex == 1 ) {
             
@@ -1985,8 +1987,6 @@
 
 - (void)setIconPreviewImage {
     
-    if ( ![TWTweetComposeViewController canSendTweet] ) return;
-    
     NSArray *iconsDirectory = [[NSFileManager defaultManager] contentsOfDirectoryAtPath:ICONS_DIRECTORY error:nil];
     NSString *searchName = [NSString stringWithFormat:@"%@-", [TWAccounts currentAccountName]];
     
@@ -1999,12 +1999,9 @@
             
             if ( [name hasPrefix:searchName] ) {
                 
-                UIImage *image = [[UIImage alloc] initWithContentsOfFile:[ICONS_DIRECTORY stringByAppendingPathComponent:name]];
+                UIImage *image = [UIImage imageWithContentsOfFileByContext:[ICONS_DIRECTORY stringByAppendingPathComponent:name]];
                 _iconPreview.image = image;
-                [image release];
-                
                 find = YES;
-                
                 break;
             }
         }

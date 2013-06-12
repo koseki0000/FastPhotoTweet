@@ -30,9 +30,10 @@
             [params setObject:tweetId forKey:@"id"];
             
             //リクエストの作成
-            TWRequest *postRequest = [[TWRequest alloc] initWithURL:[NSURL URLWithString:tReqURL]
-                                                         parameters:params
-                                                      requestMethod:TWRequestMethodPOST];
+            SLRequest *postRequest = [SLRequest requestForServiceType:SLServiceTypeTwitter
+                                                        requestMethod:TWRequestMethodPOST
+                                                                  URL:[NSURL URLWithString:tReqURL]
+                                                           parameters:params];
             
             //リクエストにアカウントを設定
             [postRequest setAccount:[TWAccounts selectAccount:accountIndex]];
@@ -67,9 +68,10 @@
             NSString *tReqURL = [NSString stringWithFormat:@"https://api.twitter.com/%@/statuses/retweet/%@.json",API_VERSION , tweetId];
             
             //リクエストの作成
-            TWRequest *postRequest = [[TWRequest alloc] initWithURL:[NSURL URLWithString:tReqURL]
-                                                         parameters:nil
-                                                      requestMethod:TWRequestMethodPOST];
+            SLRequest *postRequest = [SLRequest requestForServiceType:SLServiceTypeTwitter
+                                                        requestMethod:TWRequestMethodPOST
+                                                                  URL:[NSURL URLWithString:tReqURL]
+                                                           parameters:nil];
             
             //リクエストにアカウントを設定
             [postRequest setAccount:[TWAccounts selectAccount:accountIndex]];
@@ -114,9 +116,10 @@
             [params setObject:tweetId forKey:@"id"];
             
             //リクエストの作成
-            TWRequest *postRequest = [[TWRequest alloc] initWithURL:[NSURL URLWithString:tReqURL]
-                                                         parameters:params
-                                                      requestMethod:TWRequestMethodPOST];
+            SLRequest *postRequest = [SLRequest requestForServiceType:SLServiceTypeTwitter
+                                                        requestMethod:TWRequestMethodPOST
+                                                                  URL:[NSURL URLWithString:tReqURL]
+                                                           parameters:nil];
             
             //リクエストにアカウントを設定
             [postRequest setAccount:[TWAccounts selectAccount:accountIndex]];
@@ -151,12 +154,13 @@
         NSString *tReqURL = [NSString stringWithFormat:@"https://api.twitter.com/%@/users/show.json?screen_name=%@&include_entities=true",API_VERSION , screenName];
         
         //リクエストの作成
-        TWRequest *postRequest = [[TWRequest alloc] initWithURL:[NSURL URLWithString:tReqURL]
-                                                     parameters:nil
-                                                  requestMethod:TWRequestMethodGET];
+        SLRequest *getRequest = [SLRequest requestForServiceType:SLServiceTypeTwitter
+                                                   requestMethod:TWRequestMethodGET
+                                                             URL:[NSURL URLWithString:tReqURL]
+                                                      parameters:nil];
         
         //リクエストにアカウントを設定
-        [postRequest setAccount:[TWAccounts currentAccount]];
+        [getRequest setAccount:[TWAccounts currentAccount]];
         
         //投稿結果通知を作成
         NSMutableDictionary *resultProfile = [NSMutableDictionary dictionary];
@@ -164,7 +168,7 @@
                                                                     object:self
                                                                   userInfo:resultProfile];
         
-        [postRequest performRequestWithHandler:
+        [getRequest performRequestWithHandler:
          ^( NSData *responseData, NSHTTPURLResponse *urlResponse, NSError *error ) {
              
              if ( responseData ) {
@@ -224,12 +228,13 @@
         NSString *tReqURL = [NSString stringWithFormat:@"https://api.twitter.com/%@/statuses/show.json?id=%@&include_entities=true", API_VERSION, tweetId];
         
         //リクエストの作成
-        TWRequest *postRequest = [[TWRequest alloc] initWithURL:[NSURL URLWithString:tReqURL]
-                                                     parameters:nil
-                                                  requestMethod:TWRequestMethodGET];
+        SLRequest *getRequest = [SLRequest requestForServiceType:SLServiceTypeTwitter
+                                                   requestMethod:TWRequestMethodGET
+                                                             URL:[NSURL URLWithString:tReqURL]
+                                                      parameters:nil];
         
         //リクエストにアカウントを設定
-        [postRequest setAccount:[TWAccounts currentAccount]];
+        [getRequest setAccount:[TWAccounts currentAccount]];
         
         //投稿結果通知を作成
         NSMutableDictionary *resultProfile = [NSMutableDictionary dictionary];
@@ -237,7 +242,7 @@
                                                                     object:self
                                                                   userInfo:resultProfile];
         
-        [postRequest performRequestWithHandler:
+        [getRequest performRequestWithHandler:
          ^( NSData *responseData, NSHTTPURLResponse *urlResponse, NSError *error ) {
              
              dispatch_async(dispatch_get_main_queue(), ^{
@@ -295,19 +300,20 @@
         NSString *tReqURL = [NSString stringWithFormat:@"https://api.twitter.com/%@/statuses/destroy/%@.json", API_VERSION, tweetId];
         
         //リクエストの作成
-        TWRequest *postRequest = [[TWRequest alloc] initWithURL:[NSURL URLWithString:tReqURL]
-                                                     parameters:nil
-                                                  requestMethod:TWRequestMethodPOST];
+        SLRequest *getRequest = [SLRequest requestForServiceType:SLServiceTypeTwitter
+                                                   requestMethod:TWRequestMethodGET
+                                                             URL:[NSURL URLWithString:tReqURL]
+                                                      parameters:nil];
         
         //リクエストにアカウントを設定
-        [postRequest setAccount:[TWAccounts currentAccount]];
+        [getRequest setAccount:[TWAccounts currentAccount]];
         
         //投稿結果通知を作成
         NSMutableDictionary *resultDestroy = [NSMutableDictionary dictionary];
         NSNotification *notification =[NSNotification notificationWithName:@"Destroy"
                                                                     object:self
                                                                   userInfo:resultDestroy];
-        [postRequest performRequestWithHandler:
+        [getRequest performRequestWithHandler:
          ^( NSData *responseData, NSHTTPURLResponse *urlResponse, NSError *error ) {
              
              dispatch_async(dispatch_get_main_queue(), ^{

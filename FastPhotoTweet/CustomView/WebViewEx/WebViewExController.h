@@ -6,6 +6,7 @@
 //
 
 #import "AppDelegate.h"
+#import "BaseViewController.h"
 #import "WebViewEx.h"
 #import "UtilityClass.h"
 #import "DeleteWhiteSpace.h"
@@ -20,7 +21,7 @@
 #import "ASIHTTPRequest.h"
 #import <CFNetwork/CFNetwork.h>
 
-@interface WebViewExController : UIViewController <UIWebViewDelegate, UIActionSheetDelegate, UITextFieldDelegate, NSXMLParserDelegate> {
+@interface WebViewExController : BaseViewController <UIWebViewDelegate, UIActionSheetDelegate, UITextFieldDelegate, NSXMLParserDelegate> {
     
     float totalbytes;
     float loadedbytes;

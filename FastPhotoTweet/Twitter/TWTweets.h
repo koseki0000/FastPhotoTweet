@@ -23,6 +23,7 @@
 
 + (NSArray *)lists;
 + (NSString *)listID;
++ (NSString *)showingListID;
 
 + (void)saveCurrentTimeline:(NSMutableArray *)currentTimeline;
 + (NSMutableArray *)currentTimeline;

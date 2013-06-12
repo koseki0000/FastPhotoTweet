@@ -3,7 +3,6 @@
 //  FastPhotoTweet
 //
 
-#import <Twitter/Twitter.h>
 #import <Accounts/Accounts.h>
 
 #import "FPTRequest.h"
@@ -85,7 +84,6 @@
                 [ShowAlert error:@"ネットワーク未接続"];
                 [FPTRequest postAPIErrorNotificationName:GET_API_ERROR_NOTIFICATION];
             });
-            
             return;
             
         } else {
@@ -112,9 +110,10 @@
         
         NSLog(@"requestURL: %@", requestURL);
         
-        FPTRequest *request = [[FPTRequest alloc] initWithURL:[NSURL URLWithString:requestURL]
-                                                   parameters:parameters
-                                                requestMethod:TWRequestMethodGET];
+        FPTRequest *request = (FPTRequest *)[FPTRequest requestForServiceType:SLServiceTypeTwitter
+                                                                requestMethod:TWRequestMethodGET
+                                                                          URL:[NSURL URLWithString:requestURL]
+                                                                   parameters:parameters];
         
         [request setAccount:[TWAccounts currentAccount]];
         
@@ -131,8 +130,8 @@
                     return;
                 }
                 
-                NSString *responseString = [[NSString alloc] initWithData:responseData
-                                                                 encoding:NSUTF8StringEncoding];
+                NSString *responseString = [[[NSString alloc] initWithData:responseData
+                                                                  encoding:NSUTF8StringEncoding] autorelease];
                 
                 if ( [responseData isEmpty] ||
                      [responseString isEqualToString:@"[]"] ) {
@@ -294,7 +293,6 @@
                 [ShowAlert error:@"ネットワーク未接続"];
                 [FPTRequest postAPIErrorNotificationName:POST_API_ERROR_NOTIFICATION];
             });
-            
             return;
             
         } else {
@@ -351,9 +349,10 @@
             [[TWTweets sendedTweets] addObject:saveTweet];
         }
         
-        FPTRequest *request = [[FPTRequest alloc] initWithURL:[NSURL URLWithString:requestURL]
-                                                   parameters:withMedia ? nil : parameters
-                                                requestMethod:TWRequestMethodPOST];
+        FPTRequest *request = (FPTRequest *)[FPTRequest requestForServiceType:SLServiceTypeTwitter
+                                                                requestMethod:TWRequestMethodPOST
+                                                                          URL:[NSURL URLWithString:requestURL]
+                                                                   parameters:withMedia ? nil : parameters];
         
         if ( needSelectAccount ) {
             
@@ -366,19 +365,22 @@
         
         if ( withMedia ) {
             
-            [request addMultiPartData:[status dataUsingEncoding:NSUTF8StringEncoding]
+            [request addMultipartData:[status dataUsingEncoding:NSUTF8StringEncoding]
                              withName:@"status"
-                                 type:@"multipart/form-data"];
+                                 type:@"multipart/form-data"
+                             filename:@"status"];
             
-            [request addMultiPartData:imageData
+            [request addMultipartData:imageData
                              withName:@"media[]"
-                                 type:@"multipart/form-data"];
+                                 type:@"multipart/form-data"
+                             filename:@"image"];
             
             if ( [inReplyToID isNotEmpty] ) {
-                
-                [request addMultiPartData:[inReplyToID dataUsingEncoding:NSUTF8StringEncoding]
+            
+                [request addMultipartData:[inReplyToID dataUsingEncoding:NSUTF8StringEncoding]
                                  withName:@"in_reply_to_status_id"
-                                     type:@"multipart/form-data"];
+                                     type:@"multipart/form-data"
+                                 filename:@"in_reply_to_status_id"];
             }
         }
         
@@ -395,8 +397,8 @@
                     return;
                 }
                 
-                NSString *responseString = [[NSString alloc] initWithData:responseData
-                                                                 encoding:NSUTF8StringEncoding];
+                NSString *responseString = [[[NSString alloc] initWithData:responseData
+                                                                  encoding:NSUTF8StringEncoding] autorelease];
                 
                 if ( [responseData isEmpty] ||
                      [responseString isEqualToString:@"[]"] ) {

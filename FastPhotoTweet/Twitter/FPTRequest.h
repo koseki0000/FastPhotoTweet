@@ -56,15 +56,15 @@ typedef enum {
     FPTPostRequestTypeDestroy
 }FPTPostRequestType;
 
-@interface FPTRequest : TWRequest
+@interface FPTRequest : SLRequest
 
 //GET
 + (oneway void)requestWithGetType:(FPTGetRequestType)getRequestType
-                parameters:(NSDictionary *)parameters;
+                       parameters:(NSDictionary *)parameters;
 
 //POST
 + (oneway void)requestWithPostType:(FPTPostRequestType)postRequestType
-                 parameters:(NSDictionary *)parameters;
+                        parameters:(NSDictionary *)parameters;
 
 //Util
 + (NSString *)usingAPIVersion;

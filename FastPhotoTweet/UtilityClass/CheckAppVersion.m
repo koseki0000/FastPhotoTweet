@@ -26,7 +26,6 @@
     
     NSDictionary *info = [[NSBundle mainBundle] infoDictionary];
     
-//    NSString *currentAppVersion = info[@"CFBundleShortVersionString"];
     NSString *currentBuildVersion = info[@"CFBundleVersion"];
     NSLog(@"currentBuildVersion: %@", currentBuildVersion);
     
@@ -35,9 +34,9 @@
        
         NSError *error = nil;
         NSURL *URL = [NSURL URLWithString:versionInfoURL];
-        NSString *latestVersionInfo = [[NSString alloc] initWithContentsOfURL:URL
-                                                                     encoding:NSUTF8StringEncoding
-                                                                        error:&error];
+        NSString *latestVersionInfo = [[[NSString alloc] initWithContentsOfURL:URL
+                                                                      encoding:NSUTF8StringEncoding
+                                                                         error:&error] autorelease];
         NSLog(@"%@", latestVersionInfo);
         
         if ( !error &&
@@ -48,7 +47,6 @@
             
             if ( [splitedLatestVersionInfo count] == 2 ) {
                 
-//                NSString *latestAppVersion = splitedLatestVersionInfo[0];
                 NSString *latestBuildVersion = splitedLatestVersionInfo[1];
                 NSLog(@"latestBuildVersion: %@", latestBuildVersion);
                 

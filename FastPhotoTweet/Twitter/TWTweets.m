@@ -53,6 +53,11 @@
     return [TWTweetsBase manager].listID;
 }
 
++ (NSString *)showingListID {
+    
+    return [TWTweetsBase manager].showingListID;
+}
+
 #pragma mark - Timeline
 
 + (void)saveCurrentTimeline:(NSMutableArray *)currentTimeline {

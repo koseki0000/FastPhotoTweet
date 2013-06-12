@@ -536,7 +536,7 @@
     
 	CGSize labelSize = [contents sizeWithFont:[UIFont systemFontOfSize:14.0]
                             constrainedToSize:CGSizeMake(264, 20000)
-                                lineBreakMode:UILineBreakModeWordWrap];
+                                lineBreakMode:NSLineBreakByWordWrapping];
 	
     return labelSize.height + 18;
 }

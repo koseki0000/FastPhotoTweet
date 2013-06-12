@@ -179,7 +179,7 @@
             
             IDChangeViewController *dialog = [[[IDChangeViewController alloc] init] autorelease];
             dialog.modalTransitionStyle = UIModalTransitionStyleCoverVertical;
-            [self presentModalViewController:dialog animated:YES];
+            [self showModalViewController:dialog];
         }
         
     }else if ( self.listSelectMode ) {
@@ -1511,7 +1511,7 @@
                 
                 OAuthSetupViewController *dialog = [[[OAuthSetupViewController alloc] init] autorelease];
                 dialog.modalTransitionStyle = UIModalTransitionStyleCoverVertical;
-                [self presentModalViewController:dialog animated:YES];
+                [self showModalViewController:dialog];
                 
             } else {
                 
@@ -1894,7 +1894,7 @@
             
             OAuthSetupViewController *dialog = [[[OAuthSetupViewController alloc] init] autorelease];
             dialog.modalTransitionStyle = UIModalTransitionStyleCoverVertical;
-            [self presentModalViewController:dialog animated:YES];
+            [self showModalViewController:dialog];
         }
     }
     
