@@ -16,30 +16,15 @@
 
 - (void)showModalViewController:(UIViewController *)modalViewController {
     
-    if ( [self respondsToSelector:@selector(presentViewController:animated:completion:)] ) {
-        
-        [self presentViewController:modalViewController
-                           animated:YES
-                         completion:nil];
-        
-    } else {
-        
-        [self presentModalViewController:modalViewController
-                                animated:YES];
-    }
+    [self presentViewController:modalViewController
+                       animated:YES
+                     completion:nil];
 }
 
 - (void)dismissModalViewController:(UIViewController *)modalViewController {
     
-    if ( [modalViewController respondsToSelector:@selector(dismissViewControllerAnimated:completion:)] ) {
-        
-        [modalViewController dismissViewControllerAnimated:YES
-                                                completion:nil];
-        
-    } else {
-        
-        [modalViewController dismissModalViewControllerAnimated:YES];
-    }
+    [modalViewController dismissViewControllerAnimated:YES
+                                            completion:nil];
 }
 
 - (BOOL)iconExist:(NSString *)searchName {

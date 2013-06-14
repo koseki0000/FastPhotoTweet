@@ -130,11 +130,10 @@
                     return;
                 }
                 
-                NSString *responseString = [[[NSString alloc] initWithData:responseData
-                                                                  encoding:NSUTF8StringEncoding] autorelease];
+//                NSString *responseString = [[[NSString alloc] initWithData:responseData
+//                                                                  encoding:NSUTF8StringEncoding] autorelease];
                 
-                if ( [responseData isEmpty] ||
-                     [responseString isEqualToString:@"[]"] ) {
+                if ( [responseData isEmpty] ) {
                     
                     [ShowAlert error:@"レスポンスがありません。"];
                     [FPTRequest postAPIErrorNotificationName:GET_API_ERROR_NOTIFICATION];
@@ -397,11 +396,10 @@
                     return;
                 }
                 
-                NSString *responseString = [[[NSString alloc] initWithData:responseData
-                                                                  encoding:NSUTF8StringEncoding] autorelease];
+//                NSString *responseString = [[[NSString alloc] initWithData:responseData
+//                                                                  encoding:NSUTF8StringEncoding] autorelease];
                 
-                if ( [responseData isEmpty] ||
-                     [responseString isEqualToString:@"[]"] ) {
+                if ( [responseData isEmpty] ) {
                     
                     [ShowAlert error:@"レスポンスがありません。"];
                     [FPTRequest postAPIErrorNotificationName:POST_API_ERROR_NOTIFICATION];

@@ -80,14 +80,7 @@
     appDelegate.twitpicLinkMode = NO;
     
     //閉じる
-    if ( [FIRMWARE_VERSION hasPrefix:@"6"] ) {
-        
-        [self dismissViewControllerAnimated:YES completion:nil];
-        
-    } else {
-        
-        [self dismissModalViewControllerAnimated:YES];
-    }
+    [self dismissViewControllerAnimated:YES completion:nil];
 }
 
 /* TableView必須メソッド */
@@ -184,14 +177,7 @@
     [[NSNotificationCenter defaultCenter] postNotification:notification];
     
     //閉じる
-    if ( [FIRMWARE_VERSION hasPrefix:@"6"] ) {
-        
-        [self dismissViewControllerAnimated:YES completion:nil];
-        
-    } else {
-        
-        [self dismissModalViewControllerAnimated:YES];
-    }
+    [self dismissViewControllerAnimated:YES completion:nil];
 }
 
 /* TableView必須メソッドここまで */

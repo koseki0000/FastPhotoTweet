@@ -180,15 +180,7 @@
         appDelegate.twitpicLinkMode = YES;
         
         [grayView off];
-        
-		if ( [FIRMWARE_VERSION hasPrefix:@"6"] ) {
-            
-            [self dismissViewControllerAnimated:YES completion:nil];
-            
-        } else {
-            
-            [self dismissModalViewControllerAnimated:YES];
-        }
+        [self dismissViewControllerAnimated:YES completion:nil];
 		
 	} else {
         
@@ -343,15 +335,7 @@
 - (IBAction)pushCloseButton:(id)sender {
         
     [ActivityIndicator visible:NO];
-    
-    if ( [FIRMWARE_VERSION hasPrefix:@"6"] ) {
-        
-        [self dismissViewControllerAnimated:YES completion:nil];
-        
-    } else {
-        
-        [self dismissModalViewControllerAnimated:YES];
-    }
+    [self dismissViewControllerAnimated:YES completion:nil];
 }
 
 - (IBAction)pushDoneButton:(id)sender {

@@ -357,7 +357,7 @@
             //NSLog(@"newVersion");
             
             [ShowAlert title:[NSString stringWithFormat:@"FastPhotoTweet %@", APP_VERSION]
-                     message:@"・iOS 5.x及び非Retina端末のサポート停止(iOS 7対応の為)\n・表示の高速化\n・バグ修正"];
+                     message:@"・TL更新時のエラー表示の修正"];
             
             information = [[[NSMutableDictionary alloc] initWithDictionary:[d dictionaryForKey:@"Information"]] autorelease];
             [information setValue:[NSNumber numberWithInt:1] forKey:APP_VERSION];
@@ -1027,14 +1027,7 @@
     repeatedPost = NO;
     iconUploadMode = NO;
     
-    if ( [FIRMWARE_VERSION hasPrefix:@"6"] ) {
-        
-        [picPicker dismissViewControllerAnimated:YES completion:nil];
-        
-    } else {
-        
-        [picPicker dismissModalViewControllerAnimated:YES];
-    }
+    [picPicker dismissViewControllerAnimated:YES completion:nil];
 }
 
 - (void)savingImageIsFinished:(UIImage *)image

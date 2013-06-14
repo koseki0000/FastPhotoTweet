@@ -6,6 +6,9 @@
 #import "CheckAppVersion.h"
 #import "NSObject+EmptyCheck.h"
 
+#define DEFAULT_TITLE @"新しいバージョンがあります"
+#define DEFAULT_MESSAGE @"今すぐ更新を行いますか？"
+
 @interface CheckAppVersion ()
 
 @property (nonatomic, copy) NSString *updateIpaURL;
@@ -14,7 +17,8 @@
 
 @implementation CheckAppVersion
 
-- (oneway void)versionInfoURL:(NSString *)versionInfoURL updateIpaURL:(NSString *)updateIpaURL {
+- (oneway void)versionInfoURL:(NSString *)versionInfoURL
+                 updateIpaURL:(NSString *)updateIpaURL {
     
     if ( [versionInfoURL isEmpty] ||
          [updateIpaURL isEmpty] ) {
@@ -31,7 +35,7 @@
     
     dispatch_queue_t queue = dispatch_get_global_queue(DISPATCH_QUEUE_PRIORITY_BACKGROUND, 0);
     dispatch_async(queue, ^{
-       
+        
         NSError *error = nil;
         NSURL *URL = [NSURL URLWithString:versionInfoURL];
         NSString *latestVersionInfo = [[[NSString alloc] initWithContentsOfURL:URL
@@ -45,30 +49,40 @@
             NSArray *splitedLatestVersionInfo = [latestVersionInfo componentsSeparatedByString:@"\n"];
             NSLog(@"splitedLatestVersionInfo: %@", splitedLatestVersionInfo);
             
-            if ( [splitedLatestVersionInfo count] == 2 ) {
+            NSString *latestBuildVersion = splitedLatestVersionInfo[1];
+            NSString *title = @"";
+            NSString *message = @"";
+            
+            if ( [splitedLatestVersionInfo count] == 4 ) {
                 
-                NSString *latestBuildVersion = splitedLatestVersionInfo[1];
-                NSLog(@"latestBuildVersion: %@", latestBuildVersion);
-                
-                //ビルド番号を先にチェック
-                NSInteger currentBuildVersionNumber = [currentBuildVersion integerValue];
-                NSInteger latestBuildVersionNumber = [latestBuildVersion integerValue];
-                if ( currentBuildVersionNumber < latestBuildVersionNumber ) {
-                    
-                    //更新の必要がある
-                    dispatch_async(dispatch_get_main_queue(), ^{
-                       
-                        UIAlertView *alert = [[UIAlertView alloc] initWithTitle:@"新しいバージョンがあります"
-                                                                        message:@"今すぐ更新を行いますか？"
-                                                                       delegate:self
-                                                              cancelButtonTitle:@"後で行う"
-                                                              otherButtonTitles:@"更新", nil];
-                        [alert show];
-                    });
-                }
-                
-                //ビルド番号のチェックだけでいい…？
+                title = splitedLatestVersionInfo[2];
+                message = splitedLatestVersionInfo[3];
             }
+            
+            if ( [title isEmpty] ||
+                 [message isEmpty] ) {
+                
+                title = DEFAULT_TITLE;
+                message = DEFAULT_MESSAGE;
+            }
+            
+            NSInteger currentBuildVersionNumber = [currentBuildVersion integerValue];
+            NSInteger latestBuildVersionNumber = [latestBuildVersion integerValue];
+            if ( currentBuildVersionNumber < latestBuildVersionNumber ) {
+                
+                //更新の必要がある
+                dispatch_async(dispatch_get_main_queue(), ^{
+                    
+                    UIAlertView *alert = [[UIAlertView alloc] initWithTitle:title
+                                                                    message:message
+                                                                   delegate:self
+                                                          cancelButtonTitle:@"後で行う"
+                                                          otherButtonTitles:@"更新", nil];
+                    [alert show];
+                });
+            }
+            
+            //ビルド番号のチェックだけでいい…？
         }
     });
 }

@@ -846,22 +846,15 @@ typedef enum {
         
         NSUInteger beforeCount = [self.currentTweets count];
         
-//        @synchronized(self) {
-        
-            [self setCurrentTweets:[self.currentTweets appendOnlyNewTweetToTop:receiveTweets
+        [self setCurrentTweets:[self.currentTweets appendOnlyNewTweetToTop:receiveTweets
                                                                  returnMutable:YES]];
-//        }
-        
         [self.grayView end];
         [self.refreshControl endRefreshing];
         
         if ( beforeCount != [self.currentTweets count] ) {
             
-//            @synchronized(self) {
-            
-                //新着があった場合のみ行う
-                [TWTweets saveCurrentTimeline:self.currentTweets];
-//            }
+            //新着があった場合のみ行う
+            [TWTweets saveCurrentTimeline:self.currentTweets];
             
             [self.timeline reloadData];
             

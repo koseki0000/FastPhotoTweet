@@ -31,10 +31,9 @@
                        imageRef);
     CGImageRef decompressedImageRef = CGBitmapContextCreateImage(bitmapContext);
     UIImage *decompressedImage = [UIImage imageWithCGImage:decompressedImageRef];
-    
     CGImageRelease(decompressedImageRef);
     CGContextRelease(bitmapContext);
-    
+
     return decompressedImage;
 }
 

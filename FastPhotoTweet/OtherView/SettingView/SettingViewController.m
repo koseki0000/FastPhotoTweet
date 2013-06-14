@@ -198,14 +198,7 @@
     //NSLog(@"pushDoneButton");
     
     //閉じる
-    if ( [FIRMWARE_VERSION hasPrefix:@"6"] ) {
-        
-        [self dismissViewControllerAnimated:YES completion:nil];
-        
-    } else {
-        
-        [self dismissModalViewControllerAnimated:YES];
-    }
+    [self dismissViewControllerAnimated:YES completion:nil];
 }
 
 - (NSString *)getSettingState:(int)settingState {

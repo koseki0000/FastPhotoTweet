@@ -106,7 +106,7 @@
     
     NSLog(@"retina4InchOffset: %d", retina4InchOffset);
     
-    [self.wv setBackgroundColor:[UIColor underPageBackgroundColor]];
+    [self.wv setBackgroundColor:[UIColor scrollViewTexturedBackgroundColor]];
     
     self.grayView = [[GrayView alloc] init];
     [_wv addSubview:_grayView];
@@ -536,14 +536,7 @@
             
             if ( APP_DELEGATE.tabBarController.selectedIndex == 0 ) {
                 
-                if ( [FIRMWARE_VERSION hasPrefix:@"6"] ) {
-                    
-                    [self dismissViewControllerAnimated:YES completion:nil];
-                    
-                } else {
-                    
-                    [self dismissModalViewControllerAnimated:YES];
-                }
+                [self dismissViewControllerAnimated:YES completion:nil];
                 
             } else {
                 
@@ -579,14 +572,7 @@
             
             if ( APP_DELEGATE.tabBarController.selectedIndex == 0 ) {
                 
-                if ( [[[UIDevice currentDevice] systemVersion] hasPrefix:@"6"] ) {
-                    
-                    [self dismissViewControllerAnimated:YES completion:nil];
-                    
-                } else {
-                    
-                    [self dismissModalViewControllerAnimated:YES];
-                }
+                [self dismissViewControllerAnimated:YES completion:nil];
                 
             } else {
                 
@@ -1359,15 +1345,7 @@
         if ( buttonIndex == 0 ) {
             
             [self resetUserAgent];
-            
-            if ( [FIRMWARE_VERSION hasPrefix:@"6"] ) {
-                
-                [self dismissViewControllerAnimated:YES completion:nil];
-                
-            } else {
-                
-                [self dismissModalViewControllerAnimated:YES];
-            }
+            [self dismissViewControllerAnimated:YES completion:nil];
         }
         
     }else if ( actionSheetNo == 12 ) {
@@ -1375,15 +1353,7 @@
         if ( buttonIndex == 0 ) {
             
             [self resetUserAgent];
-            
-            if ( [FIRMWARE_VERSION hasPrefix:@"6"] ) {
-                
-                [self dismissViewControllerAnimated:YES completion:nil];
-                
-            } else {
-                
-                [self dismissModalViewControllerAnimated:YES];
-            }
+            [self dismissViewControllerAnimated:YES completion:nil];
         }
     
     }else if ( actionSheetNo == 13 ) {

@@ -40,15 +40,7 @@
 - (IBAction)pushCloseButton:(id)sender {
     
     appDelegate.bookmarkUrl = BLANK;
-    
-    if ( [FIRMWARE_VERSION hasPrefix:@"6"] ) {
-        
-        [self dismissViewControllerAnimated:YES completion:nil];
-        
-    } else {
-        
-        [self dismissModalViewControllerAnimated:YES];
-    }
+    [self dismissViewControllerAnimated:YES completion:nil];
 }
 
 - (void)actionSheet:(UIActionSheet *)actionSheet clickedButtonAtIndex:(NSInteger)buttonIndex {
@@ -139,14 +131,7 @@
     appDelegate.bookmarkUrl = [bookmark objectForKey:@"URL"];
     
     //閉じる
-    if ( [FIRMWARE_VERSION hasPrefix:@"6"] ) {
-        
-        [self dismissViewControllerAnimated:YES completion:nil];
-        
-    } else {
-        
-        [self dismissModalViewControllerAnimated:YES];
-    }
+    [self dismissViewControllerAnimated:YES completion:nil];
 }
 
 - (void)tableView:(UITableView *)tableView commitEditingStyle:(UITableViewCellEditingStyle)editingStyle forRowAtIndexPath:(NSIndexPath *)indexPath {
