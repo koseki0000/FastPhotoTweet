@@ -10,9 +10,4 @@
 @implementation TableViewCellController
 @synthesize cell;
 
-- (void)dealloc {
-
-    //NSLog(@"TableViewCellController dealloc");
-}
-
 @end

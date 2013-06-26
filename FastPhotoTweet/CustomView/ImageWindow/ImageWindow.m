@@ -22,8 +22,9 @@
     
     if ( self ) {
         
-        self.backgroundColor = [UIColor colorWithWhite:0.2 alpha:0.7];
-        [[self layer] setCornerRadius:10.0];
+        self.backgroundColor = [UIColor colorWithWhite:0.2f
+                                                 alpha:0.7f];
+        [[self layer] setCornerRadius:10.0f];
         [self setClipsToBounds:YES];
     }
     
@@ -83,18 +84,18 @@
 
 - (void)showWindow {
     
-    self.frame = CGRectMake(_viewRect.size.width / 2 - 2,
-                            _viewRect.size.height / 2 - 2,
-                            2,
-                            2);
+    self.frame = CGRectMake(_viewRect.size.width / 2.0f - 2.0f,
+                            _viewRect.size.height / 2.0f - 2.0f,
+                            2.0f,
+                            2.0f);
     
     [UIView animateWithDuration:0.2
                      animations:^ {
                          
-                         self.frame = CGRectMake(5,
-                                                 _viewRect.size.height / 2 - 2,
-                                                 _viewRect.size.width - 10,
-                                                 2);
+                         self.frame = CGRectMake(5.0f,
+                                                 _viewRect.size.height / 2.0f - 2.0f,
+                                                 _viewRect.size.width - 10.0f,
+                                                 2.0f);
                          
                      }completion:^ (BOOL completion) {
                          
@@ -102,9 +103,9 @@
                                           animations:^ {
                                               
                                               self.frame = CGRectMake(5,
-                                                                      _viewRect.origin.y + 5,
-                                                                      _viewRect.size.width - 10,
-                                                                      _viewRect.size.height - 10);
+                                                                      _viewRect.origin.y + 5.0f,
+                                                                      _viewRect.size.width - 10.0f,
+                                                                      _viewRect.size.height - 10.0f);
                                           }
                                           completion:^ (BOOL completion) {
                                               
@@ -117,42 +118,41 @@
 
 - (void)createImageView {
     
-    imageView = [[UIImageView alloc] initWithFrame:CGRectMake(5,
-                                                              5,
-                                                              self.frame.size.width - 10,
-                                                              self.frame.size.height - 10 - PROGRESS_BAR_HEIGHT)];
+    imageView = [[UIImageView alloc] initWithFrame:CGRectMake(5.0f,
+                                                              5.0f,
+                                                              self.frame.size.width - 10.0f,
+                                                              self.frame.size.height - 10.0f - PROGRESS_BAR_HEIGHT)];
     imageView.backgroundColor = [UIColor clearColor];
     imageView.userInteractionEnabled = YES;
     imageView.contentMode = UIViewContentModeScaleAspectFit;
     [self addSubview:imageView];
     
-    UISwipeGestureRecognizer *swipeUpGesture = [[UISwipeGestureRecognizer alloc] initWithTarget:self
-                                                                                 action:@selector(swipeUpImageView:)];
-    swipeUpGesture.direction = UISwipeGestureRecognizerDirectionUp;
-    [imageView addGestureRecognizer:swipeUpGesture];
-    [swipeUpGesture release];
+    UIPanGestureRecognizer *pan = [[UIPanGestureRecognizer alloc] initWithTarget:self
+                                                                          action:@selector(move:)];
+    [self.imageView addGestureRecognizer:pan];
+    [pan release];
     
     UITapGestureRecognizer *tapGesture = [[UITapGestureRecognizer alloc] initWithTarget:self
                                                                                  action:@selector(tapImageView:)];
-    [imageView addGestureRecognizer:tapGesture];
+    [self addGestureRecognizer:tapGesture];
     [tapGesture release];
     
     UILongPressGestureRecognizer *longPressGesture = [[UILongPressGestureRecognizer alloc] initWithTarget:self action:@selector(longPressImageView:)];
     longPressGesture.minimumPressDuration = 0.5;
-    [imageView addGestureRecognizer:longPressGesture];
+    [self addGestureRecognizer:longPressGesture];
     [longPressGesture release];
     
     UIPinchGestureRecognizer *pinchGesture = [[UIPinchGestureRecognizer alloc] initWithTarget:self action:@selector(pinchImageView:)];
-    [imageView addGestureRecognizer:pinchGesture];
+    [self addGestureRecognizer:pinchGesture];
     [pinchGesture release];
     
     activityIndicator = [[UIActivityIndicatorView alloc] initWithActivityIndicatorStyle:UIActivityIndicatorViewStyleWhiteLarge];
     [imageView addSubview:activityIndicator];
     
     progressBar = [[UIProgressView alloc] initWithProgressViewStyle:UIProgressViewStyleBar];
-    progressBar.frame = CGRectMake(self.frame.origin.x + 10,
-                                   self.frame.size.height - 5 - PROGRESS_BAR_HEIGHT,
-                                   self.frame.size.width - 30,
+    progressBar.frame = CGRectMake(self.frame.origin.x + 10.0f,
+                                   self.frame.size.height - 5.0f - PROGRESS_BAR_HEIGHT,
+                                   self.frame.size.width - 30.0f,
                                    PROGRESS_BAR_HEIGHT);
     [self addSubview:progressBar];
     
@@ -275,9 +275,9 @@
                      animations:^ {
                          
                          self.frame = CGRectMake(5,
-                                                 self.frame.size.height / 2 + 2,
+                                                 self.frame.size.height / 2.0f + 2.0f,
                                                  self.frame.size.width,
-                                                 2);
+                                                 2.0f);
                          return;
                      }
                      completion:^ (BOOL completion) {
@@ -285,10 +285,10 @@
                          [UIView animateWithDuration:0.2
                                           animations:^ {
                                               
-                                              self.frame = CGRectMake(rect.size.width / 2 + 2,
-                                                                      rect.size.height / 2 + 2,
-                                                                      2,
-                                                                      2);
+                                              self.frame = CGRectMake(rect.size.width / 2.0f + 2.0f,
+                                                                      rect.size.height / 2.0f + 2.0f,
+                                                                      2.0f,
+                                                                      2.0f);
                                           }
                                           completion:^ (BOOL completion) {
                                               
@@ -342,7 +342,7 @@
     [_imageName retain];
     
     _maxSize = [response expectedContentLength];
-	_receivedSize = 0.0;
+	_receivedSize = 0.0f;
     
     NSLog(@"FileSize: %.0f", _maxSize);
     
@@ -414,8 +414,8 @@
     
     dispatch_async (dispatch_get_main_queue (), ^{
         
-        activityIndicator.center = CGPointMake(imageView.frame.size.width / 2,
-                                               imageView.frame.size.height / 2);
+        activityIndicator.center = CGPointMake(imageView.frame.size.width / 2.0f,
+                                               imageView.frame.size.height / 2.0f);
         [activityIndicator startAnimating];
     });
     
@@ -424,6 +424,16 @@
                                    @selector(savingImageIsFinished:didFinishSavingWithError:contextInfo:),
                                    nil);
 }
+
+- (void)move:(UIPanGestureRecognizer *)sender {
+    
+    CGPoint p = [sender translationInView:self.imageView];
+    CGPoint movedPoint = CGPointMake(self.imageView.center.x + p.x,
+                                     self.imageView.center.y + p.y);
+    self.imageView.center = movedPoint;
+    [sender setTranslation:CGPointZero inView:self.imageView];
+}
+
 
 - (void)dealloc {
     

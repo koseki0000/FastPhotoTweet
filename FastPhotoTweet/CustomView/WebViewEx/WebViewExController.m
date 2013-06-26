@@ -1079,7 +1079,8 @@
                 
                 for ( int i = 0; i < max; i++ ) {
                     
-                    sourceCode = [[NSString alloc] initWithData:wHttpRequest.responseData encoding:encodingList[i]];
+                    sourceCode = [[NSString alloc] initWithData:wHttpRequest.responseData
+                                                       encoding:encodingList[i]];
                     
                     if ( sourceCode != nil ) break;
                 }
@@ -1120,6 +1121,9 @@
                     sourceCode = [sourceCode deleteWord:@"ajs.php"];
                     sourceCode = [sourceCode deleteWord:@"js/ad.js"];
                     sourceCode = [sourceCode deleteWord:@"Spad.js"];
+                    sourceCode = [sourceCode deleteWord:@"spad.js"];
+                    sourceCode = [sourceCode deleteWord:@"j.sprout-ad.com"];
+                    sourceCode = [sourceCode deleteWord:@"api.unthem.com"];
                     sourceCode = [sourceCode deleteWord:@"anchovy.js"];
                     sourceCode = [sourceCode deleteWord:@"bongore.js"];
                     sourceCode = [sourceCode deleteWord:@"chorizo.js"];

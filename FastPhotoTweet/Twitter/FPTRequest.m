@@ -24,7 +24,7 @@
 #define USERTIMELINE_URL [NSString stringWithFormat:@"https://api.twitter.com/%@/statuses/user_timeline.json", API_VERSION]
 #define MENTIONS_URL [NSString stringWithFormat:@"https://api.twitter.com/%@/statuses/mentions_timeline.json", API_VERSION]
 #define FAVORITES_URL [NSString stringWithFormat:@"https://api.twitter.com/%@/favorites/list.json", API_VERSION]
-#define SEARCH_URL @"http://search.twitter.com/search.json"
+#define SEARCH_URL [NSString stringWithFormat:@"https://api.twitter.com/%@/search/tweets.json", API_VERSION]
 #define TWEET_URL [NSString stringWithFormat:@"https://api.twitter.com/%@/statuses/show.json", API_VERSION]
 #define PROFILE_URL [NSString stringWithFormat:@"https://api.twitter.com/%@/users/show.json", API_VERSION]
 
@@ -48,7 +48,6 @@
 
 + (oneway void)postAPIErrorNotificationName:(NSString *)notificationName;
 + (oneway void)postAPIErrorNotificationName:(NSString *)notificationName userInfo:(id)userInfo;
-- (NSArray *)fixTwitterSearchResponse:(NSArray *)twitterSearchResponse;
 
 @end
 
@@ -158,7 +157,7 @@
                     
                     if ( getRequestType == FPTGetRequestTypeSearch ) {
                         
-                        tweetDataArray = [request fixTwitterSearchResponse:[tweetData objectForKey:@"results"]];
+                        tweetDataArray = [tweetData objectForKey:@"statuses"];
                         
                     } else {
                         
@@ -481,55 +480,6 @@
 + (NSString *)usingAPIVersion {
     
     return API_VERSION;
-}
-
-#pragma mark - SEARCH
-- (NSArray *)fixTwitterSearchResponse:(NSArray *)twitterSearchResponse {
-    
-    NSLog(@"%s", __func__);
-    
-    NSMutableArray *fixedResponse = [NSMutableArray array];
-    
-    for ( id tweet in twitterSearchResponse ) {
-        
-        NSMutableDictionary *fixedTweet = [NSMutableDictionary dictionaryWithDictionary:tweet];
-        
-        NSMutableDictionary *user = [NSMutableDictionary dictionary];
-        [user setObject:[fixedTweet objectForKey:@"from_user"]
-                 forKey:@"screen_name"];
-        [user setObject:[fixedTweet objectForKey:@"profile_image_url"]
-                 forKey:@"profile_image_url"];
-        [user setObject:[fixedTweet objectForKey:@"from_user_id_str"]
-                 forKey:@"id_str"];
-        
-        NSMutableString *source = [fixedTweet objectForKey:@"source"];
-        [source replaceOccurrencesOfString:@"&gt;"
-                                withString:@">"
-                                   options:0
-                                     range:NSMakeRange(0,
-                                                       [source length])];
-        [source replaceOccurrencesOfString:@"&lt;"
-                                withString:@"<"
-                                   options:0
-                                     range:NSMakeRange(0,
-                                                       [source length])];
-        [source replaceOccurrencesOfString:@"&amp;"
-                                withString:@"&"
-                                   options:0
-                                     range:NSMakeRange(0,
-                                                       [source length])];
-        [source replaceOccurrencesOfString:@"&quot;"
-                                withString:@"\""
-                                   options:0
-                                     range:NSMakeRange(0,
-                                                       [source length])];
-        
-        [fixedTweet setObject:user forKey:@"user"];
-        [fixedTweet setObject:source forKey:@"source"];
-        [fixedResponse addObject:fixedTweet];
-    }
-    
-    return [NSArray arrayWithArray:fixedResponse];
 }
 
 + (oneway void)postAPIErrorNotificationName:(NSString *)notificationName {

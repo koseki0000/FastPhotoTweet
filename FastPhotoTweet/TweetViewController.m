@@ -357,7 +357,7 @@
             //NSLog(@"newVersion");
             
             [ShowAlert title:[NSString stringWithFormat:@"FastPhotoTweet %@", APP_VERSION]
-                     message:@"・TL更新時のエラー表示の修正"];
+                     message:@"・TwitterSearchの問題を修正\n・Tweet削除、編集の問題を修正\n・Timeline更新後の挙動の調整\n・Pixiv表示の問題を修正\n・ブラウザの広告除去定義の更新"];
             
             information = [[[NSMutableDictionary alloc] initWithDictionary:[d dictionaryForKey:@"Information"]] autorelease];
             [information setValue:[NSNumber numberWithInt:1] forKey:APP_VERSION];

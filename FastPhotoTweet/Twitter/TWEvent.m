@@ -301,7 +301,7 @@
         
         //リクエストの作成
         SLRequest *getRequest = [SLRequest requestForServiceType:SLServiceTypeTwitter
-                                                   requestMethod:TWRequestMethodGET
+                                                   requestMethod:TWRequestMethodPOST
                                                              URL:[NSURL URLWithString:tReqURL]
                                                       parameters:nil];
         
@@ -337,9 +337,7 @@
                                                                                        object:self
                                                                                      userInfo:@{@"Task" : @"Deleted"}];
                  [[NSNotificationCenter defaultCenter] postNotification:statusBarNotification];
-                 
                  [[NSNotificationCenter defaultCenter] postNotification:notification];
-                 
                  [ActivityIndicator visible:NO];
              });
          }];

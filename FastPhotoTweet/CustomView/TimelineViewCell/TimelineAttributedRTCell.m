@@ -12,14 +12,10 @@
 #import "NSDictionary+DataExtraction.h"
 #import "Share.h"
 
-static NSInteger const kAttributedLabelTag = 100;
-
-@interface TimelineAttributedRTCell ()
-
-- (void)resetImage:(NSString *)screenName userName:(NSString *)userName;
-- (void)reloadViews:(NSString *)screenName userName:(NSString *)userName;
-
-@end
+#define MIN_HEIGHT 31.0f
+#define ICON_SIZE 48.0f
+#define MARGIN 4.0f
+#define MINI_MARGIN 2.0f
 
 @implementation TimelineAttributedRTCell
 
@@ -44,7 +40,8 @@ static NSInteger const kAttributedLabelTag = 100;
 
 - (id)initWithStyle:(UITableViewCellStyle)style reuseIdentifier:(NSString *)reuseIdentifier forWidth:(CGFloat)width {
     
-    self = [super initWithStyle:style reuseIdentifier:reuseIdentifier];
+    self = [super initWithStyle:style
+                reuseIdentifier:reuseIdentifier];
     
     if ( self ) {
         
@@ -56,9 +53,18 @@ static NSInteger const kAttributedLabelTag = 100;
 
 - (void)setProperties:(CGFloat)width {
     
-    self.infoLabel = [[[UILabel alloc] initWithFrame:CGRectMake(54.0f, 2.0f,  width, 14.0f)] autorelease];
-    self.mainLabel = [[[OHAttributedLabel alloc] initWithFrame:CGRectMake(54.0f, 19.0f, width, 31.0f)] autorelease];
-    self.iconView = [[[IconButton alloc] initWithFrame:CGRectMake(2.0f, 4.0f, 48.0f, 54.0f)] autorelease];
+    self.infoLabel = [[[UILabel alloc] initWithFrame:CGRectMake(54.0f,
+                                                                2.0f,
+                                                                width,
+                                                                14.0f)] autorelease];
+    self.mainLabel = [[[OHAttributedLabel alloc] initWithFrame:CGRectMake(54.0f,
+                                                                          19.0f,
+                                                                          width,
+                                                                          31.0f)] autorelease];
+    self.iconView = [[[IconButton alloc] initWithFrame:CGRectMake(2.0f,
+                                                                  4.0f,
+                                                                  48.0f,
+                                                                  54.0f)] autorelease];
     
     _infoLabel.font = [UIFont boldSystemFontOfSize:11.0f];
     
@@ -70,27 +76,6 @@ static NSInteger const kAttributedLabelTag = 100;
     
     _mainLabel.automaticallyAddLinksForType = NSTextCheckingTypeLink;
     [_mainLabel setUnderlineLinks:YES];
-    
-    [self.iconView.imageView removeFromSuperview];
-    [self.iconView.titleLabel removeFromSuperview];
-    [self.iconView.inputAccessoryView removeFromSuperview];
-    [self.iconView.inputView removeFromSuperview];
-    [self.infoLabel.inputAccessoryView removeFromSuperview];
-    [self.infoLabel.inputView removeFromSuperview];
-    
-    [self.mainLabel.inputAccessoryView removeFromSuperview];
-    [self.mainLabel.inputView removeFromSuperview];
-    
-    [self.accessoryView removeFromSuperview];
-    [self.backgroundView removeFromSuperview];
-    [self.detailTextLabel removeFromSuperview];
-    [self.textLabel removeFromSuperview];
-    [self.imageView removeFromSuperview];
-    [self.editingAccessoryView removeFromSuperview];
-    [self.inputAccessoryView removeFromSuperview];
-    [self.inputView removeFromSuperview];
-    [self.multipleSelectionBackgroundView removeFromSuperview];
-    [self.selectedBackgroundView removeFromSuperview];
     
     self.userIconView = [[[UIImageView alloc] initWithFrame:CGRectMake(0.0f, 0.0f, 34.0f, 34.0f)] autorelease];
     [self.userIconView setContentMode:UIViewContentModeScaleAspectFill];
@@ -153,25 +138,9 @@ static NSInteger const kAttributedLabelTag = 100;
                                         19.0f,
                                         cellWidth,
                                         contentsHeight)];
-    [self reloadViews:screenName
-             userName:userName];
-}
-
-- (void)reloadViews:(NSString *)screenName userName:(NSString *)userName {
-    
-    [self resetImage:screenName
-            userName:userName];
-    [self setNeedsDisplay];
-    [self.userIconView setNeedsDisplay];
-    [self.rtUserIconView setNeedsDisplay];
-    [self.infoLabel setNeedsDisplay];
-    [self.mainLabel setNeedsDisplay];
-}
-
-- (void)resetImage:(NSString *)screenName userName:(NSString *)userName {
     
     if ( [[Share images] objectForKey:screenName] != nil &&
-        self.iconView.layer.sublayers.count != 0 ) {
+         self.iconView.layer.sublayers.count != 0 ) {
         
         [self.userIconView setImage:[[Share images] imageForKey:screenName]];
         
@@ -181,7 +150,7 @@ static NSInteger const kAttributedLabelTag = 100;
     }
     
     if ( [[Share images] objectForKey:userName] != nil &&
-        self.iconView.layer.sublayers.count != 0 ) {
+         self.iconView.layer.sublayers.count != 0 ) {
         
         [self.rtUserIconView setImage:[[Share images] imageForKey:userName]];
         

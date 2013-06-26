@@ -181,11 +181,15 @@
                 
             } else {
              
-                NSString *fullUrl = [sourceCode stringWithRegExp:@"https?://i[0-9]+\\.pixiv\\.net/img[0-9]+/img/[-_a-zA-Z0-9]+/[0-9]+(_s)?\\.(jpe?g|png)"];
+                NSString *fullUrl = [sourceCode stringWithRegExp:@"https?://i[\\d]+\\.pixiv\\.net/img[\\d]+/img/[-\\w]+/[\\d]+(_[sm])?\\.(jpe?g|png)"];
                 
                 if ( [fullUrl rangeOfString:@"_s."].location != NSNotFound ) {
                     
                     fullUrl = [fullUrl replaceWord:@"_s." replacedWord:@"."];
+                    
+                } else if ( [fullUrl rangeOfString:@"_m."].location != NSNotFound ) {
+                    
+                    fullUrl = [fullUrl replaceWord:@"_m." replacedWord:@"."];
                 }
                 
                 if ( ![fullUrl isEqualToString:@""] ) {

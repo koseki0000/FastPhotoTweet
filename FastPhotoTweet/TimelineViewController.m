@@ -859,13 +859,19 @@ typedef enum {
             [self.timeline reloadData];
             
             if ( [D boolForKey:@"TimelineFirstLoad"] ) {
+              
+                if ( [[TWTweets currentTimeline] count] != 0 ) {
                 
-                [self scrollTimelineToBottom:YES];
-                
+                    [self scrollTimelineToBottom:YES];
+                }
+            
             } else {
                 
-                //新着取得前の最新までスクロール
-                [self scrollTimelineForNewTweet:scrollTweetID];
+                if ( self.timeline.contentOffset.y <= 0.0f ) {
+                 
+                    //新着取得前の最新までスクロール
+                    [self scrollTimelineForNewTweet:scrollTweetID];
+                }
             }
             
             [self addTaskNotification:[NSString stringWithFormat:@"新着Tweet %d件", [self.currentTweets count] - beforeCount]];
@@ -990,65 +996,69 @@ typedef enum {
     
     NSLog(@"%s", __func__);
     
-    IconSize iconSize;
-    NSString *iconQualitySetting = [D objectForKey:@"IconQuality"];
-    
-    if ( [iconQualitySetting isEqualToString:@"Mini"] ) {
-        iconSize = IconSizeMini;
-    }else if ( [iconQualitySetting isEqualToString:@"Normal"] ) {
-        iconSize = IconSizeNormal;
-    }else if ( [iconQualitySetting isEqualToString:@"Bigger"] ) {
-        iconSize = IconSizeBigger;
-    }else if ( [iconQualitySetting hasPrefix:@"Original"] ) {
-        iconSize = IconSizeOriginal;
-    } else {
-        iconSize = IconSizeBigger;
-    }
-    
-    NSString *iconURL = [TWIconResizer iconURL:notification.userInfo[@"ResponseData"][@"profile_image_url"]
-                                      iconSize:iconSize];
-    ASIHTTPRequest *request = [ASIHTTPRequest requestWithURL:[NSURL URLWithString:iconURL]];
-    __weak __block ASIHTTPRequest *wRequest = request;
-    
-    [wRequest setCompletionBlock:^ {
+    NSString *myAccountName = [TWAccounts currentAccountName];
+    NSString *requestUserName = notification.userInfo[REQUEST_USER_NAME];
+    if ( [requestUserName isEqualToString:myAccountName] ) {
+     
+        IconSize iconSize;
+        NSString *iconQualitySetting = [D objectForKey:@"IconQuality"];
         
-        NSArray *iconList = [FILE_MANAGER contentsOfDirectoryAtPath:ICONS_DIRECTORY
-                                                              error:nil];
-        NSString *myAccountName = [TWAccounts currentAccountName];
+        if ( [iconQualitySetting isEqualToString:@"Mini"] ) {
+            iconSize = IconSizeMini;
+        }else if ( [iconQualitySetting isEqualToString:@"Normal"] ) {
+            iconSize = IconSizeNormal;
+        }else if ( [iconQualitySetting isEqualToString:@"Bigger"] ) {
+            iconSize = IconSizeBigger;
+        }else if ( [iconQualitySetting hasPrefix:@"Original"] ) {
+            iconSize = IconSizeOriginal;
+        } else {
+            iconSize = IconSizeBigger;
+        }
         
-        for ( NSString *accountName in iconList ) {
+        NSString *iconURL = [TWIconResizer iconURL:notification.userInfo[@"ResponseData"][@"profile_image_url"]
+                                          iconSize:iconSize];
+        ASIHTTPRequest *request = [ASIHTTPRequest requestWithURL:[NSURL URLWithString:iconURL]];
+        __weak __block ASIHTTPRequest *wRequest = request;
+        
+        [wRequest setCompletionBlock:^ {
             
-            if ( [accountName hasPrefix:myAccountName] ) {
+            NSArray *iconList = [FILE_MANAGER contentsOfDirectoryAtPath:ICONS_DIRECTORY
+                                                                  error:nil];
+            
+            for ( NSString *accountName in iconList ) {
                 
-                NSString *searchName = [NSString stringWithFormat:@"%@", accountName];
-                [FILE_MANAGER removeItemAtPath:FILE_PATH
-                                         error:nil];
-                break;
+                if ( [accountName hasPrefix:myAccountName] ) {
+                    
+                    NSString *searchName = [NSString stringWithFormat:@"%@", accountName];
+                    [FILE_MANAGER removeItemAtPath:FILE_PATH
+                                             error:nil];
+                    break;
+                }
             }
-        }
-        
-        UIImage *iconImage = [UIImage imageWithDataByContext:wRequest.responseData];
-        
-        if ( [iconQualitySetting isEqualToString:@"Original96"] ) {
             
-            iconImage = [ResizeImage aspectResizeForMaxSize:iconImage
-                                                    maxSize:96.0f];
-        }
+            UIImage *iconImage = [UIImage imageWithDataByContext:wRequest.responseData];
+            
+            if ( [iconQualitySetting isEqualToString:@"Original96"] ) {
+                
+                iconImage = [ResizeImage aspectResizeForMaxSize:iconImage
+                                                        maxSize:96.0f];
+            }
+            
+            [ICON_BUTTON setImage:iconImage
+                         forState:UIControlStateNormal];
+            
+            NSString *fileName = [iconURL lastPathComponent];
+            NSString *screenName = notification.userInfo[REQUEST_USER_NAME];
+            NSString *searchName = [NSString stringWithFormat:@"%@-%@", screenName, fileName];
+            [wRequest.responseData writeToFile:FILE_PATH
+                                    atomically:YES];
+            [Share cacheImage:iconImage
+                      forName:screenName
+             doneNotification:NO];
+        }];
         
-        [ICON_BUTTON setImage:iconImage
-                     forState:UIControlStateNormal];
-        
-        NSString *fileName = [iconURL lastPathComponent];
-        NSString *screenName = notification.userInfo[REQUEST_USER_NAME];
-        NSString *searchName = [NSString stringWithFormat:@"%@-%@", screenName, fileName];
-        [wRequest.responseData writeToFile:FILE_PATH
-                                atomically:YES];
-        [Share cacheImage:iconImage
-                  forName:screenName
-         doneNotification:NO];
-    }];
-    
-    [wRequest startAsynchronous];
+        [wRequest startAsynchronous];
+    }
 }
 
 - (oneway void)receiveAPIError:(NSNotification *)notification {
@@ -1714,8 +1724,8 @@ typedef enum {
         
         if ( [InternetConnection enable] ) {
             
-            [self addTaskNotification:@"UserStream再接続"];
-            [self pushTopBarUSButton];
+            [self addTaskNotification:@"Timeline再読み込み"];
+            [self pushReloadButton];
         }
     });
 }
@@ -2735,12 +2745,13 @@ typedef enum {
     } else {
         
         TimelineAttributedCell *cell = (TimelineAttributedCell *)[tableView dequeueReusableCellWithIdentifier:CELL_IDENTIFIER];
-        
+    
         if ( cell == nil ) {
             
             cell = [[TimelineAttributedCell alloc] initWithStyle:UITableViewCellStyleDefault
                                                  reuseIdentifier:CELL_IDENTIFIER
                                                         forWidth:CELL_WIDTH];
+            
             [cell.iconView addTarget:self
                               action:@selector(pushIcon:)
                     forControlEvents:UIControlEventTouchUpInside];

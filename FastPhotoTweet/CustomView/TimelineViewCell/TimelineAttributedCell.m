@@ -13,13 +13,10 @@
 #import "NSString+Calculator.h"
 #import "Share.h"
 
-static NSInteger const kAttributedLabelTag = 100;
-
-@interface TimelineAttributedCell ()
-
-- (void)reloadViews:(NSString *)screenName;
-
-@end
+#define MIN_HEIGHT 31.0f
+#define ICON_SIZE 48.0f
+#define MARGIN 4.0f
+#define MINI_MARGIN 2.0f
 
 @implementation TimelineAttributedCell
 
@@ -56,9 +53,18 @@ static NSInteger const kAttributedLabelTag = 100;
 
 - (void)setProperties:(CGFloat)width {
     
-    self.infoLabel = [[[UILabel alloc] initWithFrame:CGRectMake(54.0f, 2.0f,  width, 14.0f)] autorelease];
-    self.mainLabel = [[[OHAttributedLabel alloc] initWithFrame:CGRectMake(54.0f, 19.0f, width, 31.0f)] autorelease];
-    self.iconView = [[[IconButton alloc] initWithFrame:CGRectMake(2.0f, 4.0f, 48.0f, 48.0f)] autorelease];
+    self.infoLabel = [[[UILabel alloc] initWithFrame:CGRectMake(ICON_SIZE + (MINI_MARGIN * 2.0f),
+                                                                MINI_MARGIN,
+                                                                width,
+                                                                14.0f)] autorelease];
+    self.mainLabel = [[[OHAttributedLabel alloc] initWithFrame:CGRectMake(CGRectGetMinX(self.infoLabel.frame),
+                                                                          CGRectGetMaxY(self.infoLabel.frame) + MARGIN,
+                                                                          width,
+                                                                          MIN_HEIGHT)] autorelease];
+    self.iconView = [[[IconButton alloc] initWithFrame:CGRectMake(MINI_MARGIN,
+                                                                  MARGIN,
+                                                                  ICON_SIZE,
+                                                                  ICON_SIZE)] autorelease];
     [self.iconView.imageView setContentMode:UIViewContentModeScaleAspectFill];
     
     [self.infoLabel setFont:[UIFont boldSystemFontOfSize:11.0f]];
@@ -69,26 +75,6 @@ static NSInteger const kAttributedLabelTag = 100;
     [self.mainLabel setAutomaticallyAddLinksForType:NSTextCheckingTypeLink];
     [self.mainLabel setUnderlineLinks:YES];
     [self.mainLabel setExtendBottomToFit:YES];
-    
-    [self.iconView.titleLabel removeFromSuperview];
-    [self.iconView.inputAccessoryView removeFromSuperview];
-    [self.iconView.inputView removeFromSuperview];
-    [self.infoLabel.inputAccessoryView removeFromSuperview];
-    [self.infoLabel.inputView removeFromSuperview];
-    
-    [self.mainLabel.inputAccessoryView removeFromSuperview];
-    [self.mainLabel.inputView removeFromSuperview];
-    
-    [self.accessoryView removeFromSuperview];
-    [self.backgroundView removeFromSuperview];
-    [self.detailTextLabel removeFromSuperview];
-    [self.textLabel removeFromSuperview];
-    [self.imageView removeFromSuperview];
-    [self.editingAccessoryView removeFromSuperview];
-    [self.inputAccessoryView removeFromSuperview];
-    [self.inputView removeFromSuperview];
-    [self.multipleSelectionBackgroundView removeFromSuperview];
-    [self.selectedBackgroundView removeFromSuperview];
     
     if ( [[NSUserDefaults standardUserDefaults] integerForKey:@"IconCornerRounding"] == 1 ) {
         
@@ -121,9 +107,8 @@ static NSInteger const kAttributedLabelTag = 100;
         text = [NSString stringWithFormat:@"%@\n%@", temp, text];
         contentsHeight = [text heightForContents:[UIFont systemFontOfSize:12.0f]
                                          toWidht:cellWidth
-                                       minHeight:31.0f
+                                       minHeight:MIN_HEIGHT
                                    lineBreakMode:NSLineBreakByCharWrapping];
-        temp = nil;
     }
     
     NSMutableAttributedString *mainText = [NSMutableAttributedString attributedStringWithString:text];
@@ -144,23 +129,10 @@ static NSInteger const kAttributedLabelTag = 100;
     [self.infoLabel setText:infoLabelText];
     [self.infoLabel setTextColor:[TWTweet getTextColor:tweet.textColor]];
     [self.mainLabel setAttributedText:mainText];
-    [self.mainLabel setFrame:CGRectMake(54.0f,
-                                        19.0f,
+    [self.mainLabel setFrame:CGRectMake(CGRectGetMinX(self.infoLabel.frame),
+                                        CGRectGetMaxY(self.infoLabel.frame) + MARGIN,
                                         cellWidth,
                                         contentsHeight)];
-    [self reloadViews:screenName];
-}
-
-- (void)reloadViews:(NSString *)screenName {
-    
-    [self resetImage:screenName];
-    [self setNeedsDisplay];
-    [self.iconView setNeedsDisplay];
-    [self.infoLabel setNeedsDisplay];
-    [self.mainLabel setNeedsDisplay];
-}
-
-- (void)resetImage:(NSString *)screenName {
     
     if ( [[Share images] objectForKey:screenName] != nil ) {
         
