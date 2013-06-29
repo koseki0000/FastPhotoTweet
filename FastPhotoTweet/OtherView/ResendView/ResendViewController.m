@@ -5,6 +5,7 @@
 //  Created by @peace3884 on 12/04/28.
 //
 
+#import "TWAccounts.h"
 #import "ResendViewController.h"
 #import "TWTweets.h"
 #import "TWTweet.h"
@@ -25,7 +26,7 @@
 
 - (IBAction)pushTrashButton:(id)sender {
     
-    [[TWTweets sendedTweets] removeAllObjects];
+    [[[TWTweets manager] sendedTweets] removeAllObjects];
     [resendTable reloadData];
 }
 
@@ -39,7 +40,7 @@
 - (NSInteger)tableView:(UITableView *)tableView numberOfRowsInSection:(NSInteger)section {
     
     //TableViewの要素数を返す
-	return [[TWTweets sendedTweets] count];
+	return [[[TWTweets manager] sendedTweets] count];
 }
 
 - (UITableViewCell *)tableView:(UITableView *)tableView cellForRowAtIndexPath:(NSIndexPath *)indexPath {
@@ -58,7 +59,7 @@
     cell.textLabel.font = [UIFont systemFontOfSize:14.0f];
     cell.textLabel.numberOfLines = 0;
     
-    NSDictionary *resendData = [TWTweets sendedTweets][indexPath.row];
+    NSDictionary *resendData = [[TWTweets manager] sendedTweets][indexPath.row];
     NSLog(@"%@", resendData);
 
     NSString *userName = resendData[@"UserName"];
@@ -74,7 +75,7 @@
 	[tableView deselectRowAtIndexPath:indexPath
                              animated:YES];
     
-    NSDictionary *resendData = [TWTweets sendedTweets][indexPath.row];
+    NSDictionary *resendData = [[TWTweets manager] sendedTweets][indexPath.row];
     
     NSString *userName = resendData[@"UserName"];
     NSString *status = resendData[@"Parameters"][@"status"];
@@ -113,7 +114,7 @@
 
 - (void)tableView:(UITableView *)tableView commitEditingStyle:(UITableViewCellEditingStyle)editingStyle forRowAtIndexPath:(NSIndexPath *)indexPath {
     
-    [[TWTweets sendedTweets] removeObjectAtIndex:indexPath.row];
+    [[[TWTweets manager] sendedTweets] removeObjectAtIndex:indexPath.row];
     [resendTable deleteRowsAtIndexPaths:[NSArray arrayWithObject:indexPath]
                        withRowAnimation:UITableViewRowAnimationLeft];
 }

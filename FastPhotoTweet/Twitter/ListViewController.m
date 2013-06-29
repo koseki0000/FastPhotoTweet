@@ -56,7 +56,7 @@
                                name:LISTS_LIST_DONE_NOTIFICATION
                              object:nil];
     
-    if ( [[TWTweets lists] count] == 0 ) {
+    if ( [[[TWTweets manager] lists] count] == 0 ) {
     
         //取得済みリストがない場合は取得
         NSMutableDictionary *parameters = [@{} mutableCopy];
@@ -70,7 +70,7 @@
     } else {
         
         //取得済みリストがある場合は表示
-        [self setLists:[TWTweets lists]];
+        [self setLists:[[TWTweets manager] lists]];
     }
 }
 
@@ -79,7 +79,7 @@
     [self setLists:[center.userInfo objectForKey:RESPONSE_DATA]];
     [[TWTweets manager] setLists:[center.userInfo objectForKey:RESPONSE_DATA]];
     
-    NSLog(@"listData: %d", [[TWTweets lists] count]);
+    NSLog(@"listData: %d", [[[TWTweets manager] lists] count]);
     
     [listTable reloadData];
 }

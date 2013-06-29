@@ -2,15 +2,14 @@
 //  Share.h
 //
 
-#import "ShareBase.h"
+@interface Share : NSObject
 
-@interface Share : ShareBase
+@property (nonatomic, retain) NSMutableDictionary *images;
 
 + (Share *)manager;
++ (NSMutableDictionary *)images;
 
 #pragma mark - UIImage
-
-+ (NSMutableDictionary *)images;
 
 + (void)cacheImageWithName:(NSString *)imageName doneNotification:(BOOL)notification;
 + (void)cacheImageWithName:(NSString *)imageName targetClass:(Class)targetClass doneNotification:(BOOL)notification;

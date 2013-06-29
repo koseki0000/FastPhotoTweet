@@ -397,7 +397,7 @@ typedef enum {
         
         if ( [TWAccounts accountCount] != 0 ) {
          
-            DISPATCH_AFTER(0.5) ^{
+            DISPATCH_AFTER(0.3) ^{
                
                 [self requestHomeTimeline];
             });
@@ -413,12 +413,12 @@ typedef enum {
     
     if ( self.listSelect ) {
         
-        if ( [[TWTweets listID] isNotEmpty] ) {
+        if ( [[[TWTweets manager] listID] isNotEmpty] ) {
             
-            if ( ![[TWTweets listID] isEqualToString:[TWTweets showingListID]] ) {
+            if ( ![[[TWTweets manager] listID] isEqualToString:[[TWTweets manager] showingListID]] ) {
              
-                [TWTweets manager].showingListID = [TWTweets listID];
-                [self requestList:[TWTweets listID]];
+                [TWTweets manager].showingListID = [[TWTweets manager] listID];
+                [self requestList:[[TWTweets manager] listID]];
             }
         }
     }
@@ -1408,8 +1408,8 @@ typedef enum {
                 //各アカウントのログを削除
                 for ( ACAccount *account in [TWAccounts twitterAccounts] ) {
                     
-                    [[TWTweets timelines] setObject:[NSMutableArray array]
-                                             forKey:account.username];
+                    [[[TWTweets manager] timelines] setObject:[NSMutableArray array]
+                                                       forKey:account.username];
                 }
                 
                 [[Share images] removeAllObjects];
@@ -2264,7 +2264,7 @@ typedef enum {
 
 - (void)refreshTimelineCell:(NSNumber *)index {
     
-    NSLog(@"%s", __func__);
+//    NSLog(@"%s", __func__);
     
     NSInteger i = [index intValue];
     
@@ -2891,7 +2891,7 @@ typedef enum {
 
 - (void)getMyAccountIcon {
     
-    if ( [Share images].count == 0 ) {
+    if ( [[Share images] count] == 0 ) {
         
         NSLog(@"icon file 0");
         
@@ -2906,7 +2906,7 @@ typedef enum {
     
     //NSLog(@"icons key: %@", array);
     
-    NSArray *allKeys = [Share images].allKeys;
+    NSArray *allKeys = [[Share images] allKeys];
     
     for ( string in allKeys ) {
         

@@ -2,9 +2,11 @@
 //  TWAccounts.h
 //
 
-#import "TWAccountsBase.h"
+#import <Accounts/Accounts.h>
 
-@interface TWAccounts : TWAccountsBase
+@interface TWAccounts : NSObject
+
+@property (nonatomic, retain) NSArray *twitterAccounts;
 
 + (TWAccounts *)manager;
 + (NSArray *)twitterAccounts;

@@ -6,24 +6,24 @@
 //
 //
 
-#import "TWTweetsBase.h"
-#import "NSObject+EmptyCheck.h"
-#import "NSDictionary+DataExtraction.h"
-#import "NSArray+AppendUtil.h"
+@interface TWTweets : NSObject
 
-@interface TWTweets : TWTweetsBase
+@property (retain, nonatomic) NSMutableDictionary *timelines;
+@property (retain, nonatomic) NSMutableDictionary *sinceIDs;
+
+@property (retain, nonatomic) NSMutableArray *sendedTweets;
+
+@property (copy, nonatomic) NSString *text;
+@property (copy, nonatomic) NSString *inReplyToID;
+@property (copy, nonatomic) NSString *tabChangeFunction;
+
+@property (retain, nonatomic) NSArray *lists;
+@property (copy, nonatomic) NSString *listID;
+@property (copy, nonatomic) NSString *showingListID;
 
 + (TWTweets *)manager;
-+ (NSMutableDictionary *)timelines;
-+ (NSMutableArray *)sendedTweets;
 
-+ (NSString *)text;
-+ (NSString *)inReplyToID;
-+ (NSString *)tabChangeFunction;
-
-+ (NSArray *)lists;
-+ (NSString *)listID;
-+ (NSString *)showingListID;
+/////
 
 + (void)saveCurrentTimeline:(NSMutableArray *)currentTimeline;
 + (NSMutableArray *)currentTimeline;

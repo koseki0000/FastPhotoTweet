@@ -7,17 +7,16 @@
 #import "ShowAlert.h"
 #import "FullSizeImage.h"
 
-@interface ImageWindow : UIView <NSURLConnectionDelegate, UIActionSheetDelegate> {
-    
-    CGAffineTransform currentTransForm;
-    
-    CGRect _viewRect;
-    CGFloat _maxSize;
-    CGFloat _receivedSize;
-    
-    BOOL _afterClose;
-    BOOL _saveStarted;
-}
+@interface ImageWindow : UIView <NSURLConnectionDelegate, UIActionSheetDelegate>
+
+@property (nonatomic) CGAffineTransform currentTransForm;
+
+@property (nonatomic, strong) NSValue *viewRect;
+@property (nonatomic) CGFloat maxSize;
+@property (nonatomic) CGFloat receivedSize;
+
+@property (nonatomic) BOOL afterClose;
+@property (nonatomic) BOOL saveStarted;
 
 @property (retain, nonatomic) NSString *imageUrl;
 @property (retain, nonatomic) NSString *imageName;

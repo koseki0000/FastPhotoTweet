@@ -10,11 +10,6 @@
 #define PROGRESS_BAR_HEIGHT 9
 
 @implementation ImageWindow
-@synthesize connection;
-@synthesize receivedData;
-@synthesize imageView;
-@synthesize progressBar;
-@synthesize activityIndicator;
 
 - (id)init {
     
@@ -40,20 +35,16 @@
         
     } else {
         
-        _saveStarted = NO;
-        
+        [self setSaveStarted:NO];
         [self setImageUrl:nil];
         
         NSString *fullSizeImageUrl = [FullSizeImage urlString:imageUrl];
         
         if ( ![fullSizeImageUrl isEqualToString:imageUrl] ) {
-         
+            
             //URLに変化がある場合(フルサイズURLになっている)は画像共有サービス
-            self.imageUrl = fullSizeImageUrl;
-            [self.imageUrl retain];
-            
-            _viewRect = viewRect;
-            
+            [self setImageUrl:fullSizeImageUrl];
+            [self setViewRect:[NSValue valueWithCGRect:viewRect]];
             [self showWindow];
             
         } else {
@@ -65,17 +56,14 @@
                 [self performSelector:@selector(hideWindow) withObject:nil afterDelay:0.1];
                 
             } else {
-            
+                
                 NSMutableString *mString = [NSMutableString stringWithString:imageUrl];
                 [mString replaceOccurrencesOfString:@"%2528" withString:@"(" options:0 range:NSMakeRange(0, mString.length)];
                 [mString replaceOccurrencesOfString:@"%2529" withString:@")" options:0 range:NSMakeRange(0, mString.length)];
                 
                 //通常の画像
-                self.imageUrl = mString;
-                [self.imageUrl retain];
-                
-                _viewRect = viewRect;
-                
+                [self setImageUrl:mString];
+                [self setViewRect:[NSValue valueWithCGRect:viewRect]];
                 [self showWindow];
             }
         }
@@ -84,8 +72,10 @@
 
 - (void)showWindow {
     
-    self.frame = CGRectMake(_viewRect.size.width / 2.0f - 2.0f,
-                            _viewRect.size.height / 2.0f - 2.0f,
+    CGRect viewRect = [self.viewRect CGRectValue];
+    
+    self.frame = CGRectMake(viewRect.size.width / 2.0f - 2.0f,
+                            viewRect.size.height / 2.0f - 2.0f,
                             2.0f,
                             2.0f);
     
@@ -93,8 +83,8 @@
                      animations:^ {
                          
                          self.frame = CGRectMake(5.0f,
-                                                 _viewRect.size.height / 2.0f - 2.0f,
-                                                 _viewRect.size.width - 10.0f,
+                                                 viewRect.size.height / 2.0f - 2.0f,
+                                                 viewRect.size.width - 10.0f,
                                                  2.0f);
                          
                      }completion:^ (BOOL completion) {
@@ -103,9 +93,9 @@
                                           animations:^ {
                                               
                                               self.frame = CGRectMake(5,
-                                                                      _viewRect.origin.y + 5.0f,
-                                                                      _viewRect.size.width - 10.0f,
-                                                                      _viewRect.size.height - 10.0f);
+                                                                      viewRect.origin.y + 5.0f,
+                                                                      viewRect.size.width - 10.0f,
+                                                                      viewRect.size.height - 10.0f);
                                           }
                                           completion:^ (BOOL completion) {
                                               
@@ -118,14 +108,14 @@
 
 - (void)createImageView {
     
-    imageView = [[UIImageView alloc] initWithFrame:CGRectMake(5.0f,
-                                                              5.0f,
-                                                              self.frame.size.width - 10.0f,
-                                                              self.frame.size.height - 10.0f - PROGRESS_BAR_HEIGHT)];
-    imageView.backgroundColor = [UIColor clearColor];
-    imageView.userInteractionEnabled = YES;
-    imageView.contentMode = UIViewContentModeScaleAspectFit;
-    [self addSubview:imageView];
+    self.imageView = [[[UIImageView alloc] initWithFrame:CGRectMake(5.0f,
+                                                                    5.0f,
+                                                                    self.frame.size.width - 10.0f,
+                                                                    self.frame.size.height - 10.0f - PROGRESS_BAR_HEIGHT)] autorelease];
+    self.imageView.backgroundColor = [UIColor clearColor];
+    self.imageView.userInteractionEnabled = YES;
+    self.imageView.contentMode = UIViewContentModeScaleAspectFit;
+    [self addSubview:self.imageView];
     
     UIPanGestureRecognizer *pan = [[UIPanGestureRecognizer alloc] initWithTarget:self
                                                                           action:@selector(move:)];
@@ -146,22 +136,22 @@
     [self addGestureRecognizer:pinchGesture];
     [pinchGesture release];
     
-    activityIndicator = [[UIActivityIndicatorView alloc] initWithActivityIndicatorStyle:UIActivityIndicatorViewStyleWhiteLarge];
-    [imageView addSubview:activityIndicator];
+    self.activityIndicator = [[[UIActivityIndicatorView alloc] initWithActivityIndicatorStyle:UIActivityIndicatorViewStyleWhiteLarge] autorelease];
+    [self.imageView addSubview:self.activityIndicator];
     
-    progressBar = [[UIProgressView alloc] initWithProgressViewStyle:UIProgressViewStyleBar];
-    progressBar.frame = CGRectMake(self.frame.origin.x + 10.0f,
-                                   self.frame.size.height - 5.0f - PROGRESS_BAR_HEIGHT,
-                                   self.frame.size.width - 30.0f,
-                                   PROGRESS_BAR_HEIGHT);
-    [self addSubview:progressBar];
+    self.progressBar = [[[UIProgressView alloc] initWithProgressViewStyle:UIProgressViewStyleBar] autorelease];
+    self.progressBar.frame = CGRectMake(self.frame.origin.x + 10.0f,
+                                        self.frame.size.height - 5.0f - PROGRESS_BAR_HEIGHT,
+                                        self.frame.size.width - 30.0f,
+                                        PROGRESS_BAR_HEIGHT);
+    [self addSubview:self.progressBar];
     
     [self performSelector:@selector(initializeConnection) withObject:nil afterDelay:0.2];
 }
 
 - (void)tapImageView:(UITapGestureRecognizer *)sender {
     
-    if ( imageView.image != nil ) {
+    if ( self.imageView.image != nil ) {
         
         UIActionSheet *sheet = [[UIActionSheet alloc] initWithTitle:self.imageName
                                                            delegate:self
@@ -186,16 +176,16 @@
 }
 
 - (void)swipeUpImageView:(UISwipeGestureRecognizer *)sender {
-
+    
     [self hideWindow];
 }
 
 - (void)longPressImageView:(UILongPressGestureRecognizer *)sender {
     
-    if ( imageView.image != nil && !_saveStarted ) {
-     
-        _saveStarted = YES;
-        _afterClose = YES;
+    if ( self.imageView.image != nil && !self.saveStarted ) {
+        
+        self.saveStarted = YES;
+        self.afterClose = YES;
         
         [self performSelectorInBackground:@selector(saveImageForLibrary) withObject:nil];
     }
@@ -205,20 +195,20 @@
     
     if ( sender.state == UIGestureRecognizerStateBegan ) {
         
-        currentTransForm = imageView.transform;
+        _currentTransForm = self.imageView.transform;
     }
 	
     CGFloat scale = [sender scale];
     
-    imageView.transform = CGAffineTransformConcat(currentTransForm, CGAffineTransformMakeScale(scale, scale));
+    self.imageView.transform = CGAffineTransformConcat(_currentTransForm, CGAffineTransformMakeScale(scale, scale));
 }
 
 - (void)actionSheet:(UIActionSheet *)actionSheet clickedButtonAtIndex:(NSInteger)buttonIndex {
     
-//    NSLog(@"actionSheet clickedButtonAtIndex: %d", buttonIndex);
+    //    NSLog(@"actionSheet clickedButtonAtIndex: %d", buttonIndex);
     
     if ( actionSheet.tag == 0 ) {
-     
+        
         if ( buttonIndex == 0 ) {
             
             _afterClose = NO;
@@ -305,7 +295,7 @@
     [self setImageName:nil];
     
     [self setReceivedData:nil];
-    receivedData = [[NSMutableData alloc] initWithData:0];
+    self.receivedData = [[[NSMutableData alloc] initWithData:0] autorelease];
     
     [self setConnection:nil];
     
@@ -317,21 +307,21 @@
         [request setValue:@"http://www.pixiv.net/" forHTTPHeaderField:@"Referer"];
     }
     
-    connection = [[NSURLConnection alloc] initWithRequest:request
-                                                 delegate:self];
+    self.connection = [[NSURLConnection alloc] initWithRequest:request
+                                                      delegate:self];
     
     [self startRequest];
 }
 
 - (void)startRequest {
     
-    [progressBar setProgress:0];
-    [connection start];
+    [self.progressBar setProgress:0];
+    [self.connection start];
 }
 
 - (void)reloadProgressBar {
     
-    [progressBar setProgress:(_receivedSize / _maxSize)];
+    [self.progressBar setProgress:(_receivedSize / _maxSize)];
 }
 
 - (void)connection:(NSURLConnection *)connection didReceiveResponse:(NSURLResponse *)response {
@@ -346,14 +336,14 @@
     
     NSLog(@"FileSize: %.0f", _maxSize);
     
-    [progressBar setProgress:_receivedSize];
+    [self.progressBar setProgress:_receivedSize];
 }
 
 - (void)connection:(NSURLConnection *)connection didReceiveData:(NSData *)data {
     
-//    NSLog(@"didReceiveData: %d", data.length);
+    //    NSLog(@"didReceiveData: %d", data.length);
     
-    [receivedData appendData:data];
+    [self.receivedData appendData:data];
     
 	_receivedSize += [data length];
     
@@ -375,11 +365,11 @@
 - (void)connectionDidFinishLoading:(NSURLConnection *)connection {
     
     NSLog(@"connectionDidFinishLoading");
-    NSLog(@"receiveData.length: %d, maxSize: %.0f", receivedData.length, _maxSize);
+    NSLog(@"receiveData.length: %d, maxSize: %.0f", self.receivedData.length, _maxSize);
     
-    if ( receivedData.length != 34 ) {
-     
-        UIImage *image = [UIImage imageWithDataByContext:receivedData];
+    if ( self.receivedData.length != 34 ) {
+        
+        UIImage *image = [UIImage imageWithDataByContext:self.receivedData];
         
         [self setImageAtImageView:image];
         
@@ -394,10 +384,10 @@
                   contextInfo:(void *)contextInfo {
     
     [ShowAlert title:@"保存完了" message:@"カメラロールに保存しました。"];
-
+    
     _saveStarted = NO;
     
-    [activityIndicator stopAnimating];
+    [self.activityIndicator stopAnimating];
     
     if ( _afterClose ) {
         
@@ -407,19 +397,19 @@
 
 - (void)setImageAtImageView:(UIImage *)image {
     
-    imageView.image = image;
+    self.imageView.image = image;
 }
 
 - (void)saveImageForLibrary {
     
     dispatch_async (dispatch_get_main_queue (), ^{
         
-        activityIndicator.center = CGPointMake(imageView.frame.size.width / 2.0f,
-                                               imageView.frame.size.height / 2.0f);
-        [activityIndicator startAnimating];
+        self.activityIndicator.center = CGPointMake(self.imageView.frame.size.width / 2.0f,
+                                                    self.imageView.frame.size.height / 2.0f);
+        [self.activityIndicator startAnimating];
     });
     
-    UIImageWriteToSavedPhotosAlbum(imageView.image,
+    UIImageWriteToSavedPhotosAlbum(self.imageView.image,
                                    self,
                                    @selector(savingImageIsFinished:didFinishSavingWithError:contextInfo:),
                                    nil);

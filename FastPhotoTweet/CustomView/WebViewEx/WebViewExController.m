@@ -133,8 +133,6 @@
                                name:@"pboardNotification"
                              object:nil];
     
-    notificationCenter = nil;
-    
     searchField.clearsOnBeginEditing = [D boolForKey:@"ClearBrowserSearchField"];
     
     accessURL = BLANK;
@@ -150,7 +148,6 @@
     if ( [EmptyCheck check:APP_DELEGATE.urlSchemeDownloadUrl] ) {
         
         [self requestStart:APP_DELEGATE.urlSchemeDownloadUrl];
-        
         return;
     }
     
@@ -168,7 +165,7 @@
     }
 }
 
-- (void)selectOpenUrl {
+- (oneway void)selectOpenUrl {
     
     //NSLog(@"startupUrlList: %@", startupUrlList);
     
@@ -348,7 +345,7 @@
     }
 }
 
-- (void)selectUrl {
+- (oneway void)selectUrl {
     
     UIActionSheet *sheet;
     

@@ -11,6 +11,7 @@
 #import "TWTweets.h"
 #import "CheckAppVersion.h"
 #import "UIImage+Convert.h"
+#import "NSObject+EmptyCheck.h"
 
 #define APP_VERSION [[[NSBundle mainBundle] infoDictionary] objectForKey:@"CFBundleShortVersionString"]
 
@@ -52,7 +53,7 @@
     dispatch_queue_t asyncQueue = GLOBAL_QUEUE_DEFAULT;
     dispatch_async(asyncQueue, ^{
     
-        CheckAppVersion *checker = [[CheckAppVersion alloc] init];
+        CheckAppVersion *checker = [[[CheckAppVersion alloc] init] autorelease];
         [checker versionInfoURL:@"http://fpt.ktysne.info/latest_version_info.txt"
                    updateIpaURL:@"itms-services://?action=download-manifest&url=http://fpt.ktysne.info/FastPhotoTweet.plist"];
         
@@ -266,7 +267,7 @@
         
         NSMutableDictionary *accounts = [NSMutableDictionary dictionary];
         
-        for ( ACAccount *account in [TWAccountsBase manager].twitterAccounts ) {
+        for ( ACAccount *account in [[TWAccounts manager] twitterAccounts] ) {
             
             [accounts setObject:@"" forKey:account.username];
         }
@@ -277,7 +278,7 @@
         
         NSMutableDictionary *accounts = [[[d objectForKey:@"TimelineList"] mutableCopy] autorelease];
         
-        for ( ACAccount *account in [TWAccountsBase manager].twitterAccounts ) {
+        for ( ACAccount *account in [[TWAccounts manager] twitterAccounts] ) {
          
             if ( accounts[account.username] == nil ) {
                 
@@ -357,7 +358,7 @@
             //NSLog(@"newVersion");
             
             [ShowAlert title:[NSString stringWithFormat:@"FastPhotoTweet %@", APP_VERSION]
-                     message:@"・TwitterSearchの問題を修正\n・Tweet削除、編集の問題を修正\n・Timeline更新後の挙動の調整\n・Pixiv表示の問題を修正\n・ブラウザの広告除去定義の更新"];
+                     message:@"・「Retina解像度画像はリサイズしない」設定の4インチ端末対応\n・多数のバグ修正"];
             
             information = [[[NSMutableDictionary alloc] initWithDictionary:[d dictionaryForKey:@"Information"]] autorelease];
             [information setValue:[NSNumber numberWithInt:1] forKey:APP_VERSION];
@@ -760,7 +761,7 @@
         
         NSUInteger index = 0;
         BOOL find = NO;
-        for ( NSDictionary *savedData in [TWTweets sendedTweets] ) {
+        for ( NSDictionary *savedData in [[TWTweets manager] sendedTweets] ) {
             
             NSString *text = savedData[@"Parameters"][@"status"];
             
@@ -775,7 +776,7 @@
         
         if ( find ) {
             
-//            [[TWTweets sendedTweets] removeObjectAtIndex:index];
+//            [[[TWTweets manager] sendedTweets] removeObjectAtIndex:index];
         }
         
         [NSNotificationCenter postNotificationCenterForName:@"AddStatusBarTask"
@@ -790,7 +791,7 @@
     }
     
     //再投稿ボタンの有効･無効切り替え
-    if ( [TWTweets sendedTweets].count == 0 ) {
+    if ( [[[TWTweets manager] sendedTweets] count] == 0 ) {
         
 //        _resendButton.enabled = NO;
         _resendButton.enabled = YES;
@@ -2360,12 +2361,12 @@
         if ( APP_DELEGATE.resendMode ) {
             
             APP_DELEGATE.resendMode = NO;
-            _postText.text = [TWTweets text];
-            inReplyToId = [TWTweets inReplyToID];
+            _postText.text = [[TWTweets manager] text];
+            inReplyToId = [[TWTweets manager] inReplyToID];
         }
         
         //再投稿ボタンの有効･無効切り替え
-        if ( [TWTweets sendedTweets].count == 0 ) {
+        if ( [[[TWTweets manager] sendedTweets] count] == 0 ) {
             
             _resendButton.enabled = NO;
             
@@ -2375,27 +2376,27 @@
         }
         
         //タブ切り替え時の動作
-        if ( [EmptyCheck check:[TWTweets tabChangeFunction]] ) {
+        if ( [EmptyCheck check:[[TWTweets manager] tabChangeFunction]] ) {
             
-            //NSLog(@"Function: %@", [TWTweets tabChangeFunction]);
+            //NSLog(@"Function: %@", [[TWTweets manager] tabChangeFunction]);
             
-            if ( [[TWTweets tabChangeFunction] isEqualToString:@"Post"] ) {
+            if ( [[[TWTweets manager] tabChangeFunction] isEqualToString:@"Post"] ) {
                 
                 //入力可能状態にする
                 [_postText becomeFirstResponder];
                 
-            }else if ( [[TWTweets tabChangeFunction] isEqualToString:@"Reply"] ) {
+            }else if ( [[[TWTweets manager] tabChangeFunction] isEqualToString:@"Reply"] ) {
                 
-                _postText.text = [NSString stringWithFormat:@"@%@ %@", [TWTweets text], _postText.text];
-                inReplyToId = [TWTweets inReplyToID];
+                _postText.text = [NSString stringWithFormat:@"@%@ %@", [[TWTweets manager] text], _postText.text];
+                inReplyToId = [[TWTweets manager] inReplyToID];
                 [inReplyToId retain];
                 
                 [_postText becomeFirstResponder];
                 
-            }else if ( [[TWTweets tabChangeFunction] isEqualToString:@"Edit"] ) {
+            }else if ( [[[TWTweets manager] tabChangeFunction] isEqualToString:@"Edit"] ) {
                 
-                _postText.text = [TWTweets text];
-                inReplyToId = [TWTweets inReplyToID];
+                _postText.text = [[TWTweets manager] text];
+                inReplyToId = [[TWTweets manager] inReplyToID];
                 [inReplyToId retain];
                 
                 [_postText becomeFirstResponder];

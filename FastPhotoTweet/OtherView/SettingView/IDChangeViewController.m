@@ -6,6 +6,7 @@
 //
 
 #import "IDChangeViewController.h"
+#import "TableViewCellController.h"
 
 @implementation IDChangeViewController
 @synthesize topBar;
@@ -78,8 +79,6 @@
     
     twitpicLinkMode = NO;
     appDelegate.twitpicLinkMode = NO;
-    
-    //閉じる
     [self dismissViewControllerAnimated:YES completion:nil];
 }
 
@@ -92,7 +91,7 @@
 }
 
 - (UITableViewCell *)tableView:(UITableView *)tableView cellForRowAtIndexPath:(NSIndexPath *)indexPath {
-
+    
 	//NSLog(@"CreateCell");
     
     //TableViewCellを生成
@@ -170,13 +169,12 @@
 	[tableView deselectRowAtIndexPath:indexPath animated:YES];
     
     //アカウントが切り替わったことを通知
-    NSNotification *notification =[NSNotification notificationWithName:@"ChangeAccount" 
-                                                                object:self 
+    NSNotification *notification =[NSNotification notificationWithName:@"ChangeAccount"
+                                                                object:self
                                                               userInfo:nil];
     
     [[NSNotificationCenter defaultCenter] postNotification:notification];
     
-    //閉じる
     [self dismissViewControllerAnimated:YES completion:nil];
 }
 

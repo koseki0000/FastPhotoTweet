@@ -82,12 +82,12 @@
 - (id)initWithNibName:(NSString *)nibNameOrNil bundle:(NSBundle *)nibBundleOrNil {
     
     self = [super initWithNibName:nibNameOrNil bundle:nibBundleOrNil];
-
+    
     //初期化処理
     if ( self ) {
-
+        
         //NSLog(@"SettingView init");
-           
+        
         appDelegate = (AppDelegate *)[[UIApplication sharedApplication] delegate];
         d = [NSUserDefaults standardUserDefaults];
         actionSheetNo = 0;
@@ -116,7 +116,7 @@
 }
 
 - (void)viewDidLoad {
-
+    
     [super viewDidLoad];
     
     [tv flashScrollIndicators];
@@ -196,8 +196,6 @@
 - (IBAction)pushDoneButton:(id)sender {
     
     //NSLog(@"pushDoneButton");
-    
-    //閉じる
     [self dismissViewControllerAnimated:YES completion:nil];
 }
 
@@ -219,17 +217,17 @@
             result = @"OFF";
         }
         
-    //リサイズ最大長辺
+        //リサイズ最大長辺
     }else if ( settingState == 1 ) {
         
         result = [NSString stringWithFormat:@"%d", [d integerForKey:@"ImageMaxSize"]];
         
-    //画像形式
+        //画像形式
     }else if ( settingState == 2 ) {
         
         result = [NSString stringWithFormat:@"%@", [d objectForKey:@"SaveImageType"]];;
-    
-    //Retina解像度画像もリサイズを行う
+        
+        //Retina解像度画像もリサイズを行う
     }else if ( settingState == 3 ) {
         
         if ( [d boolForKey:@"NoResizeIphone4Ss"] ) {
@@ -241,13 +239,13 @@
             result = @"ON";
         }
         
-    //画像投稿先
+        //画像投稿先
     }else if ( settingState == 4 ) {
         
         result = [NSString stringWithFormat:@"%@", [d objectForKey:@"PhotoService"]];
         
-    //画像ソース
-    }else if ( settingState == 5 ) {    
+        //画像ソース
+    }else if ( settingState == 5 ) {
         
         if ( [d integerForKey:@"ImageSource"] == 0 ) {
             
@@ -261,9 +259,9 @@
             
             result = @"投稿時選択";
         }
-    
-    //連続投稿確認表示
-    }else if ( settingState == 6 ) {    
+        
+        //連続投稿確認表示
+    }else if ( settingState == 6 ) {
         
         if ( [d boolForKey:@"RepeatedPost"] ) {
             
@@ -273,8 +271,8 @@
             
             result = @"OFF";
         }
-    
-    //画像共有サービスフルサイズ取得
+        
+        //画像共有サービスフルサイズ取得
     }else if ( settingState == 7 ) {
         
         if ( [d boolForKey:@"FullSizeImage"] ) {
@@ -285,28 +283,28 @@
             
             result = @"OFF";
         }
-    
-    //NowPlaying画像投稿先
-    }else if ( settingState == 8 ) {    
-    
+        
+        //NowPlaying画像投稿先
+    }else if ( settingState == 8 ) {
+        
         if ( [d integerForKey:@"NowPlayingPhotoService"] == 0 ) {
             
             result = @"通常と同じ";
             
         }else if ( [d integerForKey:@"NowPlayingPhotoService"] == 1 ) {
-        
+            
             result = @"Twitter";
             
         }else if ( [d integerForKey:@"NowPlayingPhotoService"] == 2 ) {
-        
+            
             result = @"img.ur";
             
         }else if ( [d integerForKey:@"NowPlayingPhotoService"] == 3 ) {
-        
+            
             result = @"Twitpic";
         }
         
-    //NowPlayingにカスタム書式を使用
+        //NowPlayingにカスタム書式を使用
     }else if ( settingState == 9 ) {
         
         if ( [d boolForKey:@"NowPlayingEdit"] ) {
@@ -318,12 +316,12 @@
             result = @"OFF";
         }
         
-    //カスタム書式を編集
+        //カスタム書式を編集
     }else if ( settingState == 10 ) {
         
         //空のまま
         
-    //曲名とアルバム名が同じな場合サブ書式を使用
+        //曲名とアルバム名が同じな場合サブ書式を使用
     }else if ( settingState == 11 ) {
         
         if ( [d integerForKey:@"NowPlayingEditSub"] == 0 ) {
@@ -333,18 +331,18 @@
         }else if ( [d integerForKey:@"NowPlayingEditSub"] == 1 ) {
             
             result = @"ON\n(前方一致)";
-        
-        }else if ( [d integerForKey:@"NowPlayingEditSub"] == 2 ) {    
+            
+        }else if ( [d integerForKey:@"NowPlayingEditSub"] == 2 ) {
             
             result = @"ON\n(完全一致)";
         }
         
-    //サブ書式を編集
+        //サブ書式を編集
     }else if ( settingState == 12 ) {
         
         //空のまま
-    
-    //NowPlaying時にアートワークを投稿
+        
+        //NowPlaying時にアートワークを投稿
     }else if ( settingState == 13 ) {
         
         if ( [d boolForKey:@"NowPlayingArtWork"] ) {
@@ -355,8 +353,8 @@
             
             result = @"OFF";
         }
-    
-    //とは検索
+        
+        //とは検索
     }else if ( settingState == 14 ) {
         
         if ( [d boolForKey:@"TohaSearch"] ) {
@@ -367,11 +365,11 @@
             
             result = @"OFF";
         }
-    
-    //Webページ投稿書式変更
+        
+        //Webページ投稿書式変更
     }else if ( settingState == 15 ) {
-    
-    //Webページ投稿書式セット後カーソル位置
+        
+        //Webページ投稿書式セット後カーソル位置
     }else if ( settingState == 16 ) {
         
         if ( [d boolForKey:@"WebPagePostCursorPosition"] ) {
@@ -382,8 +380,8 @@
             
             result = @"末尾";
         }
-    
-//  }else if ( settingState == 17 ) {
+        
+        //  }else if ( settingState == 17 ) {
         
     }else if ( settingState == 18 ) {
         
@@ -396,7 +394,7 @@
             result = @"末尾";
         }
         
-    //投稿後アプリ切替
+        //投稿後アプリ切替
     }else if ( settingState == 19 ) {
         
         NSString *scheme = [d objectForKey:@"CallBackScheme"];
@@ -466,7 +464,7 @@
             result = @"未選択";
         }
         
-    //アプリがアクティブになった際入力可能状態にする
+        //アプリがアクティブになった際入力可能状態にする
     }else if ( settingState == 20 ) {
         
         if ( [d boolForKey:@"ShowKeyboard"] ) {
@@ -477,7 +475,7 @@
             
             result = @"OFF";
         }
-    
+        
     }else if ( settingState == 21 ) {
         
         if ( [d boolForKey:@"ClearBrowserSearchField"] ) {
@@ -488,7 +486,7 @@
             
             result = @"OFF";
         }
-    
+        
     }else if ( settingState == 22 ) {
         
         if ( [d boolForKey:@"OpenPasteBoardURL"] ) {
@@ -499,22 +497,22 @@
             
             result = @"OFF";
         }
-    
+        
     }else if ( settingState == 23 ) {
-
+        
         if ( [[d objectForKey:@"UserAgent"] isEqualToString:@"FireFox"] ) {
             
             result = @"FireFox";
             
         }else if ( [[d objectForKey:@"UserAgent"] isEqualToString:@"iPad"] ) {
-        
+            
             result = @"iPad";
             
         } else {
             
             result = @"iPhone";
         }
-    
+        
     }else if ( settingState == 24 ) {
         
         if ( [[d objectForKey:@"UserAgentReset"] isEqualToString:@"FireFox"] ) {
@@ -578,10 +576,10 @@
             result = @"OFF";
         }
         
-//    }else if ( settingState == 29 ) {
+        //    }else if ( settingState == 29 ) {
         
     }else if ( settingState == 30 ) {
-
+        
         if ( [d boolForKey:@"MyTweetNG"] ) {
             
             result = @"ON";
@@ -624,7 +622,7 @@
     }else if ( settingState == 35 ) {
         
         result = [d objectForKey:@"FavoritesLoadCount"];
-    
+        
     }else if ( settingState == 36 ) {
         
         if ( [d boolForKey:@"TimelineFirstLoad"] ) {
@@ -687,7 +685,7 @@
             
         case 2:
 			return SECTION_2;
-
+            
         case 3:
 			return SECTION_3;
             
@@ -736,7 +734,7 @@
     }
     
     settingName = [settingArray objectAtIndex:settingState];
-        
+    
     cell.numberLabel.text = settingName;
     cell.textLabel.text = [self getSettingState:settingState];
     
@@ -747,7 +745,7 @@
     
     //セルの選択状態を解除
     [tableView deselectRowAtIndexPath:indexPath animated:YES];
-        
+    
     actionSheetNo = indexPath.row;
     
     UIActionSheet *sheet;
@@ -810,8 +808,8 @@
                      delegate:self
                      cancelButtonTitle:@"Cancel"
                      destructiveButtonTitle:nil
-                     otherButtonTitles:@"Twitter", @"img.ur(複数枚投稿可)", 
-                                       @"Twitpic(複数枚投稿可)", nil];
+                     otherButtonTitles:@"Twitter", @"img.ur(複数枚投稿可)",
+                     @"Twitpic(複数枚投稿可)", nil];
             [sheet autorelease];
             [sheet showInView:self.view];
             
@@ -826,7 +824,7 @@
                      otherButtonTitles:@"カメラロール", @"カメラ", @"投稿時選択", nil];
             [sheet autorelease];
             [sheet showInView:self.view];
-        
+            
         }else if ( indexPath.row == 6 ) {
             
             //連続投稿確認表示
@@ -838,7 +836,7 @@
                      otherButtonTitles:@"ON", @"OFF", nil];
             [sheet autorelease];
             [sheet showInView:self.view];
-        
+            
         }else if ( indexPath.row == 7 ) {
             
             //画像共有サービスフルサイズ取得
@@ -879,7 +877,7 @@
                      otherButtonTitles:@"ON", @"OFF", nil];
             [sheet autorelease];
             [sheet showInView:self.view];
-        
+            
         }else if ( indexPath.row == 1 ) {
             
             //カスタム書式を編集
@@ -892,12 +890,12 @@
                 alertMessage = [d objectForKey:@"NowPlayingEditText"];
             }
             
-            alert = [[UIAlertView alloc] initWithTitle:NOWPLAYING_CUSTOM_EDIT 
-                                                            message:message
-                                                           delegate:self 
-                                                  cancelButtonTitle:@"キャンセル" 
-                                                  otherButtonTitles:@"確定", nil];
-
+            alert = [[UIAlertView alloc] initWithTitle:NOWPLAYING_CUSTOM_EDIT
+                                               message:message
+                                              delegate:self
+                                     cancelButtonTitle:@"キャンセル"
+                                     otherButtonTitles:@"確定", nil];
+            
             alertText = [[UITextField alloc] initWithFrame:CGRectMake(12, 40, 260, 25)];
             [alertText setBackgroundColor:[UIColor whiteColor]];
             alertText.contentVerticalAlignment = UIControlContentVerticalAlignmentCenter;
@@ -938,8 +936,8 @@
             
             alert = [[UIAlertView alloc] initWithTitle:NOWPLAYING_SUB_STYLE
                                                message:message
-                                              delegate:self 
-                                     cancelButtonTitle:@"キャンセル" 
+                                              delegate:self
+                                     cancelButtonTitle:@"キャンセル"
                                      otherButtonTitles:@"確定", nil];
             
             alertText = [[UITextField alloc] initWithFrame:CGRectMake(12, 40, 260, 25)];
@@ -955,7 +953,7 @@
             [alertText release];
             
             return;
-        
+            
         }else if ( indexPath.row == 4 ) {
             
             //NowPlaying時にアートワークを投稿
@@ -967,7 +965,7 @@
                      otherButtonTitles:@"ON", @"OFF", nil];
             [sheet autorelease];
             [sheet showInView:self.view];
-        
+            
         }else if ( indexPath.row == 5 ) {
             
             //とは検索
@@ -979,7 +977,7 @@
                      otherButtonTitles:@"ON", @"OFF", nil];
             [sheet autorelease];
             [sheet showInView:self.view];
-        
+            
         }else if ( indexPath.row == 6 ) {
             
             //Webページ投稿書式変更
@@ -1000,8 +998,8 @@
             
             alert = [[UIAlertView alloc] initWithTitle:WEB_PAGE_SHARE_STYLE
                                                message:message
-                                              delegate:self 
-                                     cancelButtonTitle:@"キャンセル" 
+                                              delegate:self
+                                     cancelButtonTitle:@"キャンセル"
                                      otherButtonTitles:@"確定", nil];
             
             alertText = [[UITextField alloc] initWithFrame:CGRectMake(12, 40, 260, 25)];
@@ -1017,7 +1015,7 @@
             [alertText release];
             
             return;
-        
+            
         }else if ( indexPath.row == 7 ) {
             
             //Webページ投稿書式セット後カーソル位置
@@ -1029,7 +1027,7 @@
                      otherButtonTitles:@"先頭", @"末尾", nil];
             [sheet autorelease];
             [sheet showInView:self.view];
-        
+            
         }else if ( indexPath.row == 8 ) {
             
             //引用投稿書式変更
@@ -1050,8 +1048,8 @@
             
             alert = [[UIAlertView alloc] initWithTitle:WEB_PAGE_QUOTE_STYLE
                                                message:message
-                                              delegate:self 
-                                     cancelButtonTitle:@"キャンセル" 
+                                              delegate:self
+                                     cancelButtonTitle:@"キャンセル"
                                      otherButtonTitles:@"確定", nil];
             
             alertText = [[UITextField alloc] initWithFrame:CGRectMake(12, 40, 260, 25)];
@@ -1112,7 +1110,7 @@
                      otherButtonTitles:@"ON", @"OFF", nil];
             [sheet autorelease];
             [sheet showInView:self.view];
-        
+            
         }else if ( indexPath.row == 1 ) {
             
             //ブラウザの検索ワードを毎回リセット
@@ -1124,7 +1122,7 @@
                      otherButtonTitles:@"ON", @"OFF", nil];
             [sheet autorelease];
             [sheet showInView:self.view];
-        
+            
         }else if ( indexPath.row == 2 ) {
             
             //ブラウザを開く時ペーストボード内のURLを開く
@@ -1136,7 +1134,7 @@
                      otherButtonTitles:@"ON", @"OFF", nil];
             [sheet autorelease];
             [sheet showInView:self.view];
-        
+            
         }else if ( indexPath.row == 3 ) {
             
             //ブラウザユーザーエージェント
@@ -1148,7 +1146,7 @@
                      otherButtonTitles:@"FireFox", @"iPad", @"iPhone", nil];
             [sheet autorelease];
             [sheet showInView:self.view];
-        
+            
         }else if ( indexPath.row == 4 ) {
             
             sheet = [[UIActionSheet alloc]
@@ -1159,7 +1157,7 @@
                      otherButtonTitles:@"OFF", @"FireFox", @"iPad", @"iPhone", nil];
             [sheet autorelease];
             [sheet showInView:self.view];
-        
+            
         }else if ( indexPath.row == 5 ) {
             
             sheet = [[UIActionSheet alloc]
@@ -1171,7 +1169,7 @@
             [sheet autorelease];
             [sheet showInView:self.view];
         }
-    
+        
     }else if ( indexPath.section == 3 ) {
         
         actionSheetNo = actionSheetNo + SECTION_0 + SECTION_1 + SECTION_2;
@@ -1187,7 +1185,7 @@
                      otherButtonTitles:@"ON", @"OFF", nil];
             [sheet autorelease];
             [sheet showInView:self.view];
-        
+            
         }else if ( indexPath.row == 1 ) {
             
             //バックグラウンドから復帰時UserStreamに接続
@@ -1201,7 +1199,7 @@
             [sheet showInView:self.view];
             
         }else if ( indexPath.row == 2 ) {
-        
+            
             //通常の更新後にUserStreamに接続
             sheet = [[UIActionSheet alloc]
                      initWithTitle:RELOAD_US
@@ -1213,12 +1211,12 @@
             [sheet showInView:self.view];
             
         }else if ( indexPath.row == 3 ) {
-        
+            
             //NG設定を開く
             NGSettingViewController *dialog = [[[NGSettingViewController alloc] init] autorelease];
             dialog.title = @"NG Settings";
             [self.navigationController pushViewController:dialog animated:YES];
-        
+            
         }else if ( indexPath.row == 4 ) {
             
             //自分のTweetもNGを行う
@@ -1230,7 +1228,7 @@
                      otherButtonTitles:@"ON", @"OFF", nil];
             [sheet autorelease];
             [sheet showInView:self.view];
-        
+            
         }else if ( indexPath.row == 5 ) {
             
             //アイコンの角を丸める
@@ -1242,7 +1240,7 @@
                      otherButtonTitles:@"OFF", @"ON", nil];
             [sheet autorelease];
             [sheet showInView:self.view];
-        
+            
         }else if ( indexPath.row == 6 ) {
             
             //UserStream接続中は自動ロックを無効化する
@@ -1254,7 +1252,7 @@
                      otherButtonTitles:@"ON", @"OFF", nil];
             [sheet autorelease];
             [sheet showInView:self.view];
-        
+            
         }else if ( indexPath.row == 7 ) {
             
             sheet = [[UIActionSheet alloc]
@@ -1298,7 +1296,7 @@
                      otherButtonTitles:@"最上部", @"最下部", nil];
             [sheet autorelease];
             [sheet showInView:self.view];
-        
+            
         }else if ( indexPath.row == 11 ) {
             
             sheet = [[UIActionSheet alloc]
@@ -1322,7 +1320,7 @@
             [sheet showInView:self.view];
             
         }else if ( indexPath.row == 13 ) {
-        
+            
             [self setListSelectMode:YES];
             
             ListViewController *dialog = [[[ListViewController alloc] initWithListSelectMode:YES] autorelease];
@@ -1362,7 +1360,7 @@
     
     //確定が押された
     if ( alertTextNo == 0 ) {
-
+        
         if (buttonIndex == 1) {
             
             //カスタム書式を保存
@@ -1373,12 +1371,12 @@
         
         //サブ書式を保存
         [d setObject:alertText.text forKey:@"NowPlayingEditTextSub"];
-    
+        
     }else if ( alertTextNo == 2 ) {
         
         //Webページ投稿書式を保存
         [d setObject:alertText.text forKey:@"WebPagePostFormat"];
-    
+        
     }else if ( alertTextNo == 3 ) {
         
         //引用投稿書式を保存
@@ -1454,7 +1452,7 @@
         }else if ( buttonIndex == 3 ) {
             [d setObject:@"PNG" forKey:@"SaveImageType"];
         }
-    
+        
     }else if ( actionSheetNo == 3 ) {
         if ( buttonIndex == 0 ) {
             [d setBool:NO forKey:@"NoResizeIphone4Ss"];
@@ -1515,13 +1513,13 @@
                                         delegate:self
                                         cancelButtonTitle:@"Cancel"
                                         destructiveButtonTitle:nil
-                                        otherButtonTitles:[NSString stringWithFormat:@"%@ を使用", twAccount.username], 
-                                                          @"Twitpicアカウント登録", nil];
+                                        otherButtonTitles:[NSString stringWithFormat:@"%@ を使用", twAccount.username],
+                                        @"Twitpicアカウント登録", nil];
                 [sheet autorelease];
                 [sheet showInView:self.view];
             }
         }
-    
+        
     }else if ( actionSheetNo == 5 ) {
         
         //カメラが使われる可能性のある選択肢
@@ -1550,7 +1548,7 @@
                 
             } else {
                 
-                //カメラが利用できない場合                
+                //カメラが利用できない場合
                 [ShowAlert error:@"カメラが利用出来ない端末です。カメラロールが設定されます。"];
                 
                 [d setInteger:0 forKey:@"ImageSource"];
@@ -1560,8 +1558,8 @@
             
             [d setInteger:0 forKey:@"ImageSource"];
         }
-    
-    //連続投稿確認表示
+        
+        //連続投稿確認表示
     }else if ( actionSheetNo == 6 ) {
         if ( buttonIndex == 0 ) {
             
@@ -1580,19 +1578,19 @@
                 
                 [d setInteger:0 forKey:@"ImageSource"];
             }
-
+            
         }else if ( buttonIndex == 1 ) {
             
             [d setBool:NO forKey:@"RepeatedPost"];
         }
-    
+        
     }else if ( actionSheetNo == 7 ) {
         if ( buttonIndex == 0 ) {
             [d setBool:YES forKey:@"FullSizeImage"];
         }else if ( buttonIndex == 1 ) {
             [d setBool:NO forKey:@"FullSizeImage"];
         }
-    
+        
     }else if ( actionSheetNo == 8 ) {
         if ( buttonIndex == 0 ) {
             [d setInteger:0 forKey:@"NowPlayingPhotoService"];
@@ -1610,9 +1608,9 @@
         }else if ( buttonIndex == 1 ) {
             [d setBool:NO forKey:@"NowPlayingEdit"];
         }
-    
-//  }else if ( actionSheetNo == 10 ) {
-    
+        
+        //  }else if ( actionSheetNo == 10 ) {
+        
     }else if ( actionSheetNo == 11 ) {
         if ( buttonIndex == 0 ) {
             [d setInteger:0 forKey:@"NowPlayingEditSub"];
@@ -1622,7 +1620,7 @@
             [d setInteger:2 forKey:@"NowPlayingEditSub"];
         }
         
-//  }else if ( actionSheetNo == 12 ) {
+        //  }else if ( actionSheetNo == 12 ) {
         
     }else if ( actionSheetNo == 13 ) {
         
@@ -1631,15 +1629,15 @@
         }else if ( buttonIndex == 1 ) {
             [d setBool:NO forKey:@"NowPlayingArtWork"];
         }
-    
+        
     }else if ( actionSheetNo == 14 ) {
         if ( buttonIndex == 0 ) {
             [d setBool:YES forKey:@"TohaSearch"];
         }else if ( buttonIndex == 1 ) {
             [d setBool:NO forKey:@"TohaSearch"];
         }
-    
-//  }else if ( actionSheetNo == 15 ) {
+        
+        //  }else if ( actionSheetNo == 15 ) {
         
     }else if ( actionSheetNo == 16 ) {
         if ( buttonIndex == 0 ) {
@@ -1648,7 +1646,7 @@
             [d setBool:NO forKey:@"WebPagePostCursorPosition"];
         }
         
-//  }else if ( actionSheetNo == 17 ) {
+        //  }else if ( actionSheetNo == 17 ) {
         
     }else if ( actionSheetNo == 18 ) {
         
@@ -1698,7 +1696,7 @@
         }else if ( buttonIndex == 1 ) {
             [d setBool:NO forKey:@"ShowKeyboard"];
         }
-    
+        
     }else if ( actionSheetNo == 21 ) {
         if ( buttonIndex == 0 ) {
             [d setBool:YES forKey:@"ClearBrowserSearchField"];
@@ -1729,7 +1727,7 @@
         }else if ( buttonIndex == 2 ) {
             [d setObject:@"iPhone" forKey:@"UserAgent"];
         }
-    
+        
     }else if ( actionSheetNo == 24 ) {
         
         if ( buttonIndex == 0 ) {
@@ -1741,7 +1739,7 @@
         }else if ( buttonIndex == 3 ) {
             [d setObject:@"iPhone" forKey:@"UserAgentReset"];
         }
-    
+        
     }else if ( actionSheetNo == 25 ) {
         
         if ( buttonIndex == 0 ) {
@@ -1771,15 +1769,15 @@
             [d setBool:NO forKey:@"ReloadAfterUSConnect"];
         }
         
-//    }else if ( actionSheetNo == 29 ) {
-    
+        //    }else if ( actionSheetNo == 29 ) {
+        
     }else if ( actionSheetNo == 30 ) {
         if ( buttonIndex == 0 ) {
             [d setBool:YES forKey:@"MyTweetNG"];
         }else if ( buttonIndex == 1 ) {
             [d setBool:NO forKey:@"MyTweetNG"];
         }
-    
+        
     }else if ( actionSheetNo == 31 ) {
         
         if ( buttonIndex == 0 ) {
@@ -1848,7 +1846,7 @@
         }else if ( buttonIndex == 1 ) {
             [d setBool:YES forKey:@"TimelineFirstLoad"];
         }
-    
+        
     }else if ( actionSheetNo == 37 ) {
         
         if ( buttonIndex != 6 ) {
@@ -1863,7 +1861,7 @@
         }else if ( buttonIndex == 1 ) {
             [d setBool:NO forKey:@"UseTimelineList"];
         }
-    
+        
     }else if ( actionSheetNo == 40 ) {
         
         if ( buttonIndex == 0 ) {
@@ -1904,7 +1902,7 @@
             
         case 0:
             return @"画像関連設定";
-        
+            
         case 1:
             return @"投稿関連設定";
             
@@ -1919,7 +1917,7 @@
     }
     
     return nil;
-} 
+}
 
 - (NSInteger)numberOfSectionsInTableView:(UITableView *)tableView {
     

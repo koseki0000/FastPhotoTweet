@@ -4,21 +4,99 @@
 
 #import "TWAccounts.h"
 
+@interface TWAccounts ()
+
+@property (nonatomic, strong) ACAccountStore *store;
+
++ (void)getTwitterAccounts;
+
+@end
+
 @implementation TWAccounts
+
+static TWAccounts *sharedObject = nil;
 
 + (TWAccounts *)manager {
     
-    return (TWAccounts *)[TWAccountsBase manager];
+    if ( sharedObject == nil ) {
+        
+        static dispatch_once_t onceToken;
+        dispatch_once(&onceToken, ^{
+            
+            [[self alloc] init];
+        });
+    }
+    
+    return sharedObject;
 }
+
++ (id)allocWithZone:(NSZone *)zone {
+    
+    if ( sharedObject == nil ) {
+        
+        static dispatch_once_t onceToken;
+        dispatch_once(&onceToken, ^{
+            
+            sharedObject = [super allocWithZone:zone];
+            [TWAccounts getTwitterAccounts];
+        });
+        
+        return sharedObject;
+    }
+    
+    return nil;
+}
+
++ (void)getTwitterAccounts {
+    
+    NSLog(@"getTwitterAccounts");
+    
+    [[TWAccounts manager] setStore:[[[ACAccountStore alloc] init] autorelease]];
+    ACAccountType *type = [[[TWAccounts manager] store] accountTypeWithAccountTypeIdentifier:ACAccountTypeIdentifierTwitter];
+    [[TWAccounts manager] setTwitterAccounts:[[[TWAccounts manager] store] accountsWithAccountType:type]];
+}
+
+- (id)copyWithZone:(NSZone *)zone {
+    
+    return self;
+}
+
+- (id)retain {
+    
+    return self;
+}
+
+- (unsigned)retainCount {
+    
+    return UINT_MAX;
+}
+
+- (oneway void)release {
+    
+}
+
+- (id)autorelease {
+    
+    return self;
+}
+
+- (void)dealloc {
+    
+    [self setTwitterAccounts:nil];
+    
+    [super dealloc];
+}
+
+//////////////////////////////////////
 
 + (NSArray *)twitterAccounts {
     
-    return ((TWAccounts *)[TWAccountsBase manager]).twitterAccounts;
+    return [[TWAccounts manager] twitterAccounts];
 }
 
 + (ACAccount *)currentAccount {
     
-    NSArray *accounts = [TWAccountsBase manager].twitterAccounts;
+    NSArray *accounts = [[TWAccounts manager] twitterAccounts];
     
     if ( accounts != nil &&
          accounts.count != 0 ) {
@@ -33,12 +111,14 @@
 
 + (NSString *)currentAccountName {
     
-    NSArray *accounts = [TWAccountsBase manager].twitterAccounts;
+    NSArray *accounts = [[TWAccounts manager] twitterAccounts];
     
     if ( accounts != nil &&
          accounts.count != 0 ) {
         
-        return ((ACAccount *)[accounts objectAtIndex:[[NSUserDefaults standardUserDefaults] integerForKey:@"UseAccount"]]).username;
+        ACAccount *account = [accounts objectAtIndex:[[NSUserDefaults standardUserDefaults] integerForKey:@"UseAccount"]];
+        
+        return [account username];
         
     } else {
         
@@ -69,7 +149,7 @@
 
 + (NSUInteger)accountCount {
     
-    return ((TWAccounts *)[TWAccountsBase manager]).twitterAccounts.count;
+    return [[[TWAccounts manager] twitterAccounts] count];
 }
 
 @end

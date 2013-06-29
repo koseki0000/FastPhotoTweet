@@ -376,11 +376,11 @@
         
     }else if ( ngTypeSegment.selectedSegmentIndex == 1 ) {
         
-        cellString = [NSString stringWithFormat:@"NGユーザー: %@", [currentNg objectForKey:@"User"]];
+        cellString = [NSMutableString stringWithFormat:@"NGユーザー: %@", [currentNg objectForKey:@"User"]];
         
     }else if ( ngTypeSegment.selectedSegmentIndex == 2 ) {
         
-        cellString = [NSString stringWithFormat:@"NGクライアント: %@", [currentNg objectForKey:@"Client"]];
+        cellString = [NSMutableString stringWithFormat:@"NGクライアント: %@", [currentNg objectForKey:@"Client"]];
     }
     
     cell.textLabel.font = [UIFont systemFontOfSize:14];
@@ -427,11 +427,11 @@
         
     }else if ( ngTypeSegment.selectedSegmentIndex == 1 ) {
         
-        cellString = [NSString stringWithFormat:@"NGユーザー: %@", [currentNg objectForKey:@"User"]];
+        cellString = [NSMutableString stringWithFormat:@"NGユーザー: %@", [currentNg objectForKey:@"User"]];
         
     }else if ( ngTypeSegment.selectedSegmentIndex == 2 ) {
         
-        cellString = [NSString stringWithFormat:@"NGクライアント: %@", [currentNg objectForKey:@"Client"]];
+        cellString = [NSMutableString stringWithFormat:@"NGクライアント: %@", [currentNg objectForKey:@"Client"]];
     }
     
     //NSLog(@"[%d]%@", indexPath.row , cellString);

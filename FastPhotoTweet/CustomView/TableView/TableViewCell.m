@@ -1,5 +1,5 @@
 //
-//  TableViewCell.m
+//  TimelineCell.m
 //  FastPhotoTweet
 //
 //  Created by @peace3884 on 11/07/16.
@@ -8,13 +8,15 @@
 #import "TableViewCell.h"
 
 @implementation TableViewCell
+@synthesize numberLabel;
+@synthesize textLabel;
 
 - (void)dealloc {
-
-    [self.numberLabel removeFromSuperview];
-    self.numberLabel = nil;
-    [self.textLabel removeFromSuperview];
-    self.textLabel = nil;
+    
+    [numberLabel removeFromSuperview];
+    numberLabel = nil;
+    [textLabel removeFromSuperview];
+    textLabel = nil;
 }
 
 @end

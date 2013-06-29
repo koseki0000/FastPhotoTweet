@@ -7,12 +7,11 @@
 
 #import <UIKit/UIKit.h>
 #import <Accounts/Accounts.h>
-#import "TableViewCell.h"
-#import "TableViewCellController.h"
 #import "ShowAlert.h"
 #import "AppDelegate.h"
+#import "BaseViewController.h"
 
-@interface IDChangeViewController : UIViewController {
+@interface IDChangeViewController : BaseViewController {
     
     AppDelegate *appDelegate;
     

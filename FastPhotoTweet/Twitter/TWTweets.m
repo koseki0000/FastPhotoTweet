@@ -6,76 +6,116 @@
 //
 //
 
+#import "NSObject+EmptyCheck.h"
+#import "NSDictionary+DataExtraction.h"
+#import "NSArray+AppendUtil.h"
+
 #import "TWTweets.h"
 #import "TWTweet.h"
+#import "TWAccounts.h"
 
 #define BLANK @""
 
 @implementation TWTweets
 
+static TWTweets *sharedObject = nil;
+
 + (TWTweets *)manager {
     
-    return (TWTweets *)[TWTweetsBase manager];
+    if ( sharedObject == nil ) {
+        
+        static dispatch_once_t onceToken;
+        dispatch_once(&onceToken, ^{
+            
+            [[self alloc] init];
+        });
+    }
+    
+    return sharedObject;
 }
 
-+ (NSMutableDictionary *)timelines {
++ (id)allocWithZone:(NSZone *)zone {
     
-    return [TWTweetsBase manager].timelines;
+    if ( sharedObject == nil ) {
+        
+        static dispatch_once_t onceToken;
+        dispatch_once(&onceToken, ^{
+            
+            sharedObject = [super allocWithZone:zone];
+            
+            sharedObject.timelines = [NSMutableDictionary dictionary];
+            sharedObject.sinceIDs = [NSMutableDictionary dictionary];
+            sharedObject.sendedTweets = [NSMutableArray array];
+            sharedObject.text = @"";
+            sharedObject.inReplyToID = @"";
+            sharedObject.tabChangeFunction = @"";
+            sharedObject.lists = @[];
+            sharedObject.listID = @"";
+            sharedObject.showingListID = @"";
+            
+            for ( ACAccount *account in [[TWAccounts manager] twitterAccounts] ) {
+                
+                [sharedObject.timelines setObject:[NSMutableArray array] forKey:account.username];
+                [sharedObject.sinceIDs setObject:[NSDictionary dictionary] forKey:account.username];
+            }
+        });
+        
+        return sharedObject;
+    }
+    
+    return nil;
 }
 
-+ (NSMutableArray *)sendedTweets {
+- (id)copyWithZone:(NSZone *)zone {
     
-    return [TWTweetsBase manager].sendedTweets;
+    return self;
 }
 
-+ (NSString *)text {
+- (id)retain {
     
-    return [TWTweetsBase manager].text;
+    return self;
 }
 
-+ (NSString *)inReplyToID {
+- (unsigned)retainCount {
     
-    return [TWTweetsBase manager].inReplyToID;
+    return UINT_MAX;
 }
 
-+ (NSString *)tabChangeFunction {
+- (oneway void)release {
     
-    return [TWTweetsBase manager].tabChangeFunction;
 }
 
-+ (NSArray *)lists {
+- (id)autorelease {
     
-    return [TWTweetsBase manager].lists;
+    return self;
 }
 
-+ (NSString *)listID {
+- (void)dealloc {
     
-    return [TWTweetsBase manager].listID;
-}
-
-+ (NSString *)showingListID {
+    [self setTimelines:nil];
+    [self setSinceIDs:nil];
     
-    return [TWTweetsBase manager].showingListID;
+    [super dealloc];
 }
 
 #pragma mark - Timeline
 
 + (void)saveCurrentTimeline:(NSMutableArray *)currentTimeline {
     
-    [[TWTweetsBase manager].timelines setObject:currentTimeline
-                                         forKey:[TWAccounts currentAccountName]];
+    [[TWTweets manager].timelines setObject:currentTimeline
+                                     forKey:[TWAccounts currentAccountName]];
 }
 
 + (NSMutableArray *)currentTimeline {
     
-    return [[TWTweetsBase manager].timelines objectForKey:[TWAccounts currentAccountName]];
+    return [[TWTweets manager].timelines objectForKey:[TWAccounts currentAccountName]];
 }
 
 + (NSMutableArray *)saveCurrentTimelineAndChangeAccount:(NSMutableArray *)currentTimeline forChangeAccountName:(NSString *)accontName {
     
     [self saveCurrentTimeline:currentTimeline];
     
-    return [[TWTweetsBase manager].timelines objectForKey:accontName];
+    return [[TWTweets manager].timelines objectForKey:accontName];
 }
 
 + (NSString *)topTweetID {
@@ -83,9 +123,9 @@
     NSString *tweetID = nil;
     
     if ( [[TWTweets currentTimeline] isNotEmpty] ) {
-    
+        
         for ( TWTweet *tweet in [TWTweets currentTimeline] ) {
-
+            
             tweetID = tweet.tweetID;
             
             if ( tweetID != nil ) break;
@@ -97,16 +137,16 @@
 
 + (NSMutableDictionary *)sinceIDs {
     
-    return [TWTweetsBase manager].sinceIDs;
+    return [TWTweets manager].sinceIDs;
 }
 
 + (void)saveSinceID:(NSString *)sinceID {
     
-    [[TWTweetsBase manager].sinceIDs[[TWAccounts currentAccountName]] setObject:sinceID
-                                                                         forKey:@"SinceID"];
+    [[TWTweets manager].sinceIDs [[TWAccounts currentAccountName]] setObject:sinceID
+                                                                      forKey:@"SinceID"];
     
-    [[TWTweetsBase manager].sinceIDs[[TWAccounts currentAccountName]] setObject:@(TimelineRequestStatsSended)
-                                                                         forKey:@"Status"];
+    [[TWTweets manager].sinceIDs [[TWAccounts currentAccountName]] setObject:@(TimelineRequestStatsSended)
+                                                                      forKey:@"Status"];
 }
 
 @end

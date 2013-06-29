@@ -344,7 +344,7 @@
             NSDictionary *saveTweet = @{@"UserName" : [TWAccounts currentAccountName],
                                         @"Parameters" : parameters};
             
-            [[TWTweets sendedTweets] addObject:saveTweet];
+            [[[TWTweets manager] sendedTweets] addObject:saveTweet];
         }
         
         FPTRequest *request = (FPTRequest *)[FPTRequest requestForServiceType:SLServiceTypeTwitter

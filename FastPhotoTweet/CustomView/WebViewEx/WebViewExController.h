@@ -96,8 +96,8 @@
 
 - (IBAction)doubleTapUrlField:(id)sender;
 
-- (void)selectOpenUrl;
-- (void)selectUrl;
+- (oneway void)selectOpenUrl;
+- (oneway void)selectUrl;
 
 - (void)pboardNotification:(NSNotification *)notification;
 - (void)becomeActive:(NSNotification *)notification;
