@@ -49,7 +49,7 @@
     
     NSString *tempString = [NSString stringWithString:self];
     
-    NSRegularExpression *regexp = [NSRegularExpression regularExpressionWithPattern:@"^[\\s]+"
+    NSRegularExpression *regexp = [NSRegularExpression regularExpressionWithPattern:@"^[\\s⠀]+"
                                                                             options:0
                                                                               error:nil];
     
@@ -58,7 +58,7 @@
                                                     range:NSMakeRange(0, tempString.length)
                                              withTemplate:@""];
 
-    regexp = [NSRegularExpression regularExpressionWithPattern:@"[\\s]+$"
+    regexp = [NSRegularExpression regularExpressionWithPattern:@"[\\s⠀]+$"
                                                        options:0
                                                          error:nil];
     
@@ -66,7 +66,7 @@
                                                   options:0
                                                     range:NSMakeRange(0, tempString.length)
                                              withTemplate:@""];
-
+    
     return [self isKindOfClass:[NSMutableString class]] ? [NSMutableString stringWithString:tempString] : [NSString stringWithString:tempString];
 }
 

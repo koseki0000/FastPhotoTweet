@@ -53,7 +53,7 @@
     dispatch_queue_t asyncQueue = GLOBAL_QUEUE_DEFAULT;
     dispatch_async(asyncQueue, ^{
     
-        CheckAppVersion *checker = [[[CheckAppVersion alloc] init] autorelease];
+        CheckAppVersion *checker = [[CheckAppVersion alloc] init];
         [checker versionInfoURL:@"http://fpt.ktysne.info/latest_version_info.txt"
                    updateIpaURL:@"itms-services://?action=download-manifest&url=http://fpt.ktysne.info/FastPhotoTweet.plist"];
         
@@ -358,7 +358,7 @@
             //NSLog(@"newVersion");
             
             [ShowAlert title:[NSString stringWithFormat:@"FastPhotoTweet %@", APP_VERSION]
-                     message:@"・「Retina解像度画像はリサイズしない」設定の4インチ端末対応\n・多数のバグ修正"];
+                     message:@"・「Retina解像度画像はリサイズしない」設定の4インチ端末対応\n・Tweet画面の画像プレビューメニューに画像回転を追加\n・多数のバグ修正"];
             
             information = [[[NSMutableDictionary alloc] initWithDictionary:[d dictionaryForKey:@"Information"]] autorelease];
             [information setValue:[NSNumber numberWithInt:1] forKey:APP_VERSION];
@@ -674,7 +674,7 @@
                                     delegate:self
                                     cancelButtonTitle:@"Cancel"
                                     destructiveButtonTitle:nil
-                                    otherButtonTitles:@"画像をアップロード", @"画像を破棄", @"画像を再選択", @"画像を表示", @"画像編集", nil];
+                                    otherButtonTitles:@"画像をアップロード", @"画像を破棄", @"画像を再選択", @"画像を表示", @"画像編集", @"画像を左に90度回転", @"画像を右に90度回転", nil];
             [sheet autorelease];
             [sheet showInView:APP_DELEGATE.tabBarController.self.view];
         }
@@ -1483,6 +1483,18 @@
                                     otherButtonTitles:@"Original", @"Bloom", @"Monochrome", @"Gloom", @"Sepia", @"UnSharp", @"Vignette", @"Vibrance", @"Posterize", @"ExposureAdjust", @"SharpenLuminance", nil];
             [sheet autorelease];
             [sheet showInView:APP_DELEGATE.tabBarController.self.view];
+            
+        }else if ( buttonIndex == 5 ) {
+            
+            [self.imagePreview setImage:[UIImage imageWithCGImage:self.imagePreview.image.CGImage
+                                                            scale:self.imagePreview.image.scale
+                                                      orientation:UIImageOrientationLeft]];
+            
+        }else if ( buttonIndex == 6 ) {
+            
+            [self.imagePreview setImage:[UIImage imageWithCGImage:self.imagePreview.image.CGImage
+                                                            scale:self.imagePreview.image.scale
+                                                      orientation:UIImageOrientationRight]];
         }
         
     }else if ( actionSheetNo == 8 ) {
