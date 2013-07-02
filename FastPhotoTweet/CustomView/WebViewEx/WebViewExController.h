@@ -14,7 +14,7 @@
 #import "InternetConnection.h"
 #import "ADBlock.h"
 #import "UIViewSubViewRemover.h"
-#import "SSTextField.h"
+#import "SwipeShiftTextField.h"
 #import "NSString+WordCollect.h"
 #import "NSString+RegularExpression.h"
 #import <MobileCoreServices/MobileCoreServices.h>
@@ -56,8 +56,8 @@
 
 @property (strong, nonatomic) IBOutlet WebViewEx *wv;
 @property (strong, nonatomic) IBOutlet UIToolbar *topBar;
-@property (strong, nonatomic) IBOutlet SSTextField *urlField;
-@property (strong, nonatomic) IBOutlet SSTextField *searchField;
+@property (strong, nonatomic) IBOutlet SwipeShiftTextField *urlField;
+@property (strong, nonatomic) IBOutlet SwipeShiftTextField *searchField;
 @property (strong, nonatomic) IBOutlet UIBarButtonItem *searchButton;
 @property (strong, nonatomic) IBOutlet UIToolbar *bottomBar;
 @property (strong, nonatomic) IBOutlet UIBarButtonItem *composeButton;

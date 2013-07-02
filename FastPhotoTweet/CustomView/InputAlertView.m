@@ -42,10 +42,10 @@ typedef enum {
         
         if ( isMultiInputField ) {
             
-            self.multiTextFieldTop = [[UITextField alloc] initWithFrame:CGRectMake(12.0f,
-                                                                                   40.0f,
-                                                                                   260.0f,
-                                                                                   25.0f)];
+            self.multiTextFieldTop = [[SwipeShiftTextField alloc] initWithFrame:CGRectMake(12.0f,
+                                                                                           40.0f,
+                                                                                           260.0f,
+                                                                                           25.0f)];
             [self.multiTextFieldTop setBackgroundColor:[UIColor whiteColor]];
             [self.multiTextFieldTop setContentVerticalAlignment:UIControlContentVerticalAlignmentCenter];
             [self.multiTextFieldTop setDelegate:self];
@@ -53,10 +53,10 @@ typedef enum {
             [self.multiTextFieldTop setTag:TextFieldTypeMultiTop];
             [self addSubview:self.multiTextFieldTop];
             
-            self.multiTextFieldBottom = [[UITextField alloc] initWithFrame:CGRectMake(12.0f,
-                                                                                      CGRectGetMaxY(self.multiTextFieldTop.frame) + 2.0f,
-                                                                                      260.0f,
-                                                                                      25.0f)];
+            self.multiTextFieldBottom = [[SwipeShiftTextField alloc] initWithFrame:CGRectMake(12.0f,
+                                                                                              CGRectGetMaxY(self.multiTextFieldTop.frame) + 2.0f,
+                                                                                              260.0f,
+                                                                                              25.0f)];
             [self.multiTextFieldBottom setBackgroundColor:[UIColor whiteColor]];
             [self.multiTextFieldBottom setContentVerticalAlignment:UIControlContentVerticalAlignmentCenter];
             [self.multiTextFieldBottom setDelegate:self];
@@ -66,10 +66,10 @@ typedef enum {
             
         } else {
             
-            self.singleTextField = [[UITextField alloc] initWithFrame:CGRectMake(12.0f,
-                                                                                 40.0f,
-                                                                                 260.0f,
-                                                                                 25.0f)];
+            self.singleTextField = [[SwipeShiftTextField alloc] initWithFrame:CGRectMake(12.0f,
+                                                                                         40.0f,
+                                                                                         260.0f,
+                                                                                         25.0f)];
             [self.singleTextField setBackgroundColor:[UIColor whiteColor]];
             [self.singleTextField setContentVerticalAlignment:UIControlContentVerticalAlignmentCenter];
             [self.singleTextField setDelegate:self];
@@ -129,7 +129,7 @@ typedef enum {
     }
 }
 
-- (BOOL)textFieldShouldReturn:(UITextField *)textField {
+- (BOOL)textFieldShouldReturn:(SwipeShiftTextField *)textField {
     
     if ( textField.tag == TextFieldTypeMultiTop ) {
         

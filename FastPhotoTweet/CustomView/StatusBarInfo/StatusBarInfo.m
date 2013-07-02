@@ -5,8 +5,6 @@
 #import "StatusBarInfo.h"
 #import "NSNotificationCenter+EasyPost.h"
 
-#define DISPATCH_AFTER(delay) dispatch_after(dispatch_time(DISPATCH_TIME_NOW, delay * NSEC_PER_SEC), dispatch_get_main_queue(),
-
 #define START_STATUS_BAR_TIMER      @"StartStatusBarTimer"
 #define STOP_STATUS_BAR_TIMER       @"StopStatusBarTimer"
 #define START_WAIT_STATUS_BAR_TASK  @"StartWaitStatusBarTask"

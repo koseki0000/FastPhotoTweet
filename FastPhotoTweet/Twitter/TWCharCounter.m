@@ -16,7 +16,7 @@
 //文頭、末尾にある半角スペース･改行･タブはカウントされない
 //"トップレベルドメイン - Wikipedia" http://j.mp/oPPkZx
 //gTLD, sTLD, iTLD, 特殊用途についてはhttp(s)プロトコル無しでもt.co判定が行われる
-+ (int)charCounter:(id)post {
++ (NSInteger)charCounter:(id)post {
     
     //自動開放プールを生成
     NSAutoreleasePool *pool = [[NSAutoreleasePool alloc] init];
@@ -24,9 +24,9 @@
     //id型で受け取りNSMutableStringにキャスト
     NSMutableString *postString = [NSMutableString stringWithString:post];
     
-    int num = 140;
-    int originalCharNum = num - postString.length;
-    int urlCount = 0;
+    NSInteger num = 140;
+    NSInteger originalCharNum = num - postString.length;
+    NSInteger urlCount = 0;
     
     @try {
         
@@ -60,7 +60,7 @@
                                                  options:0 
                                                    range:NSMakeRange(0, [postString length])];
         
-        for ( int i = matches.count - 1; i >= 0; i-- ) {
+        for ( NSInteger i = matches.count - 1; i >= 0; i-- ) {
         
             NSTextCheckingResult *match = [matches objectAtIndex:i];
             

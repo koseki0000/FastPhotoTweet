@@ -358,7 +358,7 @@
             //NSLog(@"newVersion");
             
             [ShowAlert title:[NSString stringWithFormat:@"FastPhotoTweet %@", APP_VERSION]
-                     message:@"・「Retina解像度画像はリサイズしない」設定の4インチ端末対応\n・Tweet画面の画像プレビューメニューに画像回転を追加\n・多数のバグ修正"];
+                     message:@"・SearchStream修正\n・「」機能の実装"];
             
             information = [[[NSMutableDictionary alloc] initWithDictionary:[d dictionaryForKey:@"Information"]] autorelease];
             [information setValue:[NSNumber numberWithInt:1] forKey:APP_VERSION];
@@ -776,7 +776,7 @@
         
         if ( find ) {
             
-//            [[[TWTweets manager] sendedTweets] removeObjectAtIndex:index];
+            [[[TWTweets manager] sendedTweets] removeObjectAtIndex:index];
         }
         
         [NSNotificationCenter postNotificationCenterForName:@"AddStatusBarTask"
@@ -2427,7 +2427,6 @@
             
             //開き直す
             [self pushBrowserButton:nil];
-            
             return;
         }
         

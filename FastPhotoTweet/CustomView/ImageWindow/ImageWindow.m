@@ -4,6 +4,7 @@
 
 #import "ImageWindow.h"
 #import "UIImage+Convert.h"
+#import "UIImage+GIF.h"
 
 #define SUPERVIEW_HEIGHT self.superview.frame.size.height
 #define SUPERVIEW_WIDHT self.superview.frame.size.width
@@ -369,7 +370,15 @@
     
     if ( self.receivedData.length != 34 ) {
         
-        UIImage *image = [UIImage imageWithDataByContext:self.receivedData];
+        UIImage *image = nil;
+        if ( [self.imageUrl rangeOfString:@".gif"].location != NSNotFound ) {
+            
+            image = [UIImage animatedGIFWithData:self.receivedData];
+            
+        } else {
+            
+            image = [UIImage imageWithDataByContext:self.receivedData];
+        }
         
         [self setImageAtImageView:image];
         

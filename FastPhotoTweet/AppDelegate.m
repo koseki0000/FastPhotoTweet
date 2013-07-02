@@ -6,6 +6,7 @@
 //
 
 #import "AppDelegate.h"
+#import "MainViewController.h"
 #import "TweetViewController.h"
 #import "TimelineViewController.h"
 #import "TimelineNavigationController.h"
@@ -119,9 +120,11 @@ void uncaughtExceptionHandler(NSException *e) {
     
     self.window = [[UIWindow alloc] initWithFrame:[[UIScreen mainScreen] bounds]];
     
-    UIViewController *mainView = [[TweetViewController alloc] initWithNibName:NSStringFromClass([TweetViewController class])
+    TweetViewController *mainView = [[TweetViewController alloc] initWithNibName:NSStringFromClass([TweetViewController class])
                                                                        bundle:nil];
-    UIViewController *timelineView = [[TimelineViewController alloc] init];
+//    MainViewController *mainView = [[MainViewController alloc] init];
+
+    TimelineViewController *timelineView = [[TimelineViewController alloc] init];
     timelineView.title = @"Timeline";
     
     TimelineNavigationController *timelineNavigation = [[TimelineNavigationController alloc] initWithRootViewController:timelineView];

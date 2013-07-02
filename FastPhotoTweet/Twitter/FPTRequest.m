@@ -188,8 +188,14 @@
                         
                         convertedTweets = [TWNgTweet ngAll:convertedTweets];
                         
-                        NSDictionary *userInfo = @{RESPONSE_DATA : convertedTweets,
-                                                   REQUEST_USER_NAME : request.account.username};
+                        NSMutableDictionary *userInfo = [@{RESPONSE_DATA : convertedTweets,
+                                                         REQUEST_USER_NAME : request.account.username} mutableCopy];
+                        
+                        if ( getRequestType == FPTGetRequestTypeSearch ) {
+                            
+                            [userInfo setObject:parameters[@"q"]
+                                         forKey:@"SearchWord"];
+                        }
                         
                         [NSNotificationCenter postNotificationCenterForName:notificationName
                                                                withUserInfo:userInfo];
@@ -302,7 +308,7 @@
         }
         
         NSString *requestURL = [self postRequestURL:postRequestType
-                                    parameters:parameters];
+                                         parameters:parameters];
         NSString *notificationName = [self postRequestNotificationName:postRequestType];
         NSData *imageData = nil;
         BOOL withMedia = NO;
@@ -347,10 +353,21 @@
             [[[TWTweets manager] sendedTweets] addObject:saveTweet];
         }
         
+        NSMutableDictionary *sendParameters = nil;
+        if ( withMedia ) {
+            
+            sendParameters = [parameters mutableCopy];
+            [sendParameters removeObjectForKey:@"image"];
+            
+        } else {
+            
+            sendParameters = [parameters mutableCopy];
+        }
+        
         FPTRequest *request = (FPTRequest *)[FPTRequest requestForServiceType:SLServiceTypeTwitter
                                                                 requestMethod:TWRequestMethodPOST
                                                                           URL:[NSURL URLWithString:requestURL]
-                                                                   parameters:withMedia ? nil : parameters];
+                                                                   parameters:sendParameters];
         
         if ( needSelectAccount ) {
             
@@ -363,23 +380,10 @@
         
         if ( withMedia ) {
             
-            [request addMultipartData:[status dataUsingEncoding:NSUTF8StringEncoding]
-                             withName:@"status"
-                                 type:@"multipart/form-data"
-                             filename:@"status"];
-            
             [request addMultipartData:imageData
                              withName:@"media[]"
                                  type:@"multipart/form-data"
                              filename:@"image"];
-            
-            if ( [inReplyToID isNotEmpty] ) {
-            
-                [request addMultipartData:[inReplyToID dataUsingEncoding:NSUTF8StringEncoding]
-                                 withName:@"in_reply_to_status_id"
-                                     type:@"multipart/form-data"
-                                 filename:@"in_reply_to_status_id"];
-            }
         }
         
         [request performRequestWithHandler:^(NSData *responseData,
@@ -395,8 +399,8 @@
                     return;
                 }
                 
-//                NSString *responseString = [[[NSString alloc] initWithData:responseData
-//                                                                  encoding:NSUTF8StringEncoding] autorelease];
+//                NSString *responseString = [[NSString alloc] initWithData:responseData
+//                                                                 encoding:NSUTF8StringEncoding];
                 
                 if ( [responseData isEmpty] ) {
                     

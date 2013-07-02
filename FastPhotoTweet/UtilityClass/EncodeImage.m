@@ -13,7 +13,7 @@
     
     //NSLog(@"encodeImage");
     
-    NSData *encodedImageData;
+    NSData *encodedImageData = nil;
     NSUserDefaults *d = [NSUserDefaults standardUserDefaults];
     
     if ( [[d objectForKey:@"SaveImageType"] isEqualToString:@"JPG(Low)"] ) {
@@ -28,7 +28,7 @@
         encodedImageData = UIImageJPEGRepresentation(encodeImage, 0.8);
     }
     
-    return encodedImageData;
+    return (NSData *)encodedImageData;
 }
 
 + (NSData *)jpgLow:(UIImage *)encodeImage {

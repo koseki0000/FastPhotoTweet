@@ -11,23 +11,8 @@
 #import "Stats.h"
 #import "StatusBarInfo.h"
 
-#define IMGUR_API_KEY   @"6de089e68b55d6e390d246c4bf932901"
-#define TWITPIC_API_KEY @"95cf146048caad3267f95219b379e61c"
-#define OAUTH_KEY       @"dVbmOIma7UCc5ZkV3SckQ"
-#define OAUTH_SECRET    @"wnDptUj4VpGLZebfLT3IInTZPkPS4XimYh6WXAmdI"
-
 #define RELEASE_SAFETY(object) [object release]; object = nil;
 #define REMOVE_SAFETY(object) [object removeFromSuperview]; object = nil;
-
-#define SCREEN_HEIGHT (int)[UIScreen mainScreen].applicationFrame.size.height
-#define SCREEN_WIDTH (int)[UIScreen mainScreen].applicationFrame.size.width
-#define STATUS_BAR_HEIGHT 20
-#define TOOL_BAR_HEIGHT 44
-#define SEGMENT_BAR_HEIGHT 30
-#define TAB_BAR_HEIGHT 48
-#define PICKER_HEIGHT 216
-#define HEADER_HEIGHT 60
-#define REFRESH_DERAY -65
 
 #define BLANK @""
 #define BLANK_ARRAY [NSArray array]

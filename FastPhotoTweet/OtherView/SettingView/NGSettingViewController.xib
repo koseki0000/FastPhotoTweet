@@ -2,10 +2,10 @@
 <archive type="com.apple.InterfaceBuilder3.CocoaTouch.XIB" version="8.00">
 	<data>
 		<int key="IBDocument.SystemTarget">1552</int>
-		<string key="IBDocument.SystemVersion">12C60</string>
+		<string key="IBDocument.SystemVersion">12E55</string>
 		<string key="IBDocument.InterfaceBuilderVersion">3084</string>
-		<string key="IBDocument.AppKitVersion">1187.34</string>
-		<string key="IBDocument.HIToolboxVersion">625.00</string>
+		<string key="IBDocument.AppKitVersion">1187.39</string>
+		<string key="IBDocument.HIToolboxVersion">626.00</string>
 		<object class="NSMutableDictionary" key="IBDocument.PluginVersions">
 			<string key="NS.key.0">com.apple.InterfaceBuilder.IBCocoaTouchPlugin</string>
 			<string key="NS.object.0">2083</string>
@@ -558,11 +558,11 @@
 				<integer value="2" key="113.IUISegmentedControlInspectorSelectedSegmentMetadataKey"/>
 				<string key="114.IBPluginDependency">com.apple.InterfaceBuilder.IBCocoaTouchPlugin</string>
 				<string key="115.IBPluginDependency">com.apple.InterfaceBuilder.IBCocoaTouchPlugin</string>
-				<string key="117.CustomClassName">SSTextField</string>
+				<string key="117.CustomClassName">SwipeShiftTextField</string>
 				<string key="117.IBPluginDependency">com.apple.InterfaceBuilder.IBCocoaTouchPlugin</string>
-				<string key="118.CustomClassName">SSTextField</string>
+				<string key="118.CustomClassName">SwipeShiftTextField</string>
 				<string key="118.IBPluginDependency">com.apple.InterfaceBuilder.IBCocoaTouchPlugin</string>
-				<string key="119.CustomClassName">SSTextField</string>
+				<string key="119.CustomClassName">SwipeShiftTextField</string>
 				<string key="119.IBPluginDependency">com.apple.InterfaceBuilder.IBCocoaTouchPlugin</string>
 				<string key="120.IBPluginDependency">com.apple.InterfaceBuilder.IBCocoaTouchPlugin</string>
 				<string key="160.IBPluginDependency">com.apple.InterfaceBuilder.IBCocoaTouchPlugin</string>
@@ -607,15 +607,15 @@
 					<dictionary class="NSMutableDictionary" key="outlets">
 						<string key="addButton">UIBarButtonItem</string>
 						<string key="addedNgSettings">UITableView</string>
-						<string key="exclusionUserField">SSTextField</string>
+						<string key="exclusionUserField">SwipeShiftTextField</string>
 						<string key="ngTypeSegment">UISegmentedControl</string>
-						<string key="ngWordField">SSTextField</string>
+						<string key="ngWordField">SwipeShiftTextField</string>
 						<string key="reTweetSwitch">UISwitch</string>
 						<string key="reTweetText">UILabel</string>
 						<string key="regexpLabel">UILabel</string>
 						<string key="regexpSwitch">UISwitch</string>
 						<string key="sv">UIScrollView</string>
-						<string key="userField">SSTextField</string>
+						<string key="userField">SwipeShiftTextField</string>
 					</dictionary>
 					<dictionary class="NSMutableDictionary" key="toOneOutletInfosByName">
 						<object class="IBToOneOutletInfo" key="addButton">
@@ -628,7 +628,7 @@
 						</object>
 						<object class="IBToOneOutletInfo" key="exclusionUserField">
 							<string key="name">exclusionUserField</string>
-							<string key="candidateClassName">SSTextField</string>
+							<string key="candidateClassName">SwipeShiftTextField</string>
 						</object>
 						<object class="IBToOneOutletInfo" key="ngTypeSegment">
 							<string key="name">ngTypeSegment</string>
@@ -636,7 +636,7 @@
 						</object>
 						<object class="IBToOneOutletInfo" key="ngWordField">
 							<string key="name">ngWordField</string>
-							<string key="candidateClassName">SSTextField</string>
+							<string key="candidateClassName">SwipeShiftTextField</string>
 						</object>
 						<object class="IBToOneOutletInfo" key="reTweetSwitch">
 							<string key="name">reTweetSwitch</string>
@@ -660,7 +660,7 @@
 						</object>
 						<object class="IBToOneOutletInfo" key="userField">
 							<string key="name">userField</string>
-							<string key="candidateClassName">SSTextField</string>
+							<string key="candidateClassName">SwipeShiftTextField</string>
 						</object>
 					</dictionary>
 					<object class="IBClassDescriptionSource" key="sourceIdentifier">
@@ -669,11 +669,11 @@
 					</object>
 				</object>
 				<object class="IBPartialClassDescription">
-					<string key="className">SSTextField</string>
+					<string key="className">SwipeShiftTextField</string>
 					<string key="superclassName">UITextField</string>
 					<object class="IBClassDescriptionSource" key="sourceIdentifier">
 						<string key="majorKey">IBProjectSource</string>
-						<string key="minorKey">./Classes/SSTextField.h</string>
+						<string key="minorKey">./Classes/SwipeShiftTextField.h</string>
 					</object>
 				</object>
 			</array>

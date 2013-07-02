@@ -30,8 +30,9 @@
     //iPhone4解像度もリサイズする
     if ( [d boolForKey:@"NoResizeIphone4Ss"] ){
         
-        CGFloat screenWidth = CGRectGetWidth([UIScreen mainScreen].bounds);
-        CGFloat screenHeight = CGRectGetHeight([UIScreen mainScreen].bounds);
+        CGFloat scale = [UIScreen mainScreen].scale;
+        CGFloat screenWidth = CGRectGetWidth([UIScreen mainScreen].bounds) * scale;
+        CGFloat screenHeight = CGRectGetHeight([UIScreen mainScreen].bounds) * scale;
         
 		if ( originalHeight == screenWidth &&
              originalWidth == screenHeight ) {

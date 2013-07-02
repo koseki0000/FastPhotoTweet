@@ -15,7 +15,7 @@
 #define MIN_HEIGHT 31.0f
 #define ICON_SIZE 48.0f
 #define MARGIN 4.0f
-#define MINI_MARGIN 2.0f
+#define HALF_MARGIN 2.0f
 
 @implementation TimelineAttributedRTCell
 

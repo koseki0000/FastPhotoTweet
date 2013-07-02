@@ -9,7 +9,7 @@
 #import "AppDelegate.h"
 #import "EmptyCheck.h"
 #import "ShowAlert.h"
-#import "SSTextField.h"
+#import "SwipeShiftTextField.h"
 #import "NSString+WordCollect.h"
 
 @interface NGSettingViewController : UIViewController <UITextFieldDelegate, UINavigationBarDelegate> {
@@ -22,9 +22,9 @@
 @property (weak, nonatomic) IBOutlet UIScrollView *sv;
 @property (strong, nonatomic) IBOutlet UIBarButtonItem *addButton;
 @property (weak, nonatomic) IBOutlet UISegmentedControl *ngTypeSegment;
-@property (weak, nonatomic) IBOutlet SSTextField *ngWordField;
-@property (weak, nonatomic) IBOutlet SSTextField *userField;
-@property (weak, nonatomic) IBOutlet SSTextField *exclusionUserField;
+@property (weak, nonatomic) IBOutlet SwipeShiftTextField *ngWordField;
+@property (weak, nonatomic) IBOutlet SwipeShiftTextField *userField;
+@property (weak, nonatomic) IBOutlet SwipeShiftTextField *exclusionUserField;
 @property (weak, nonatomic) IBOutlet UILabel *regexpLabel;
 @property (weak, nonatomic) IBOutlet UISwitch *regexpSwitch;
 @property (weak, nonatomic) IBOutlet UITableView *addedNgSettings;

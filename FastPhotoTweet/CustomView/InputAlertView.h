@@ -3,13 +3,14 @@
 //
 
 #import <UIKit/UIKit.h>
+#import "SwipeShiftTextField.h"
 
 @interface InputAlertView : UIAlertView <UIAlertViewDelegate, UITextFieldDelegate>
 
-@property (strong, nonatomic) UITextField *singleTextField;
+@property (strong, nonatomic) SwipeShiftTextField *singleTextField;
 
-@property (strong, nonatomic) UITextField *multiTextFieldTop;
-@property (strong, nonatomic) UITextField *multiTextFieldBottom;
+@property (strong, nonatomic) SwipeShiftTextField *multiTextFieldTop;
+@property (strong, nonatomic) SwipeShiftTextField *multiTextFieldBottom;
 
 @property (nonatomic) SEL doneAction;
 @property (nonatomic) BOOL isMultiInputField;

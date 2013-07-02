@@ -10,6 +10,7 @@
 /////////////////////////////
 
 #import "WebViewExController.h"
+#import "NSObject+EmptyCheck.h"
 
 #define TOP_BAR [NSArray arrayWithObjects:urlField, searchField, searchButton, nil]
 #define BOTTOM_BAR [NSArray arrayWithObjects:closeButton, flexibleSpace, composeButton, flexibleSpace, reloadButton, flexibleSpace, backButton, flexibleSpace, forwardButton, flexibleSpace, bookmarkButton, flexibleSpace, menuButton, nil]
@@ -57,10 +58,13 @@
     
     if ( self ) {
         
+        if ( [URL isEmpty] ) {
+         
+            URL = [D objectForKey:@"HomePageURL"];
+        }
+        
         startupUrlList = @[URL];
         urlList = BLANK_ARRAY;
-        
-        if ( startupUrlList == nil ) [D objectForKey:@"HomePageURL"];
         
         retina4InchOffset = 0;
         
@@ -917,8 +921,9 @@
                     postText = [postText replaceWord:@"[url]" replacedWord:copyURL];
                 }
                 
-                APP_DELEGATE.postTextType = @"WebPage";
-                APP_DELEGATE.postText = postText;
+                NSNotification *notification = [NSNotification notificationWithName:@"WebPagePost"
+                                                                             object:postText];
+                [[NSNotificationCenter defaultCenter] postNotification:notification];
                 
                 if ( APP_DELEGATE.tabBarController.selectedIndex == 0 ) {
                     

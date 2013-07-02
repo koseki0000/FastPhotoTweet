@@ -41,7 +41,7 @@
 #import "TWTweets.h"
 #import "ListViewController.h"
 #import "IconButton.h"
-#import "SSTextField.h"
+#import "SwipeShiftTextField.h"
 #import "TWTweetUtility.h"
 #import "ActivityGrayView.h"
 #import "ImageWindow.h"
@@ -114,7 +114,7 @@ typedef enum {
 @property (strong, nonatomic) UIToolbar *bottomBar;
 
 @property (strong, nonatomic) UIAlertView *searchAlert;
-@property (strong, nonatomic) SSTextField *searchAlertTextField;
+@property (strong, nonatomic) SwipeShiftTextField *searchAlertTextField;
 
 @property (strong, nonatomic) UIView *pickerBase;
 @property (strong, nonatomic) UIToolbar *pickerBar;
@@ -131,6 +131,7 @@ typedef enum {
 @property (strong, nonatomic) TWTweet *selectedTweet;
 @property (nonatomic) BOOL loading;
 @property (nonatomic) BOOL userStream;
+@property (nonatomic) BOOL searchStream;
 @property (nonatomic) BOOL webBrowserMode;
 @property (nonatomic) BOOL addTweetStopMode;
 @property (nonatomic) BOOL listSelect;
@@ -188,8 +189,15 @@ typedef enum {
 - (oneway void)userStreamReceiveFavEvent:(TWTweet *)receiveTweet;
 - (oneway void)userStreamReceiveTweet:(TWTweet *)receiveTweet;
 
-- (oneway void)getIconWithTweetArray:(NSMutableArray *)tweetArray;
-- (oneway void)requestProfileImageWithURL:(NSString *)biggerUrl screenName:(NSString *)screenName searchName:(NSString *)searchName;
+- (void)openSearchStream:(NSString *)searchWord;
+- (void)closeSearchStream;
+- (void)startSearchStreamQueue;
+- (void)stopSearchStreamQueue;
+- (oneway void)checkSearchStreamQueue;
+- (oneway void)searchStreamReceiveTweet:(TWTweet *)receiveTweet;
+
+- (void)getIconWithTweetArray:(NSMutableArray *)tweetArray;
+- (void)requestProfileImageWithURL:(NSString *)biggerUrl screenName:(NSString *)screenName searchName:(NSString *)searchName;
 - (void)refreshTimelineCell:(NSNumber *)index;
 - (void)openTimelineImage:(NSNotification *)notification;
 - (void)swipeTimelineRight:(UISwipeGestureRecognizer *)sender;
@@ -442,9 +450,10 @@ typedef enum {
     NSLog(@"%s", __func__);
     
     if ( [D boolForKey:@"EnterBackgroundUSDisConnect"] &&
-         self.userStream) {
+         (self.userStream || self.searchStream )) {
         
         [self closeStream];
+        [self closeSearchStream];
     }
 }
 
@@ -958,14 +967,22 @@ typedef enum {
     
     if ( [requestUserName isEqualToString:[TWAccounts currentAccountName]] ) {
         
-        [self setOtherTweetsMode];
-        
         NSMutableArray *receiveTweets = notification.userInfo[RESPONSE_DATA];
         [self getIconWithTweetArray:receiveTweets];
         [self setCurrentTweets:receiveTweets];
         [self.timeline reloadData];
         [self.grayView end];
         [self.refreshControl endRefreshing];
+        
+        if ( self.searchStream ) {
+            
+            NSString *searchWord = notification.userInfo[@"SearchWord"];
+            [self openSearchStream:searchWord];
+            
+        } else {
+            
+            [self setOtherTweetsMode];
+        }
     }
 }
 
@@ -1163,7 +1180,10 @@ typedef enum {
 
 - (void)refreshOccured:(id)sender {
     
-    [self pushReloadButton];
+    if ( !self.searchStream ) {
+     
+        [self pushReloadButton];
+    }
 }
 
 #pragma mark - Account Change
@@ -1286,6 +1306,11 @@ typedef enum {
 }
 
 - (void)pushCloseButton {
+    
+    if ( self.searchStream ) {
+        
+        [self closeSearchStream];
+    }
     
     [self setDefaultTweetsMode];
     [self.segment setSelectedSegmentIndex:TimelineSegmentTimeline];
@@ -1509,7 +1534,9 @@ typedef enum {
                     
                 case TextFieldTypeSearchStream:
                     
-                    [ShowAlert error:@"未実装"];
+                    [self closeStream];
+                    [self setSearchStream:YES];
+                    [self requestSearch:inputText];
                     break;
                     
                 default:
@@ -1524,7 +1551,7 @@ typedef enum {
 }
 
 #pragma mark - TextField
-- (BOOL)textFieldShouldReturn:(SSTextField *)sender {
+- (BOOL)textFieldShouldReturn:(SwipeShiftTextField *)sender {
     
     NSInteger tag = sender.tag;
     NSString *inputText = self.searchAlertTextField.text;
@@ -1564,7 +1591,9 @@ typedef enum {
                 
             case TextFieldTypeSearchStream:
                 
-                [ShowAlert error:@"未実装"];
+                [self closeStream];
+                [self setSearchStream:YES];
+                [self requestSearch:inputText];
                 break;
                 
             default:
@@ -1707,9 +1736,12 @@ typedef enum {
     [self setConnection:nil];
     [self stopUserStreamQueue];
     
-    [USER_STREAM_BUTTON setImage:[UIImage imageNamed:@"play.png"]
-                        forState:UIControlStateNormal];
-    [USER_STREAM_BUTTON setEnabled:YES];
+    dispatch_async(dispatch_get_main_queue(), ^{
+       
+        [USER_STREAM_BUTTON setImage:[UIImage imageNamed:@"play.png"]
+                            forState:UIControlStateNormal];
+        [USER_STREAM_BUTTON setEnabled:YES];
+    });
 }
 
 - (void)reOpenStream {
@@ -1916,6 +1948,116 @@ typedef enum {
     }
 }
 
+#pragma mark - SearchStream
+
+- (void)openSearchStream:(NSString *)searchWord {
+    
+    if ( self.pickerVisible ) [self hidePicker];
+    [self.topBar setItems:TOP_BAR_ITEM_OTHER];
+    
+    dispatch_queue_t userStreamQueue = GLOBAL_QUEUE_BACKGROUND;
+    dispatch_async(userStreamQueue, ^{
+        
+        NSLog(@"%s", __func__);
+        
+        if ( [D boolForKey:@"USNoAutoLock"] ) [[UIApplication sharedApplication] setIdleTimerDisabled:YES];
+        
+        SLRequest *request = [SLRequest requestForServiceType:SLServiceTypeTwitter
+                                                requestMethod:TWRequestMethodPOST
+                                                          URL:[NSURL URLWithString:@"https://stream.twitter.com/1.1/statuses/filter.json"]
+                                                   parameters:@{@"track" : searchWord}];
+        
+        //アカウントの設定
+        [request setAccount:[TWAccounts currentAccount]];
+        
+        [self startSearchStreamQueue];
+        
+        //接続開始
+        self.connection = [NSURLConnection connectionWithRequest:request.preparedURLRequest
+                                                        delegate:self];
+        [self.connection start];
+        
+        // 終わるまでループさせる
+        while ( self.searchStream ) {
+            
+            [[NSRunLoop currentRunLoop] runMode:NSDefaultRunLoopMode
+                                     beforeDate:[NSDate dateWithTimeIntervalSinceNow:0.1]];
+        }
+        
+        request = nil;
+    });
+}
+
+- (void)closeSearchStream {
+    
+    NSLog(@"%s", __func__);
+    
+    if ( [D boolForKey:@"USNoAutoLock"] ) [[UIApplication sharedApplication] setIdleTimerDisabled:NO];
+    
+    [self setSearchStream:NO];
+    [self.connection cancel];
+    [self setConnection:nil];
+    [self stopSearchStreamQueue];
+}
+
+- (void)startSearchStreamQueue {
+    
+    NSLog(@"%s", __func__);
+    
+    [self setUserStreamQueue:[@[] mutableCopy]];
+    self.userStreamTimer = [NSTimer scheduledTimerWithTimeInterval:0.2
+                                                            target:self
+                                                          selector:@selector(checkSearchStreamQueue)
+                                                          userInfo:nil
+                                                           repeats:YES];
+    [self.userStreamTimer fire];
+}
+
+- (void)stopSearchStreamQueue {
+    
+    NSLog(@"%s", __func__);
+    
+    [self.userStreamTimer invalidate];
+}
+
+- (oneway void)checkSearchStreamQueue {
+    
+    if ( [self.userStreamQueue count] != 0 ) {
+        
+        if ( !self.addTweetStopMode ) {
+         
+            TWTweet *addTweet = self.userStreamQueue[0];
+            [self searchStreamReceiveTweet:addTweet];
+            [self.userStreamQueue removeObjectAtIndex:0];
+        }
+    }
+}
+
+- (oneway void)searchStreamReceiveTweet:(TWTweet *)receiveTweet {
+    
+//    NSLog(@"%s", __func__);
+    
+    if ( self.segment.selectedSegmentIndex == TimelineSegmentTimeline ) {
+        
+        @synchronized(self) {
+            
+            //タイムラインに追加
+            [self.currentTweets insertObject:receiveTweet
+                                     atIndex:0];
+        }
+        
+        dispatch_async(dispatch_get_main_queue(), ^{
+            
+            [self.timeline insertRowsAtIndexPaths:@[[NSIndexPath indexPathForRow:0
+                                                                       inSection:0]]
+                                 withRowAnimation:UITableViewRowAnimationTop];
+        });
+        
+        //アイコン保存
+        [self getIconWithTweetArray:[NSMutableArray arrayWithArray:@[receiveTweet]]];
+    }
+}
+
 #pragma mark - NSURLConnectionDataDelegate
 - (void)connection:(NSURLConnection *)connection didReceiveData:(NSData *)data {
     
@@ -1934,6 +2076,20 @@ typedef enum {
         if ( [receiveDic count] == 1 && receiveDic[@"friends"] != nil ) return;
         
         TWTweet *receiveTweet = [TWTweet tweetWithDictionary:receiveDic];
+        if (receiveTweet == nil ) return;
+        
+        if ( self.searchStream ) {
+            
+            if ( !receiveTweet.isEvent &&
+                 !receiveTweet.isDelete ) {
+            
+                @synchronized(self) {
+                    
+                    [self.userStreamQueue addObject:receiveTweet];
+                }
+            }
+            return;
+        }
         
         if ( [receiveTweet.eventType isNotEmpty] &&
               receiveTweet.favoriteEventeType == FavoriteEventTypeReceive ) {
@@ -2007,12 +2163,15 @@ typedef enum {
     
     if ( httpResponse.statusCode == 200 ) {
         
-        dispatch_async(dispatch_get_main_queue(), ^{
+        if ( !self.searchStream ) {
         
-            [USER_STREAM_BUTTON setImage:[UIImage imageNamed:@"stop.png"]
-                                forState:UIControlStateNormal];
-            [USER_STREAM_BUTTON setEnabled:YES];
-        });
+            dispatch_async(dispatch_get_main_queue(), ^{
+                
+                [USER_STREAM_BUTTON setImage:[UIImage imageNamed:@"stop.png"]
+                                    forState:UIControlStateNormal];
+                [USER_STREAM_BUTTON setEnabled:YES];
+            });
+        }
         
     } else {
         
@@ -2035,7 +2194,7 @@ typedef enum {
 }
 
 #pragma mark - Timeline
-- (oneway void)getIconWithTweetArray:(NSMutableArray *)tweetArray {
+- (void)getIconWithTweetArray:(NSMutableArray *)tweetArray {
     
     NSMutableDictionary *userList = [NSMutableDictionary dictionary];
     
@@ -2043,6 +2202,12 @@ typedef enum {
     for ( TWTweet *tweet in tweetArray ) {
         
         NSString *tempScreenName = tweet.screenName;
+        
+        if ( tweet == nil ||
+             tempScreenName == nil ) {
+            
+            continue;
+        }
         
         [userList setObject:tweet
                      forKey:tempScreenName];
@@ -2142,7 +2307,7 @@ typedef enum {
     }
 }
 
-- (oneway void)requestProfileImageWithURL:(NSString *)biggerUrl screenName:(NSString *)screenName searchName:(NSString *)searchName {
+- (void)requestProfileImageWithURL:(NSString *)biggerUrl screenName:(NSString *)screenName searchName:(NSString *)searchName {
     
     if ( [screenName isNotEmpty] &&
          [biggerUrl isNotEmpty] &&
@@ -2266,6 +2431,8 @@ typedef enum {
     
 //    NSLog(@"%s", __func__);
     
+    [self setAddTweetStopMode:YES];
+    
     NSInteger i = [index intValue];
     
     if ( self.currentTweets[i] == nil ||
@@ -2276,6 +2443,7 @@ typedef enum {
         [self.timeline reloadRowsAtIndexPaths:@[[NSIndexPath indexPathForRow:i
                                                                    inSection:0]]
                              withRowAnimation:UITableViewRowAnimationNone];
+        [self setAddTweetStopMode:NO];
     });
 }
 
@@ -2875,7 +3043,7 @@ typedef enum {
                                         otherButtonTitles:@"確定", nil];
     [self.searchAlert setTag:alertType];
     
-    self.searchAlertTextField = [[SSTextField alloc] initWithFrame:CGRectMake(12.0f,
+    self.searchAlertTextField = [[SwipeShiftTextField alloc] initWithFrame:CGRectMake(12.0f,
                                                                               40.0f,
                                                                               260.0f,
                                                                               25.0f)];

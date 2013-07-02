@@ -9,6 +9,6 @@
 
 @interface TWCharCounter : NSObject
 
-+ (int)charCounter:(id)post;
++ (NSInteger)charCounter:(id)post;
 
 @end
