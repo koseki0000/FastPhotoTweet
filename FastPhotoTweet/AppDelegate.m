@@ -120,9 +120,9 @@ void uncaughtExceptionHandler(NSException *e) {
     
     self.window = [[UIWindow alloc] initWithFrame:[[UIScreen mainScreen] bounds]];
     
-    TweetViewController *mainView = [[TweetViewController alloc] initWithNibName:NSStringFromClass([TweetViewController class])
-                                                                       bundle:nil];
-//    MainViewController *mainView = [[MainViewController alloc] init];
+//    TweetViewController *mainView = [[TweetViewController alloc] initWithNibName:NSStringFromClass([TweetViewController class])
+//                                                                       bundle:nil];
+    MainViewController *mainView = [[MainViewController alloc] init];
 
     TimelineViewController *timelineView = [[TimelineViewController alloc] init];
     timelineView.title = @"Timeline";
@@ -354,7 +354,7 @@ void uncaughtExceptionHandler(NSException *e) {
     willResignActive = NO;
     willResignActiveBrowser = NO;
     
-    if ( [D boolForKey:@"PasteBoardCheck"] && !pBoardWatchTimer.isValid ) [self startPasteBoardTimer];
+    if ( !pBoardWatchTimer.isValid ) [self startPasteBoardTimer];
     
     UIBackgroundTaskIdentifier weakTask = backgroundTask;
 	backgroundTask = [application beginBackgroundTaskWithExpirationHandler: ^{

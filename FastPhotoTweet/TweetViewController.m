@@ -13,6 +13,8 @@
 #import "UIImage+Convert.h"
 #import "NSObject+EmptyCheck.h"
 
+#import <EventKit/EventKit.h>
+
 #define APP_VERSION [[[NSBundle mainBundle] infoDictionary] objectForKey:@"CFBundleShortVersionString"]
 
 #define TOP_BAR [NSArray arrayWithObjects:_trashButton, _flexibleSpace, _idButton, _flexibleSpace, _resendButton, _flexibleSpace, _imageSettingButton, _flexibleSpace, _postButton, nil]
@@ -21,6 +23,7 @@
 
 @interface TweetViewController ()
 
+- (void)setWebPagePostText:(NSNotification *)notification;
 - (void)nowPlayingMusic;
 - (NSData *)optimizeImage:(UIImage *)image;
 
@@ -105,6 +108,10 @@
         [[NSNotificationCenter defaultCenter] addObserver:self
                                                  selector:@selector(pboardNotification:)
                                                      name:@"pboardNotification"
+                                                   object:nil];
+        [[NSNotificationCenter defaultCenter] addObserver:self
+                                                 selector:@selector(setWebPagePostText:)
+                                                     name:@"SetTweetViewText"
                                                    object:nil];
         
         //各種初期値をセット
@@ -214,7 +221,7 @@
     
     //カスタム書式が設定されていない場合デフォルト書式を設定
     if ( ![EmptyCheck check:[d objectForKey:@"NowPlayingEditText"]] ) {
-        [d setObject:@" #nowplaying : [st] - [ar] - [at] -" forKey:@"NowPlayingEditText"];
+        [d setObject:@" #nowplaying : [st] - [ar] - [at] - " forKey:@"NowPlayingEditText"];
     }
     
     //サブ書式が設定されていない場合デフォルト書式を設定
@@ -295,6 +302,12 @@
     
     //設定を即反映
     [d synchronize];
+}
+
+- (void)setWebPagePostText:(NSNotification *)notification {
+    
+    [self.postText setText:notification.object];
+    [self.postText becomeFirstResponder];
 }
 
 - (void)setBottomBarPosition {
@@ -2437,18 +2450,7 @@
             
             APP_DELEGATE.postText = BLANK;
             
-            if ( [APP_DELEGATE.postTextType isEqualToString:@"WebPage"] ) {
-                
-                if ( [d boolForKey:@"WebPagePostCursorPosition"] ) {
-                    
-                    [_postText setSelectedRange:NSMakeRange(0, 0)];
-                    
-                } else {
-                    
-                    [_postText setSelectedRange:NSMakeRange(_postText.text.length, 0)];
-                }
-                
-            }else if ( [APP_DELEGATE.postTextType isEqualToString:@"Quote"] ) {
+            if ( [APP_DELEGATE.postTextType isEqualToString:@"Quote"] ) {
                 
                 if ( [d boolForKey:@"QuoteCursorPosition"] ) {
                     

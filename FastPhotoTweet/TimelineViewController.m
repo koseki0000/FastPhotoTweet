@@ -908,11 +908,11 @@ typedef enum {
     
     NSLog(@"%s", __func__);
     
-    [self setOtherTweetsMode];
-    
     NSString *requestUserName = notification.userInfo[REQUEST_USER_NAME];
     
     if ( [requestUserName isEqualToString:[TWAccounts currentAccountName]] ) {
+    
+        [self setOtherTweetsMode];
         
         NSMutableArray *receiveTweets = notification.userInfo[RESPONSE_DATA];
         [self getIconWithTweetArray:receiveTweets];
@@ -966,6 +966,8 @@ typedef enum {
     NSString *requestUserName = notification.userInfo[REQUEST_USER_NAME];
     
     if ( [requestUserName isEqualToString:[TWAccounts currentAccountName]] ) {
+        
+        [self setOtherTweetsMode];
         
         NSMutableArray *receiveTweets = notification.userInfo[RESPONSE_DATA];
         [self getIconWithTweetArray:receiveTweets];
@@ -2483,7 +2485,11 @@ typedef enum {
         
         NSInteger num = [D integerForKey:@"UseAccount"] - 1;
         
-        if ( num < 0 ) return;
+        if ( num < 0 ) {
+         
+            [self.tabBarController setSelectedIndex:0];
+            return;
+        }
         
         NSInteger accountCount = [TWAccounts accountCount] - 1;
         
@@ -2627,13 +2633,18 @@ typedef enum {
         
         if ( [D integerForKey:@"TimelineIconAction"] == TimelineIconActionTypeUserMenu ) {
             
-            
-            
         }else if ( [D integerForKey:@"TimelineIconAction"] == TimelineIconActionTypeReply ) {
             
-            [[TWTweets manager] setText:screenName];
-            [[TWTweets manager] setInReplyToID:tweetID];
-            [[TWTweets manager] setTabChangeFunction:@"Reply"];
+            screenName = [NSString stringWithFormat:@"@%@ ", screenName];
+            
+            NSNotification *notification = [NSNotification notificationWithName:@"SetTweetViewText"
+                                                                         object:nil
+                                                                       userInfo:
+                                            @{
+                                            @"Text" : screenName,
+                                            @"InReplyToID" : tweetID
+                                            }];
+            [[NSNotificationCenter defaultCenter] postNotification:notification];
             [self.tabBarController setSelectedIndex:0];
             
         }else if ( [D integerForKey:@"TimelineIconAction"] == TimelineIconActionTypeFav ) {

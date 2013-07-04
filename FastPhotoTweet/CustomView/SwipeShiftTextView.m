@@ -3,6 +3,7 @@
 //
 
 #import "SwipeShiftTextView.h"
+#import "AppDelegate.h"
 
 @interface SwipeShiftTextView ()
 
@@ -64,17 +65,24 @@
 
 - (void)swipe:(UISwipeGestureRecognizer *)sender {
     
-    if ( ![USER_DEFAULTS boolForKey:@"SwipeShiftCaret"] ) {
-        
-        return;
-    }
-    
     if ( [self isEditable] ) {
         
         NSInteger offset = 0;
         NSInteger location = 0;
         
         if ( sender.direction == UISwipeGestureRecognizerDirectionLeft ) {
+            
+            if ( [self.text isEqualToString:@""] &&
+                 self.tag == 1000 ) {
+                
+                [[(AppDelegate *)[[UIApplication sharedApplication] delegate] tabBarController] setSelectedIndex:1];
+                return;
+            }
+            
+            if ( ![USER_DEFAULTS boolForKey:@"SwipeShiftCaret"] ) {
+                
+                return;
+            }
             
             if ( self.selectedRange.location != 0 ) {
                 
@@ -85,6 +93,11 @@
             location = self.selectedRange.location + offset;
             
         } else if ( sender.direction == UISwipeGestureRecognizerDirectionRight ) {
+            
+            if ( ![USER_DEFAULTS boolForKey:@"SwipeShiftCaret"] ) {
+                
+                return;
+            }
             
             offset = 1;
             location = self.selectedRange.location + offset;

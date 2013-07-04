@@ -438,14 +438,10 @@
 
 - (void)pboardNotification:(NSNotification *)notification {
     
-    NSLog(@"Browser pboardNotification: %@", notification.userInfo);
-    
-    //ブラウザを開いていない場合は終了
-    if ( !APP_DELEGATE.browserOpenMode ) return;
-    
-    //NSLog(@"Browser P_BOARDNotification: %@", notification.userInfo);
-    
-    [_wv loadRequestWithString:[notification.userInfo objectForKey:@"P_BOARDURL"]];
+    if ( [self.view window] != nil ) {
+        
+        [self.wv loadRequestWithString:[notification.userInfo objectForKey:@"pboardURL"]];
+    }
 }
 
 - (void)becomeActive:(NSNotification *)notification {
@@ -860,13 +856,13 @@
                     
                     NSLog(@"Shindanmaker Post");
                     
-                    NSData *_wvData = [NSURLConnection sendSynchronousRequest:[_wv request]
+                    NSData *wvData = [NSURLConnection sendSynchronousRequest:[_wv request]
                                                             returningResponse:nil
                                                                         error:nil];
                     
-                    if ( _wvData != nil ) {
+                    if ( wvData != nil ) {
                         
-                        postText = [[NSString alloc] initWithData:_wvData
+                        postText = [[NSString alloc] initWithData:wvData
                                                          encoding:NSUTF8StringEncoding];
                         
                         postText = [postText deleteWord:@"\n"];
@@ -921,8 +917,9 @@
                     postText = [postText replaceWord:@"[url]" replacedWord:copyURL];
                 }
                 
-                NSNotification *notification = [NSNotification notificationWithName:@"WebPagePost"
-                                                                             object:postText];
+                NSNotification *notification = [NSNotification notificationWithName:@"SetTweetViewText"
+                                                                             object:nil
+                                                                           userInfo:@{@"Text":postText}];
                 [[NSNotificationCenter defaultCenter] postNotification:notification];
                 
                 if ( APP_DELEGATE.tabBarController.selectedIndex == 0 ) {
@@ -1212,36 +1209,35 @@
         
     }else if ( actionSheetNo == 7 ) {
         
-        APP_DELEGATE.postTextType = @"Quote";
+        NSString *quoteText = @"";
         
         if ( buttonIndex == 0 ) {
         
             if ( ![EmptyCheck check:_wv.selectString] ) return;
             
-            APP_DELEGATE.postText = _wv.selectString;
+            quoteText = _wv.selectString;
             [self pushComposeButton:nil];
         
         }else if ( buttonIndex == 1 ) {
         
             if ( ![EmptyCheck check:_wv.selectString] ) return;
             
-            APP_DELEGATE.postText = [NSString stringWithFormat:@">>%@", _wv.selectString];
+            quoteText = [NSString stringWithFormat:@">>%@", _wv.selectString];
             [self pushComposeButton:nil];
         
         }else if ( buttonIndex == 2 ) {
         
             if ( ![EmptyCheck check:_wv.selectString] ) return;
             
-            NSString *postText = BLANK;
-            
             if ( [EmptyCheck check:[D objectForKey:@"QuoteFormat"]] ) {
                 
-                postText = [D objectForKey:@"QuoteFormat"];
+                quoteText = [D objectForKey:@"QuoteFormat"];
                 
             } else {
                 
-                postText = @" \"[title]\" [url] >>[quote]";
-                [D setObject:postText forKey:@"QuoteFormat"];
+                quoteText = @" \"[title]\" [url] >>[quote]";
+                [D setObject:quoteText
+                      forKey:@"QuoteFormat"];
             }
             
             NSString *copyURL = [[_wv.request URL] absoluteString];
@@ -1265,11 +1261,9 @@
                 }
             }
             
-            postText = [postText replaceWord:@"[title]" replacedWord:_wv.pageTitle];
-            postText = [postText replaceWord:@"[url]" replacedWord:copyURL];
-            postText = [postText replaceWord:@"[quote]" replacedWord:_wv.selectString];
-            
-            APP_DELEGATE.postText = postText;
+            quoteText = [quoteText replaceWord:@"[title]" replacedWord:_wv.pageTitle];
+            quoteText = [quoteText replaceWord:@"[url]" replacedWord:copyURL];
+            quoteText = [quoteText replaceWord:@"[quote]" replacedWord:_wv.selectString];
             
             [self pushComposeButton:nil];
         
@@ -1278,6 +1272,11 @@
             APP_DELEGATE.postTextType = BLANK;
         }
     
+        NSNotification *notification = [NSNotification notificationWithName:@"SetTweetViewText"
+                                                                     object:nil
+                                                                   userInfo:@{@"Text":quoteText}];
+        [[NSNotificationCenter defaultCenter] postNotification:notification];
+        
         dispatch_async(dispatch_get_main_queue(), ^{
         
             APP_DELEGATE.tabBarController.selectedIndex = 0;

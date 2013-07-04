@@ -6,6 +6,8 @@
 //
 //
 
+#import <AssetsLibrary/AssetsLibrary.h>
+#import <MediaPlayer/MediaPlayer.h>
 #import <QuartzCore/QuartzCore.h>
 #import <MobileCoreServices/MobileCoreServices.h>
 #import <SystemConfiguration/SystemConfiguration.h>
@@ -21,6 +23,7 @@
 
 #import "TWAccounts.h"
 #import "TWTweets.h"
+#import "TWIconUpload.h"
 #import "FPTRequest.h"
 #import "TWCharCounter.h"
 #import "CheckAppVersion.h"
@@ -31,19 +34,25 @@
 #import "ShowAlert.h"
 #import "SwipeShiftTextView.h"
 #import "ActivityGrayView.h"
+#import "ResizeImage.h"
+#import "HankakuKana.h"
 
 #import "NSString+WordCollect.h"
 #import "NSObject+EmptyCheck.h"
 #import "UIImage+Convert.h"
 #import "NSNotificationCenter+EasyPost.h"
 
+#define APP_VERSION [[[NSBundle mainBundle] infoDictionary] objectForKey:@"CFBundleShortVersionString"]
 #define ACCOUNT_IMAGEVIEW ((UIImageView *)self.accountIconView.customView)
 #define COUNT_LABEL ((UILabel *)self.countLabel.customView)
 
 @interface MainViewController () <UIActionSheetDelegate, UIImagePickerControllerDelegate, UINavigationControllerDelegate, UITextViewDelegate>
 
 typedef enum {
-    ActionSheetTypeImageMenu
+    ActionSheetTypeImageMenu,
+    ActionSheetTypeAction,
+    ActionSheetTypeImagePicker,
+    ActionSheetTypeHankakuKana,
 } ActionSheetType;
 
 typedef enum {
@@ -58,6 +67,7 @@ typedef enum {
 
 @property (nonatomic, strong) UIToolbar *topBar;
 @property (nonatomic, strong) UIBarButtonItem *resendButton;
+@property (nonatomic, strong) UIBarButtonItem *postButton;
 @property (nonatomic, strong) SwipeShiftTextView *textView;
 @property (nonatomic, strong) UIToolbar *middleBar;
 @property (nonatomic, strong) UIBarButtonItem *accountIconView;
@@ -66,12 +76,22 @@ typedef enum {
 @property (nonatomic, strong) ActivityGrayView *grayView;
 @property (nonatomic, strong) UIToolbar *bottomBar;
 
+@property (nonatomic, strong) CheckAppVersion *checker;
+
+@property (nonatomic, strong) ALAssetsLibrary *assetsLibrary;
+@property (nonatomic, strong) NSMutableArray *groups;
+@property (nonatomic, strong) NSMutableArray *assets;
+
 @property (nonatomic, copy) NSString *inReplyToID;
 @property (nonatomic) BOOL resendMode;
 @property (nonatomic) BOOL webBrowserMode;
+@property (nonatomic) BOOL nowPlayingImageUploading;
+@property (nonatomic) BOOL iconUploadMode;
 
 - (void)createControls;
 - (void)addNotificationObservers;
+- (void)loadSettings;
+- (void)showInfomation;
 
 - (void)setIconPreviewImage;
 - (void)postDone:(NSNotification *)notification;
@@ -82,7 +102,12 @@ typedef enum {
 
 - (void)imageMenu:(ImageMenuType)imageMenuType;
 - (void)uploadImage:(UIImage *)image;
-- (void)setWebPagePostText:(NSNotification *)notification;
+- (void)setTextViewText:(NSNotification *)notification;
+- (void)pboardNotification:(NSNotification *)notification;
+- (void)openImageSource:(NSInteger)buttonIndex;
+
+- (NSString *)nowPlayingText;
+- (void)saveArtworkURL:(NSString *)URL;
 
 - (void)countText;
 
@@ -92,9 +117,12 @@ typedef enum {
 - (void)pushReSendButton;
 - (void)pushPostButton;
 
+- (void)inputMenu;
+
 - (void)pushSettingsButton;
-- (void)pushBrowserButton;
+- (void)pushBrowserButton:(id)URLStringOrSender;
 - (void)pushiPodButton;
+- (void)pushActionButton;
 
 @end
 
@@ -115,6 +143,8 @@ typedef enum {
         [self setInReplyToID:@""];
         [self setResendMode:NO];
         [self setWebBrowserMode:NO];
+        [self setNowPlayingImageUploading:NO];
+        [self setIconUploadMode:NO];
     }
     
     return self;
@@ -125,12 +155,21 @@ typedef enum {
     [super viewDidLoad];
 
     CheckAppVersion *checker = [[CheckAppVersion alloc] init];
+    [self setChecker:checker];
     [checker versionInfoURL:@"http://fpt.ktysne.info/latest_version_info.txt"
                updateIpaURL:@"itms-services://?action=download-manifest&url=http://fpt.ktysne.info/FastPhotoTweet.plist"];
     
     [self createControls];
+    [self loadSettings];
     [self addNotificationObservers];
-    [self.textView becomeFirstResponder];
+    
+    double delayInSeconds = 0.1;
+    dispatch_time_t popTime = dispatch_time(DISPATCH_TIME_NOW, (int64_t)(delayInSeconds * NSEC_PER_SEC));
+    dispatch_after(popTime, dispatch_get_main_queue(), ^(void){
+       
+        [self showInfomation];
+        [self.textView becomeFirstResponder];
+    });
 }
 
 - (void)viewWillAppear:(BOOL)animated {
@@ -178,23 +217,7 @@ typedef enum {
         if ( [[[TWTweets manager] tabChangeFunction] isEqualToString:@"Post"] ) {
             
             [self.textView becomeFirstResponder];
-            
-        }else if ( [[[TWTweets manager] tabChangeFunction] isEqualToString:@"Reply"] ) {
-            
-            [self.textView setText:[NSString stringWithFormat:@"@%@ %@", [[TWTweets manager] text], self.textView.text]];
-            [self setInReplyToID:[[TWTweets manager] inReplyToID]];
-            [self.textView becomeFirstResponder];
-            
-        }else if ( [[[TWTweets manager] tabChangeFunction] isEqualToString:@"Edit"] ) {
-            
-            [self.textView setText:[[TWTweets manager] text]];
-            [self setInReplyToID:[[TWTweets manager] inReplyToID]];
-            [self.textView becomeFirstResponder];
         }
-        
-        [[TWTweets manager] setTabChangeFunction:@""];
-        [[TWTweets manager] setText:@""];
-        [[TWTweets manager] setInReplyToID:@""];
     }
     
     if ( [USER_DEFAULTS boolForKey:@"ShowKeyboard"] ) {
@@ -217,6 +240,7 @@ typedef enum {
     [topBar.layer setShadowOffset:CGSizeMake(0.0f,
                                              2.0f)];
     [topBar.layer setMasksToBounds:NO];
+    [topBar.layer setShadowPath:[UIBezierPath bezierPathWithRect:topBar.bounds].CGPath];
     [self setTopBar:topBar];
     
     //ゴミ箱
@@ -250,6 +274,7 @@ typedef enum {
                                                                    style:UIBarButtonItemStylePlain
                                                                   target:self
                                                                   action:@selector(pushPostButton)];
+    [self setPostButton:postButton];
     
     //スペース
     UIBarButtonItem *flexibleSpace = [[UIBarButtonItem alloc] initWithBarButtonSystemItem:UIBarButtonSystemItemFlexibleSpace
@@ -285,19 +310,19 @@ typedef enum {
     UIBarButtonItem *browserButton = [[UIBarButtonItem alloc] initWithImage:[UIImage imageNamed:@"browser.png"]
                                                                       style:UIBarButtonItemStylePlain
                                                                      target:self
-                                                                     action:@selector(pushBrowserButton)];
+                                                                     action:@selector(pushBrowserButton:)];
     
     //iPod
     UIBarButtonItem *ipodButton = [[UIBarButtonItem alloc] initWithImage:[UIImage imageNamed:@"ipod.png"]
                                                                    style:UIBarButtonItemStylePlain
                                                                   target:self
-                                                                  action:nil];
+                                                                  action:@selector(pushiPodButton)];
     
     //機能
     UIBarButtonItem *actionButton = [[UIBarButtonItem alloc] initWithImage:[UIImage imageNamed:@"action.png"]
                                                                      style:UIBarButtonItemStylePlain
                                                                     target:self
-                                                                    action:nil];
+                                                                    action:@selector(pushActionButton)];
     [self.bottomBar setItems:@[
      settingsButton,
      flexibleSpace,
@@ -316,6 +341,8 @@ typedef enum {
     [textView setBackgroundColor:[UIColor colorWithWhite:1.0 alpha:0.4]];
     [textView setFont:[UIFont systemFontOfSize:14.0f]];
     [textView setDelegate:self];
+    [textView setText:@""];
+    [textView setTag:1000];
     [self setTextView:textView];
     
     UISwipeGestureRecognizer *swipeDown = [[UISwipeGestureRecognizer alloc] initWithTarget:self
@@ -333,6 +360,7 @@ typedef enum {
     [middleBar.layer setShadowOffset:CGSizeMake(0.0f,
                                                 2.0f)];
     [middleBar.layer setMasksToBounds:NO];
+    [middleBar.layer setShadowPath:[UIBezierPath bezierPathWithRect:middleBar.bounds].CGPath];
     [self setMiddleBar:middleBar];
     
     //アカウントアイコン
@@ -349,7 +377,7 @@ typedef enum {
     UIBarButtonItem *textUtilButton = [[UIBarButtonItem alloc] initWithTitle:@"⚒"
                                                                        style:UIBarButtonItemStylePlain
                                                                       target:self
-                                                                      action:nil];
+                                                                      action:@selector(inputMenu)];
     
     UILabel *countLabel = [[UILabel alloc] initWithFrame:CGRectMake(0.0f,
                                                                     0.0f,
@@ -426,14 +454,190 @@ typedef enum {
 - (void)addNotificationObservers {
     
     [[NSNotificationCenter defaultCenter] addObserver:self
-                                             selector:@selector(setWebPagePostText:)
-                                                 name:@"WebPagePost"
+                                             selector:@selector(setTextViewText:)
+                                                 name:@"SetTweetViewText"
                                                object:nil];
     
     [[NSNotificationCenter defaultCenter] addObserver:self
                                              selector:@selector(postDone:)
                                                  name:POST_DONE_NOTIFICATION
                                                object:nil];
+    
+    [[NSNotificationCenter defaultCenter] addObserver:self
+                                             selector:@selector(pboardNotification:)
+                                                 name:@"pboardNotification"
+                                               object:nil];
+}
+
+- (void)loadSettings {
+    
+    if ( ![EmptyCheck check:[USER_DEFAULTS objectForKey:@"UUID"]] ) {
+        
+        //UUIDを生成して保存
+        CFUUIDRef uuidObj = CFUUIDCreate(kCFAllocatorDefault);
+        NSString *uuidString = (__bridge  NSString *)CFUUIDCreateString(nil, uuidObj);
+        CFRelease(uuidObj);
+        
+        [USER_DEFAULTS setObject:uuidString forKey:@"UUID"];
+    }
+    
+    if ( ![EmptyCheck check:[USER_DEFAULTS objectForKey:@"CallBackScheme"]] ) {
+        
+        //スキームが保存されていない場合FPTを設定
+        [USER_DEFAULTS setObject:@"FPT" forKey:@"CallBackScheme"];
+    }
+    
+    //画像形式が設定されていない場合JPGを設定
+    if ( ![EmptyCheck check:[USER_DEFAULTS objectForKey:@"SaveImageType"]] ) {
+        [USER_DEFAULTS setObject:@"JPG" forKey:@"SaveImageType"];
+    }
+    
+    //リサイズ最大長辺が設定されていない場合640を設定
+    if ( [USER_DEFAULTS integerForKey:@"ImageMaxSize"] == 0 ) {
+        [USER_DEFAULTS setInteger:640 forKey:@"ImageMaxSize"];
+    }
+    
+    //カスタム書式が設定されていない場合デフォルト書式を設定
+    if ( ![EmptyCheck check:[USER_DEFAULTS objectForKey:@"NowPlayingEditText"]] ) {
+        [USER_DEFAULTS setObject:@" #nowplaying : [st] - [ar] - [at] - " forKey:@"NowPlayingEditText"];
+    }
+    
+    //サブ書式が設定されていない場合デフォルト書式を設定
+    if ( ![EmptyCheck check:[USER_DEFAULTS objectForKey:@"NowPlayingEditTextSub"]] ) {
+        [USER_DEFAULTS setObject:@" #nowplaying : [st] - [ar] - " forKey:@"NowPlayingEditTextSub"];
+    }
+    
+    //写真投稿先が設定されていない場合Twitterを設定
+    if ( ![EmptyCheck check:[USER_DEFAULTS objectForKey:@"PhotoService"]] ) {
+        [USER_DEFAULTS setObject:@"Twitter" forKey:@"PhotoService"];
+    }
+    
+    //Webページ投稿書式が設定されていない場合はデフォルトの書式を設定
+    if ( ![EmptyCheck check:[USER_DEFAULTS objectForKey:@"WebPagePostFormat"]] ) {
+        [USER_DEFAULTS setObject:@" \"[title]\" [url] " forKey:@"WebPagePostFormat"];
+    }
+    
+    //UserAgentが設定されていない場合はiPhoneを設定
+    if ( ![EmptyCheck check:[USER_DEFAULTS objectForKey:@"UserAgent"]] ) {
+        [USER_DEFAULTS setObject:@"iPhone" forKey:@"UserAgent"];
+    }
+    
+    //UserAgentを戻す設定がされていない場合はOFFを設定
+    if ( ![EmptyCheck check:[USER_DEFAULTS objectForKey:@"UserAgentReset"]] ) {
+        [USER_DEFAULTS setObject:@"OFF" forKey:@"UserAgentReset"];
+    }
+    
+    if ( ![EmptyCheck check:[USER_DEFAULTS dictionaryForKey:@"ArtworkUrl"]] ) {
+        [USER_DEFAULTS setObject:[NSDictionary dictionary] forKey:@"ArtworkUrl"];
+    }
+    
+    if ( [USER_DEFAULTS integerForKey:@"IconCornerRounding"] == 0 ) {
+        [USER_DEFAULTS setInteger:1 forKey:@"IconCornerRounding"];
+    }
+    
+    if ( [USER_DEFAULTS objectForKey:@"TimelineLoadCount"] == nil ) {
+        [USER_DEFAULTS setObject:@"80" forKey:@"TimelineLoadCount"];
+    }
+    
+    if ( [USER_DEFAULTS objectForKey:@"MentionsLoadCount"] == nil ) {
+        [USER_DEFAULTS setObject:@"40" forKey:@"MentionsLoadCount"];
+    }
+    
+    if ( [USER_DEFAULTS objectForKey:@"FavoritesLoadCount"] == nil ) {
+        [USER_DEFAULTS setObject:@"40" forKey:@"FavoritesLoadCount"];
+    }
+    
+    if ( [USER_DEFAULTS dictionaryForKey:@"TimelineList"] == nil ) {
+        
+        NSMutableDictionary *accounts = [NSMutableDictionary dictionary];
+        
+        for ( ACAccount *account in [[TWAccounts manager] twitterAccounts] ) {
+            
+            [accounts setObject:@"" forKey:account.username];
+        }
+        
+        [USER_DEFAULTS setObject:accounts forKey:@"TimelineList"];
+        
+    } else {
+        
+        NSMutableDictionary *accounts = [[USER_DEFAULTS objectForKey:@"TimelineList"] mutableCopy];
+        
+        for ( ACAccount *account in [[TWAccounts manager] twitterAccounts] ) {
+            
+            if ( accounts[account.username] == nil ) {
+                
+                [accounts setObject:@"" forKey:account.username];
+            }
+        }
+        
+        [USER_DEFAULTS setObject:accounts forKey:@"TimelineList"];
+    }
+    
+    if ( [USER_DEFAULTS objectForKey:@"IconQuality"] == nil ) {
+        [USER_DEFAULTS setObject:@"Bigger" forKey:@"IconQuality"];
+    }
+    
+    //設定を即反映
+    [USER_DEFAULTS synchronize];
+}
+
+- (void)showInfomation {
+    
+    BOOL check = YES;
+    NSMutableDictionary *information = nil;
+    
+    if ( ![EmptyCheck check:[USER_DEFAULTS dictionaryForKey:@"Information"]] ) {
+        
+        [USER_DEFAULTS setObject:[NSDictionary dictionary] forKey:@"Information"];
+    }
+    
+    while ( check ) {
+        
+        if ( [[USER_DEFAULTS dictionaryForKey:@"Information"] valueForKey:@"FirstRun"] == 0 ) {
+            
+            [ShowAlert title:@"ようこそ"
+                     message:@"FastPhotoTweetへようこそ\nアプリ内やタスクスイッチャーから様々なTweetを素早くTwitterに投稿する事が出来ます。"];
+            
+            information = [[NSMutableDictionary alloc] initWithDictionary:[USER_DEFAULTS dictionaryForKey:@"Information"]];
+            [information setValue:[NSNumber numberWithInt:1] forKey:@"FirstRun"];
+            
+            NSDictionary *dic = [[NSDictionary alloc] initWithDictionary:information];
+            [USER_DEFAULTS setObject:dic forKey:@"Information"];
+            
+            //推奨設定
+            [USER_DEFAULTS setBool:YES forKey:@"ResizeImage"];
+            [USER_DEFAULTS setInteger:800 forKey:@"ImageMaxSize"];
+            [USER_DEFAULTS setObject:@"JPG(High)" forKey:@"SaveImageType"];
+            [USER_DEFAULTS setBool:YES forKey:@"NoResizeIphone4Ss"];
+            [USER_DEFAULTS setBool:YES forKey:@"FullSizeImage"];
+            [USER_DEFAULTS setBool:YES forKey:@"NowPlayingArtWork"];
+            [USER_DEFAULTS setBool:YES forKey:@"OpenPasteBoardURL"];
+            [USER_DEFAULTS setBool:YES forKey:@"SwipeShiftCaret"];
+            [USER_DEFAULTS setBool:YES forKey:@"EnterBackgroundUSDisConnect"];
+            [USER_DEFAULTS setBool:YES forKey:@"BecomeActiveUSConnect"];
+            [USER_DEFAULTS setBool:YES forKey:@"ReloadAfterUSConnect"];
+            
+            continue;
+        }
+        
+        if ( [[USER_DEFAULTS dictionaryForKey:@"Information"] valueForKey:APP_VERSION] == 0 ) {
+            
+            [ShowAlert title:[NSString stringWithFormat:@"FastPhotoTweet %@", APP_VERSION]
+                     message:@"・Tweet画面の一新（キーボードは入力欄下スワイプで引っ込みます。画像プレビュー上スワイプでアップロード出来ます。）\n・いくつかの既存機能で動いていなかったものが動くようになってたりしてます"];
+            
+            information = [[NSMutableDictionary alloc] initWithDictionary:[USER_DEFAULTS dictionaryForKey:@"Information"]];
+            [information setValue:[NSNumber numberWithInt:1] forKey:APP_VERSION];
+            
+            NSDictionary *dic = [[NSDictionary alloc] initWithDictionary:information];
+            [USER_DEFAULTS setObject:dic forKey:@"Information"];
+            continue;
+        }
+        
+        check = NO;
+    }
+    
+    //設定を即反映
+    [USER_DEFAULTS synchronize];
 }
 
 #pragma mark - Gestures
@@ -456,7 +660,10 @@ typedef enum {
         
     } else if ( sender.direction == UISwipeGestureRecognizerDirectionUp ) {
         
-        [self uploadImage:self.previewImageView.image];
+        if ( self.previewImageView.image ) {
+        
+            [self uploadImage:self.previewImageView.image];
+        }
     
     } else if ( sender.direction == UISwipeGestureRecognizerDirectionDown ) {
         
@@ -582,6 +789,30 @@ typedef enum {
     if ( actionSheet.tag == ActionSheetTypeImageMenu ) {
         
         [self imageMenu:buttonIndex];
+        
+    } else if ( actionSheet.tag == ActionSheetTypeAction ) {
+        
+        [self setIconUploadMode:YES];
+        [self pushImageButton];
+        
+    } else if ( actionSheet.tag == ActionSheetTypeImagePicker ) {
+        
+        [self openImageSource:buttonIndex];
+        
+    }else if ( actionSheet.tag == ActionSheetTypeHankakuKana ) {
+        
+        if ( buttonIndex == 0 ) {
+            
+            [self.textView setText:[HankakuKana kana:self.textView.text]];
+            
+        }else if ( buttonIndex == 1 ) {
+            
+            [self.textView setText:[HankakuKana hiragana:self.textView.text]];
+            
+        }else if ( buttonIndex == 2 ) {
+            
+            [self.textView setText:[HankakuKana kanaHiragana:self.textView.text]];
+        }
     }
 }
 
@@ -597,10 +828,20 @@ typedef enum {
                                   completion:nil];
     
     double delayInSeconds = 0.5;
+    
+    
+    
     dispatch_time_t popTime = dispatch_time(DISPATCH_TIME_NOW, (int64_t)(delayInSeconds * NSEC_PER_SEC));
     dispatch_after(popTime, dispatch_get_main_queue(), ^(void){
         
         [self.previewImageView setImage:image];
+        
+        if ( self.iconUploadMode ) {
+         
+            [self setIconUploadMode:NO];
+            [TWIconUpload image:[ResizeImage aspectResizeForMaxSize:self.previewImageView.image
+                                                            maxSize:256.0f]];
+        }
     });
 }
 
@@ -610,6 +851,11 @@ typedef enum {
     
     [picPicker dismissViewControllerAnimated:YES
                                   completion:nil];
+    
+    if ( self.iconUploadMode ) {
+        
+        [self setIconUploadMode:NO];
+    }
 }
 
 #pragma mark - ImageMenu
@@ -723,6 +969,7 @@ typedef enum {
     dispatch_async(dispatch_get_main_queue(), ^{
        
         [self.grayView start];
+        [self.textView resignFirstResponder];
     });
     
     //画像をリサイズするか判定
@@ -797,15 +1044,144 @@ typedef enum {
     [request start];
 }
 
-- (void)setWebPagePostText:(NSNotification *)notification {
+- (void)setTextViewText:(NSNotification *)notification {
     
-    [self.textView setText:notification.object];
-    [self.textView becomeFirstResponder];
+    NSDictionary *userInfo = notification.userInfo;
+    if ( [userInfo isNotEmpty] ) {
+     
+        NSString *text = userInfo[@"Text"];
+        if ( text ) {
+         
+            [self.textView setText:[NSString stringWithFormat:@"%@%@", self.textView.text, text]];
+            [self.textView becomeFirstResponder];
+        }
+        
+        NSString *inReplyToID = userInfo[@"InReplyToID"];
+        if ( inReplyToID ) {
+            
+            [self setInReplyToID:inReplyToID];
+        }
+    }
+}
+
+- (void)pboardNotification:(NSNotification *)notification {
+    
+    if ( [self.view window] != nil ) {
+        
+        [self.tabBarController setSelectedIndex:0];
+        [self pushBrowserButton:[notification.userInfo objectForKey:@"pboardURL"]];
+    }
+}
+
+- (void)openImageSource:(NSInteger)buttonIndex {
+    
+    UIImagePickerController *picPicker = [[UIImagePickerController alloc] init];
+    [picPicker setDelegate:self];
+    
+    if ( buttonIndex == 0 ) {
+        
+        picPicker.sourceType = UIImagePickerControllerSourceTypePhotoLibrary;
+        [self showModalViewController:picPicker];
+        
+    } else if ( buttonIndex == 1 ) {
+        
+        if ( [UIImagePickerController isSourceTypeAvailable:UIImagePickerControllerSourceTypeCamera] ) {
+            
+            picPicker.sourceType = UIImagePickerControllerSourceTypeCamera;
+            
+        } else {
+        
+            picPicker.sourceType = UIImagePickerControllerSourceTypePhotoLibrary;
+            [ShowAlert error:@"カメラが利用できない端末です。カメラロールを開きます。"];
+        }
+        
+        [self showModalViewController:picPicker];
+        
+    } else if ( buttonIndex == 2 ) {
+        
+        dispatch_async(dispatch_get_main_queue(), ^{
+            
+            if ( !self.assets ) {
+                
+                self.assets = [NSMutableArray array];
+                
+            } else {
+                
+                [self.assets removeAllObjects];
+            }
+            
+            if ( !self.groups ) {
+                
+                self.groups = [NSMutableArray array];
+                
+            } else {
+                
+                [self.groups removeAllObjects];
+            }
+            
+            if ( !self.assetsLibrary ) {
+                
+                self.assetsLibrary = [[ALAssetsLibrary alloc] init];
+            }
+            
+            [self.assetsLibrary enumerateGroupsWithTypes:ALAssetsGroupSavedPhotos
+                                              usingBlock:^(ALAssetsGroup *assetsGroup,
+                                                           BOOL *stop) {
+                                                  
+                                                  if ( assetsGroup ) {
+                                                      
+                                                      [self.groups addObject:assetsGroup];
+                                                      
+                                                      ALAssetsGroupEnumerationResultsBlock resultBlock = ^(ALAsset *asset,
+                                                                                                           NSUInteger index,
+                                                                                                           BOOL *stop) {
+                                                          
+                                                          if ( asset ) {
+                                                              
+                                                              [self.assets addObject:asset];
+                                                              *stop = YES;
+                                                              
+                                                          } else {
+                                                              
+                                                              if ( self.assets.count != 0 ) {
+                                                                  
+                                                                  ALAsset *asset = (ALAsset *)[self.assets objectAtIndex:0];
+                                                                  ALAssetRepresentation *representation = [asset defaultRepresentation];
+                                                                  UIImage *image = [UIImage imageWithCGImage:[representation fullResolutionImage]
+                                                                                                       scale:[representation scale]
+                                                                                                 orientation:[representation orientation]];
+                                                                  [self.previewImageView setImage:image];
+                                                                  
+                                                              } else {
+                                                                  
+                                                                  [ShowAlert error:@"画像が取得出来ません。"];
+                                                              }
+                                                          }
+                                                      };
+                                                      
+                                                      ALAssetsGroup *group = (ALAssetsGroup *)[self.groups objectAtIndex:0];
+                                                      [self.assets removeAllObjects];
+                                                      
+                                                      [group setAssetsFilter:[ALAssetsFilter allPhotos]];
+                                                      [group enumerateAssetsWithOptions:NSEnumerationReverse
+                                                                             usingBlock:resultBlock];
+                                                  };
+                                              }
+             
+                                            failureBlock:nil
+             ];
+        });
+    }
 }
 
 - (void)requestFinished:(ASIHTTPRequest *)request {
 
     NSLog(@"%s", __func__);
+    
+    dispatch_async(dispatch_get_main_queue(), ^{
+        
+        [self.grayView end];
+    });
     
     NSError *jsonError = nil;
     NSDictionary *result = [NSJSONSerialization JSONObjectWithData:request.responseData
@@ -833,20 +1209,27 @@ typedef enum {
         
         [self.textView setText:[NSString stringWithFormat:@"%@ %@ ", self.textView.text, imageURL]];
         [self.textView setText:[self.textView.text replaceWord:@"  " replacedWord:@" "]];
-    }
-    
-    dispatch_async(dispatch_get_main_queue(), ^{
+        [self.textView becomeFirstResponder];
         
-        [self.grayView end];
-    });
+        if ( self.nowPlayingImageUploading ) {
+            
+            [self saveArtworkURL:imageURL];
+            [self.textView setSelectedRange:NSMakeRange(0, 0)];
+        }
+    }
 }
 
 - (void)requestFailed:(ASIHTTPRequest *)request {
     
     NSLog(@"%s", __func__);
     
-    dispatch_async(dispatch_get_main_queue(), ^{
+    if ( self.nowPlayingImageUploading ) {
         
+        [self setNowPlayingImageUploading:NO];
+    }
+    
+    dispatch_async(dispatch_get_main_queue(), ^{
+       
         [self.grayView end];
     });
 }
@@ -855,6 +1238,157 @@ typedef enum {
     
     [self countText];
 }
+
+#pragma mark - NowPlaying
+
+- (NSString *)nowPlayingText {
+    
+    NSMutableString *resultText = [NSMutableString string];
+    
+    MPMusicPlayerController *player = [MPMusicPlayerController iPodMusicPlayer];
+    NSString *songTitle = [player.nowPlayingItem valueForProperty:MPMediaItemPropertyTitle];
+    NSString *songArtist = [player.nowPlayingItem valueForProperty:MPMediaItemPropertyArtist];
+    NSString *albumTitle = [player.nowPlayingItem valueForProperty:MPMediaItemPropertyAlbumTitle];
+    NSNumber *playCount = [player.nowPlayingItem valueForProperty:MPMediaItemPropertyPlayCount];
+    NSNumber *ratingNum = [player.nowPlayingItem valueForProperty:MPMediaItemPropertyRating];
+    
+    if ( songTitle == nil ) {
+        
+        return @"";
+    }
+    
+    NSString *URL = nil;
+    BOOL nowPlayingArtWork = [USER_DEFAULTS boolForKey:@"NowPlayingArtWork"];
+    if ( nowPlayingArtWork ) {
+        
+        NSString *searchKey = [NSString stringWithFormat:@"%@ - %@ - %@", songTitle, songArtist, albumTitle];
+        NSDictionary *artWorkURLs = [USER_DEFAULTS dictionaryForKey:@"ArtworkUrl"];
+        
+        for ( NSString *key in artWorkURLs ) {
+            
+            if ( [key isEqualToString:searchKey] ) {
+                
+                URL = [artWorkURLs objectForKey:key];
+                break;
+            }
+        }
+        
+        MPMediaItemArtwork *artwork = [player.nowPlayingItem valueForProperty:MPMediaItemPropertyArtwork];
+        
+        if ( artwork ) {
+         
+            CGSize imageMaxSize = CGSizeMake(500.0f,
+                                             500.0f);
+            [self.previewImageView setImage:[ResizeImage aspectResizeForMaxSize:[artwork imageWithSize:imageMaxSize]
+                                                                        maxSize:500.0f]];
+            
+            if ( [URL isEmpty] ) {
+             
+                NSUInteger uploadType = [USER_DEFAULTS integerForKey:@"NowPlayingPhotoService"];
+                
+                if ( uploadType == 0 ) {
+                    
+                    if ( [[USER_DEFAULTS objectForKey:@"PhotoService"] isEqualToString:@"img.ur"] ) {
+                        
+                        uploadType = 2;
+                        
+                    }else if ( [[USER_DEFAULTS objectForKey:@"PhotoService"] isEqualToString:@"Twitpic"] ) {
+                        
+                        uploadType = 3;
+                    }
+                }
+                
+                //アップロード先がTwitter以外
+                if ( uploadType == 2 ||
+                     uploadType == 3 ) {
+                    
+                    //アートワークをアップロード
+                    [self setNowPlayingImageUploading:YES];
+                    [self uploadImage:self.previewImageView.image];
+                }
+            }
+        }
+    }
+    
+    NSUInteger playCountInt = [playCount unsignedIntegerValue];
+    NSString *playCountStr = [NSString stringWithFormat:@"%d", playCountInt];
+    
+    NSUInteger rating = [ratingNum unsignedIntegerValue];
+    NSString *ratingStr = [NSString stringWithFormat:@"%d", rating];
+    
+    if ([ratingStr isEqualToString:@"0"]) {
+        ratingStr = @"☆☆☆☆☆";
+    }else if ([ratingStr isEqualToString:@"1"]) {
+        ratingStr = @"★☆☆☆☆";
+    }else if ([ratingStr isEqualToString:@"2"]) {
+        ratingStr = @"★★☆☆☆";
+    }else if ([ratingStr isEqualToString:@"3"]) {
+        ratingStr = @"★★★☆☆";
+    }else if ([ratingStr isEqualToString:@"4"]) {
+        ratingStr = @"★★★★☆";
+    }else if ([ratingStr isEqualToString:@"5"]) {
+        ratingStr = @"★★★★★";
+    }
+    
+    if ( [USER_DEFAULTS boolForKey:@"NowPlayingEdit"] ) {
+        
+        resultText = [NSMutableString stringWithString:[USER_DEFAULTS stringForKey:@"NowPlayingEditText"]];
+        
+        if ( [USER_DEFAULTS boolForKey:@"NowPlayingEditSub"] != 0 ) {
+            
+            //サブ書式使用設定が完全一致かつ条件に当てはまる場合
+            if ( [USER_DEFAULTS integerForKey:@"NowPlayingEditSub"] == 2 && [albumTitle isEqualToString:songTitle] ) {
+                
+                resultText = [NSMutableString stringWithString:[USER_DEFAULTS stringForKey:@"NowPlayingEditTextSub"]];
+                
+                //サブ書式使用設定が前方一致かつ条件に当てはまる場合
+            }else if ( [USER_DEFAULTS integerForKey:@"NowPlayingEditSub"] == 1 && [albumTitle hasPrefix:songTitle] ) {
+                
+                resultText = [NSMutableString stringWithString:[USER_DEFAULTS stringForKey:@"NowPlayingEditTextSub"]];
+            }
+        }
+        
+        //曲情報を書式に埋め込み
+        resultText = [resultText replaceMutableWord:@"[st]" replacedWord:songTitle];
+        resultText = [resultText replaceMutableWord:@"[ar]" replacedWord:songArtist];
+        resultText = [resultText replaceMutableWord:@"[at]" replacedWord:albumTitle];
+        resultText = [resultText replaceMutableWord:@"[pc]" replacedWord:playCountStr];
+        resultText = [resultText replaceMutableWord:@"[rt]" replacedWord:ratingStr];
+        
+    } else {
+        
+        resultText = [NSMutableString stringWithFormat:@" #nowplaying : %@ - %@ ", songTitle, songArtist];
+    }
+    
+    if ( nowPlayingArtWork &&
+         [URL isNotEmpty] ) {
+        
+        resultText = [NSMutableString stringWithFormat:@"%@%@", resultText, URL];
+        [self.textView becomeFirstResponder];
+        [self.textView setSelectedRange:NSMakeRange(0, 0)];
+    }
+    
+    return [resultText copy];
+}
+
+- (void)saveArtworkURL:(NSString *)URL {
+    
+    MPMusicPlayerController *player = [MPMusicPlayerController iPodMusicPlayer];
+    NSString *songTitle = [player.nowPlayingItem valueForProperty:MPMediaItemPropertyTitle];
+    NSString *songArtist = [player.nowPlayingItem valueForProperty:MPMediaItemPropertyArtist];
+    NSString *albumTitle = [player.nowPlayingItem valueForProperty:MPMediaItemPropertyAlbumTitle];
+    
+    NSString *keyName = [NSString stringWithFormat:@"%@ - %@ - %@", songTitle, songArtist, albumTitle];
+    
+    NSMutableDictionary *artworkURLs = [[USER_DEFAULTS dictionaryForKey:@"ArtworkUrl"] mutableCopy];
+    [artworkURLs setValue:URL
+                   forKey:keyName];
+    [USER_DEFAULTS setObject:artworkURLs
+                      forKey:@"ArtworkUrl"];
+    [self setNowPlayingImageUploading:NO];
+}
+
+#pragma mark - Text
 
 - (void)countText {
     
@@ -872,6 +1406,18 @@ typedef enum {
     
     //結果をラベルに反映
     COUNT_LABEL.text = [NSString stringWithFormat:@"%d", num];
+    
+    if ( num < 0 ) {
+    
+        //入力可能数を超えている
+        [self.postButton setEnabled:NO];
+        [COUNT_LABEL setTextColor:[UIColor redColor]];
+        
+    } else {
+        
+        [self.postButton setEnabled:YES];
+        [COUNT_LABEL setTextColor:[UIColor whiteColor]];
+    }
 }
 
 - (void)pushTrashButton {
@@ -894,10 +1440,14 @@ typedef enum {
     
     [self.textView resignFirstResponder];
     
-    UIImagePickerController *picPicker = [[UIImagePickerController alloc] init];
-    [picPicker setSourceType:UIImagePickerControllerSourceTypePhotoLibrary];
-    [picPicker setDelegate:self];
-    [self showModalViewController:picPicker];
+    UIActionSheet *sheet = [[UIActionSheet alloc] initWithTitle:@"投稿画像ソース"
+                                                       delegate:self
+                                              cancelButtonTitle:@"キャンセル"
+                                         destructiveButtonTitle:nil
+                                              otherButtonTitles:
+                            @"カメラロール", @"カメラ", @"カメラロールの最新", nil];
+    [sheet setTag:ActionSheetTypeImagePicker];
+    [sheet showInView:self.tabBarController.view];
 }
 
 - (void)pushReSendButton {
@@ -965,9 +1515,22 @@ typedef enum {
                 [self.textView setText:@""];
                 [self.previewImageView setImage:nil];
                 [self countText];
+                [self.tabBarController setSelectedIndex:1];
             });
         });
     }
+}
+
+- (void)inputMenu {
+    
+    UIActionSheet *sheet = [[UIActionSheet alloc] initWithTitle:@"入力支援機能"
+                                                       delegate:self
+                                              cancelButtonTitle:@"キャンセル"
+                                         destructiveButtonTitle:nil
+                                              otherButtonTitles:
+                            @"半角カナ変換(カタカナ)", @"半角カナ変換(ひらがな)", @"半角カナ変換(カタカナ+ひらがな)", nil];
+    [sheet setTag:ActionSheetTypeHankakuKana];
+    [sheet showInView:self.tabBarController.view];
 }
 
 - (void)pushSettingsButton {
@@ -980,7 +1543,7 @@ typedef enum {
     [self showModalViewController:navigation];
 }
 
-- (void)pushBrowserButton {
+- (void)pushBrowserButton:(id)URLStringOrSender {
     
     NSString *useragent = IPHONE_USERAGENT;
     
@@ -998,13 +1561,36 @@ typedef enum {
     
     [self setWebBrowserMode:YES];
     
-    WebViewExController *dialog = [[WebViewExController alloc] initWithURL:@""];
+    WebViewExController *dialog = [[WebViewExController alloc] initWithURL:[URLStringOrSender isKindOfClass:[NSString class]] ? URLStringOrSender : @""];
     dialog.modalTransitionStyle = UIModalTransitionStyleCoverVertical;
     [self showModalViewController:dialog];
 }
 
 - (void)pushiPodButton {
     
+    NSString *nowPlayingText = [self nowPlayingText];
+    
+    if ( [nowPlayingText isNotEmpty] ) {
+        
+        [self.textView setText:[NSString stringWithFormat:@"%@%@", self.textView.text, nowPlayingText]];
+        [self countText];
+        
+    } else {
+        
+        [ShowAlert error:@"iPod再生中に使用して下さい。"];
+    }
+}
+
+- (void)pushActionButton {
+    
+    UIActionSheet *sheet = [[UIActionSheet alloc] initWithTitle:@"その他機能"
+                                                       delegate:self
+                                              cancelButtonTitle:@"キャンセル"
+                                         destructiveButtonTitle:nil
+                                              otherButtonTitles:
+                            @"アイコン変更", nil];
+    [sheet setTag:ActionSheetTypeAction];
+    [sheet showInView:self.tabBarController.view];
 }
 
 @end

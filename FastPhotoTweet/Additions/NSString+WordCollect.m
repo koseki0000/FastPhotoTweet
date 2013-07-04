@@ -20,6 +20,12 @@
 - (NSMutableString *)replaceMutableWord:(NSString *)replaceWord
                            replacedWord:(NSString *)replacedWord {
     
+    if ( replaceWord == nil ||
+         replacedWord == nil ) {
+        
+        return [NSMutableString stringWithString:self];
+    }
+    
     NSMutableString *tempString = [NSMutableString stringWithString:self];
     [tempString replaceOccurrencesOfString:replaceWord
                                 withString:replacedWord

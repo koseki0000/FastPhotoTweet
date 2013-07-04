@@ -246,9 +246,16 @@
                             if ( screenName == nil ||
                                  inReplyToId == nil ) return;
                             
-                            [[TWTweets manager] setText:screenName];
-                            [[TWTweets manager] setInReplyToID:inReplyToId];
-                            [[TWTweets manager] setTabChangeFunction:@"Reply"];
+                            screenName = [NSString stringWithFormat:@"@%@ ", screenName];
+                            
+                            NSNotification *notification = [NSNotification notificationWithName:@"SetTweetViewText"
+                                                                                         object:nil
+                                                                                       userInfo:
+                                                            @{
+                                                            @"Text" : screenName,
+                                                            @"InReplyToID" : inReplyToId
+                                                            }];
+                            [[NSNotificationCenter defaultCenter] postNotification:notification];
                             APP_DELEGATE.tabBarController.selectedIndex = 0;
                         });
                     });
@@ -315,11 +322,15 @@
                             if ( text == nil ||
                                  inReplyToId == nil ) return;
                             
-                            [[TWTweets manager] setText:text];
-                            [[TWTweets manager] setInReplyToID:inReplyToId];
-                            [[TWTweets manager] setTabChangeFunction:@"Edit"];
+                            NSNotification *notification = [NSNotification notificationWithName:@"SetTweetViewText"
+                                                                                         object:nil
+                                                                                       userInfo:
+                                                            @{
+                                                            @"Text" : text,
+                                                            @"InReplyToID" : inReplyToId
+                                                            }];
+                            [[NSNotificationCenter defaultCenter] postNotification:notification];
                             APP_DELEGATE.tabBarController.selectedIndex = 0;
-                            
                             [NSNotificationCenter postNotificationCenterForName:@"TimelineMenuDelete"];
                         });
                     });
