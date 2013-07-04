@@ -13,8 +13,6 @@
 #import "UIImage+Convert.h"
 #import "NSObject+EmptyCheck.h"
 
-#import <EventKit/EventKit.h>
-
 #define APP_VERSION [[[NSBundle mainBundle] infoDictionary] objectForKey:@"CFBundleShortVersionString"]
 
 #define TOP_BAR [NSArray arrayWithObjects:_trashButton, _flexibleSpace, _idButton, _flexibleSpace, _resendButton, _flexibleSpace, _imageSettingButton, _flexibleSpace, _postButton, nil]

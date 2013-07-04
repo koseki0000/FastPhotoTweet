@@ -623,7 +623,7 @@ typedef enum {
         if ( [[USER_DEFAULTS dictionaryForKey:@"Information"] valueForKey:APP_VERSION] == 0 ) {
             
             [ShowAlert title:[NSString stringWithFormat:@"FastPhotoTweet %@", APP_VERSION]
-                     message:@"・Tweet画面の一新（キーボードは入力欄下スワイプで引っ込みます。画像プレビュー上スワイプでアップロード出来ます。）\n・いくつかの既存機能で動いていなかったものが動くようになってたりしてます"];
+                     message:@"・画像が設定されていないのに上スワイプ出来る問題を修正\n・NowPlayingのアートワークの挙動を修正\n・TwitterSearch表示後UserStreamが繋がったままとなる問題を修正\n・Tweetを編集が動いていない問題を修正\n・選択文字を引用が動いていないのを修正\n・Tweet画面の画面回転を修正\n・Timelineを右スワイプ時に先頭のアカウントだった場合にTweet画面に移動する機能を追加"];
             
             information = [[NSMutableDictionary alloc] initWithDictionary:[USER_DEFAULTS dictionaryForKey:@"Information"]];
             [information setValue:[NSNumber numberWithInt:1] forKey:APP_VERSION];
@@ -675,9 +675,9 @@ typedef enum {
     
     NSLog(@"%s", __func__);
     
+    [self.textView resignFirstResponder];
+    
     if ( self.previewImageView.image ) {
-        
-        [self.textView resignFirstResponder];
         
         UIActionSheet *sheet = [[UIActionSheet alloc] initWithTitle:@"画像メニュー"
                                                            delegate:self
@@ -1591,6 +1591,17 @@ typedef enum {
                             @"アイコン変更", nil];
     [sheet setTag:ActionSheetTypeAction];
     [sheet showInView:self.tabBarController.view];
+}
+
+#pragma mark - Rotation
+- (BOOL)shouldAutorotate {
+    
+    return YES;
+}
+
+- (NSUInteger)supportedInterfaceOrientations {
+    
+    return UIInterfaceOrientationMaskPortrait;
 }
 
 @end
