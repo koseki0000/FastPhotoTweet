@@ -61,7 +61,7 @@
 //NO  is Empty
 - (BOOL)isNotEmpty {
     
-    return ( ![self isEmpty] );
+    return ![self isEmpty];
 }
 
 - (BOOL)isNil {

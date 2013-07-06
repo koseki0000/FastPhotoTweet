@@ -890,7 +890,7 @@
     
     //Tweetタブを開いていない場合は終了
     if ( APP_DELEGATE.tabBarController.selectedIndex != 0 ||
-        APP_DELEGATE.browserOpenMode ) return;
+         APP_DELEGATE.browserOpenMode ) return;
     
     APP_DELEGATE.startupUrlList = [NSArray arrayWithObject:[notification.userInfo objectForKey:@"pboardURL"]];
     [self pushBrowserButton:nil];

@@ -10,6 +10,7 @@
 #import "TWTweet.h"
 #import "TWAccounts.h"
 #import "TWTweets.h"
+#import "TWTweetUtility.h"
 #import "TWNgTweet.h"
 
 #import "InternetConnection.h"
@@ -437,8 +438,10 @@
                                [resultDic objectForKey:@"text"] != nil ) {
                         
                         TWTweet *tweet = [TWTweet tweetWithDictionary:resultDic];
+                        NSString *sendedText = [TWTweetUtility openTco:tweet.text
+                                                          fromEntities:tweet.entities];
                         
-                        NSDictionary *userInfo = @{@"SendedText" : tweet.text,
+                        NSDictionary *userInfo = @{@"SendedText" : sendedText,
                                                    REQUEST_USER_NAME : request.account.username};
                         
                         [NSNotificationCenter postNotificationCenterForName:notificationName

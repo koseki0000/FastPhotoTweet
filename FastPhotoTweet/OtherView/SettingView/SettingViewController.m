@@ -13,7 +13,7 @@
 //セクション0の項目数 (画像関連設定)
 #define SECTION_0 9
 //セクション1の項目数 (投稿関連設定)
-#define SECTION_1 11
+#define SECTION_1 10
 //セクション2の項目数 (その他の設定)
 #define SECTION_2 6
 //セクション2の項目数 (タイムライン設定)
@@ -44,7 +44,6 @@
 #define WEB_PAGE_SHARE_CURSOR @"Webページ投稿書式セット後カーソル位置"
 #define WEB_PAGE_QUOTE_STYLE @"引用投稿書式変更"
 #define WEB_PAGE_QUOTE_CURSOR @"引用投稿書式セット後カーソル位置"
-#define SWITCH_APP @"投稿後アプリ切替"
 
 //その他の設定
 #define ACTIVE_INPUT @"アプリがアクティブになった際入力可能状態にする"
@@ -103,7 +102,7 @@
          IMAGE_REPEATED, IMAGE_GET_FULL, NOWPLAYING_IMAGE, NOWPLAYING_CUSTOM, NOWPLAYING_CUSTOM_EDIT,
          NOWPLAYING_DUPLICATE_NAME, NOWPLAYING_SUB_STYLE, NOWPLAYING_ARTWORK, TOHA_SEARCH,
          WEB_PAGE_SHARE_STYLE, WEB_PAGE_SHARE_CURSOR, WEB_PAGE_QUOTE_STYLE, WEB_PAGE_QUOTE_CURSOR,
-         SWITCH_APP, ACTIVE_INPUT, SEARCH_WORD_RESET, PASTE_BOARD_URL, USER_AGENT, USER_AGENT_RESET,
+         ACTIVE_INPUT, SEARCH_WORD_RESET, PASTE_BOARD_URL, USER_AGENT, USER_AGENT_RESET,
          SWIPE_SHIFT_CARET, ENTER_BACKGROUND_US, BECOME_ACTIVE_US, RELOAD_US, NG_OPEN, MY_TWEET_NG,
          ICON_CORNER, US_NO_AUTO_LOCK, TIMELINE_LOAD, MENTIONS_LOAD, FAVORITES_LOAD, TIMELINE_FIRSTLOAD,
          TIMELINE_ICON_ACTION, TIMELINE_LIST, TIMELINE_LIST_SELECT, ICON_QUALITY,
@@ -394,78 +393,8 @@
             result = @"末尾";
         }
         
-        //投稿後アプリ切替
-    }else if ( settingState == 19 ) {
-        
-        NSString *scheme = [d objectForKey:@"CallBackScheme"];
-        
-        if ( [scheme isEqualToString:@"FPT"] ) {
-            
-            result = @"FastPhotoTweet";
-            
-        }else if ( [scheme isEqualToString:@"twitter://"] ) {
-            
-            result = @"Twitter for iPhone";
-            
-        }else if ( [scheme isEqualToString:@"tweetbot://"] ) {
-            
-            result = @"Tweetbot";
-            
-        }else if ( [scheme isEqualToString:@"echofon://?"] ) {
-            
-            result = @"Echofon";
-            
-        }else if ( [scheme isEqualToString:@"echofonpro://?"] ) {
-            
-            result = @"Echofon Pro";
-            
-        }else if ( [scheme isEqualToString:@"soicha://"] ) {
-            
-            result = @"SOICHA";
-            
-        }else if ( [scheme isEqualToString:@"tweetings://"] ) {
-            
-            result = @"Tweetings";
-            
-        }else if ( [scheme isEqualToString:@"osfoora://"] ) {
-            
-            result = @"Osfoora";
-            
-        }else if ( [scheme isEqualToString:@"twittelator://"] ) {
-            
-            result = @"Twittelator";
-            
-        }else if ( [scheme isEqualToString:@"tweetlist://"] ) {
-            
-            result = @"TweetList!";
-            
-        }else if ( [scheme isEqualToString:@"tweetatok://"] ) {
-            
-            result = @"Tweet ATOK";
-            
-        }else if ( [scheme isEqualToString:@"tweetlogix://"] ) {
-            
-            result = @"Tweetlogix";
-            
-        }else if ( [scheme isEqualToString:@"hootsuite://"] ) {
-            
-            result = @"HootSuite";
-            
-        }else if ( [scheme isEqualToString:@"simplytweet://"] ) {
-            
-            result = @"SimplyTweet";
-            
-        }else if ( [scheme isEqualToString:@"reeder://"] ) {
-            
-            result = @"Reeder";
-            
-        } else {
-            
-            result = @"未選択";
-        }
-        
         //アプリがアクティブになった際入力可能状態にする
-    }else if ( settingState == 20 ) {
+    }else if ( settingState == 19 ) {
         
         if ( [d boolForKey:@"ShowKeyboard"] ) {
             
@@ -476,7 +405,7 @@
             result = @"OFF";
         }
         
-    }else if ( settingState == 21 ) {
+    }else if ( settingState == 20 ) {
         
         if ( [d boolForKey:@"ClearBrowserSearchField"] ) {
             
@@ -487,7 +416,7 @@
             result = @"OFF";
         }
         
-    }else if ( settingState == 22 ) {
+    }else if ( settingState == 21 ) {
         
         if ( [d boolForKey:@"OpenPasteBoardURL"] ) {
             
@@ -498,7 +427,7 @@
             result = @"OFF";
         }
         
-    }else if ( settingState == 23 ) {
+    }else if ( settingState == 22 ) {
         
         if ( [[d objectForKey:@"UserAgent"] isEqualToString:@"FireFox"] ) {
             
@@ -513,7 +442,7 @@
             result = @"iPhone";
         }
         
-    }else if ( settingState == 24 ) {
+    }else if ( settingState == 23 ) {
         
         if ( [[d objectForKey:@"UserAgentReset"] isEqualToString:@"FireFox"] ) {
             
@@ -532,7 +461,7 @@
             result = @"OFF";
         }
         
-    }else if ( settingState == 25 ) {
+    }else if ( settingState == 24 ) {
         
         if ( [d boolForKey:@"SwipeShiftCaret"] ) {
             
@@ -543,7 +472,7 @@
             result = @"OFF";
         }
         
-    }else if ( settingState == 26 ) {
+    }else if ( settingState == 25 ) {
         
         if ( [d boolForKey:@"EnterBackgroundUSDisConnect"] ) {
             
@@ -554,7 +483,7 @@
             result = @"OFF";
         }
         
-    }else if ( settingState == 27 ) {
+    }else if ( settingState == 26 ) {
         
         if ( [d boolForKey:@"BecomeActiveUSConnect"] ) {
             
@@ -565,7 +494,7 @@
             result = @"OFF";
         }
         
-    }else if ( settingState == 28 ) {
+    }else if ( settingState == 27 ) {
         
         if ( [d boolForKey:@"ReloadAfterUSConnect"] ) {
             
@@ -578,7 +507,7 @@
         
         //    }else if ( settingState == 29 ) {
         
-    }else if ( settingState == 30 ) {
+    }else if ( settingState == 29 ) {
         
         if ( [d boolForKey:@"MyTweetNG"] ) {
             
@@ -589,7 +518,7 @@
             result = @"OFF";
         }
         
-    }else if ( settingState == 31 ) {
+    }else if ( settingState == 30 ) {
         
         if ( [d integerForKey:@"IconCornerRounding"] == 1 ) {
             
@@ -600,7 +529,7 @@
             result = @"OFF";
         }
         
-    }else if ( settingState == 32 ) {
+    }else if ( settingState == 31 ) {
         
         if ( [d boolForKey:@"USNoAutoLock"] ) {
             
@@ -611,19 +540,19 @@
             result = @"OFF";
         }
         
-    }else if ( settingState == 33 ) {
+    }else if ( settingState == 32 ) {
         
         result = [d objectForKey:@"TimelineLoadCount"];
         
-    }else if ( settingState == 34 ) {
+    }else if ( settingState == 33 ) {
         
         result = [d objectForKey:@"MentionsLoadCount"];
         
-    }else if ( settingState == 35 ) {
+    }else if ( settingState == 34 ) {
         
         result = [d objectForKey:@"FavoritesLoadCount"];
         
-    }else if ( settingState == 36 ) {
+    }else if ( settingState == 35 ) {
         
         if ( [d boolForKey:@"TimelineFirstLoad"] ) {
             
@@ -634,7 +563,7 @@
             result = @"最上部";
         }
         
-    }else if ( settingState == 37 ) {
+    }else if ( settingState == 36 ) {
         if ( [d integerForKey:@"TimelineIconAction"] == 0 ) {
             result = @"UserMenu";
         }else if ( [d integerForKey:@"TimelineIconAction"] == 1 ) {
@@ -649,7 +578,7 @@
             result = @"IDとFav,RTを選択";
         }
         
-    }else if ( settingState == 38 ) {
+    }else if ( settingState == 37 ) {
         
         if ( [d boolForKey:@"UseTimelineList"] ) {
             result = @"ON";
@@ -657,11 +586,11 @@
             result = @"OFF";
         }
         
-    }else if ( settingState == 39 ) {
+    }else if ( settingState == 38 ) {
         
         result = [[d objectForKey:@"TimelineList"] objectForKey:[TWAccounts currentAccountName]];
         
-    }else if ( settingState == 40 ) {
+    }else if ( settingState == 39 ) {
         
         result = [d objectForKey:@"IconQuality"];
     }
@@ -1075,22 +1004,6 @@
                      cancelButtonTitle:@"Cancel"
                      destructiveButtonTitle:nil
                      otherButtonTitles:@"先頭", @"末尾", nil];
-            [sheet autorelease];
-            [sheet showInView:self.view];
-            
-        }else if ( indexPath.row == 10 ) {
-            
-            sheet = [[UIActionSheet alloc]
-                     initWithTitle:SWITCH_APP
-                     delegate:self
-                     cancelButtonTitle:@"Cancel"
-                     destructiveButtonTitle:nil
-                     otherButtonTitles:@"FastPhotoTweet", @"Twitter for iPhone",
-                     @"Tweetbot", @"Echofon", @"Echofon Pro",
-                     @"SOICHA", @"Tweetings", @"Osfoora",
-                     @"Twittelator", @"TweetList!", @"Tweet ATOK",
-                     @"Tweetlogix",  @"HootSuite", @"SimplyTweet",
-                     @"Reeder", nil];
             [sheet autorelease];
             [sheet showInView:self.view];
         }
@@ -1657,54 +1570,20 @@
         }
         
     }else if ( actionSheetNo == 19 ) {
-        
-        if ( buttonIndex == 0 ) {
-            [d setObject:@"FPT" forKey:@"CallBackScheme"];
-        }else if ( buttonIndex == 1 ) {
-            [d setObject:@"twitter://" forKey:@"CallBackScheme"];
-        }else if ( buttonIndex == 2 ) {
-            [d setObject:@"tweetbot://" forKey:@"CallBackScheme"];
-        }else if ( buttonIndex == 3 ) {
-            [d setObject:@"echofon://?" forKey:@"CallBackScheme"];
-        }else if ( buttonIndex == 4 ) {
-            [d setObject:@"echofonpro://?" forKey:@"CallBackScheme"];
-        }else if ( buttonIndex == 5 ) {
-            [d setObject:@"soicha://" forKey:@"CallBackScheme"];
-        }else if ( buttonIndex == 6 ) {
-            [d setObject:@"tweetings://" forKey:@"CallBackScheme"];
-        }else if ( buttonIndex == 7 ) {
-            [d setObject:@"osfoora://" forKey:@"CallBackScheme"];
-        }else if ( buttonIndex == 8 ) {
-            [d setObject:@"twittelator://" forKey:@"CallBackScheme"];
-        }else if ( buttonIndex == 9 ) {
-            [d setObject:@"tweetlist://" forKey:@"CallBackScheme"];
-        }else if ( buttonIndex == 10 ) {
-            [d setObject:@"tweetatok://" forKey:@"CallBackScheme"];
-        }else if ( buttonIndex == 11 ) {
-            [d setObject:@"tweetlogix://" forKey:@"CallBackScheme"];
-        }else if ( buttonIndex == 12 ) {
-            [d setObject:@"hootsuite://" forKey:@"CallBackScheme"];
-        }else if ( buttonIndex == 13 ) {
-            [d setObject:@"simplytweet://" forKey:@"CallBackScheme"];
-        }else if ( buttonIndex == 14 ) {
-            [d setObject:@"reeder://" forKey:@"CallBackScheme"];
-        }
-        
-    }else if ( actionSheetNo == 20 ) {
         if ( buttonIndex == 0 ) {
             [d setBool:YES forKey:@"ShowKeyboard"];
         }else if ( buttonIndex == 1 ) {
             [d setBool:NO forKey:@"ShowKeyboard"];
         }
         
-    }else if ( actionSheetNo == 21 ) {
+    }else if ( actionSheetNo == 20 ) {
         if ( buttonIndex == 0 ) {
             [d setBool:YES forKey:@"ClearBrowserSearchField"];
         }else if ( buttonIndex == 1 ) {
             [d setBool:NO forKey:@"ClearBrowserSearchField"];
         }
         
-    }else if ( actionSheetNo == 22 ) {
+    }else if ( actionSheetNo == 21 ) {
         if ( buttonIndex == 0 ) {
             
             [d setBool:YES forKey:@"OpenPasteBoardURL"];
@@ -1719,7 +1598,7 @@
             [d setBool:NO forKey:@"OpenPasteBoardURL"];
         }
         
-    }else if ( actionSheetNo == 23 ) {
+    }else if ( actionSheetNo == 22 ) {
         if ( buttonIndex == 0 ) {
             [d setObject:@"FireFox" forKey:@"UserAgent"];
         }else if ( buttonIndex == 1 ) {
@@ -1728,7 +1607,7 @@
             [d setObject:@"iPhone" forKey:@"UserAgent"];
         }
         
-    }else if ( actionSheetNo == 24 ) {
+    }else if ( actionSheetNo == 23 ) {
         
         if ( buttonIndex == 0 ) {
             [d setObject:@"OFF" forKey:@"UserAgentReset"];
@@ -1740,7 +1619,7 @@
             [d setObject:@"iPhone" forKey:@"UserAgentReset"];
         }
         
-    }else if ( actionSheetNo == 25 ) {
+    }else if ( actionSheetNo == 24 ) {
         
         if ( buttonIndex == 0 ) {
             [d setBool:YES forKey:@"SwipeShiftCaret"];
@@ -1748,21 +1627,21 @@
             [d setBool:NO forKey:@"SwipeShiftCaret"];
         }
         
-    }else if ( actionSheetNo == 26 ) {
+    }else if ( actionSheetNo == 25 ) {
         if ( buttonIndex == 0 ) {
             [d setBool:YES forKey:@"EnterBackgroundUSDisConnect"];
         }else if ( buttonIndex == 1 ) {
             [d setBool:NO forKey:@"EnterBackgroundUSDisConnect"];
         }
         
-    }else if ( actionSheetNo == 27 ) {
+    }else if ( actionSheetNo == 26 ) {
         if ( buttonIndex == 0 ) {
             [d setBool:YES forKey:@"BecomeActiveUSConnect"];
         }else if ( buttonIndex == 1 ) {
             [d setBool:NO forKey:@"BecomeActiveUSConnect"];
         }
         
-    }else if ( actionSheetNo == 28 ) {
+    }else if ( actionSheetNo == 27 ) {
         if ( buttonIndex == 0 ) {
             [d setBool:YES forKey:@"ReloadAfterUSConnect"];
         }else if ( buttonIndex == 1 ) {
@@ -1771,14 +1650,14 @@
         
         //    }else if ( actionSheetNo == 29 ) {
         
-    }else if ( actionSheetNo == 30 ) {
+    }else if ( actionSheetNo == 29 ) {
         if ( buttonIndex == 0 ) {
             [d setBool:YES forKey:@"MyTweetNG"];
         }else if ( buttonIndex == 1 ) {
             [d setBool:NO forKey:@"MyTweetNG"];
         }
         
-    }else if ( actionSheetNo == 31 ) {
+    }else if ( actionSheetNo == 30 ) {
         
         if ( buttonIndex == 0 ) {
             [d setInteger:2 forKey:@"IconCornerRounding"];
@@ -1788,14 +1667,14 @@
         
         [ShowAlert title:@"設定変更完了" message:@"設定を有効にするにはアプリケーションを再起動してください。"];
         
-    }else if ( actionSheetNo == 32 ) {
+    }else if ( actionSheetNo == 31 ) {
         if ( buttonIndex == 0 ) {
             [d setBool:YES forKey:@"USNoAutoLock"];
         }else if ( buttonIndex == 1 ) {
             [d setBool:NO forKey:@"USNoAutoLock"];
         }
         
-    }else if ( actionSheetNo == 33 ) {
+    }else if ( actionSheetNo == 32 ) {
         if ( buttonIndex == 0 ) {
             [d setObject:@"200" forKey:@"TimelineLoadCount"];
         }else if ( buttonIndex == 1 ) {
@@ -1810,7 +1689,7 @@
             [d setObject:@"20" forKey:@"TimelineLoadCount"];
         }
         
-    }else if ( actionSheetNo == 34 ) {
+    }else if ( actionSheetNo == 33 ) {
         if ( buttonIndex == 0 ) {
             [d setObject:@"200" forKey:@"MentionsLoadCount"];
         }else if ( buttonIndex == 1 ) {
@@ -1825,7 +1704,7 @@
             [d setObject:@"20" forKey:@"MentionsLoadCount"];
         }
         
-    }else if ( actionSheetNo == 35 ) {
+    }else if ( actionSheetNo == 34 ) {
         if ( buttonIndex == 0 ) {
             [d setObject:@"200" forKey:@"FavoritesLoadCount"];
         }else if ( buttonIndex == 1 ) {
@@ -1840,21 +1719,21 @@
             [d setObject:@"20" forKey:@"FavoritesLoadCount"];
         }
         
-    }else if ( actionSheetNo == 36 ) {
+    }else if ( actionSheetNo == 35 ) {
         if ( buttonIndex == 0 ) {
             [d setBool:NO forKey:@"TimelineFirstLoad"];
         }else if ( buttonIndex == 1 ) {
             [d setBool:YES forKey:@"TimelineFirstLoad"];
         }
         
-    }else if ( actionSheetNo == 37 ) {
+    }else if ( actionSheetNo == 36 ) {
         
         if ( buttonIndex != 6 ) {
             
             [d setInteger:buttonIndex forKey:@"TimelineIconAction"];
         }
         
-    }else if ( actionSheetNo == 38 ) {
+    }else if ( actionSheetNo == 37 ) {
         
         if ( buttonIndex == 0 ) {
             [d setBool:YES forKey:@"UseTimelineList"];
@@ -1862,7 +1741,7 @@
             [d setBool:NO forKey:@"UseTimelineList"];
         }
         
-    }else if ( actionSheetNo == 40 ) {
+    }else if ( actionSheetNo == 39 ) {
         
         if ( buttonIndex == 0 ) {
             [d setObject:@"Mini" forKey:@"IconQuality"];

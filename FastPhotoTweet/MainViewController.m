@@ -52,6 +52,7 @@ typedef enum {
     ActionSheetTypeImageMenu,
     ActionSheetTypeAction,
     ActionSheetTypeImagePicker,
+    ActionSheetTypeImagePickerCheckRepeated,
     ActionSheetTypeHankakuKana,
 } ActionSheetType;
 
@@ -83,10 +84,14 @@ typedef enum {
 @property (nonatomic, strong) NSMutableArray *assets;
 
 @property (nonatomic, copy) NSString *inReplyToID;
+@property (nonatomic, copy) NSString *deletedText;
 @property (nonatomic) BOOL resendMode;
 @property (nonatomic) BOOL webBrowserMode;
 @property (nonatomic) BOOL nowPlayingImageUploading;
 @property (nonatomic) BOOL iconUploadMode;
+@property (nonatomic) BOOL repeatedPost;
+@property (nonatomic) BOOL fastUpload;
+@property (nonatomic) BOOL useCamera;
 
 - (void)createControls;
 - (void)addNotificationObservers;
@@ -141,10 +146,14 @@ typedef enum {
         self.tabBarItem.image = [UIImage imageNamed:@"Bubble"];
         
         [self setInReplyToID:@""];
+        [self setDeletedText:@""];
         [self setResendMode:NO];
         [self setWebBrowserMode:NO];
         [self setNowPlayingImageUploading:NO];
         [self setIconUploadMode:NO];
+        [self setRepeatedPost:NO];
+        [self setFastUpload:NO];
+        [self setUseCamera:NO];
     }
     
     return self;
@@ -623,7 +632,7 @@ typedef enum {
         if ( [[USER_DEFAULTS dictionaryForKey:@"Information"] valueForKey:APP_VERSION] == 0 ) {
             
             [ShowAlert title:[NSString stringWithFormat:@"FastPhotoTweet %@", APP_VERSION]
-                     message:@"・画像が設定されていないのに上スワイプ出来る問題を修正\n・NowPlayingのアートワークの挙動を修正\n・TwitterSearch表示後UserStreamが繋がったままとなる問題を修正\n・Tweetを編集が動いていない問題を修正\n・選択文字を引用が動いていないのを修正\n・Tweet画面の画面回転を修正\n・Timelineを右スワイプ時に先頭のアカウントだった場合にTweet画面に移動する機能を追加"];
+                     message:@"・NowPlaying時にアートワークが自動アップロードされない問題を修正\n・画像連続投稿機能の再実装\n・カメラから画像投稿した際に画像が保存されない問題を修正\n・ペーストボード監視がTLで動作していない問題を修正\n・カメラロール、カメラから即アップロード出来る選択肢を追加\n・再投稿に関する問題を修正\n・ゴミ箱ボタン2度押しで削除取り消し出来る機能を追加\n・その他細かなバグ修正とレスポンス改善"];
             
             information = [[NSMutableDictionary alloc] initWithDictionary:[USER_DEFAULTS dictionaryForKey:@"Information"]];
             [information setValue:[NSNumber numberWithInt:1] forKey:APP_VERSION];
@@ -738,6 +747,7 @@ typedef enum {
         for ( NSDictionary *savedData in [[TWTweets manager] sendedTweets] ) {
             
             NSString *text = savedData[@"Parameters"][@"status"];
+            text = [text deleteWhiteSpace];
             
             if ( [text isEqualToString:sendedText] ) {
                 
@@ -798,6 +808,25 @@ typedef enum {
     } else if ( actionSheet.tag == ActionSheetTypeImagePicker ) {
         
         [self openImageSource:buttonIndex];
+    
+    } else if ( actionSheet.tag == ActionSheetTypeImagePickerCheckRepeated ) {
+        
+        if ( buttonIndex == 0 ) {
+            
+            [self setRepeatedPost:YES];
+            [self openImageSource:0];
+            
+        } else if ( buttonIndex == 1 ) {
+            
+            UIActionSheet *sheet = [[UIActionSheet alloc] initWithTitle:@"投稿画像ソース"
+                                                               delegate:self
+                                                      cancelButtonTitle:@"キャンセル"
+                                                 destructiveButtonTitle:nil
+                                                      otherButtonTitles:
+                                    @"カメラロール", @"カメラロール(即)", @"カメラ", @"カメラ(即)", @"カメラロールの最新", nil];
+            [sheet setTag:ActionSheetTypeImagePicker];
+            [sheet showInView:self.tabBarController.view];
+        }
         
     }else if ( actionSheet.tag == ActionSheetTypeHankakuKana ) {
         
@@ -805,13 +834,25 @@ typedef enum {
             
             [self.textView setText:[HankakuKana kana:self.textView.text]];
             
-        }else if ( buttonIndex == 1 ) {
+        } else if ( buttonIndex == 1 ) {
             
             [self.textView setText:[HankakuKana hiragana:self.textView.text]];
             
-        }else if ( buttonIndex == 2 ) {
+        } else if ( buttonIndex == 2 ) {
             
             [self.textView setText:[HankakuKana kanaHiragana:self.textView.text]];
+        
+        } else if ( buttonIndex == 3 ) {
+            
+            NSString *pasteboardString = [[UIPasteboard generalPasteboard] string];
+            if ( [pasteboardString isNotEmpty] ) {
+                
+                [self.textView setText:[NSString stringWithFormat:@"%@%@", self.textView.text, pasteboardString]];
+            }
+            
+        } else if ( buttonIndex == 4 ) {
+            
+            [[UIPasteboard generalPasteboard] setString:self.textView.text];
         }
     }
 }
@@ -824,23 +865,46 @@ typedef enum {
     
     NSLog(@"%s", __func__);
     
-    [picPicker dismissViewControllerAnimated:YES
-                                  completion:nil];
-    
     double delayInSeconds = 0.5;
     
-    
+    if ( self.repeatedPost ) {
+        
+        delayInSeconds = 0.1;
+        
+    } else {
+        
+        [picPicker dismissViewControllerAnimated:YES
+                                      completion:nil];
+    }
     
     dispatch_time_t popTime = dispatch_time(DISPATCH_TIME_NOW, (int64_t)(delayInSeconds * NSEC_PER_SEC));
     dispatch_after(popTime, dispatch_get_main_queue(), ^(void){
         
         [self.previewImageView setImage:image];
         
+        if ( self.useCamera ) {
+            
+            dispatch_queue_t imageSaveQueue = dispatch_get_global_queue(DISPATCH_QUEUE_PRIORITY_DEFAULT, 0);
+            dispatch_async(imageSaveQueue, ^{
+               
+                UIImageWriteToSavedPhotosAlbum(image,
+                                               self,
+                                               @selector(savingImageIsFinished:didFinishSavingWithError:contextInfo:),
+                                               nil);
+            });
+        }
+        
         if ( self.iconUploadMode ) {
          
             [self setIconUploadMode:NO];
             [TWIconUpload image:[ResizeImage aspectResizeForMaxSize:self.previewImageView.image
                                                             maxSize:256.0f]];
+        }
+        
+        if ( self.repeatedPost ||
+             self.fastUpload ) {
+            
+            [self uploadImage:self.previewImageView.image];
         }
     });
 }
@@ -856,6 +920,11 @@ typedef enum {
         
         [self setIconUploadMode:NO];
     }
+}
+
+- (void)savingImageIsFinished:(UIImage *)image
+     didFinishSavingWithError:(NSError *)error
+                  contextInfo:(void *)contextInfo {
 }
 
 #pragma mark - ImageMenu
@@ -904,7 +973,7 @@ typedef enum {
         
         if ( width < height ) {
             
-            //正方形もしくは縦長
+            //縦長
             CGFloat cuttedHeight = height - (cutSize * 4.0f);
             CGRect scaledRect = CGRectMake(0.0f,
                                            cutSize * scale,
@@ -1061,16 +1130,15 @@ typedef enum {
             
             [self setInReplyToID:inReplyToID];
         }
+        
+        [self countText];
     }
 }
 
 - (void)pboardNotification:(NSNotification *)notification {
     
-    if ( [self.view window] != nil ) {
-        
-        [self.tabBarController setSelectedIndex:0];
-        [self pushBrowserButton:[notification.userInfo objectForKey:@"pboardURL"]];
-    }
+    [self.tabBarController setSelectedIndex:0];
+    [self pushBrowserButton:[notification.userInfo objectForKey:@"pboardURL"]];
 }
 
 - (void)openImageSource:(NSInteger)buttonIndex {
@@ -1078,15 +1146,24 @@ typedef enum {
     UIImagePickerController *picPicker = [[UIImagePickerController alloc] init];
     [picPicker setDelegate:self];
     
-    if ( buttonIndex == 0 ) {
+    if ( buttonIndex == 1 ||
+         buttonIndex == 3 ) {
+        
+        [self setFastUpload:YES];
+    }
+    
+    if ( buttonIndex == 0 ||
+         buttonIndex == 1 ) {
         
         picPicker.sourceType = UIImagePickerControllerSourceTypePhotoLibrary;
         [self showModalViewController:picPicker];
         
-    } else if ( buttonIndex == 1 ) {
+    } else if ( buttonIndex == 2 ||
+                buttonIndex == 3 ) {
         
         if ( [UIImagePickerController isSourceTypeAvailable:UIImagePickerControllerSourceTypeCamera] ) {
             
+            [self setUseCamera:YES];
             picPicker.sourceType = UIImagePickerControllerSourceTypeCamera;
             
         } else {
@@ -1097,7 +1174,7 @@ typedef enum {
         
         [self showModalViewController:picPicker];
         
-    } else if ( buttonIndex == 2 ) {
+    } else if ( buttonIndex == 4 ) {
         
         dispatch_async(dispatch_get_main_queue(), ^{
             
@@ -1207,14 +1284,16 @@ typedef enum {
             return;
         }
         
+        NSRange beforerange = self.textView.selectedRange;
+        
         [self.textView setText:[NSString stringWithFormat:@"%@ %@ ", self.textView.text, imageURL]];
         [self.textView setText:[self.textView.text replaceWord:@"  " replacedWord:@" "]];
         [self.textView becomeFirstResponder];
+        [self.textView setSelectedRange:beforerange];
         
         if ( self.nowPlayingImageUploading ) {
             
             [self saveArtworkURL:imageURL];
-            [self.textView setSelectedRange:NSMakeRange(0, 0)];
         }
     }
 }
@@ -1282,25 +1361,18 @@ typedef enum {
             [self.previewImageView setImage:[ResizeImage aspectResizeForMaxSize:[artwork imageWithSize:imageMaxSize]
                                                                         maxSize:500.0f]];
             
-            if ( [URL isEmpty] ) {
+            if ( URL == nil ||
+                [URL isEmpty] ) {
              
                 NSUInteger uploadType = [USER_DEFAULTS integerForKey:@"NowPlayingPhotoService"];
                 
                 if ( uploadType == 0 ) {
                     
-                    if ( [[USER_DEFAULTS objectForKey:@"PhotoService"] isEqualToString:@"img.ur"] ) {
-                        
-                        uploadType = 2;
-                        
-                    }else if ( [[USER_DEFAULTS objectForKey:@"PhotoService"] isEqualToString:@"Twitpic"] ) {
-                        
-                        uploadType = 3;
-                    }
+                    uploadType = [USER_DEFAULTS integerForKey:@"PhotoService"];
                 }
                 
                 //アップロード先がTwitter以外
-                if ( uploadType == 2 ||
-                     uploadType == 3 ) {
+                if ( uploadType != 1 ) {
                     
                     //アートワークをアップロード
                     [self setNowPlayingImageUploading:YES];
@@ -1422,7 +1494,20 @@ typedef enum {
 
 - (void)pushTrashButton {
     
-    [self.textView setText:@""];
+    if ( [self.textView.text isEmpty] ) {
+    
+        if ( [self.deletedText isNotEmpty] ) {
+            
+            [self.textView setText:self.deletedText];
+            [self setDeletedText:@""];
+        }
+        
+    } else {
+    
+        [self setDeletedText:self.textView.text];
+        [self.textView setText:@""];
+    }
+    
     [self.previewImageView setImage:nil];
     [self countText];
 }
@@ -1439,14 +1524,32 @@ typedef enum {
     NSLog(@"%s", __func__);
     
     [self.textView resignFirstResponder];
+    [self setRepeatedPost:NO];
+    [self setFastUpload:NO];
+    [self setUseCamera:NO];
     
-    UIActionSheet *sheet = [[UIActionSheet alloc] initWithTitle:@"投稿画像ソース"
-                                                       delegate:self
-                                              cancelButtonTitle:@"キャンセル"
-                                         destructiveButtonTitle:nil
-                                              otherButtonTitles:
-                            @"カメラロール", @"カメラ", @"カメラロールの最新", nil];
-    [sheet setTag:ActionSheetTypeImagePicker];
+    UIActionSheet *sheet = nil;
+    if ( [USER_DEFAULTS boolForKey:@"RepeatedPost"] ) {
+        
+        sheet = [[UIActionSheet alloc] initWithTitle:@"投稿画像ソース"
+                                            delegate:self
+                                   cancelButtonTitle:@"キャンセル"
+                              destructiveButtonTitle:nil
+                                   otherButtonTitles:
+                 @"連続投稿", @"一枚投稿", nil];
+        [sheet setTag:ActionSheetTypeImagePickerCheckRepeated];
+        
+    } else {
+        
+        sheet = [[UIActionSheet alloc] initWithTitle:@"投稿画像ソース"
+                                            delegate:self
+                                   cancelButtonTitle:@"キャンセル"
+                              destructiveButtonTitle:nil
+                                   otherButtonTitles:
+                 @"カメラロール", @"カメラロール(即)", @"カメラ", @"カメラ(即)", @"カメラロールの最新", nil];
+            [sheet setTag:ActionSheetTypeImagePicker];
+    }
+    
     [sheet showInView:self.tabBarController.view];
 }
 
@@ -1528,7 +1631,7 @@ typedef enum {
                                               cancelButtonTitle:@"キャンセル"
                                          destructiveButtonTitle:nil
                                               otherButtonTitles:
-                            @"半角カナ変換(カタカナ)", @"半角カナ変換(ひらがな)", @"半角カナ変換(カタカナ+ひらがな)", nil];
+                            @"半角カナ変換(カタカナ)", @"半角カナ変換(ひらがな)", @"半角カナ変換(カタカナ+ひらがな)", @"ペーストボードの内容を貼り付け", @"ペーストボードに全てコピー", nil];
     [sheet setTag:ActionSheetTypeHankakuKana];
     [sheet showInView:self.tabBarController.view];
 }
