@@ -17,8 +17,8 @@
 
 @implementation OHASBasicMarkupParser
 
-+(NSDictionary*)tagMappings
-{
++(NSDictionary*)tagMappings {
+    
     return [NSDictionary dictionaryWithObjectsAndKeys:
             
             ^NSAttributedString*(NSAttributedString* str, NSTextCheckingResult* match) {
@@ -38,8 +38,8 @@
             ^NSAttributedString*(NSAttributedString* str, NSTextCheckingResult* match) {
                 NSRange textRange = [match rangeAtIndex:1];
                 NSMutableAttributedString* foundString = [[str attributedSubstringFromRange:textRange] mutableCopy];
-                CTFontRef font = [str fontAtIndex:textRange.location effectiveRange:NULL];
-                if (textRange.length>0) [foundString setFontName:@"Courier" size:CTFontGetSize(font)];
+//                CTFontRef font = [str fontAtIndex:textRange.location effectiveRange:NULL];
+//                if (textRange.length>0) [foundString setFontName:@"Courier" size:CTFontGetSize(font)];
                 return MRC_AUTORELEASE(foundString);
             }, @"`(.*?)`",
             

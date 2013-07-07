@@ -484,16 +484,10 @@ typedef enum {
         
         //UUIDを生成して保存
         CFUUIDRef uuidObj = CFUUIDCreate(kCFAllocatorDefault);
-        NSString *uuidString = (__bridge  NSString *)CFUUIDCreateString(nil, uuidObj);
+        NSString *uuidString = (__bridge_transfer NSString *)CFUUIDCreateString(nil, uuidObj);
         CFRelease(uuidObj);
         
         [USER_DEFAULTS setObject:uuidString forKey:@"UUID"];
-    }
-    
-    if ( ![EmptyCheck check:[USER_DEFAULTS objectForKey:@"CallBackScheme"]] ) {
-        
-        //スキームが保存されていない場合FPTを設定
-        [USER_DEFAULTS setObject:@"FPT" forKey:@"CallBackScheme"];
     }
     
     //画像形式が設定されていない場合JPGを設定
@@ -1322,8 +1316,7 @@ typedef enum {
 
 - (NSString *)nowPlayingText {
     
-    NSMutableString *resultText = [NSMutableString string];
-    
+    NSMutableString *resultText = [@"" mutableCopy];
     MPMusicPlayerController *player = [MPMusicPlayerController iPodMusicPlayer];
     NSString *songTitle = [player.nowPlayingItem valueForProperty:MPMediaItemPropertyTitle];
     NSString *songArtist = [player.nowPlayingItem valueForProperty:MPMediaItemPropertyArtist];
@@ -1333,7 +1326,7 @@ typedef enum {
     
     if ( songTitle == nil ) {
         
-        return @"";
+        return [resultText copy];
     }
     
     NSString *URL = nil;
@@ -1664,9 +1657,10 @@ typedef enum {
     
     [self setWebBrowserMode:YES];
     
-    WebViewExController *dialog = [[WebViewExController alloc] initWithURL:[URLStringOrSender isKindOfClass:[NSString class]] ? URLStringOrSender : @""];
-    dialog.modalTransitionStyle = UIModalTransitionStyleCoverVertical;
-    [self showModalViewController:dialog];
+    WebViewExController *browserViewConrtoller = [[WebViewExController alloc] initWithURL:[URLStringOrSender isKindOfClass:[NSString class]] ? URLStringOrSender : @""];
+    [browserViewConrtoller setHidesBottomBarWhenPushed:YES];
+    [self.navigationController pushViewController:browserViewConrtoller
+                                         animated:YES];
 }
 
 - (void)pushiPodButton {

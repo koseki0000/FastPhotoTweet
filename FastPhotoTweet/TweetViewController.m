@@ -201,12 +201,6 @@
         _callbackSwitch.on = [d boolForKey:@"CallBack"];
     });
     
-    if ( ![EmptyCheck check:[d objectForKey:@"CallBackScheme"]] ) {
-        
-        //スキームが保存されていない場合FPTを設定
-        [d setObject:@"FPT" forKey:@"CallBackScheme"];
-    }
-    
     //画像形式が設定されていない場合JPGを設定
     if ( ![EmptyCheck check:[d objectForKey:@"SaveImageType"]] ) {
         [d setObject:@"JPG" forKey:@"SaveImageType"];

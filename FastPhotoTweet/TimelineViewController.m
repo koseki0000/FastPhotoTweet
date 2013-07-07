@@ -856,7 +856,7 @@ typedef enum {
         NSUInteger beforeCount = [self.currentTweets count];
         
         [self setCurrentTweets:[self.currentTweets appendOnlyNewTweetToTop:receiveTweets
-                                                                 returnMutable:YES]];
+                                                             returnMutable:YES]];
         [self.grayView end];
         [self.refreshControl endRefreshing];
         
@@ -869,7 +869,7 @@ typedef enum {
             
             if ( [D boolForKey:@"TimelineFirstLoad"] ) {
               
-                if ( [[TWTweets currentTimeline] count] != 0 ) {
+                if ( beforeCount == 0 ) {
                 
                     [self scrollTimelineToBottom:YES];
                 }
@@ -980,10 +980,6 @@ typedef enum {
             
             NSString *searchWord = notification.userInfo[@"SearchWord"];
             [self openSearchStream:searchWord];
-            
-        } else {
-            
-            [self setOtherTweetsMode];
         }
     }
 }
@@ -1111,6 +1107,7 @@ typedef enum {
 - (oneway void)receiveOffline:(NSNotification *)notification {
     
     [self.grayView forceEnd];
+    [ActivityIndicator off];
 }
 
 - (void)createInReplyToChain:(TWTweet *)tweet {
@@ -1954,8 +1951,7 @@ typedef enum {
 
 - (void)openSearchStream:(NSString *)searchWord {
     
-    if ( self.pickerVisible ) [self hidePicker];
-    [self.topBar setItems:TOP_BAR_ITEM_OTHER];
+    [self closeStream];
     
     dispatch_queue_t userStreamQueue = GLOBAL_QUEUE_BACKGROUND;
     dispatch_async(userStreamQueue, ^{
@@ -2433,6 +2429,8 @@ typedef enum {
     
 //    NSLog(@"%s", __func__);
     
+    BOOL beforeStatus = self.addTweetStopMode;
+    
     [self setAddTweetStopMode:YES];
     
     NSInteger i = [index intValue];
@@ -2445,7 +2443,7 @@ typedef enum {
         [self.timeline reloadRowsAtIndexPaths:@[[NSIndexPath indexPathForRow:i
                                                                    inSection:0]]
                              withRowAnimation:UITableViewRowAnimationNone];
-        [self setAddTweetStopMode:NO];
+        [self setAddTweetStopMode:beforeStatus];
     });
 }
 
@@ -3243,9 +3241,9 @@ typedef enum {
     
     [self setWebBrowserMode:YES];
     
-    WebViewExController *dialog = [[WebViewExController alloc] initWithURL:URL];
-    [dialog setHidesBottomBarWhenPushed:YES];
-    [self.navigationController pushViewController:dialog
+    WebViewExController *browserViewController = [[WebViewExController alloc] initWithURL:URL];
+    [browserViewController setHidesBottomBarWhenPushed:YES];
+    [self.navigationController pushViewController:browserViewController
                                          animated:YES];
 }
 

@@ -138,8 +138,8 @@ signatureProvider:(id<OASignatureProviding>)aProvider
     nonce = (NSString *)string;
 }
 
-NSInteger normalize(id obj1, id obj2, void *context)
-{
+NSInteger normalize(id obj1, id obj2, void *context) {
+    
     NSArray *nameAndValue1 = [obj1 componentsSeparatedByString:@"="];
     NSArray *nameAndValue2 = [obj2 componentsSeparatedByString:@"="];
     

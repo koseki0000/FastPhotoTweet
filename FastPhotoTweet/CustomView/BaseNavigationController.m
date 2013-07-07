@@ -1,15 +1,15 @@
 //
-//  TimelineNavigationController.m
+//  BaseNavigationController.m
 //  FastPhotoTweet
 //
 //  Created by @peace3884 on 2012/11/18.
 //
 //
 
-#import "TimelineNavigationController.h"
+#import "BaseNavigationController.h"
 
 
-@implementation TimelineNavigationController
+@implementation BaseNavigationController
 
 - (BOOL)shouldAutorotateToInterfaceOrientation:(UIInterfaceOrientation)interfaceOrientation {
     

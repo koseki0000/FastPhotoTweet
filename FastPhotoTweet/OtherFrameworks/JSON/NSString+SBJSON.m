@@ -34,12 +34,12 @@
 
 - (id)JSONFragmentValue
 {
-    SBJsonParser *jsonParser = [SBJsonParser new];    
-    id repr = [jsonParser fragmentWithString:self];    
-    if (!repr)
-//        NSLog(@"-JSONFragmentValue failed. Error trace is: %@", [jsonParser errorTrace]);
-    [jsonParser release];
-    return repr;
+//    SBJsonParser *jsonParser = [SBJsonParser new];    
+//    id repr = [jsonParser fragmentWithString:self];    
+//    if (!repr)
+////        NSLog(@"-JSONFragmentValue failed. Error trace is: %@", [jsonParser errorTrace]);
+//    [jsonParser release];
+    return nil;
 }
 
 - (id)JSONValue

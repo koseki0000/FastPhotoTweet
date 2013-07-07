@@ -9,7 +9,7 @@
 #import "MainViewController.h"
 #import "TweetViewController.h"
 #import "TimelineViewController.h"
-#import "TimelineNavigationController.h"
+#import "BaseNavigationController.h"
 #import <mach/mach.h>
 #import <mach/mach_host.h>
 
@@ -123,16 +123,19 @@ void uncaughtExceptionHandler(NSException *e) {
 //    TweetViewController *mainView = [[TweetViewController alloc] initWithNibName:NSStringFromClass([TweetViewController class])
 //                                                                       bundle:nil];
     MainViewController *mainView = [[MainViewController alloc] init];
+    BaseNavigationController *mainNavigation = [[BaseNavigationController alloc] initWithRootViewController:mainView];
+    mainNavigation.viewControllers = @[mainView];
+    mainNavigation.navigationBarHidden = YES;
 
     TimelineViewController *timelineView = [[TimelineViewController alloc] init];
     timelineView.title = @"Timeline";
     
-    TimelineNavigationController *timelineNavigation = [[TimelineNavigationController alloc] initWithRootViewController:timelineView];
+    BaseNavigationController *timelineNavigation = [[BaseNavigationController alloc] initWithRootViewController:timelineView];
     timelineNavigation.viewControllers = @[timelineView];
     timelineNavigation.navigationBarHidden = YES;
     
     self.tabBarController = [[MainTabBarController alloc] init];
-    self.tabBarController.viewControllers = [NSArray arrayWithObjects:mainView, timelineNavigation, nil];
+    self.tabBarController.viewControllers = [NSArray arrayWithObjects:mainNavigation, timelineNavigation, nil];
     self.window.rootViewController = self.tabBarController;
     
     [self.window makeKeyAndVisible];
