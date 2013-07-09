@@ -163,6 +163,15 @@ typedef enum {
 
     [super viewDidLoad];
 
+    ACAccountStore *accountStore = [[ACAccountStore alloc] init];
+    ACAccountType *accountType = [accountStore accountTypeWithAccountTypeIdentifier:ACAccountTypeIdentifierTwitter];
+    
+    [accountStore requestAccessToAccountsWithType:accountType
+                                          options:nil
+                                       completion:^(BOOL granted,
+                                                    NSError *error) {
+                                       }];
+    
     CheckAppVersion *checker = [[CheckAppVersion alloc] init];
     [self setChecker:checker];
     [checker versionInfoURL:@"http://fpt.ktysne.info/latest_version_info.txt"
@@ -626,7 +635,7 @@ typedef enum {
         if ( [[USER_DEFAULTS dictionaryForKey:@"Information"] valueForKey:APP_VERSION] == 0 ) {
             
             [ShowAlert title:[NSString stringWithFormat:@"FastPhotoTweet %@", APP_VERSION]
-                     message:@"・NowPlaying時にアートワークが自動アップロードされない問題を修正\n・画像連続投稿機能の再実装\n・カメラから画像投稿した際に画像が保存されない問題を修正\n・ペーストボード監視がTLで動作していない問題を修正\n・カメラロール、カメラから即アップロード出来る選択肢を追加\n・再投稿に関する問題を修正\n・ゴミ箱ボタン2度押しで削除取り消し出来る機能を追加\n・その他細かなバグ修正とレスポンス改善"];
+                     message:@"・起動時の処理を追加\n・画像アップロード時のオプションを追加\n・Timeline表示の問題を修正\n・画像取得の修正\n・その他細かな修正"];
             
             information = [[NSMutableDictionary alloc] initWithDictionary:[USER_DEFAULTS dictionaryForKey:@"Information"]];
             [information setValue:[NSNumber numberWithInt:1] forKey:APP_VERSION];
@@ -817,7 +826,7 @@ typedef enum {
                                                       cancelButtonTitle:@"キャンセル"
                                                  destructiveButtonTitle:nil
                                                       otherButtonTitles:
-                                    @"カメラロール", @"カメラロール(即)", @"カメラ", @"カメラ(即)", @"カメラロールの最新", nil];
+                                    @"カメラロール", @"カメラロール(即)", @"カメラ", @"カメラ(即)", @"カメラロールの最新", @"カメラロールの最新(即)", nil];
             [sheet setTag:ActionSheetTypeImagePicker];
             [sheet showInView:self.tabBarController.view];
         }
@@ -1141,7 +1150,8 @@ typedef enum {
     [picPicker setDelegate:self];
     
     if ( buttonIndex == 1 ||
-         buttonIndex == 3 ) {
+         buttonIndex == 3 ||
+         buttonIndex == 5 ) {
         
         [self setFastUpload:YES];
     }
@@ -1168,7 +1178,8 @@ typedef enum {
         
         [self showModalViewController:picPicker];
         
-    } else if ( buttonIndex == 4 ) {
+    } else if ( buttonIndex == 4 ||
+                buttonIndex == 5 ) {
         
         dispatch_async(dispatch_get_main_queue(), ^{
             
@@ -1222,6 +1233,11 @@ typedef enum {
                                                                                                        scale:[representation scale]
                                                                                                  orientation:[representation orientation]];
                                                                   [self.previewImageView setImage:image];
+                                                                  
+                                                                  if ( self.fastUpload ) {
+                                                                      
+                                                                      [self uploadImage:image];
+                                                                  }
                                                                   
                                                               } else {
                                                                   
@@ -1278,17 +1294,41 @@ typedef enum {
             return;
         }
         
-        NSRange beforerange = self.textView.selectedRange;
-        
-        [self.textView setText:[NSString stringWithFormat:@"%@ %@ ", self.textView.text, imageURL]];
-        [self.textView setText:[self.textView.text replaceWord:@"  " replacedWord:@" "]];
-        [self.textView becomeFirstResponder];
-        [self.textView setSelectedRange:beforerange];
-        
         if ( self.nowPlayingImageUploading ) {
             
             [self saveArtworkURL:imageURL];
         }
+        
+        [self.textView becomeFirstResponder];
+        
+        NSRange beforeRange = NSMakeRange(0, 0);
+        if ( [self.textView.text isEmpty] ) {
+        
+            //何も入力されてない→カーソル位置先頭
+            
+        } else {
+            
+            NSArray *URLs = [self.textView.text URLs];
+            NSString *text = self.textView.text;
+            for ( NSString *URL in URLs ) {
+                
+                text = [text deleteWord:URL];
+            }
+            
+            if ( [[text deleteWhiteSpace] length] == 0 ) {
+                
+                //URLと空白文字しかない→カーソル位置先頭
+                
+            } else {
+                
+                //その他→カーソル位置維持
+                beforeRange = self.textView.selectedRange;
+            }
+        }
+        
+        [self.textView setText:[[NSString stringWithFormat:@"%@ %@ ", self.textView.text, imageURL] replaceWord:@"  "
+                                                                                                   replacedWord:@" "]];
+        [self.textView setSelectedRange:beforeRange];
     }
 }
 
@@ -1539,7 +1579,7 @@ typedef enum {
                                    cancelButtonTitle:@"キャンセル"
                               destructiveButtonTitle:nil
                                    otherButtonTitles:
-                 @"カメラロール", @"カメラロール(即)", @"カメラ", @"カメラ(即)", @"カメラロールの最新", nil];
+                 @"カメラロール", @"カメラロール(即)", @"カメラ", @"カメラ(即)", @"カメラロールの最新", @"カメラロールの最新(即)", nil];
             [sheet setTag:ActionSheetTypeImagePicker];
     }
     

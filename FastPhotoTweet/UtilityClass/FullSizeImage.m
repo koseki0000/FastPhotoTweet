@@ -30,58 +30,10 @@
                          [lastPath substringWithRange:NSMakeRange(1,1)],
                          [lastPath substringWithRange:NSMakeRange(2,1)],
                          lastPath];
-            
-        }else if ( [urlString hasPrefix:@"http://lockerz.com/"] ) {
-            
-            urlString = [NSString stringWithFormat:@"http://api.plixi.com/api/tpapi.svc/imagefromurl?size=big&url=%@", urlString];
-            
+        
         }else if ([urlString hasPrefix:@"http://p.twipple.jp/"]) {
             
             urlString = [NSString stringWithFormat:@"http://p.twpl.jp/show/orig/%@", [urlString lastPathComponent]];
-            
-        }else if ( [urlString hasPrefix:@"http://yfrog.com/"] ) {
-            
-            NSString *yfrogReqUrl = [NSString stringWithFormat:@"http://yfrog.com/api/xmlInfo?path=%@", [urlString lastPathComponent]];
-            
-            NSURLRequest *request = [NSURLRequest requestWithURL:[NSURL URLWithString:yfrogReqUrl]];
-            NSError *error = nil;
-            NSData *response = [NSURLConnection sendSynchronousRequest:request
-                                                     returningResponse:nil
-                                                                 error:&error];
-            
-            NSString *xmlString = [[[NSString alloc] initWithData:response encoding:NSUTF8StringEncoding] autorelease];
-            
-            if ( xmlString == nil ) return urlString;
-            
-            
-            
-            NSRegularExpression *regexp = [NSRegularExpression regularExpressionWithPattern:@"<image_link>.*</image_link>"
-                                                                                    options:0
-                                                                                      error:&error];
-            
-            NSTextCheckingResult *match = [regexp firstMatchInString:xmlString
-                                                             options:0
-                                                               range:NSMakeRange(0, xmlString.length)];
-            
-            if ( match.numberOfRanges != 0 ) {
-                
-                NSMutableString *tempString = [NSMutableString stringWithString:[xmlString substringWithRange:[match rangeAtIndex:0]]];
-                
-                if ( tempString != nil ) {
-                    
-                    [tempString replaceOccurrencesOfString:@"<image_link>"
-                                                withString:@""
-                                                   options:0
-                                                     range:NSMakeRange(0, tempString.length)];
-                    
-                    [tempString replaceOccurrencesOfString:@"</image_link>"
-                                                withString:@""
-                                                   options:0
-                                                     range:NSMakeRange(0, tempString.length)];
-                    
-                    urlString = [NSString stringWithString:tempString];
-                }
-            }
             
         }else if ( [urlString hasPrefix:@"http://ow.ly/i/"] ) {
             
@@ -262,11 +214,7 @@
     
     if ( [urlString hasPrefix:@"http://twitvid.com/"] || [urlString hasPrefix:@"http://www.twitvid.com/"] ) {
         result = YES;
-    }else if ( [urlString hasPrefix:@"http://lockerz.com/"] ) {
-        result = YES;
     }else if ([urlString hasPrefix:@"http://p.twipple.jp/"]) {
-        result = YES;
-    }else if ( [urlString hasPrefix:@"http://yfrog.com/"] ) {
         result = YES;
     }else if ( [urlString hasPrefix:@"http://ow.ly/i/"] ) {
         result = YES;
@@ -305,11 +253,7 @@
     
     if ( [urlString hasPrefix:@"http://twitvid.com/"] || [urlString hasPrefix:@"http://www.twitvid.com/"] ) {
         result = YES;
-    }else if ( [urlString hasPrefix:@"http://lockerz.com/"] ) {
-        result = YES;
     }else if ([urlString hasPrefix:@"http://p.twipple.jp/"]) {
-        result = YES;
-    }else if ( [urlString hasPrefix:@"http://yfrog.com/"] ) {
         result = YES;
     }else if ( [urlString hasPrefix:@"http://ow.ly/i/"] ) {
         result = YES;

@@ -63,6 +63,17 @@
 #define CELL_WIDTH 264.0f
 
 typedef enum {
+    TweetsTypeNone,
+    TweetsTypeHomeTimeline,
+    TweetsTypeMentions,
+    TweetsTypeFavorites,
+    TweetsTypeList,
+    TweetsTypeSearch,
+    TweetsTypeUserTimeline,
+    TweetsTypeInReplyTo
+}TweetsType;
+
+typedef enum {
     TimelineSegmentTimeline,
     TimelineSegmentMentions,
     TimelineSegmentFavorites,
@@ -136,6 +147,7 @@ typedef enum {
 @property (nonatomic) BOOL addTweetStopMode;
 @property (nonatomic) BOOL listSelect;
 @property (nonatomic) NSUInteger longPressControl;
+@property (nonatomic) TweetsType tweetsType;
 
 @property (strong, nonatomic) NSMutableArray *userStreamQueue;
 @property (strong, nonatomic) NSTimer *userStreamTimer;
@@ -250,7 +262,8 @@ typedef enum {
         
         [Share manager];
         
-        self.currentTweets = [NSMutableArray array];
+        [self setCurrentTweets:[NSMutableArray array]];
+        [self setTweetsType:TweetsTypeNone];
         
         //アイコン保存用ディレクトリ確認
         BOOL isDir = NO;
@@ -662,6 +675,7 @@ typedef enum {
                         forKey:@"since_id"];
     }
     
+    [self setTweetsType:TweetsTypeHomeTimeline];
     [FPTRequest requestWithGetType:FPTGetRequestTypeHomeTimeline
                         parameters:parameters];
 }
@@ -690,6 +704,7 @@ typedef enum {
     [parameters setObject:@"1"
                    forKey:@"include_rts"];
     
+    [self setTweetsType:TweetsTypeUserTimeline];
     [FPTRequest requestWithGetType:FPTGetRequestTypeUserTimeline
                         parameters:parameters];
 }
@@ -712,6 +727,7 @@ typedef enum {
     [parameters setObject:@"1"
                    forKey:@"include_entities"];
     
+    [self setTweetsType:TweetsTypeMentions];
     [FPTRequest requestWithGetType:FPTGetRequestTypeMentions
                         parameters:parameters];
 }
@@ -734,6 +750,7 @@ typedef enum {
     [parameters setObject:@"1"
                    forKey:@"include_entities"];
     
+    [self setTweetsType:TweetsTypeFavorites];
     [FPTRequest requestWithGetType:FPTGetRequestTypeFavorites
                         parameters:parameters];
 }
@@ -762,6 +779,7 @@ typedef enum {
     [parameters setObject:@"ja"
                    forKey:@"lang"];
     
+    [self setTweetsType:TweetsTypeSearch];
     [FPTRequest requestWithGetType:FPTGetRequestTypeSearch
                         parameters:parameters];
 }
@@ -822,6 +840,7 @@ typedef enum {
                        forKey:TIMELINE_LIST_MODE];
     }
     
+    [self setTweetsType:TweetsTypeList];
     [FPTRequest requestWithGetType:FPTGetRequestTypeList
                         parameters:parameters];
 }
@@ -830,6 +849,11 @@ typedef enum {
 - (oneway void)receiveHomeTimeline:(NSNotification *)notification {
     
     NSLog(@"%s", __func__);
+    
+    if ( self.tweetsType != TweetsTypeHomeTimeline ) {
+        
+        return;
+    }
     
     NSString *requestUserName = notification.userInfo[REQUEST_USER_NAME];
     
@@ -908,6 +932,11 @@ typedef enum {
     
     NSLog(@"%s", __func__);
     
+    if ( self.tweetsType != TweetsTypeUserTimeline ) {
+        
+        return;
+    }
+    
     NSString *requestUserName = notification.userInfo[REQUEST_USER_NAME];
     
     if ( [requestUserName isEqualToString:[TWAccounts currentAccountName]] ) {
@@ -927,6 +956,11 @@ typedef enum {
     
     NSLog(@"%s", __func__);
     
+    if ( self.tweetsType != TweetsTypeMentions ) {
+        
+        return;
+    }
+    
     NSString *requestUserName = notification.userInfo[REQUEST_USER_NAME];
     
     if ( self.segment.selectedSegmentIndex == TimelineSegmentMentions &&
@@ -945,6 +979,11 @@ typedef enum {
     
     NSLog(@"%s", __func__);
     
+    if ( self.tweetsType != TweetsTypeFavorites ) {
+        
+        return;
+    }
+    
     NSString *requestUserName = notification.userInfo[REQUEST_USER_NAME];
     
     if ( self.segment.selectedSegmentIndex == TimelineSegmentFavorites &&
@@ -962,6 +1001,11 @@ typedef enum {
 - (oneway void)receiveSearch:(NSNotification *)notification {
     
     NSLog(@"%s", __func__);
+    
+    if ( self.tweetsType != TweetsTypeSearch ) {
+        
+        return;
+    }
     
     NSString *requestUserName = notification.userInfo[REQUEST_USER_NAME];
     
@@ -992,6 +1036,11 @@ typedef enum {
 }
 
 - (oneway void)receiveList:(NSNotification *)notification {
+    
+    if ( self.tweetsType != TweetsTypeList ) {
+        
+        return;
+    }
     
     NSString *requestUserName = notification.userInfo[REQUEST_USER_NAME];
     
@@ -1108,6 +1157,7 @@ typedef enum {
     
     [self.grayView forceEnd];
     [ActivityIndicator off];
+    [self.refreshControl endRefreshing];
 }
 
 - (void)createInReplyToChain:(TWTweet *)tweet {
@@ -1156,6 +1206,11 @@ typedef enum {
             
         } else {
             
+            if ( self.tweetsType != TweetsTypeInReplyTo ) {
+                
+                return;
+            }
+            
             [self setOtherTweetsMode];
             [self setCurrentTweets:self.otherTweets];
             [self.timeline reloadData];
@@ -1178,6 +1233,15 @@ typedef enum {
 #pragma mark - PullDownRefresh
 
 - (void)refreshOccured:(id)sender {
+    
+    if ( self.tweetsType == TweetsTypeUserTimeline ||
+         self.tweetsType == TweetsTypeSearch ||
+         self.tweetsType == TweetsTypeInReplyTo ||
+         self.tweetsType == TweetsTypeList ) {
+        
+        [self.refreshControl endRefreshing];
+        return;
+    }
     
     if ( !self.searchStream ) {
      
@@ -1421,6 +1485,7 @@ typedef enum {
             
             [self closeStream];
             [self.currentTweets removeAllObjects];
+            [self setTweetsType:TweetsTypeNone];
             [self setCurrentTweets:nil];
             [self setCurrentTweets:BLANK_M_ARRAY];
             [TWTweets saveCurrentTimeline:self.currentTweets];
@@ -1745,20 +1810,27 @@ typedef enum {
 
 - (void)reOpenStream {
     
-    [self closeStream];
-    
-    NSLog(@"%s", __func__);
-    
-    DISPATCH_AFTER(10.0) ^{
-     
-        NSLog(@"Connection ReStart");
+    if ( self.searchStream ) {
         
-        if ( [InternetConnection enable] ) {
+        [self closeSearchStream];
+        
+    } else {
+     
+        [self closeStream];
+        
+        NSLog(@"%s", __func__);
+        
+        DISPATCH_AFTER(10.0) ^{
             
-            [self addTaskNotification:@"Timeline再読み込み"];
-            [self pushReloadButton];
-        }
-    });
+            NSLog(@"Connection ReStart");
+            
+            if ( [InternetConnection enable] ) {
+                
+                [self addTaskNotification:@"Timeline再読み込み"];
+                [self pushReloadButton];
+            }
+        });
+    }
 }
 
 - (void)startUserStreamQueue {
@@ -2023,7 +2095,7 @@ typedef enum {
     if ( [self.userStreamQueue count] != 0 ) {
         
         if ( !self.addTweetStopMode ) {
-         
+        
             TWTweet *addTweet = self.userStreamQueue[0];
             [self searchStreamReceiveTweet:addTweet];
             [self.userStreamQueue removeObjectAtIndex:0];
@@ -2160,6 +2232,8 @@ typedef enum {
     NSLog(@"didReceiveResponse:%d, %lld", httpResponse.statusCode, response.expectedContentLength);
     
     if ( httpResponse.statusCode == 200 ) {
+        
+        [self setAddTweetStopMode:NO];
         
         if ( !self.searchStream ) {
         
