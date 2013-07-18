@@ -253,7 +253,8 @@
                                                                                        userInfo:
                                                             @{
                                                             @"Text" : screenName,
-                                                            @"InReplyToID" : inReplyToId
+                                                            @"InReplyToID" : inReplyToId,
+                                                            @"InsertToTop" : @YES
                                                             }];
                             [[NSNotificationCenter defaultCenter] postNotification:notification];
                             APP_DELEGATE.tabBarController.selectedIndex = 0;

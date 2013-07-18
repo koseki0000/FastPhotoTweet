@@ -45,6 +45,9 @@ static TWTweets *sharedObject = nil;
             
             sharedObject.timelines = [NSMutableDictionary dictionary];
             sharedObject.sinceIDs = [NSMutableDictionary dictionary];
+            sharedObject.mentions = [NSMutableDictionary dictionary];
+            sharedObject.favotites = [NSMutableDictionary dictionary];
+            
             sharedObject.sendedTweets = [NSMutableArray array];
             sharedObject.text = @"";
             sharedObject.inReplyToID = @"";
@@ -57,6 +60,8 @@ static TWTweets *sharedObject = nil;
                 
                 [sharedObject.timelines setObject:[NSMutableArray array] forKey:account.username];
                 [sharedObject.sinceIDs setObject:[NSDictionary dictionary] forKey:account.username];
+                [sharedObject.mentions setObject:[NSMutableArray array] forKey:account.username];
+                [sharedObject.favotites setObject:[NSMutableArray array] forKey:account.username];
             }
         });
         
@@ -106,9 +111,31 @@ static TWTweets *sharedObject = nil;
                                      forKey:[TWAccounts currentAccountName]];
 }
 
++ (void)saveCurrentMentions:(NSMutableArray *)currentMentions {
+    
+    [[TWTweets manager].mentions setObject:currentMentions
+                                    forKey:[TWAccounts currentAccountName]];
+}
+
++ (void)saveCurrentFavorites:(NSMutableArray *)currentFavorites {
+    
+    [[TWTweets manager].favotites setObject:currentFavorites
+                                    forKey:[TWAccounts currentAccountName]];
+}
+
 + (NSMutableArray *)currentTimeline {
     
     return [[TWTweets manager].timelines objectForKey:[TWAccounts currentAccountName]];
+}
+
++ (NSMutableArray *)currentMentions {
+    
+    return [[TWTweets manager].mentions objectForKey:[TWAccounts currentAccountName]];
+}
+
++ (NSMutableArray *)currentFavorites {
+    
+    return [[TWTweets manager].favotites objectForKey:[TWAccounts currentAccountName]];
 }
 
 + (NSMutableArray *)saveCurrentTimelineAndChangeAccount:(NSMutableArray *)currentTimeline forChangeAccountName:(NSString *)accontName {

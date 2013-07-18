@@ -9,7 +9,6 @@
 //////// ARC ENABLED ////////
 /////////////////////////////
 
-#import <QuartzCore/CALayer.h>
 #import <Twitter/Twitter.h>
 #import <Accounts/Accounts.h>
 #import <Social/Social.h>
@@ -40,7 +39,6 @@
 #import "TWTwitterHeader.h"
 #import "TWTweets.h"
 #import "ListViewController.h"
-#import "IconButton.h"
 #import "SwipeShiftTextField.h"
 #import "TWTweetUtility.h"
 #import "ActivityGrayView.h"
@@ -59,6 +57,7 @@
 #define PICKER_BAR_ITEM @[self.pickerBarCancelButton, self.flexibleSpace, self.pickerBarDoneButton]
 #define TOP_BAR_ITEM_DEFAULT @[self.actionButton, self.flexibleSpace, self.topBarUSButton, self.flexibleSpace, self.topBarIcon, self.flexibleSpace, self.topBarReloadButton, self.flexibleSpace, self.composeButton]
 #define TOP_BAR_ITEM_OTHER @[self.flexibleSpace, self.closeButton]
+#define TOP_BAR_ITEM_SEARCH @[self.actionButton, self.flexibleSpace, self.closeButton]
 
 #define CELL_WIDTH 264.0f
 
@@ -139,6 +138,7 @@ typedef enum {
 
 @property (strong, nonatomic) NSURLConnection *connection;
 @property (strong, atomic) NSMutableArray *currentTweets;
+@property (copy, nonatomic) NSString *currentSearchWord;
 @property (strong, nonatomic) TWTweet *selectedTweet;
 @property (nonatomic) BOOL loading;
 @property (nonatomic) BOOL userStream;
@@ -160,6 +160,7 @@ typedef enum {
 - (oneway void)requestHomeTimeline;
 - (oneway void)requestMentions;
 - (oneway void)requestFavorites;
+- (oneway void)requestSearch:(NSString *)searchWord;
 - (oneway void)requestTweet:(NSString *)tweetID;
 - (oneway void)requestList:(NSString *)listID;
 - (void)createInReplyToChain:(TWTweet *)tweet;
@@ -233,6 +234,7 @@ typedef enum {
 - (void)createSearchAlert:(NSString *)title alertType:(TextFieldType)alertType;
 - (void)getMyAccountIcon;
 - (void)setOtherTweetsMode;
+- (void)setSearchTweetsMode;
 
 - (void)showAPILimit;
 - (void)showListView;
@@ -764,6 +766,8 @@ typedef enum {
     
     [self.grayView start];
     
+    [self setCurrentSearchWord:searchWord];
+    
     NSMutableDictionary *parameters = [@{} mutableCopy];
     
     //サーチワード
@@ -838,9 +842,13 @@ typedef enum {
         
         [parameters setObject:@"YES"
                        forKey:TIMELINE_LIST_MODE];
+        [self setTweetsType:TweetsTypeHomeTimeline];
+        
+    } else {
+        
+        [self setTweetsType:TweetsTypeList];
     }
-    
-    [self setTweetsType:TweetsTypeList];
+
     [FPTRequest requestWithGetType:FPTGetRequestTypeList
                         parameters:parameters];
 }
@@ -969,6 +977,7 @@ typedef enum {
         NSMutableArray *receiveTweets = notification.userInfo[RESPONSE_DATA];
         [self getIconWithTweetArray:receiveTweets];
         [self setCurrentTweets:receiveTweets];
+        [TWTweets saveCurrentMentions:receiveTweets];
         [self.timeline reloadData];
         [self.grayView end];
         [self.refreshControl endRefreshing];
@@ -992,6 +1001,7 @@ typedef enum {
         NSMutableArray *receiveTweets = notification.userInfo[RESPONSE_DATA];
         [self getIconWithTweetArray:receiveTweets];
         [self setCurrentTweets:receiveTweets];
+        [TWTweets saveCurrentFavorites:receiveTweets];
         [self.timeline reloadData];
         [self.grayView end];
         [self.refreshControl endRefreshing];
@@ -1011,7 +1021,7 @@ typedef enum {
     
     if ( [requestUserName isEqualToString:[TWAccounts currentAccountName]] ) {
         
-        [self setOtherTweetsMode];
+        [self setSearchTweetsMode];
         
         NSMutableArray *receiveTweets = notification.userInfo[RESPONSE_DATA];
         [self getIconWithTweetArray:receiveTweets];
@@ -1206,11 +1216,6 @@ typedef enum {
             
         } else {
             
-            if ( self.tweetsType != TweetsTypeInReplyTo ) {
-                
-                return;
-            }
-            
             [self setOtherTweetsMode];
             [self setCurrentTweets:self.otherTweets];
             [self.timeline reloadData];
@@ -1278,17 +1283,35 @@ typedef enum {
     
     NSLog(@"%s", __func__);
     
-    UIActionSheet *sheet = [[UIActionSheet alloc]
-                            initWithTitle:@"外部サービスやユーザー情報を開く"
-                            delegate:self
-                            cancelButtonTitle:@"Cancel"
-                            destructiveButtonTitle:nil
-                            otherButtonTitles:
-                            @"Twilog", @"TwilogSearch", @"favstar", @"Twitpic",
-                            @"UserTimeline", @"TwitterSearch", @"TwitterSearch(Stream)",
-                            @"API Limitを確認", nil];
-    [sheet setTag:ActionMenuTypeService];
-    [sheet showInView:self.tabBarController.view];
+    if ( self.tweetsType == TweetsTypeSearch ) {
+        
+        NSString *searchURL = [NSString stringWithFormat:@"https://twitter.com/search?q=%@", [CreateSearchURL encodeWord:self.currentSearchWord
+                                                                                                                encoding:kCFStringEncodingUTF8]];
+        NSString *text = [NSString stringWithFormat:@"\"Twitter / 検索 - %@\" %@ ", self.currentSearchWord, searchURL];
+        NSNotification *notification = [NSNotification notificationWithName:@"SetTweetViewText"
+                                                                     object:nil
+                                                                   userInfo:@{@"Text":text}];
+        [[NSNotificationCenter defaultCenter] postNotification:notification];
+        
+        dispatch_async(dispatch_get_main_queue(), ^{
+            
+            self.tabBarController.selectedIndex = 0;
+        });
+        
+    } else {
+     
+        UIActionSheet *sheet = [[UIActionSheet alloc]
+                                initWithTitle:@"外部サービスやユーザー情報を開く"
+                                delegate:self
+                                cancelButtonTitle:@"Cancel"
+                                destructiveButtonTitle:nil
+                                otherButtonTitles:
+                                @"Twilog", @"TwilogSearch", @"favstar", @"Twitpic",
+                                @"UserTimeline", @"TwitterSearch", @"TwitterSearch(Stream)",
+                                @"API Limitを確認", nil];
+        [sheet setTag:ActionMenuTypeService];
+        [sheet showInView:self.tabBarController.view];
+    }
 }
 
 - (void)pushTopBarUSButton {
@@ -1376,6 +1399,8 @@ typedef enum {
     }
     
     [self setDefaultTweetsMode];
+    [self setCurrentSearchWord:@""];
+    [self setTweetsType:TweetsTypeHomeTimeline];
     [self.segment setSelectedSegmentIndex:TimelineSegmentTimeline];
     [USER_STREAM_BUTTON setEnabled:YES];
     [self setCurrentTweets:[TWTweets currentTimeline]];
@@ -1731,6 +1756,8 @@ typedef enum {
             
             [self setListSelect:NO];
             [self setAddTweetStopMode:YES];
+            [self setCurrentTweets:[TWTweets currentMentions]];
+            [self.timeline reloadData];
             [self requestMentions];
             break;
             
@@ -1738,6 +1765,8 @@ typedef enum {
             
             [self setListSelect:NO];
             [self setAddTweetStopMode:YES];
+            [self setCurrentTweets:[TWTweets currentFavorites]];
+            [self.timeline reloadData];
             [self requestFavorites];
             break;
         
@@ -2573,6 +2602,7 @@ typedef enum {
                    forKey:@"UseAccount"];
             [self setCurrentTweets:[TWTweets currentTimeline]];
             [self.timeline reloadData];
+            [self setTweetsType:TweetsTypeHomeTimeline];
             [self.segment setSelectedSegmentIndex:0];
             [self requestHomeTimeline];
         }
@@ -2607,6 +2637,7 @@ typedef enum {
                forKey:@"UseAccount"];
         [self setCurrentTweets:[TWTweets currentTimeline]];
         [self.timeline reloadData];
+        [self setTweetsType:TweetsTypeHomeTimeline];
         [self.segment setSelectedSegmentIndex:0];
         [self requestHomeTimeline];
     }
@@ -2714,7 +2745,8 @@ typedef enum {
                                                                        userInfo:
                                             @{
                                             @"Text" : screenName,
-                                            @"InReplyToID" : tweetID
+                                            @"InReplyToID" : tweetID,
+                                            @"InsertToTop" : @YES
                                             }];
             [[NSNotificationCenter defaultCenter] postNotification:notification];
             [self.tabBarController setSelectedIndex:0];
@@ -3201,6 +3233,13 @@ typedef enum {
     
     if ( self.pickerVisible ) [self hidePicker];
     [self.topBar setItems:TOP_BAR_ITEM_OTHER];
+    [self setAddTweetStopMode:YES];
+}
+
+- (void)setSearchTweetsMode {
+    
+    if ( self.pickerVisible ) [self hidePicker];
+    [self.topBar setItems:TOP_BAR_ITEM_SEARCH];
     [self setAddTweetStopMode:YES];
 }
 

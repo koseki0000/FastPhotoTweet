@@ -163,15 +163,6 @@ typedef enum {
 
     [super viewDidLoad];
 
-    ACAccountStore *accountStore = [[ACAccountStore alloc] init];
-    ACAccountType *accountType = [accountStore accountTypeWithAccountTypeIdentifier:ACAccountTypeIdentifierTwitter];
-    
-    [accountStore requestAccessToAccountsWithType:accountType
-                                          options:nil
-                                       completion:^(BOOL granted,
-                                                    NSError *error) {
-                                       }];
-    
     CheckAppVersion *checker = [[CheckAppVersion alloc] init];
     [self setChecker:checker];
     [checker versionInfoURL:@"http://fpt.ktysne.info/latest_version_info.txt"
@@ -181,12 +172,61 @@ typedef enum {
     [self loadSettings];
     [self addNotificationObservers];
     
+    ACAccountStore *accountStore = [[ACAccountStore alloc] init];
+    ACAccountType *accountType = [accountStore accountTypeWithAccountTypeIdentifier:ACAccountTypeIdentifierTwitter];
+    
+    [accountStore requestAccessToAccountsWithType:accountType
+                                          options:nil
+                                       completion:^(BOOL granted,
+                                                    NSError *error) {
+                                           
+                                           dispatch_sync(dispatch_get_main_queue(), ^{
+                                               
+                                               BOOL needHide = NO;
+                                               
+                                               if ( granted ) {
+                                                   
+                                                   if ( [TWAccounts accountCount] == 0 ) {
+                                                       
+                                                       [ShowAlert error:@"Twitterアカウントが見つかりませんでした。"];
+                                                       needHide = YES;
+                                                   }
+                                                   
+                                               } else {
+                                                   
+                                                   [ShowAlert error:@"Twitterのアカウントへのアクセスが拒否されました。"];
+                                                   needHide = YES;
+                                               }
+                                               
+                                               if ( needHide ) {
+                                                   
+                                                   for ( UIBarButtonItem *view in self.topBar.items ) {
+                                                       
+                                                       [view setEnabled:NO];
+                                                   }
+                                                   
+                                                   for ( UIBarButtonItem *view in self.bottomBar.items ) {
+                                                       
+                                                       [view setEnabled:NO];
+                                                   }
+                                                   
+                                                   [self.textView setUserInteractionEnabled:NO];
+                                                   [self.previewImageView setUserInteractionEnabled:NO];
+                                                   [self.tabBarController.tabBar setUserInteractionEnabled:NO];
+                                               }
+                                           });
+                                       }];
+    
     double delayInSeconds = 0.1;
     dispatch_time_t popTime = dispatch_time(DISPATCH_TIME_NOW, (int64_t)(delayInSeconds * NSEC_PER_SEC));
     dispatch_after(popTime, dispatch_get_main_queue(), ^(void){
        
         [self showInfomation];
-        [self.textView becomeFirstResponder];
+        
+        if ( [self.textView isUserInteractionEnabled] ) {
+         
+            [self.textView becomeFirstResponder];
+        }
     });
 }
 
@@ -635,7 +675,7 @@ typedef enum {
         if ( [[USER_DEFAULTS dictionaryForKey:@"Information"] valueForKey:APP_VERSION] == 0 ) {
             
             [ShowAlert title:[NSString stringWithFormat:@"FastPhotoTweet %@", APP_VERSION]
-                     message:@"・起動時の処理を追加\n・画像アップロード時のオプションを追加\n・Timeline表示の問題を修正\n・画像取得の修正\n・その他細かな修正"];
+                     message:@"・細かな動作修正"];
             
             information = [[NSMutableDictionary alloc] initWithDictionary:[USER_DEFAULTS dictionaryForKey:@"Information"]];
             [information setValue:[NSNumber numberWithInt:1] forKey:APP_VERSION];
@@ -1121,10 +1161,20 @@ typedef enum {
     NSDictionary *userInfo = notification.userInfo;
     if ( [userInfo isNotEmpty] ) {
      
+        NSNumber *insertToTop = userInfo[@"InsertToTop"];
         NSString *text = userInfo[@"Text"];
         if ( text ) {
-         
-            [self.textView setText:[NSString stringWithFormat:@"%@%@", self.textView.text, text]];
+        
+            if ( insertToTop &&
+                [insertToTop boolValue] ) {
+                
+                [self.textView setText:[NSString stringWithFormat:@"%@%@", text, self.textView.text]];
+                
+            } else {
+            
+                [self.textView setText:[NSString stringWithFormat:@"%@%@", self.textView.text, text]];
+            }
+            
             [self.textView becomeFirstResponder];
         }
         
@@ -1140,8 +1190,18 @@ typedef enum {
 
 - (void)pboardNotification:(NSNotification *)notification {
     
-    [self.tabBarController setSelectedIndex:0];
-    [self pushBrowserButton:[notification.userInfo objectForKey:@"pboardURL"]];
+    double delayInSeconds = 0.0;
+    if ( self.tabBarController.selectedIndex != 0 ) {
+     
+        delayInSeconds = 0.1;
+        [self.tabBarController setSelectedIndex:0];
+    }
+    
+    dispatch_time_t popTime = dispatch_time(DISPATCH_TIME_NOW, (int64_t)(delayInSeconds * NSEC_PER_SEC));
+    dispatch_after(popTime, dispatch_get_main_queue(), ^(void){
+       
+        [self pushBrowserButton:[notification.userInfo objectForKey:@"pboardURL"]];
+    });
 }
 
 - (void)openImageSource:(NSInteger)buttonIndex {
@@ -1294,17 +1354,16 @@ typedef enum {
             return;
         }
         
-        if ( self.nowPlayingImageUploading ) {
-            
-            [self saveArtworkURL:imageURL];
-        }
-        
         [self.textView becomeFirstResponder];
         
         NSRange beforeRange = NSMakeRange(0, 0);
         if ( [self.textView.text isEmpty] ) {
         
             //何も入力されてない→カーソル位置先頭
+            
+        } else if ( self.nowPlayingImageUploading ) {
+        
+            //NowPlaying→カーソル位置先頭
             
         } else {
             
@@ -1329,6 +1388,11 @@ typedef enum {
         [self.textView setText:[[NSString stringWithFormat:@"%@ %@ ", self.textView.text, imageURL] replaceWord:@"  "
                                                                                                    replacedWord:@" "]];
         [self.textView setSelectedRange:beforeRange];
+        
+        if ( self.nowPlayingImageUploading ) {
+            
+            [self saveArtworkURL:imageURL];
+        }
     }
 }
 
@@ -1711,6 +1775,7 @@ typedef enum {
         
         [self.textView setText:[NSString stringWithFormat:@"%@%@", self.textView.text, nowPlayingText]];
         [self countText];
+        [self.textView setSelectedRange:NSMakeRange(0, 0)];
         
     } else {
         

@@ -155,8 +155,9 @@
         return;
     }
     
-    if ( APP_DELEGATE.pcUaMode ||
-        [EmptyCheck string:APP_DELEGATE.reOpenUrl] ) {
+    if (( APP_DELEGATE.pcUaMode ||
+         [EmptyCheck string:APP_DELEGATE.reOpenUrl] ) &&
+          APP_DELEGATE.tabBarController.selectedIndex != 1 ) {
         
         [_wv loadRequestWithString:APP_DELEGATE.reOpenUrl];
         
@@ -1060,9 +1061,9 @@
                     NSASCIIStringEncoding           // ASCII
                 };
                 
-                int max = sizeof( encodingList ) / sizeof( encodingList[0] );
+                NSInteger max = sizeof( encodingList ) / sizeof( encodingList[0] );
                 
-                for ( int i = 0; i < max; i++ ) {
+                for ( NSInteger i = 0; i < max; i++ ) {
                     
                     sourceCode = [[NSString alloc] initWithData:wHttpRequest.responseData
                                                        encoding:encodingList[i]];

@@ -183,7 +183,8 @@
 
 - (void)longPressImageView:(UILongPressGestureRecognizer *)sender {
     
-    if ( self.imageView.image != nil && !self.saveStarted ) {
+    if ( self.imageView.image != nil &&
+         !self.saveStarted ) {
         
         self.saveStarted = YES;
         self.afterClose = YES;
@@ -269,7 +270,6 @@
                                                  self.frame.size.height / 2.0f + 2.0f,
                                                  self.frame.size.width,
                                                  2.0f);
-                         return;
                      }
                      completion:^ (BOOL completion) {
                          
@@ -433,18 +433,15 @@
     [sender setTranslation:CGPointZero inView:self.imageView];
 }
 
-
 - (void)dealloc {
     
-    NSLog(@"%s", __func__);
-    
-    [self setImageName:nil];
-    [self setImageUrl:nil];
-    [self setConnection:nil];
-    [self setReceivedData:nil];
-    [self setImageView:nil];
-    [self setProgressBar:nil];
-    [self setActivityIndicator:nil];
+    [_imageName release];
+    [_imageUrl release];
+    [_connection release];
+    [_receivedData release];
+    [_imageView release];
+    [_progressBar release];
+    [_activityIndicator release];
     
     [super dealloc];
 }

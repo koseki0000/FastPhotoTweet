@@ -12,7 +12,8 @@
 
 - (id)appendToTop:(id)unitArray returnMutable:(BOOL)returnMutable {
     
-    if ( [self isNil] || [unitArray isNil] ) return self;
+    if ( unitArray == nil ||
+        [unitArray count] == 0 ) return self;
     
     if ( [NSArray checkClass:unitArray] ) {
         
@@ -21,23 +22,13 @@
         NSMutableArray *tempArray = [NSMutableArray arrayWithArray:self];
         __block __weak NSMutableArray *wTempArray = tempArray;
         
-//        dispatch_queue_t semaphoreQueue = dispatch_get_global_queue(DISPATCH_QUEUE_PRIORITY_DEFAULT, 0);
-//        dispatch_semaphore_t semaphore = dispatch_semaphore_create(1);
-//        
-//        dispatch_sync(semaphoreQueue, ^{
-//            
-//            dispatch_semaphore_wait(semaphore, DISPATCH_TIME_FOREVER);
-        
-            int i = 0;
-            for ( id item in unitArray ) {
-                
-                [wTempArray insertObject:item
-                                 atIndex:i];
-                i++;
-            }
+        NSInteger i = 0;
+        for ( id item in unitArray ) {
             
-//            dispatch_semaphore_signal(semaphore);
-//        });
+            [wTempArray insertObject:item
+                             atIndex:i];
+            i++;
+        }
         
         return returnMutable ? tempArray : [NSArray arrayWithArray:tempArray];
     }
@@ -47,7 +38,8 @@
 
 - (id)appendToBottom:(id)unitArray returnMutable:(BOOL)returnMutable {
     
-    if ( [self isNil] || [unitArray isNil] ) return self;
+    if ( unitArray == nil ||
+        [unitArray count] == 0 ) return self;
     
     if ( [NSArray checkClass:unitArray] ) {
         
@@ -56,20 +48,10 @@
         NSMutableArray *tempArray = [NSMutableArray arrayWithArray:self];
         __block __weak NSMutableArray *wTempArray = tempArray;
         
-//        dispatch_queue_t semaphoreQueue = dispatch_get_global_queue(DISPATCH_QUEUE_PRIORITY_DEFAULT, 0);
-//        dispatch_semaphore_t semaphore = dispatch_semaphore_create(1);
-//        
-//        dispatch_sync(semaphoreQueue, ^{
-//            
-//            dispatch_semaphore_wait(semaphore, DISPATCH_TIME_FOREVER);
-        
-            for ( id item in unitArray ) {
-                
-                [wTempArray addObject:item];
-            }
+        for ( id item in unitArray ) {
             
-//            dispatch_semaphore_signal(semaphore);
-//        });
+            [wTempArray addObject:item];
+        }
         
         return returnMutable ? tempArray : [NSArray arrayWithArray:tempArray];
     }
@@ -79,7 +61,8 @@
 
 - (id)appendOnlyNewToTop:(id)unitArray returnMutable:(BOOL)returnMutable {
     
-    if ( [self isNil] || [unitArray isNil] ) return self;
+    if ( unitArray == nil ||
+        [unitArray count] == 0 ) return self;
     
     if ( [NSArray checkClass:unitArray] ) {
         
@@ -89,35 +72,25 @@
         NSMutableArray *tempArray = [NSMutableArray arrayWithArray:self];
         __block __weak NSMutableArray *wTempArray = tempArray;
         
-//        dispatch_queue_t semaphoreQueue = dispatch_get_global_queue(DISPATCH_QUEUE_PRIORITY_DEFAULT, 0);
-//        dispatch_semaphore_t semaphore = dispatch_semaphore_create(1);
-//        
-//        dispatch_sync(semaphoreQueue, ^{
-//            
-//            dispatch_semaphore_wait(semaphore, DISPATCH_TIME_FOREVER);
-        
-            int i = 0;
-            for ( id item in unitArray ) {
+        NSInteger i = 0;
+        for ( id item in unitArray ) {
+            
+            BOOL notHave = YES;
+            for ( id myItem in wself ) {
                 
-                BOOL notHave = YES;
-                for ( id myItem in wself ) {
+                if ( [myItem isEqual:item] ) {
                     
-                    if ( [myItem isEqual:item] ) {
-                     
-                        notHave = NO;
-                        break;
-                    }
-                }
-                
-                if ( notHave ) {
-                    
-                    [wTempArray insertObject:item atIndex:i];
-                    i++;
+                    notHave = NO;
+                    break;
                 }
             }
             
-//            dispatch_semaphore_signal(semaphore);
-//        });
+            if ( notHave ) {
+                
+                [wTempArray insertObject:item atIndex:i];
+                i++;
+            }
+        }
         
         return returnMutable ? tempArray : [NSArray arrayWithArray:tempArray];
     }
@@ -127,7 +100,8 @@
 
 - (id)appendOnlyNewToBottom:(id)unitArray returnMutable:(BOOL)returnMutable {
     
-    if ( [self isNil] || [unitArray isNil] ) return self;
+    if ( unitArray == nil ||
+        [unitArray count] == 0 ) return self;
     
     if ( [NSArray checkClass:unitArray] ) {
         
@@ -136,32 +110,22 @@
         __block __weak id wself = self;
         NSMutableArray *tempArray = [NSMutableArray arrayWithArray:self];
         __block __weak NSMutableArray *wTempArray = tempArray;
-        
-//        dispatch_queue_t semaphoreQueue = dispatch_get_global_queue(DISPATCH_QUEUE_PRIORITY_DEFAULT, 0);
-//        dispatch_semaphore_t semaphore = dispatch_semaphore_create(1);
-//        
-//        dispatch_sync(semaphoreQueue, ^{
-//            
-//            dispatch_semaphore_wait(semaphore, DISPATCH_TIME_FOREVER);
-        
-            for ( id item in unitArray ) {
+
+        for ( id item in unitArray ) {
+            
+            BOOL notHave = YES;
+            for ( id myItem in wself ) {
                 
-                BOOL notHave = YES;
-                for ( id myItem in wself ) {
+                if ( [myItem isEqual:item] ) {
                     
-                    if ( [myItem isEqual:item] ) {
-                        
-                        notHave = NO;
-                        break;
-                    }
+                    notHave = NO;
+                    break;
                 }
-                
-                if ( notHave ) [wTempArray addObject:item];
             }
             
-//            dispatch_semaphore_signal(semaphore);
-//        });
-        
+            if ( notHave ) [wTempArray addObject:item];
+        }
+
         return returnMutable ? tempArray : [NSArray arrayWithArray:tempArray];
     }
     
@@ -170,7 +134,8 @@
 
 - (id)appendOnlyNewToTop:(id)dictionariesArray forXPath:(NSString *)xpath separator:(NSString *)separator returnMutable:(BOOL)returnMutable {
     
-    if ( [self isNil] || [dictionariesArray isNil] ) return self;
+    if ( dictionariesArray == nil ||
+        [dictionariesArray count] == 0 ) return self;
     
     if ( [NSArray checkClass:dictionariesArray] ) {
         
@@ -180,66 +145,56 @@
         NSMutableArray *tempArray = [NSMutableArray arrayWithArray:self];
         __block __weak NSMutableArray *wTempArray = tempArray;
         
-//        dispatch_queue_t semaphoreQueue = dispatch_get_global_queue(DISPATCH_QUEUE_PRIORITY_DEFAULT, 0);
-//        dispatch_semaphore_t semaphore = dispatch_semaphore_create(1);
-//        
-//        dispatch_sync(semaphoreQueue, ^{
-//            
-//            dispatch_semaphore_wait(semaphore, DISPATCH_TIME_FOREVER);
+        BOOL isOnlyDictionary = YES;
+        for ( id item in dictionariesArray ) {
+            
+            if (!( [item isKindOfClass:[NSDictionary class]] ||
+                   [item isKindOfClass:[NSMutableDictionary class]] )) {
+                
+                isOnlyDictionary = NO;
+                break;
+            }
+        }
         
-            BOOL isOnlyDictionary = YES;
-            for ( id item in dictionariesArray ) {
-                
-                if (!( [item isKindOfClass:[NSDictionary class]] ||
-                       [item isKindOfClass:[NSMutableDictionary class]] )) {
-                    
-                    isOnlyDictionary = NO;
-                    break;
-                }
-            }
+        for ( id item in wself ) {
             
-            for ( id item in wself ) {
+            if (!( [item isKindOfClass:[NSDictionary class]] ||
+                   [item isKindOfClass:[NSMutableDictionary class]] )) {
                 
-                if (!( [item isKindOfClass:[NSDictionary class]] ||
-                       [item isKindOfClass:[NSMutableDictionary class]] )) {
-                    
-                    isOnlyDictionary = NO;
-                    break;
-                }
+                isOnlyDictionary = NO;
+                break;
             }
+        }
+        
+        if ( isOnlyDictionary ) {
             
-            if ( isOnlyDictionary ) {
-             
-                int i = 0;
-                for ( NSDictionary *item in dictionariesArray ) {
+            int i = 0;
+            for ( NSDictionary *item in dictionariesArray ) {
+                
+                BOOL notHave = YES;
+                for ( NSDictionary *myItem in wself ) {
                     
-                    BOOL notHave = YES;
-                    for ( NSDictionary *myItem in wself ) {
+                    id targetMyItem = [myItem objectForXPath:xpath separator:separator];
+                    id targetItem = [item objectForXPath:xpath separator:separator];
+                    
+                    if ( [targetMyItem isNotEmpty] &&
+                         [targetItem isNotEmpty] ) {
                         
-                        id targetMyItem = [myItem objectForXPath:xpath separator:separator];
-                        id targetItem = [item objectForXPath:xpath separator:separator];
-                        
-                        if ( [targetMyItem isNotEmpty] &&
-                             [targetItem isNotEmpty] ) {
+                        if ( [targetMyItem isEqual:targetItem] ) {
                             
-                            if ( [targetMyItem isEqual:targetItem] ) {
-                                
-                                notHave = NO;
-                                break;
-                            }
+                            notHave = NO;
+                            break;
                         }
                     }
+                }
+                
+                if ( notHave ) {
                     
-                    if ( notHave ) {
-                        
-                        [wTempArray insertObject:item atIndex:i];
-                        i++;
-                    }
+                    [wTempArray insertObject:item atIndex:i];
+                    i++;
                 }
             }
-            
-//            dispatch_semaphore_signal(semaphore);
-//        });
+        }
         
         return returnMutable ? tempArray : [NSArray arrayWithArray:tempArray];
     }
@@ -257,7 +212,8 @@
 
 - (id)appendOnlyNewTweetToTop:(id)tweetDictionariesArray returnMutable:(BOOL)returnMutable {
     
-    if ( [self isNil] || [tweetDictionariesArray isNil] ) return self;
+    if ( tweetDictionariesArray == nil ||
+        [tweetDictionariesArray count] == 0 ) return self;
     
     if ( [NSArray checkClass:tweetDictionariesArray] ) {
         
@@ -267,42 +223,32 @@
         NSMutableArray *tempArray = [NSMutableArray arrayWithArray:self];
         __block __weak NSMutableArray *wTempArray = tempArray;
         
-//        dispatch_queue_t semaphoreQueue = dispatch_get_global_queue(DISPATCH_QUEUE_PRIORITY_DEFAULT, 0);
-//        dispatch_semaphore_t semaphore = dispatch_semaphore_create(1);
-//        
-//        dispatch_sync(semaphoreQueue, ^{
-//            
-//            dispatch_semaphore_wait(semaphore, DISPATCH_TIME_FOREVER);
-        
-            int i = 0;
-            for ( TWTweet *tweet in tweetDictionariesArray ) {
+        NSInteger i = 0;
+        for ( TWTweet *tweet in tweetDictionariesArray ) {
+            
+            BOOL notHave = YES;
+            for ( TWTweet *myTweew in wself ) {
                 
-                BOOL notHave = YES;
-                for ( TWTweet *myTweew in wself ) {
+                NSString *myTweetID = myTweew.tweetID;
+                NSString *tweetID = tweet.tweetID;
+                
+                if ( [myTweetID isNotEmpty] &&
+                     [tweetID isNotEmpty] ) {
                     
-                    NSString *myTweetID = myTweew.tweetID;
-                    NSString *tweetID = tweet.tweetID;
-                    
-                    if ( [myTweetID isNotEmpty] &&
-                         [tweetID isNotEmpty] ) {
+                    if ( [myTweetID isEqualToString:tweetID] ) {
                         
-                        if ( [myTweetID isEqualToString:tweetID] ) {
-                        
-                            notHave = NO;
-                            break;
-                        }
+                        notHave = NO;
+                        break;
                     }
-                }
-                
-                if ( notHave ) {
-                    
-                    [wTempArray insertObject:tweet atIndex:i];
-                    i++;
                 }
             }
             
-//            dispatch_semaphore_signal(semaphore);
-//        });
+            if ( notHave ) {
+                
+                [wTempArray insertObject:tweet atIndex:i];
+                i++;
+            }
+        }
         
         return returnMutable ? tempArray : [NSArray arrayWithArray:tempArray];
     }
@@ -312,8 +258,7 @@
 
 + (BOOL)checkClass:(id)object {
     
-    if ( [object isKindOfClass:[NSArray class]] ||
-         [object isKindOfClass:[NSMutableArray class]] ) {
+    if ( [object isKindOfClass:[NSArray class]] ) {
         
         return YES;
     }

@@ -6,6 +6,7 @@
 //
 
 #import "NSString+WordCollect.h"
+#import "HankakuKana.h"
 
 @implementation NSString (WordCollect)
 
@@ -74,6 +75,28 @@
                                              withTemplate:@""];
     
     return [self isKindOfClass:[NSMutableString class]] ? [NSMutableString stringWithString:tempString] : [NSString stringWithString:tempString];
+}
+
+- (NSString *)changeRandomCharSize {
+    
+    NSMutableString *resultString = [NSMutableString string];
+    NSUInteger limit = [self length];
+    
+    for ( NSUInteger charIndex = 0; charIndex < limit; charIndex++ ) {
+        
+        NSString *currentChar = [self substringWithRange:NSMakeRange(charIndex, 1)];
+        srand(time(nil));
+        int val = rand()%1;
+    
+        if ( val ) {
+            
+            currentChar = [HankakuKana kanaHiragana:currentChar];
+        }
+        
+        [resultString appendString:currentChar];
+    }
+    
+    return resultString;
 }
 
 @end

@@ -12,7 +12,4 @@
 - (BOOL)isEmpty;
 - (BOOL)isNotEmpty;
 
-- (BOOL)isNil;
-- (BOOL)isNotNil;
-
 @end

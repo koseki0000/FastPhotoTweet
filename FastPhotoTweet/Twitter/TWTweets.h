@@ -8,8 +8,17 @@
 
 @interface TWTweets : NSObject
 
+typedef enum {
+    TimelineRequestStatsSended,
+    TimelineRequestStatsFailed,
+    TimelineRequestStatsSuccess
+}TimelineRequestStats;
+
 @property (retain, nonatomic) NSMutableDictionary *timelines;
 @property (retain, nonatomic) NSMutableDictionary *sinceIDs;
+
+@property (retain, nonatomic) NSMutableDictionary *mentions;
+@property (retain, nonatomic) NSMutableDictionary *favotites;
 
 @property (retain, nonatomic) NSMutableArray *sendedTweets;
 
@@ -26,7 +35,13 @@
 /////
 
 + (void)saveCurrentTimeline:(NSMutableArray *)currentTimeline;
++ (void)saveCurrentMentions:(NSMutableArray *)currentMentions;
++ (void)saveCurrentFavorites:(NSMutableArray *)currentFavorites;
+
 + (NSMutableArray *)currentTimeline;
++ (NSMutableArray *)currentMentions;
++ (NSMutableArray *)currentFavorites;
+
 + (NSMutableArray *)saveCurrentTimelineAndChangeAccount:(NSMutableArray *)currentTimeline forChangeAccountName:(NSString *)accontName;
 
 + (NSString *)topTweetID;
@@ -34,9 +49,3 @@
 + (void)saveSinceID:(NSString *)sinceID;
 
 @end
-
-typedef enum {
-    TimelineRequestStatsSended,
-    TimelineRequestStatsFailed,
-    TimelineRequestStatsSuccess
-}TimelineRequestStats;

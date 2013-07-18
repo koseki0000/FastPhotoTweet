@@ -18,4 +18,6 @@
 - (NSMutableString *)deleteMutableWord:(NSString *)deleteWord;
 - (NSString *)deleteWhiteSpace;
 
+- (NSString *)changeRandomCharSize;
+
 @end

@@ -49,7 +49,6 @@
     NSLog(@"isReply: %@", self.isReply ? @"YES" : @"NO");
     NSLog(@"isReTweet: %@", self.isReTweet ? @"YES" : @"NO");
     NSLog(@"isFavorited: %@", self.isFavorited ? @"YES" : @"NO");
-    //    NSLog(@"isReceiveFavorite: %@", self.isReceiveFavorite ? @"YES" : @"NO");
     NSLog(@"isEvent: %@", self.isEvent ? @"YES" : @"NO");
     NSLog(@"isDelete: %@", self.isDelete ? @"YES" : @"NO");
     NSLog(@"eventType: %@", self.eventType);
@@ -176,6 +175,7 @@
             [tweet setText:[NSString stringWithFormat:@"%@\nRetweeted by @%@", tweetDictionary[@"retweeted_status"][@"text"], tweet.rtUserName]];
             [tweet setRtID:tweetDictionary[@"id_str"]];
             [tweet setOriginalText:tweetDictionary[@"retweeted_status"][@"text"]];
+            [tweet setEntities:[TWTweetEntities rtEntitiesWithDictionary:tweetDictionary]];
             
         } else {
             
@@ -183,12 +183,11 @@
             
             [tweet setSource:[TWParser client:tweetDictionary[@"source"]]];
             [tweet setCreatedAt:[TWParser JSTDate:tweetDictionary[@"created_at"]]];
+            [tweet setEntities:[TWTweetEntities entitiesWithDictionary:tweetDictionary]];
         }
         
         //Reply判定
         [tweet setIsReply:([tweet.text rangeOfString:[TWAccounts currentAccountName]].location != NSNotFound)];
-        
-        [tweet setEntities:[TWTweetEntities entitiesWithDictionary:tweetDictionary]];
         
         //t.coを展開
         [tweet setText:[TWTweetUtility openTco:tweet.text
@@ -199,8 +198,6 @@
         
         [tweet createTimelineCellInfo];
     }
-    
-    //    [tweet debugLog];
     
     return tweet;
 }
@@ -270,8 +267,6 @@
             }
         }
     }
-    
-    //    return tweet;
 }
 
 @end

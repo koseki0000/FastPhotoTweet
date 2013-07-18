@@ -84,7 +84,7 @@
                 return;
             }
             
-            if ( self.selectedRange.location != 0 ) {
+            if ( self.selectedRange.location == 0 ) {
                 
                 return;
             }
@@ -102,7 +102,7 @@
             offset = 1;
             location = self.selectedRange.location + offset;
             
-            if ( location <= [self.text length] ) {
+            if ( location >= [self.text length] ) {
                 
                 return;
             }
