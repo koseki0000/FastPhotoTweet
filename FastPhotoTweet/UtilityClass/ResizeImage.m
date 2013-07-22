@@ -13,14 +13,12 @@
     
     //NSLog(@"aspectResize");
     return [ResizeImage aspectResizeForMaxSize:image
-                                       maxSize:(CGFloat)[[NSUserDefaults standardUserDefaults] integerForKey:@"ImageMaxSize"]];
+                                       maxSize:(CGFloat)[USER_DEFAULTS integerForKey:@"ImageMaxSize"]];
 }
 
 + (UIImage *)aspectResizeForMaxSize:(UIImage *)image maxSize:(CGFloat)maxSize {
     
     //NSLog(@"aspectResizeSetMaxSize");
-    
-    NSUserDefaults *d = [NSUserDefaults standardUserDefaults];
     
     size_t resizeHeight = 0;
     size_t resizeWidth = 0;
@@ -28,7 +26,7 @@
     CGFloat originalWidth = image.size.width;
     
     //iPhone4解像度もリサイズする
-    if ( [d boolForKey:@"NoResizeIphone4Ss"] ){
+    if ( [USER_DEFAULTS boolForKey:@"NoResizeIphone4Ss"] ){
         
         CGFloat scale = [UIScreen mainScreen].scale;
         CGFloat screenWidth = CGRectGetWidth([UIScreen mainScreen].bounds) * scale;
@@ -39,7 +37,7 @@
             
             return image;
             
-		}else if ( originalHeight == screenHeight &&
+		} else if ( originalHeight == screenHeight &&
                    originalWidth == screenWidth ) {
             
             return image;
@@ -74,7 +72,7 @@
                 resizeHeight = maxSize;
                 
             //横長
-            }else if ( originalWidth > originalHeight &&
+            } else if ( originalWidth > originalHeight &&
                        originalWidth > maxSize ) {
                 
                 CGFloat ratio = originalWidth / maxSize;

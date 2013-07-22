@@ -55,6 +55,7 @@ typedef enum {
 //Info
 @property (nonatomic) CellTextColor textColor;
 @property (nonatomic) CGFloat cellHeight;
+@property (nonatomic) CGFloat menuCellHeight;
 @property (nonatomic) BOOL isMyTweet;
 @property (nonatomic) BOOL isReply;
 @property (nonatomic) BOOL isReTweet;

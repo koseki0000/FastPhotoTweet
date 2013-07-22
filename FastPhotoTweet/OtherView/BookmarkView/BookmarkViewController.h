@@ -13,8 +13,6 @@
 @interface BookmarkViewController : UIViewController <UIActionSheetDelegate> {
     
     AppDelegate * appDelegate;
-    
-    NSUserDefaults *d;
     NSMutableArray *bookMarkArray;
     
     int actionSheetNo;

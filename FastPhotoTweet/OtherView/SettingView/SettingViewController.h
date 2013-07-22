@@ -24,7 +24,6 @@
     AppDelegate *appDelegate;
     GrayView *grayView;
     
-    NSUserDefaults *d;
     NSMutableArray *settingArray;
     
     UIAlertView *alert;

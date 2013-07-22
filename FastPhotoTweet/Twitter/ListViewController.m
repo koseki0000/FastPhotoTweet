@@ -129,13 +129,13 @@
         
         NSLog(@"SelectTimelineList: %@ : %@", [TWAccounts currentAccountName], [[self.lists objectAtIndex:indexPath.row] objectForKey:@"id_str"]);
         
-        NSMutableDictionary *accounts = [[[NSUserDefaults standardUserDefaults] dictionaryForKey:@"TimelineList"] mutableCopy];
+        NSMutableDictionary *accounts = [[USER_DEFAULTS dictionaryForKey:@"TimelineList"] mutableCopy];
         
         [accounts setObject:[[self.lists objectAtIndex:indexPath.row] objectForKey:@"id_str"]
                      forKey:[TWAccounts currentAccountName]];
         
-        [[NSUserDefaults standardUserDefaults] setObject:accounts
-                                                  forKey:@"TimelineList"];
+        [USER_DEFAULTS setObject:accounts
+                          forKey:@"TimelineList"];
         
     } else {
         
@@ -148,6 +148,16 @@
 }
 
 /* TableView必須メソッドここまで */
+
+- (BOOL)shouldAutorotate {
+    
+    return YES;
+}
+
+- (NSUInteger)supportedInterfaceOrientations {
+    
+    return UIInterfaceOrientationMaskPortrait;
+}
 
 - (void)viewDidUnload {
     

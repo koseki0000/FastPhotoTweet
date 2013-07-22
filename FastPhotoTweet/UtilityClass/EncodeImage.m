@@ -14,15 +14,14 @@
     //NSLog(@"encodeImage");
     
     NSData *encodedImageData = nil;
-    NSUserDefaults *d = [NSUserDefaults standardUserDefaults];
     
-    if ( [[d objectForKey:@"SaveImageType"] isEqualToString:@"JPG(Low)"] ) {
+    if ( [[USER_DEFAULTS objectForKey:@"SaveImageType"] isEqualToString:@"JPG(Low)"] ) {
         encodedImageData = UIImageJPEGRepresentation(encodeImage, 0.6);
-    }else if ( [[d objectForKey:@"SaveImageType"] isEqualToString:@"JPG"] ) {
+    } else if ( [[USER_DEFAULTS objectForKey:@"SaveImageType"] isEqualToString:@"JPG"] ) {
         encodedImageData = UIImageJPEGRepresentation(encodeImage, 0.8);
-    }else if ( [[d objectForKey:@"SaveImageType"] isEqualToString:@"JPG(High)"] ) {
+    } else if ( [[USER_DEFAULTS objectForKey:@"SaveImageType"] isEqualToString:@"JPG(High)"] ) {
         encodedImageData = UIImageJPEGRepresentation(encodeImage, 0.95);
-    }else if ( [[d objectForKey:@"SaveImageType"] isEqualToString:@"PNG"] ) {
+    } else if ( [[USER_DEFAULTS objectForKey:@"SaveImageType"] isEqualToString:@"PNG"] ) {
         encodedImageData = UIImagePNGRepresentation(encodeImage);
     } else {
         encodedImageData = UIImageJPEGRepresentation(encodeImage, 0.8);

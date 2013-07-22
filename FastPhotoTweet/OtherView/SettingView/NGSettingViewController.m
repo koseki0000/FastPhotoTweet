@@ -50,25 +50,23 @@
     
     [super viewDidLoad];
     
-    d = [NSUserDefaults standardUserDefaults];
-    
     ngWordField.text = BLANK;
     userField.text = BLANK;
     exclusionUserField.text = BLANK;
     
-    if ( ![EmptyCheck check:[d arrayForKey:@"NGWord"]] ) {
-        [d setObject:BLANK_ARRAY forKey:@"NGWord"];
+    if ( ![EmptyCheck check:[USER_DEFAULTS arrayForKey:@"NGWord"]] ) {
+        [USER_DEFAULTS setObject:BLANK_ARRAY forKey:@"NGWord"];
     }
     
-    if ( ![EmptyCheck check:[d arrayForKey:@"NGName"]] ) {
-        [d setObject:BLANK_ARRAY forKey:@"NGName"];
+    if ( ![EmptyCheck check:[USER_DEFAULTS arrayForKey:@"NGName"]] ) {
+        [USER_DEFAULTS setObject:BLANK_ARRAY forKey:@"NGName"];
     }
     
-    if ( ![EmptyCheck check:[d arrayForKey:@"NGClient"]] ) {
-        [d setObject:BLANK_ARRAY forKey:@"NGClient"];
+    if ( ![EmptyCheck check:[USER_DEFAULTS arrayForKey:@"NGClient"]] ) {
+        [USER_DEFAULTS setObject:BLANK_ARRAY forKey:@"NGClient"];
     }
     
-    ngSettingArray = [NSMutableArray arrayWithArray:[d objectForKey:@"NGWord"]];
+    ngSettingArray = [NSMutableArray arrayWithArray:[USER_DEFAULTS objectForKey:@"NGWord"]];
     
     [addedNgSettings flashScrollIndicators];
 }
@@ -115,9 +113,9 @@
         ngWordField.placeholder = @"NGワード (必須)";
         
         //NGワード設定を読み込む
-        ngSettingArray = [NSMutableArray arrayWithArray:[d objectForKey:@"NGWord"]];
+        ngSettingArray = [NSMutableArray arrayWithArray:[USER_DEFAULTS objectForKey:@"NGWord"]];
         
-    }else if ( ngTypeSegment.selectedSegmentIndex == 1 ) {
+    } else if ( ngTypeSegment.selectedSegmentIndex == 1 ) {
     
         userField.hidden = YES;
         exclusionUserField.hidden = YES;
@@ -129,9 +127,9 @@
         ngWordField.placeholder = @"NGネーム (必須)";
         
         //NGネーム設定を読み込む
-        ngSettingArray = [NSMutableArray arrayWithArray:[d objectForKey:@"NGName"]];
+        ngSettingArray = [NSMutableArray arrayWithArray:[USER_DEFAULTS objectForKey:@"NGName"]];
         
-    }else if ( ngTypeSegment.selectedSegmentIndex == 2 ) {
+    } else if ( ngTypeSegment.selectedSegmentIndex == 2 ) {
         
         userField.hidden = YES;
         exclusionUserField.hidden = YES;
@@ -143,7 +141,7 @@
         ngWordField.placeholder = @"NGクライアント (必須)";
         
         //NGクライアント設定を読み込む
-        ngSettingArray = [NSMutableArray arrayWithArray:[d objectForKey:@"NGClient"]];
+        ngSettingArray = [NSMutableArray arrayWithArray:[USER_DEFAULTS objectForKey:@"NGClient"]];
     }
     
     [addedNgSettings reloadData];
@@ -173,7 +171,7 @@
             }
             
             //NGワード設定を読み込む
-            NSMutableArray *ngWordArray = [NSMutableArray arrayWithArray:[d objectForKey:@"NGWord"]];
+            NSMutableArray *ngWordArray = [NSMutableArray arrayWithArray:[USER_DEFAULTS objectForKey:@"NGWord"]];
             
             //NGワード
             [addDic setObject:ngWordField.text forKey:@"Word"];
@@ -218,17 +216,17 @@
             
             //NSLog(@"ngWordArray: %@", ngWordArray);
             
-            [d setObject:ngWordArray forKey:@"NGWord"];
+            [USER_DEFAULTS setObject:ngWordArray forKey:@"NGWord"];
             
             ngSettingArray = ngWordArray;
             
-        }else if ( ngTypeSegment.selectedSegmentIndex == 1 ) {
+        } else if ( ngTypeSegment.selectedSegmentIndex == 1 ) {
             
             ngWordField.text = [ngWordField.text deleteWhiteSpace];
             ngWordField.text = [ngWordField.text deleteWord:@"@"];
             
             //NGネーム設定を読み込む
-            NSMutableArray *ngNameArray = [NSMutableArray arrayWithArray:[d objectForKey:@"NGName"]];
+            NSMutableArray *ngNameArray = [NSMutableArray arrayWithArray:[USER_DEFAULTS objectForKey:@"NGName"]];
             
             //NGネーム
             [addDic setObject:ngWordField.text forKey:@"User"];
@@ -237,14 +235,14 @@
             
             //NSLog(@"ngNameArray: %@", ngNameArray);
             
-            [d setObject:ngNameArray forKey:@"NGName"];
+            [USER_DEFAULTS setObject:ngNameArray forKey:@"NGName"];
             
             ngSettingArray = ngNameArray;
             
-        }else if ( ngTypeSegment.selectedSegmentIndex == 2 ) {
+        } else if ( ngTypeSegment.selectedSegmentIndex == 2 ) {
             
             //NGクライアント設定を読み込む
-            NSMutableArray *ngClientArray = [NSMutableArray arrayWithArray:[d objectForKey:@"NGClient"]];
+            NSMutableArray *ngClientArray = [NSMutableArray arrayWithArray:[USER_DEFAULTS objectForKey:@"NGClient"]];
             
             //NGクライアント
             [addDic setObject:ngWordField.text forKey:@"Client"];
@@ -253,7 +251,7 @@
             
             //NSLog(@"ngClientArray: %@", ngClientArray);
             
-            [d setObject:ngClientArray forKey:@"NGClient"];
+            [USER_DEFAULTS setObject:ngClientArray forKey:@"NGClient"];
             
             ngSettingArray = ngClientArray;
         }
@@ -307,13 +305,13 @@
                 if ( match.numberOfRanges != 0 ) {}
             }
             
-        }else if ( ngTypeSegment.selectedSegmentIndex == 1 ) {
+        } else if ( ngTypeSegment.selectedSegmentIndex == 1 ) {
             
-        }else if ( ngTypeSegment.selectedSegmentIndex == 2 ) {
+        } else if ( ngTypeSegment.selectedSegmentIndex == 2 ) {
             
         }
         
-    }else if ( sender.tag == 1 || sender.tag == 2 ) {
+    } else if ( sender.tag == 1 || sender.tag == 2 ) {
         
     }
     
@@ -374,11 +372,11 @@
             [cellString appendString:@"ReTweetのみ: 有効"];
         }
         
-    }else if ( ngTypeSegment.selectedSegmentIndex == 1 ) {
+    } else if ( ngTypeSegment.selectedSegmentIndex == 1 ) {
         
         cellString = [NSMutableString stringWithFormat:@"NGユーザー: %@", [currentNg objectForKey:@"User"]];
         
-    }else if ( ngTypeSegment.selectedSegmentIndex == 2 ) {
+    } else if ( ngTypeSegment.selectedSegmentIndex == 2 ) {
         
         cellString = [NSMutableString stringWithFormat:@"NGクライアント: %@", [currentNg objectForKey:@"Client"]];
     }
@@ -425,11 +423,11 @@
             [cellString appendString:@"ReTweet: 有効"];
         }
         
-    }else if ( ngTypeSegment.selectedSegmentIndex == 1 ) {
+    } else if ( ngTypeSegment.selectedSegmentIndex == 1 ) {
         
         cellString = [NSMutableString stringWithFormat:@"NGユーザー: %@", [currentNg objectForKey:@"User"]];
         
-    }else if ( ngTypeSegment.selectedSegmentIndex == 2 ) {
+    } else if ( ngTypeSegment.selectedSegmentIndex == 2 ) {
         
         cellString = [NSMutableString stringWithFormat:@"NGクライアント: %@", [currentNg objectForKey:@"Client"]];
     }
@@ -472,9 +470,9 @@
         
         [ngSettingArray removeObjectAtIndex:indexPath.row];
         
-        [d setObject:ngSettingArray forKey:@"NGWord"];
+        [USER_DEFAULTS setObject:ngSettingArray forKey:@"NGWord"];
         
-    }else if ( ngTypeSegment.selectedSegmentIndex == 1 ) {
+    } else if ( ngTypeSegment.selectedSegmentIndex == 1 ) {
     
         NSDictionary *dic = [ngSettingArray objectAtIndex:indexPath.row];
         
@@ -485,9 +483,9 @@
         
         [ngSettingArray removeObjectAtIndex:indexPath.row];
         
-        [d setObject:ngSettingArray forKey:@"NGName"];
+        [USER_DEFAULTS setObject:ngSettingArray forKey:@"NGName"];
     
-    }else if ( ngTypeSegment.selectedSegmentIndex == 2 ) {
+    } else if ( ngTypeSegment.selectedSegmentIndex == 2 ) {
         
         NSDictionary *dic = [ngSettingArray objectAtIndex:indexPath.row];
         
@@ -498,7 +496,7 @@
         
         [ngSettingArray removeObjectAtIndex:indexPath.row];
         
-        [d setObject:ngSettingArray forKey:@"NGClient"];
+        [USER_DEFAULTS setObject:ngSettingArray forKey:@"NGClient"];
     }
     
     [addedNgSettings reloadData];
@@ -514,18 +512,18 @@
         
         deleteType = @"NGWord";
         
-    }else if ( ngTypeSegment.selectedSegmentIndex == 1 ) {
+    } else if ( ngTypeSegment.selectedSegmentIndex == 1 ) {
         
         deleteType = @"NGName";
         
-    }else if ( ngTypeSegment.selectedSegmentIndex == 2 ) {
+    } else if ( ngTypeSegment.selectedSegmentIndex == 2 ) {
         
         deleteType = @"NGClient";
     }
     
-    NSMutableArray *deleteArray = [NSMutableArray arrayWithArray:[d objectForKey:deleteType]];
+    NSMutableArray *deleteArray = [NSMutableArray arrayWithArray:[USER_DEFAULTS objectForKey:deleteType]];
     [deleteArray removeObjectAtIndex:indexPath.row];
-    [d setObject:deleteArray forKey:deleteType];
+    [USER_DEFAULTS setObject:deleteArray forKey:deleteType];
     
     [ngSettingArray removeObjectAtIndex:indexPath.row];
     

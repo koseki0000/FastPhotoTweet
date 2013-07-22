@@ -20,7 +20,7 @@
 @property (strong, nonatomic) UIImageView *rtUserIconView;
 @property (strong, nonatomic) UIImageView *arrowView;
 
-- (id)initWithStyle:(UITableViewCellStyle)style reuseIdentifier:(NSString *)reuseIdentifier forWidth:(CGFloat)width;
+- (id)initWithStyle:(UITableViewCellStyle)style reuseIdentifier:(NSString *)reuseIdentifier forWidth:(CGFloat)width timelineCellType:(TimelineCellType)timelineCellType;
 - (void)setProperties:(CGFloat)width;
 - (void)setTweetData:(TWTweet *)tweet cellWidth:(CGFloat)cellWidth;
 

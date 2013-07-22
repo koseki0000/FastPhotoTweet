@@ -20,10 +20,8 @@
     NSMutableArray *targets = [NSMutableArray arrayWithArray:tweets];
 //    NSLog(@"ngWord targets.count: %d", targets.count);
 
-    NSUserDefaults *d = [NSUserDefaults standardUserDefaults];
-    
     //NG情報を読み込み
-    NSArray *ngWords = [d arrayForKey:@"NGWord"];
+    NSArray *ngWords = [USER_DEFAULTS arrayForKey:@"NGWord"];
 //    NSLog(@"ngWords: %@", ngWords);
     
     //タイムラインもしくはNG設定がない場合は終了
@@ -56,7 +54,7 @@
     BOOL reTweet = NO;
     
     //自分のTweetもNGを行う
-    BOOL myTweetNG = [d boolForKey:@"MyTweetNG"];
+    BOOL myTweetNG = [USER_DEFAULTS boolForKey:@"MyTweetNG"];
     
     //条件にマッチしたか
     BOOL match = NO;
@@ -227,10 +225,8 @@
     
     //NSLog(@"targets.count: %d", targets.count);
     
-    NSUserDefaults *d = [NSUserDefaults standardUserDefaults];
-    
     //NG情報を読み込み
-    NSArray *ngNames = [d arrayForKey:@"NGName"];
+    NSArray *ngNames = [USER_DEFAULTS arrayForKey:@"NGName"];
     //NSLog(@"ngNames: %@", ngNames);
     
     //タイムラインもしくはNG設定がない場合は終了
@@ -315,10 +311,8 @@
     
     //NSLog(@"ngClient targets.count: %d", targets.count);
     
-    NSUserDefaults *d = [NSUserDefaults standardUserDefaults];
-    
     //NG情報を読み込み
-    NSArray *ngClients = [d arrayForKey:@"NGClient"];
+    NSArray *ngClients = [USER_DEFAULTS arrayForKey:@"NGClient"];
     //NSLog(@"ngClients: %@", ngClients);
     
     //タイムラインもしくはNG設定がない場合は終了

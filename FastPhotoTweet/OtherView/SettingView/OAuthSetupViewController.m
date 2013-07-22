@@ -95,12 +95,10 @@
         //NSLog(@"requestToken key: %@", requestToken.key);
         //NSLog(@"requestToken secret: %@", requestToken.secret);
         
-        NSUserDefaults *d = [NSUserDefaults standardUserDefaults];
-        
         //暗号化したkeyとsecretを保存
-        [d setObject:key forKey:@"OAuthRequestTokenKey"];
-        [d setObject:secret forKey:@"OAuthRequestTokenSecret"];
-        [d synchronize];
+        [USER_DEFAULTS setObject:key forKey:@"OAuthRequestTokenKey"];
+        [USER_DEFAULTS setObject:secret forKey:@"OAuthRequestTokenSecret"];
+        [USER_DEFAULTS synchronize];
 
         [responseBody release];
         
@@ -147,19 +145,17 @@
         //NSLog(@"accessToken key: %@", accessToken.key);
         //NSLog(@"accessToken secret: %@", accessToken.secret);
         
-		NSUserDefaults *d = [NSUserDefaults standardUserDefaults];
-        
-        if ( ![EmptyCheck check:[d dictionaryForKey:@"OAuthAccount"]] ) {
+        if ( ![EmptyCheck check:[USER_DEFAULTS dictionaryForKey:@"OAuthAccount"]] ) {
             
             //NSLog(@"init OAuthAccountDictionary");
-            [d setObject:[NSDictionary dictionary] forKey:@"OAuthAccount"];
+            [USER_DEFAULTS setObject:[NSDictionary dictionary] forKey:@"OAuthAccount"];
         }
         
-        NSMutableDictionary *dic = [NSMutableDictionary dictionaryWithDictionary:[d dictionaryForKey:@"OAuthAccount"]];
+        NSMutableDictionary *dic = [NSMutableDictionary dictionaryWithDictionary:[USER_DEFAULTS dictionaryForKey:@"OAuthAccount"]];
         
-        int count = [d integerForKey:@"AccountCount"];
+        int count = [USER_DEFAULTS integerForKey:@"AccountCount"];
         count++;
-        [d setInteger:count forKey:@"AccountCount"];
+        [USER_DEFAULTS setInteger:count forKey:@"AccountCount"];
         
         //keyとsecretを暗号化
         NSString *key = [UUIDEncryptor encryption:accessToken.key];
@@ -169,9 +165,9 @@
         [dic setObject:accountData forKey:[NSString stringWithFormat:@"OAuthAccount_%d", count]];
         
         NSMutableDictionary *saveDic = [[[NSMutableDictionary alloc] initWithDictionary:dic] autorelease];
-        [d setObject:saveDic forKey:@"OAuthAccount"];
+        [USER_DEFAULTS setObject:saveDic forKey:@"OAuthAccount"];
         
-		[d synchronize];
+		[USER_DEFAULTS synchronize];
         
 		[responseBody release];
 		[accessToken release];
@@ -280,11 +276,9 @@
     
     //NSLog(@"finish");
     
-    NSUserDefaults *d = [NSUserDefaults standardUserDefaults];
-    
 	if ( [pinField.text isEqualToString:BLANK] || 
-         [d objectForKey:@"OAuthRequestTokenKey"] == nil ||
-         [d objectForKey:@"OAuthRequestTokenSecret"] == nil ) {
+         [USER_DEFAULTS objectForKey:@"OAuthRequestTokenKey"] == nil ||
+         [USER_DEFAULTS objectForKey:@"OAuthRequestTokenSecret"] == nil ) {
         
         [ShowAlert unknownError];
         
@@ -292,8 +286,8 @@
         
 	} else {
         
-		OAToken *oaRequestToken = [[OAToken alloc] initWithKey:[UUIDEncryptor decryption:[d objectForKey:@"OAuthRequestTokenKey"]]
-                                                        secret:[UUIDEncryptor decryption:[d objectForKey:@"OAuthRequestTokenSecret"]]];
+		OAToken *oaRequestToken = [[OAToken alloc] initWithKey:[UUIDEncryptor decryption:[USER_DEFAULTS objectForKey:@"OAuthRequestTokenKey"]]
+                                                        secret:[UUIDEncryptor decryption:[USER_DEFAULTS objectForKey:@"OAuthRequestTokenSecret"]]];
         
 		NSURL *oaUrlAccessToken = [[NSURL URLWithString:@"https://api.twitter.com/oauth/access_token"] retain];
 		

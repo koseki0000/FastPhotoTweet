@@ -27,14 +27,13 @@
     [super viewDidLoad];
 
     appDelegate = (AppDelegate *)[[UIApplication sharedApplication] delegate];
-    d = [NSUserDefaults standardUserDefaults];
     
-    if ( ![EmptyCheck check:[d arrayForKey:@"Bookmark"]] ) {
+    if ( ![EmptyCheck check:[USER_DEFAULTS arrayForKey:@"Bookmark"]] ) {
         
-        [d setObject:BLANK_ARRAY forKey:@"Bookmark"];
+        [USER_DEFAULTS setObject:BLANK_ARRAY forKey:@"Bookmark"];
     }
 
-    bookMarkArray = [[NSMutableArray alloc] initWithArray:[d arrayForKey:@"Bookmark"]];
+    bookMarkArray = [[NSMutableArray alloc] initWithArray:[USER_DEFAULTS arrayForKey:@"Bookmark"]];
 }
 
 - (IBAction)pushCloseButton:(id)sender {
@@ -55,11 +54,11 @@
             
             [pboard setString:[selectBookmark objectForKey:@"Title"]];
             
-        }else if ( buttonIndex == 1 ) {
+        } else if ( buttonIndex == 1 ) {
         
             [pboard setString:[selectBookmark objectForKey:@"URL"]];
             
-        }else if ( buttonIndex == 2 ) {
+        } else if ( buttonIndex == 2 ) {
             
             [pboard setString:[NSString stringWithFormat:@"\"%@\" %@ ", 
                                [selectBookmark objectForKey:@"Title"], 
@@ -137,7 +136,7 @@
 - (void)tableView:(UITableView *)tableView commitEditingStyle:(UITableViewCellEditingStyle)editingStyle forRowAtIndexPath:(NSIndexPath *)indexPath {
     
     [bookMarkArray removeObjectAtIndex:indexPath.row];
-    [d setObject:bookMarkArray forKey:@"Bookmark"];
+    [USER_DEFAULTS setObject:bookMarkArray forKey:@"Bookmark"];
     
     [tv deleteRowsAtIndexPaths:[NSArray arrayWithObject:indexPath] withRowAnimation:UITableViewRowAnimationLeft];
 }
@@ -154,7 +153,7 @@
 
 - (BOOL)shouldAutorotate {
     
-    return NO;
+    return YES;
 }
 
 - (NSUInteger)supportedInterfaceOrientations {

@@ -24,7 +24,7 @@
                                   [self.addressComponents.allValues componentsJoinedByString:@","]];
         url = [NSURL URLWithString:mapURLString];
         
-    }else if (self.resultType == NSTextCheckingTypePhoneNumber){
+    } else if (self.resultType == NSTextCheckingTypePhoneNumber){
         
         url = [NSURL URLWithString:[NSString stringWithFormat:@"tel:%@", [self.phoneNumber stringByReplacingOccurrencesOfString:@" " withString:@""]]];
     }

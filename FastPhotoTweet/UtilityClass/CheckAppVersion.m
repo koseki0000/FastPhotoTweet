@@ -38,10 +38,16 @@
         
         NSError *error = nil;
         NSURL *URL = [NSURL URLWithString:versionInfoURL];
+        
+        //0: バージョン番号
+        //1: ビルド番号
+        //2: 必須フラグ
+        //3: タイトル
+        //4: メッセージ
         NSString *latestVersionInfo = [[[NSString alloc] initWithContentsOfURL:URL
                                                                       encoding:NSUTF8StringEncoding
                                                                          error:&error] autorelease];
-        NSLog(@"%@", latestVersionInfo);
+//        NSLog(@"%@", latestVersionInfo);
         
         if ( !error &&
              [latestVersionInfo isNotEmpty] ) {
@@ -50,13 +56,28 @@
             NSLog(@"splitedLatestVersionInfo: %@", splitedLatestVersionInfo);
             
             NSString *latestBuildVersion = splitedLatestVersionInfo[1];
+            NSNumber *requiredFlag = @NO;
             NSString *title = @"";
             NSString *message = @"";
             
-            if ( [splitedLatestVersionInfo count] == 4 ) {
+            if ( [splitedLatestVersionInfo count] > 2 ) {
                 
-                title = splitedLatestVersionInfo[2];
-                message = splitedLatestVersionInfo[3];
+                NSString *requiredFlagString = splitedLatestVersionInfo[2];
+                if ( [requiredFlagString isEqualToString:@"YES"] ) {
+                    
+                    //必須アップデート
+                    requiredFlag = @YES;
+                }
+            }
+            
+            if ( [splitedLatestVersionInfo count] > 3 ) {
+                
+                title = splitedLatestVersionInfo[3];
+            }
+            
+            if ( [splitedLatestVersionInfo count] > 4 ) {
+                
+                message = splitedLatestVersionInfo[4];
             }
             
             if ( [title isEmpty] ||
@@ -76,13 +97,12 @@
                     UIAlertView *alert = [[UIAlertView alloc] initWithTitle:title
                                                                     message:message
                                                                    delegate:self
-                                                          cancelButtonTitle:@"後で行う"
-                                                          otherButtonTitles:@"更新", nil];
+                                                          cancelButtonTitle:[requiredFlag boolValue] ? nil : @"後で行う"
+                                                          otherButtonTitles:[requiredFlag boolValue] ? @"必須更新" : @"更新"
+                                          , nil];
                     [alert show];
                 });
             }
-            
-            //ビルド番号のチェックだけでいい…？
         }
     });
 }
@@ -92,7 +112,10 @@
     if ( buttonIndex != alertView.cancelButtonIndex ) {
         
         NSURL *updateIpaURL = [NSURL URLWithString:self.updateIpaURL];
-        [[UIApplication sharedApplication] openURL:updateIpaURL];
+        if ( [[UIApplication sharedApplication] canOpenURL:updateIpaURL] ) {
+         
+            [[UIApplication sharedApplication] openURL:updateIpaURL];
+        }
     }
 }
 

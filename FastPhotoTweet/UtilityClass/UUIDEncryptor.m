@@ -7,27 +7,17 @@
 
 #import "UUIDEncryptor.h"
 
-#define UUID [[NSUserDefaults standardUserDefaults] objectForKey:@"UUID"]
-
 @implementation UUIDEncryptor
 
 + (NSString *)encryption:(NSString *)string {
-     
-    //NSLog(@"Encryption");
     
     //UUIDが存在するかチェック
+    NSString *UUID = [USER_DEFAULTS objectForKey:@"UUID"];
     if ( ![EmptyCheck check:UUID] ) {
         
         //UUIDを生成して保存
-        CFUUIDRef uuidObj = CFUUIDCreate(kCFAllocatorDefault);
-        NSString *uuidString = (NSString *)CFUUIDCreateString(nil, uuidObj);
-        CFRelease(uuidObj);
-        
-        [[NSUserDefaults standardUserDefaults] setObject:uuidString forKey:@"UUID"];
-        
-        //NSLog(@"Create UUID: %@", uuidString);
-        
-        [uuidString release];
+        [USER_DEFAULTS setObject:[[NSUUID UUID] UUIDString]
+                                                  forKey:@"UUID"];
     }
     
     //受け取った文字列をUUIDをキーにAES256暗号化し返す
@@ -38,8 +28,7 @@
 
 + (NSString *)decryption:(NSString *)string {
     
-    //NSLog(@"Decryption");
-    
+    NSString *UUID = [USER_DEFAULTS objectForKey:@"UUID"];
     if ( ![EmptyCheck check:UUID] ) {
         
         //復号化時にUUIDがないのは完全にロジックエラー

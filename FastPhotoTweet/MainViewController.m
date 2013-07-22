@@ -71,6 +71,7 @@ typedef enum {
 @property (nonatomic, strong) UIBarButtonItem *postButton;
 @property (nonatomic, strong) SwipeShiftTextView *textView;
 @property (nonatomic, strong) UIToolbar *middleBar;
+@property (nonatomic, strong) UIBarButtonItem *keyboardButton;
 @property (nonatomic, strong) UIBarButtonItem *accountIconView;
 @property (nonatomic, strong) UIBarButtonItem *countLabel;
 @property (nonatomic, strong) UIImageView *previewImageView;
@@ -92,6 +93,7 @@ typedef enum {
 @property (nonatomic) BOOL repeatedPost;
 @property (nonatomic) BOOL fastUpload;
 @property (nonatomic) BOOL useCamera;
+@property (nonatomic) BOOL keyboardVisible;
 
 - (void)createControls;
 - (void)addNotificationObservers;
@@ -123,11 +125,15 @@ typedef enum {
 - (void)pushPostButton;
 
 - (void)inputMenu;
+- (void)pushKeyboardButton;
 
 - (void)pushSettingsButton;
 - (void)pushBrowserButton:(id)URLStringOrSender;
 - (void)pushiPodButton;
 - (void)pushActionButton;
+
+- (void)keyboardWillShow:(NSNotification *)notification;
+- (void)keyboardWillHide:(NSNotification *)notification;
 
 @end
 
@@ -168,9 +174,9 @@ typedef enum {
     [checker versionInfoURL:@"http://fpt.ktysne.info/latest_version_info.txt"
                updateIpaURL:@"itms-services://?action=download-manifest&url=http://fpt.ktysne.info/FastPhotoTweet.plist"];
     
-    [self createControls];
-    [self loadSettings];
     [self addNotificationObservers];
+    [self loadSettings];
+    [self createControls];
     
     ACAccountStore *accountStore = [[ACAccountStore alloc] init];
     ACAccountType *accountType = [accountStore accountTypeWithAccountTypeIdentifier:ACAccountTypeIdentifierTwitter];
@@ -205,6 +211,11 @@ typedef enum {
                                                        [view setEnabled:NO];
                                                    }
                                                    
+                                                   for ( UIBarButtonItem *view in self.middleBar.items ) {
+                                                       
+                                                       [view setEnabled:NO];
+                                                   }
+                                                   
                                                    for ( UIBarButtonItem *view in self.bottomBar.items ) {
                                                        
                                                        [view setEnabled:NO];
@@ -213,6 +224,10 @@ typedef enum {
                                                    [self.textView setUserInteractionEnabled:NO];
                                                    [self.previewImageView setUserInteractionEnabled:NO];
                                                    [self.tabBarController.tabBar setUserInteractionEnabled:NO];
+                                                   
+                                               } else {
+                                                   
+                                                   [self setIconPreviewImage];
                                                }
                                            });
                                        }];
@@ -437,6 +452,20 @@ typedef enum {
                                                                       target:self
                                                                       action:@selector(inputMenu)];
     
+    UIImage *keyboardImage = [UIImage imageNamed:@"keyboard_show.png"];
+    UIButton *keyboardButton = [[UIButton alloc] initWithFrame:CGRectMake(0.0f,
+                                                                          0.0f,
+                                                                          keyboardImage.size.width,
+                                                                          keyboardImage.size.height)];
+    [keyboardButton setImage:keyboardImage
+                    forState:UIControlStateNormal];
+    [keyboardButton addTarget:self
+                       action:@selector(pushKeyboardButton)
+             forControlEvents:UIControlEventTouchUpInside];
+    
+    UIBarButtonItem *keyboardButtonItem = [[UIBarButtonItem alloc] initWithCustomView:keyboardButton];
+    [self setKeyboardButton:keyboardButtonItem];
+    
     UILabel *countLabel = [[UILabel alloc] initWithFrame:CGRectMake(0.0f,
                                                                     0.0f,
                                                                     35.0f,
@@ -457,6 +486,8 @@ typedef enum {
      accounIconItem,
      flexibleSpace,
      textUtilButton,
+     flexibleSpace,
+     keyboardButtonItem,
      flexibleSpace,
      countLabelItem,
      ]];
@@ -525,6 +556,16 @@ typedef enum {
                                              selector:@selector(pboardNotification:)
                                                  name:@"pboardNotification"
                                                object:nil];
+    
+    [[NSNotificationCenter defaultCenter] addObserver:self
+                                             selector:@selector(keyboardWillShow:)
+                                                 name:UIKeyboardWillShowNotification
+                                               object:nil];
+
+    [[NSNotificationCenter defaultCenter] addObserver:self
+                                             selector:@selector(keyboardWillHide:)
+                                                 name:UIKeyboardWillHideNotification
+                                               object:nil];
 }
 
 - (void)loadSettings {
@@ -532,11 +573,7 @@ typedef enum {
     if ( ![EmptyCheck check:[USER_DEFAULTS objectForKey:@"UUID"]] ) {
         
         //UUIDを生成して保存
-        CFUUIDRef uuidObj = CFUUIDCreate(kCFAllocatorDefault);
-        NSString *uuidString = (__bridge_transfer NSString *)CFUUIDCreateString(nil, uuidObj);
-        CFRelease(uuidObj);
-        
-        [USER_DEFAULTS setObject:uuidString forKey:@"UUID"];
+        [USER_DEFAULTS setObject:[[NSUUID UUID] UUIDString] forKey:@"UUID"];
     }
     
     //画像形式が設定されていない場合JPGを設定
@@ -675,7 +712,7 @@ typedef enum {
         if ( [[USER_DEFAULTS dictionaryForKey:@"Information"] valueForKey:APP_VERSION] == 0 ) {
             
             [ShowAlert title:[NSString stringWithFormat:@"FastPhotoTweet %@", APP_VERSION]
-                     message:@"・細かな動作修正"];
+                     message:@"・「英数の全角半角をランダム変換」機能がURLを無視するように修正\n・Timelineで画像を開き、拡大縮小を行った際のスクロールを調整\n・キーボード表示、非表示ボタンを追加\n・その他多数のバグ修正"];
             
             information = [[NSMutableDictionary alloc] initWithDictionary:[USER_DEFAULTS dictionaryForKey:@"Information"]];
             [information setValue:[NSNumber numberWithInt:1] forKey:APP_VERSION];
@@ -809,7 +846,7 @@ typedef enum {
         [NSNotificationCenter postNotificationCenterForName:@"AddStatusBarTask"
                                                withUserInfo:@{@"Task" : @"Tweet Sended"}];
         
-    }else if ( [result isEqualToString:POST_API_ERROR_NOTIFICATION] ) {
+    } else if ( [result isEqualToString:POST_API_ERROR_NOTIFICATION] ) {
         
         [NSNotificationCenter postNotificationCenterForName:@"AddStatusBarTask"
                                                withUserInfo:@{@"Task" : @"Tweet Error"}];
@@ -871,7 +908,7 @@ typedef enum {
             [sheet showInView:self.tabBarController.view];
         }
         
-    }else if ( actionSheet.tag == ActionSheetTypeHankakuKana ) {
+    } else if ( actionSheet.tag == ActionSheetTypeHankakuKana ) {
         
         if ( buttonIndex == 0 ) {
             
@@ -896,6 +933,10 @@ typedef enum {
         } else if ( buttonIndex == 4 ) {
             
             [[UIPasteboard generalPasteboard] setString:self.textView.text];
+        
+        } else if ( buttonIndex == 5 ) {
+            
+            [self.textView setText:[self.textView.text changeRandomCharSize]];
         }
     }
 }
@@ -1058,7 +1099,7 @@ typedef enum {
 
 - (NSData *)optimizeImage:(UIImage *)image {
     
-    if ( [[NSUserDefaults standardUserDefaults] boolForKey:@"ResizeImage"] ) {
+    if ( [USER_DEFAULTS boolForKey:@"ResizeImage"] ) {
         
         return [EncodeImage image:[ResizeImage aspectResize:image]];
         
@@ -1097,13 +1138,27 @@ typedef enum {
     //リクエストURLを指定
     NSURL *URL = nil;
     
-    if ( [[USER_DEFAULTS objectForKey:@"PhotoService"] isEqualToString:@"img.ur"] ) {
+    if ( self.nowPlayingImageUploading ) {
         
-        URL = [NSURL URLWithString:@"http://api.imgur.com/2/upload.json"];
+        if ( [[USER_DEFAULTS objectForKey:@"PhotoService"] isEqualToString:@"img.ur"] ) {
+            
+            URL = [NSURL URLWithString:@"http://api.imgur.com/2/upload.json"];
+            
+        } else if ( [[USER_DEFAULTS objectForKey:@"PhotoService"] isEqualToString:@"Twitpic"] ) {
+            
+            URL = [NSURL URLWithString:@"http://api.twitpic.com/1/upload.json"];
+        }
         
-    }else if ( [[USER_DEFAULTS objectForKey:@"PhotoService"] isEqualToString:@"Twitpic"] ) {
-        
-        URL = [NSURL URLWithString:@"http://api.twitpic.com/1/upload.json"];
+    } else {
+     
+        if ( [[USER_DEFAULTS objectForKey:@"PhotoService"] isEqualToString:@"img.ur"] ) {
+            
+            URL = [NSURL URLWithString:@"http://api.imgur.com/2/upload.json"];
+            
+        } else if ( [[USER_DEFAULTS objectForKey:@"PhotoService"] isEqualToString:@"Twitpic"] ) {
+            
+            URL = [NSURL URLWithString:@"http://api.twitpic.com/1/upload.json"];
+        }
     }
     
     if ( URL == nil ) {
@@ -1190,18 +1245,21 @@ typedef enum {
 
 - (void)pboardNotification:(NSNotification *)notification {
     
-    double delayInSeconds = 0.0;
-    if ( self.tabBarController.selectedIndex != 0 ) {
+    if ( !self.webBrowserMode ) {
      
-        delayInSeconds = 0.1;
-        [self.tabBarController setSelectedIndex:0];
+        double delayInSeconds = 0.0;
+        if ( self.tabBarController.selectedIndex != 0 ) {
+            
+            delayInSeconds = 0.1;
+            [self.tabBarController setSelectedIndex:0];
+        }
+        
+        dispatch_time_t popTime = dispatch_time(DISPATCH_TIME_NOW, (int64_t)(delayInSeconds * NSEC_PER_SEC));
+        dispatch_after(popTime, dispatch_get_main_queue(), ^(void){
+            
+            [self pushBrowserButton:[notification.userInfo objectForKey:@"pboardURL"]];
+        });
     }
-    
-    dispatch_time_t popTime = dispatch_time(DISPATCH_TIME_NOW, (int64_t)(delayInSeconds * NSEC_PER_SEC));
-    dispatch_after(popTime, dispatch_get_main_queue(), ^(void){
-       
-        [self pushBrowserButton:[notification.userInfo objectForKey:@"pboardURL"]];
-    });
 }
 
 - (void)openImageSource:(NSInteger)buttonIndex {
@@ -1343,7 +1401,7 @@ typedef enum {
             
             imageURL = [[[result objectForKey:@"upload"] objectForKey:@"links"] objectForKey:@"original"];
             
-        }else if ( [[USER_DEFAULTS objectForKey:@"PhotoService"] isEqualToString:@"Twitpic"] ) {
+        } else if ( [[USER_DEFAULTS objectForKey:@"PhotoService"] isEqualToString:@"Twitpic"] ) {
             
             imageURL = [result objectForKey:@"url"];
         }
@@ -1427,7 +1485,7 @@ typedef enum {
     NSString *albumTitle = [player.nowPlayingItem valueForProperty:MPMediaItemPropertyAlbumTitle];
     NSNumber *playCount = [player.nowPlayingItem valueForProperty:MPMediaItemPropertyPlayCount];
     NSNumber *ratingNum = [player.nowPlayingItem valueForProperty:MPMediaItemPropertyRating];
-    
+
     if ( songTitle == nil ) {
         
         return [resultText copy];
@@ -1448,7 +1506,7 @@ typedef enum {
                 break;
             }
         }
-        
+
         MPMediaItemArtwork *artwork = [player.nowPlayingItem valueForProperty:MPMediaItemPropertyArtwork];
         
         if ( artwork ) {
@@ -1461,11 +1519,24 @@ typedef enum {
             if ( URL == nil ||
                 [URL isEmpty] ) {
              
+                //0: 通常と同じ
+                //1: Twitter
+                //2: img.ur
+                //3: Twitpic
                 NSUInteger uploadType = [USER_DEFAULTS integerForKey:@"NowPlayingPhotoService"];
                 
                 if ( uploadType == 0 ) {
                     
-                    uploadType = [USER_DEFAULTS integerForKey:@"PhotoService"];
+                    if ( [[USER_DEFAULTS objectForKey:@"PhotoService"] isEqualToString:@"Twitter"] ) {
+                        uploadType = 1;
+                    } else if ( [[USER_DEFAULTS objectForKey:@"PhotoService"] isEqualToString:@"img.ur"] ) {
+                        uploadType = 2;
+                    } else if ( [[USER_DEFAULTS objectForKey:@"PhotoService"] isEqualToString:@"Twitpic"] ) {
+                        uploadType = 3;
+                    } else {
+                        [USER_DEFAULTS setObject:@"Twitter" forKey:@"PhotoService"];
+                        uploadType = 1;
+                    }
                 }
                 
                 //アップロード先がTwitter以外
@@ -1487,15 +1558,15 @@ typedef enum {
     
     if ([ratingStr isEqualToString:@"0"]) {
         ratingStr = @"☆☆☆☆☆";
-    }else if ([ratingStr isEqualToString:@"1"]) {
+    } else if ([ratingStr isEqualToString:@"1"]) {
         ratingStr = @"★☆☆☆☆";
-    }else if ([ratingStr isEqualToString:@"2"]) {
+    } else if ([ratingStr isEqualToString:@"2"]) {
         ratingStr = @"★★☆☆☆";
-    }else if ([ratingStr isEqualToString:@"3"]) {
+    } else if ([ratingStr isEqualToString:@"3"]) {
         ratingStr = @"★★★☆☆";
-    }else if ([ratingStr isEqualToString:@"4"]) {
+    } else if ([ratingStr isEqualToString:@"4"]) {
         ratingStr = @"★★★★☆";
-    }else if ([ratingStr isEqualToString:@"5"]) {
+    } else if ([ratingStr isEqualToString:@"5"]) {
         ratingStr = @"★★★★★";
     }
     
@@ -1511,7 +1582,7 @@ typedef enum {
                 resultText = [NSMutableString stringWithString:[USER_DEFAULTS stringForKey:@"NowPlayingEditTextSub"]];
                 
                 //サブ書式使用設定が前方一致かつ条件に当てはまる場合
-            }else if ( [USER_DEFAULTS integerForKey:@"NowPlayingEditSub"] == 1 && [albumTitle hasPrefix:songTitle] ) {
+            } else if ( [USER_DEFAULTS integerForKey:@"NowPlayingEditSub"] == 1 && [albumTitle hasPrefix:songTitle] ) {
                 
                 resultText = [NSMutableString stringWithString:[USER_DEFAULTS stringForKey:@"NowPlayingEditTextSub"]];
             }
@@ -1728,9 +1799,21 @@ typedef enum {
                                               cancelButtonTitle:@"キャンセル"
                                          destructiveButtonTitle:nil
                                               otherButtonTitles:
-                            @"半角カナ変換(カタカナ)", @"半角カナ変換(ひらがな)", @"半角カナ変換(カタカナ+ひらがな)", @"ペーストボードの内容を貼り付け", @"ペーストボードに全てコピー", nil];
+                            @"半角カナ変換(カタカナ)", @"半角カナ変換(ひらがな)", @"半角カナ変換(カタカナ+ひらがな)", @"ペーストボードの内容を貼り付け", @"ペーストボードに全てコピー", @"英数の全角半角をランダム変換", nil];
     [sheet setTag:ActionSheetTypeHankakuKana];
     [sheet showInView:self.tabBarController.view];
+}
+
+- (void)pushKeyboardButton {
+    
+    if ( self.keyboardVisible ) {
+     
+        [self.textView resignFirstResponder];
+        
+    } else {
+        
+        [self.textView becomeFirstResponder];
+    }
 }
 
 - (void)pushSettingsButton {
@@ -1751,7 +1834,7 @@ typedef enum {
         
         useragent = FIREFOX_USERAGENT;
         
-    }else if ( [[USER_DEFAULTS objectForKey:@"UserAgent"] isEqualToString:@"iPad"] ) {
+    } else if ( [[USER_DEFAULTS objectForKey:@"UserAgent"] isEqualToString:@"iPad"] ) {
         
         useragent = IPAD_USERAFENT;
     }
@@ -1793,6 +1876,20 @@ typedef enum {
                             @"アイコン変更", nil];
     [sheet setTag:ActionSheetTypeAction];
     [sheet showInView:self.tabBarController.view];
+}
+
+- (void)keyboardWillShow:(NSNotification *)notification {
+
+    [self setKeyboardVisible:YES];
+    [(UIButton *)self.keyboardButton.customView setImage:[UIImage imageNamed:@"keyboard_hide.png"]
+                                                forState:UIControlStateNormal];
+}
+
+- (void)keyboardWillHide:(NSNotification *)notification {
+    
+    [self setKeyboardVisible:NO];
+    [(UIButton *)self.keyboardButton.customView setImage:[UIImage imageNamed:@"keyboard_show.png"]
+                                                forState:UIControlStateNormal];
 }
 
 #pragma mark - Rotation

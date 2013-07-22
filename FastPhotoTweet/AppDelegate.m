@@ -72,9 +72,9 @@ void uncaughtExceptionHandler(NSException *e) {
     
     NSSetUncaughtExceptionHandler(&uncaughtExceptionHandler);
     
-    if ( [D objectForKey:@"HomePageURL"] == nil || [[D objectForKey:@"HomePageURL"] isEqualToString:BLANK] ) {
+    if ( [USER_DEFAULTS objectForKey:@"HomePageURL"] == nil || [[USER_DEFAULTS objectForKey:@"HomePageURL"] isEqualToString:BLANK] ) {
         
-        [D setObject:@"http://www.google.co.jp/" forKey:@"HomePageURL"];
+        [USER_DEFAULTS setObject:@"http://www.google.co.jp/" forKey:@"HomePageURL"];
     }
     
     _statusBarInfo = [[StatusBarInfo alloc] initWithShowTime:@2.0f
@@ -110,7 +110,7 @@ void uncaughtExceptionHandler(NSException *e) {
     needChangeAccount = NO;
     debugMode = NO;
     
-    startupUrlList = [NSArray arrayWithObject:[D objectForKey:@"HomePageURL"]];
+    startupUrlList = [NSArray arrayWithObject:[USER_DEFAULTS objectForKey:@"HomePageURL"]];
     
     if ( launchOptions == NULL ) {
         launchMode = 0;
@@ -189,25 +189,25 @@ void uncaughtExceptionHandler(NSException *e) {
     if ( [hardwareName hasPrefix:@"iPhone2"] ) {
         hardwareName = @"iPhone 3GS";
 //        reloadInterval = 0.5;
-    }else if ( [hardwareName hasPrefix:@"iPhone3"] ) {
+    } else if ( [hardwareName hasPrefix:@"iPhone3"] ) {
         hardwareName = @"iPhone 4";
 //        reloadInterval = 0.3;
-    }else if ( [hardwareName hasPrefix:@"iPhone4"] ) {
+    } else if ( [hardwareName hasPrefix:@"iPhone4"] ) {
         hardwareName = @"iPhone 4S";
 //        reloadInterval = 0.15;
-    }else if ( [hardwareName hasPrefix:@"iPhone5"] ) {
+    } else if ( [hardwareName hasPrefix:@"iPhone5"] ) {
         hardwareName = @"iPhone 5";
 //        reloadInterval = 0.15;
-    }else if ( [hardwareName hasPrefix:@"iPad1"] ) {
+    } else if ( [hardwareName hasPrefix:@"iPad1"] ) {
         hardwareName = @"iPad";
 //        reloadInterval = 0.25;
-    }else if ( [hardwareName hasPrefix:@"iPad2"] ) {
+    } else if ( [hardwareName hasPrefix:@"iPad2"] ) {
         hardwareName = @"iPad 2gen";
 //        reloadInterval = 0.15;
-    }else if ( [hardwareName hasPrefix:@"iPad3"] ) {
+    } else if ( [hardwareName hasPrefix:@"iPad3"] ) {
         hardwareName = @"iPad 3gen";
 //        reloadInterval = 0.15;
-    }else if ( [hardwareName hasPrefix:@"x86_64"] ||
+    } else if ( [hardwareName hasPrefix:@"x86_64"] ||
                [hardwareName hasPrefix:@"i386"] ) {
         hardwareName = @"iOS Simulator";
 //        reloadInterval = 0.3;

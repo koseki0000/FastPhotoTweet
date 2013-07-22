@@ -88,7 +88,6 @@
         //NSLog(@"SettingView init");
         
         appDelegate = (AppDelegate *)[[UIApplication sharedApplication] delegate];
-        d = [NSUserDefaults standardUserDefaults];
         actionSheetNo = 0;
         alertTextNo = 0;
         
@@ -142,12 +141,12 @@
             appDelegate.twitpicLinkMode = NO;
             
             //仮登録された情報の名前を生成
-            NSString *searchAccountName = [NSString stringWithFormat:@"OAuthAccount_%d", [d integerForKey:@"AccountCount"]];
+            NSString *searchAccountName = [NSString stringWithFormat:@"OAuthAccount_%d", [USER_DEFAULTS integerForKey:@"AccountCount"]];
             
             //NSLog(@"searchAccountName: %@", searchAccountName);
             
             //設定からアカウントリストを読み込む
-            NSMutableDictionary *dic = [[d dictionaryForKey:@"OAuthAccount"] mutableCopy];
+            NSMutableDictionary *dic = [[USER_DEFAULTS dictionaryForKey:@"OAuthAccount"] mutableCopy];
             
             //key, secretを取得
             NSString *key = [[dic objectForKey:searchAccountName] objectAtIndex:0];
@@ -164,15 +163,15 @@
             
             //設定に反映
             NSDictionary *saveDic = [[NSDictionary alloc] initWithDictionary:dic];
-            [d setObject:saveDic forKey:@"OAuthAccount"];
+            [USER_DEFAULTS setObject:saveDic forKey:@"OAuthAccount"];
             [saveDic release];
             [dic release];
             
-            [d setObject:@"Twitpic" forKey:@"PhotoService"];
+            [USER_DEFAULTS setObject:@"Twitpic" forKey:@"PhotoService"];
             appDelegate.addTwitpicAccountName = BLANK;
             appDelegate.needChangeAccount = YES;
             
-            //NSLog(@"OAuthAccount: %@", [d dictionaryForKey:@"OAuthAccount"]);
+            //NSLog(@"OAuthAccount: %@", [USER_DEFAULTS dictionaryForKey:@"OAuthAccount"]);
             
         } else {
             
@@ -181,11 +180,11 @@
             [self showModalViewController:dialog];
         }
         
-    }else if ( self.listSelectMode ) {
+    } else if ( self.listSelectMode ) {
         
         [self setListSelectMode:NO];
         
-        NSLog(@"%@", [d objectForKey:@"TimelineList"]);
+        NSLog(@"%@", [USER_DEFAULTS objectForKey:@"TimelineList"]);
     }
     
     //設定項目の表示を更新
@@ -207,7 +206,7 @@
     //画像投稿時リサイズを行う
     if ( settingState == 0 ) {
         
-        if ( [d boolForKey:@"ResizeImage"] ) {
+        if ( [USER_DEFAULTS boolForKey:@"ResizeImage"] ) {
             
             result = @"ON";
             
@@ -217,19 +216,19 @@
         }
         
         //リサイズ最大長辺
-    }else if ( settingState == 1 ) {
+    } else if ( settingState == 1 ) {
         
-        result = [NSString stringWithFormat:@"%d", [d integerForKey:@"ImageMaxSize"]];
+        result = [NSString stringWithFormat:@"%d", [USER_DEFAULTS integerForKey:@"ImageMaxSize"]];
         
         //画像形式
-    }else if ( settingState == 2 ) {
+    } else if ( settingState == 2 ) {
         
-        result = [NSString stringWithFormat:@"%@", [d objectForKey:@"SaveImageType"]];;
+        result = [NSString stringWithFormat:@"%@", [USER_DEFAULTS objectForKey:@"SaveImageType"]];;
         
         //Retina解像度画像もリサイズを行う
-    }else if ( settingState == 3 ) {
+    } else if ( settingState == 3 ) {
         
-        if ( [d boolForKey:@"NoResizeIphone4Ss"] ) {
+        if ( [USER_DEFAULTS boolForKey:@"NoResizeIphone4Ss"] ) {
             
             result = @"OFF";
             
@@ -239,30 +238,30 @@
         }
         
         //画像投稿先
-    }else if ( settingState == 4 ) {
+    } else if ( settingState == 4 ) {
         
-        result = [NSString stringWithFormat:@"%@", [d objectForKey:@"PhotoService"]];
+        result = [NSString stringWithFormat:@"%@", [USER_DEFAULTS objectForKey:@"PhotoService"]];
         
         //画像ソース
-    }else if ( settingState == 5 ) {
+    } else if ( settingState == 5 ) {
         
-        if ( [d integerForKey:@"ImageSource"] == 0 ) {
+        if ( [USER_DEFAULTS integerForKey:@"ImageSource"] == 0 ) {
             
             result = @"カメラロール";
             
-        }else if ( [d integerForKey:@"ImageSource"] == 1 ) {
+        } else if ( [USER_DEFAULTS integerForKey:@"ImageSource"] == 1 ) {
             
             result = @"カメラ";
             
-        }else if ( [d integerForKey:@"ImageSource"] == 2 ) {
+        } else if ( [USER_DEFAULTS integerForKey:@"ImageSource"] == 2 ) {
             
             result = @"投稿時選択";
         }
         
         //連続投稿確認表示
-    }else if ( settingState == 6 ) {
+    } else if ( settingState == 6 ) {
         
-        if ( [d boolForKey:@"RepeatedPost"] ) {
+        if ( [USER_DEFAULTS boolForKey:@"RepeatedPost"] ) {
             
             result = @"ON";
             
@@ -272,9 +271,9 @@
         }
         
         //画像共有サービスフルサイズ取得
-    }else if ( settingState == 7 ) {
+    } else if ( settingState == 7 ) {
         
-        if ( [d boolForKey:@"FullSizeImage"] ) {
+        if ( [USER_DEFAULTS boolForKey:@"FullSizeImage"] ) {
             
             result = @"ON";
             
@@ -284,29 +283,29 @@
         }
         
         //NowPlaying画像投稿先
-    }else if ( settingState == 8 ) {
+    } else if ( settingState == 8 ) {
         
-        if ( [d integerForKey:@"NowPlayingPhotoService"] == 0 ) {
+        if ( [USER_DEFAULTS integerForKey:@"NowPlayingPhotoService"] == 0 ) {
             
             result = @"通常と同じ";
             
-        }else if ( [d integerForKey:@"NowPlayingPhotoService"] == 1 ) {
+        } else if ( [USER_DEFAULTS integerForKey:@"NowPlayingPhotoService"] == 1 ) {
             
             result = @"Twitter";
             
-        }else if ( [d integerForKey:@"NowPlayingPhotoService"] == 2 ) {
+        } else if ( [USER_DEFAULTS integerForKey:@"NowPlayingPhotoService"] == 2 ) {
             
             result = @"img.ur";
             
-        }else if ( [d integerForKey:@"NowPlayingPhotoService"] == 3 ) {
+        } else if ( [USER_DEFAULTS integerForKey:@"NowPlayingPhotoService"] == 3 ) {
             
             result = @"Twitpic";
         }
         
         //NowPlayingにカスタム書式を使用
-    }else if ( settingState == 9 ) {
+    } else if ( settingState == 9 ) {
         
-        if ( [d boolForKey:@"NowPlayingEdit"] ) {
+        if ( [USER_DEFAULTS boolForKey:@"NowPlayingEdit"] ) {
             
             result = @"ON";
             
@@ -316,35 +315,35 @@
         }
         
         //カスタム書式を編集
-    }else if ( settingState == 10 ) {
+    } else if ( settingState == 10 ) {
         
         //空のまま
         
         //曲名とアルバム名が同じな場合サブ書式を使用
-    }else if ( settingState == 11 ) {
+    } else if ( settingState == 11 ) {
         
-        if ( [d integerForKey:@"NowPlayingEditSub"] == 0 ) {
+        if ( [USER_DEFAULTS integerForKey:@"NowPlayingEditSub"] == 0 ) {
             
             result = @"OFF";
             
-        }else if ( [d integerForKey:@"NowPlayingEditSub"] == 1 ) {
+        } else if ( [USER_DEFAULTS integerForKey:@"NowPlayingEditSub"] == 1 ) {
             
             result = @"ON\n(前方一致)";
             
-        }else if ( [d integerForKey:@"NowPlayingEditSub"] == 2 ) {
+        } else if ( [USER_DEFAULTS integerForKey:@"NowPlayingEditSub"] == 2 ) {
             
             result = @"ON\n(完全一致)";
         }
         
         //サブ書式を編集
-    }else if ( settingState == 12 ) {
+    } else if ( settingState == 12 ) {
         
         //空のまま
         
         //NowPlaying時にアートワークを投稿
-    }else if ( settingState == 13 ) {
+    } else if ( settingState == 13 ) {
         
-        if ( [d boolForKey:@"NowPlayingArtWork"] ) {
+        if ( [USER_DEFAULTS boolForKey:@"NowPlayingArtWork"] ) {
             
             result = @"ON";
             
@@ -354,9 +353,9 @@
         }
         
         //とは検索
-    }else if ( settingState == 14 ) {
+    } else if ( settingState == 14 ) {
         
-        if ( [d boolForKey:@"TohaSearch"] ) {
+        if ( [USER_DEFAULTS boolForKey:@"TohaSearch"] ) {
             
             result = @"ON";
             
@@ -366,12 +365,12 @@
         }
         
         //Webページ投稿書式変更
-    }else if ( settingState == 15 ) {
+    } else if ( settingState == 15 ) {
         
         //Webページ投稿書式セット後カーソル位置
-    }else if ( settingState == 16 ) {
+    } else if ( settingState == 16 ) {
         
-        if ( [d boolForKey:@"WebPagePostCursorPosition"] ) {
+        if ( [USER_DEFAULTS boolForKey:@"WebPagePostCursorPosition"] ) {
             
             result = @"先頭";
             
@@ -380,11 +379,11 @@
             result = @"末尾";
         }
         
-        //  }else if ( settingState == 17 ) {
+        //  } else if ( settingState == 17 ) {
         
-    }else if ( settingState == 18 ) {
+    } else if ( settingState == 18 ) {
         
-        if ( [d boolForKey:@"QuoteCursorPosition"] ) {
+        if ( [USER_DEFAULTS boolForKey:@"QuoteCursorPosition"] ) {
             
             result = @"先頭";
             
@@ -394,9 +393,9 @@
         }
         
         //アプリがアクティブになった際入力可能状態にする
-    }else if ( settingState == 19 ) {
+    } else if ( settingState == 19 ) {
         
-        if ( [d boolForKey:@"ShowKeyboard"] ) {
+        if ( [USER_DEFAULTS boolForKey:@"ShowKeyboard"] ) {
             
             result = @"ON";
             
@@ -405,9 +404,9 @@
             result = @"OFF";
         }
         
-    }else if ( settingState == 20 ) {
+    } else if ( settingState == 20 ) {
         
-        if ( [d boolForKey:@"ClearBrowserSearchField"] ) {
+        if ( [USER_DEFAULTS boolForKey:@"ClearBrowserSearchField"] ) {
             
             result = @"ON";
             
@@ -416,9 +415,9 @@
             result = @"OFF";
         }
         
-    }else if ( settingState == 21 ) {
+    } else if ( settingState == 21 ) {
         
-        if ( [d boolForKey:@"OpenPasteBoardURL"] ) {
+        if ( [USER_DEFAULTS boolForKey:@"OpenPasteBoardURL"] ) {
             
             result = @"ON";
             
@@ -427,13 +426,13 @@
             result = @"OFF";
         }
         
-    }else if ( settingState == 22 ) {
+    } else if ( settingState == 22 ) {
         
-        if ( [[d objectForKey:@"UserAgent"] isEqualToString:@"FireFox"] ) {
+        if ( [[USER_DEFAULTS objectForKey:@"UserAgent"] isEqualToString:@"FireFox"] ) {
             
             result = @"FireFox";
             
-        }else if ( [[d objectForKey:@"UserAgent"] isEqualToString:@"iPad"] ) {
+        } else if ( [[USER_DEFAULTS objectForKey:@"UserAgent"] isEqualToString:@"iPad"] ) {
             
             result = @"iPad";
             
@@ -442,17 +441,17 @@
             result = @"iPhone";
         }
         
-    }else if ( settingState == 23 ) {
+    } else if ( settingState == 23 ) {
         
-        if ( [[d objectForKey:@"UserAgentReset"] isEqualToString:@"FireFox"] ) {
+        if ( [[USER_DEFAULTS objectForKey:@"UserAgentReset"] isEqualToString:@"FireFox"] ) {
             
             result = @"FireFox";
             
-        }else if ( [[d objectForKey:@"UserAgentReset"] isEqualToString:@"iPad"] ) {
+        } else if ( [[USER_DEFAULTS objectForKey:@"UserAgentReset"] isEqualToString:@"iPad"] ) {
             
             result = @"iPad";
             
-        }else if ( [[d objectForKey:@"UserAgentReset"] isEqualToString:@"iPhone"] ) {
+        } else if ( [[USER_DEFAULTS objectForKey:@"UserAgentReset"] isEqualToString:@"iPhone"] ) {
             
             result = @"iPhone";
             
@@ -461,9 +460,9 @@
             result = @"OFF";
         }
         
-    }else if ( settingState == 24 ) {
+    } else if ( settingState == 24 ) {
         
-        if ( [d boolForKey:@"SwipeShiftCaret"] ) {
+        if ( [USER_DEFAULTS boolForKey:@"SwipeShiftCaret"] ) {
             
             result = @"ON";
             
@@ -472,9 +471,9 @@
             result = @"OFF";
         }
         
-    }else if ( settingState == 25 ) {
+    } else if ( settingState == 25 ) {
         
-        if ( [d boolForKey:@"EnterBackgroundUSDisConnect"] ) {
+        if ( [USER_DEFAULTS boolForKey:@"EnterBackgroundUSDisConnect"] ) {
             
             result = @"ON";
             
@@ -483,9 +482,9 @@
             result = @"OFF";
         }
         
-    }else if ( settingState == 26 ) {
+    } else if ( settingState == 26 ) {
         
-        if ( [d boolForKey:@"BecomeActiveUSConnect"] ) {
+        if ( [USER_DEFAULTS boolForKey:@"BecomeActiveUSConnect"] ) {
             
             result = @"ON";
             
@@ -494,9 +493,9 @@
             result = @"OFF";
         }
         
-    }else if ( settingState == 27 ) {
+    } else if ( settingState == 27 ) {
         
-        if ( [d boolForKey:@"ReloadAfterUSConnect"] ) {
+        if ( [USER_DEFAULTS boolForKey:@"ReloadAfterUSConnect"] ) {
             
             result = @"ON";
             
@@ -505,11 +504,11 @@
             result = @"OFF";
         }
         
-        //    }else if ( settingState == 29 ) {
+        //    } else if ( settingState == 29 ) {
         
-    }else if ( settingState == 29 ) {
+    } else if ( settingState == 29 ) {
         
-        if ( [d boolForKey:@"MyTweetNG"] ) {
+        if ( [USER_DEFAULTS boolForKey:@"MyTweetNG"] ) {
             
             result = @"ON";
             
@@ -518,9 +517,9 @@
             result = @"OFF";
         }
         
-    }else if ( settingState == 30 ) {
+    } else if ( settingState == 30 ) {
         
-        if ( [d integerForKey:@"IconCornerRounding"] == 1 ) {
+        if ( [USER_DEFAULTS integerForKey:@"IconCornerRounding"] == 1 ) {
             
             result = @"ON";
             
@@ -529,9 +528,9 @@
             result = @"OFF";
         }
         
-    }else if ( settingState == 31 ) {
+    } else if ( settingState == 31 ) {
         
-        if ( [d boolForKey:@"USNoAutoLock"] ) {
+        if ( [USER_DEFAULTS boolForKey:@"USNoAutoLock"] ) {
             
             result = @"ON";
             
@@ -540,21 +539,21 @@
             result = @"OFF";
         }
         
-    }else if ( settingState == 32 ) {
+    } else if ( settingState == 32 ) {
         
-        result = [d objectForKey:@"TimelineLoadCount"];
+        result = [USER_DEFAULTS objectForKey:@"TimelineLoadCount"];
         
-    }else if ( settingState == 33 ) {
+    } else if ( settingState == 33 ) {
         
-        result = [d objectForKey:@"MentionsLoadCount"];
+        result = [USER_DEFAULTS objectForKey:@"MentionsLoadCount"];
         
-    }else if ( settingState == 34 ) {
+    } else if ( settingState == 34 ) {
         
-        result = [d objectForKey:@"FavoritesLoadCount"];
+        result = [USER_DEFAULTS objectForKey:@"FavoritesLoadCount"];
         
-    }else if ( settingState == 35 ) {
+    } else if ( settingState == 35 ) {
         
-        if ( [d boolForKey:@"TimelineFirstLoad"] ) {
+        if ( [USER_DEFAULTS boolForKey:@"TimelineFirstLoad"] ) {
             
             result = @"最下部";
             
@@ -563,36 +562,36 @@
             result = @"最上部";
         }
         
-    }else if ( settingState == 36 ) {
-        if ( [d integerForKey:@"TimelineIconAction"] == 0 ) {
+    } else if ( settingState == 36 ) {
+        if ( [USER_DEFAULTS integerForKey:@"TimelineIconAction"] == 0 ) {
             result = @"UserMenu";
-        }else if ( [d integerForKey:@"TimelineIconAction"] == 1 ) {
+        } else if ( [USER_DEFAULTS integerForKey:@"TimelineIconAction"] == 1 ) {
             result = @"Reply";
-        }else if ( [d integerForKey:@"TimelineIconAction"] == 2 ) {
+        } else if ( [USER_DEFAULTS integerForKey:@"TimelineIconAction"] == 2 ) {
             result = @"Favorite／UnFavorite";
-        }else if ( [d integerForKey:@"TimelineIconAction"] == 3 ) {
+        } else if ( [USER_DEFAULTS integerForKey:@"TimelineIconAction"] == 3 ) {
             result = @"ReTweet";
-        }else if ( [d integerForKey:@"TimelineIconAction"] == 4 ) {
+        } else if ( [USER_DEFAULTS integerForKey:@"TimelineIconAction"] == 4 ) {
             result = @"Fav+RT";
-        }else if ( [d integerForKey:@"TimelineIconAction"] == 5 ) {
+        } else if ( [USER_DEFAULTS integerForKey:@"TimelineIconAction"] == 5 ) {
             result = @"IDとFav,RTを選択";
         }
         
-    }else if ( settingState == 37 ) {
+    } else if ( settingState == 37 ) {
         
-        if ( [d boolForKey:@"UseTimelineList"] ) {
+        if ( [USER_DEFAULTS boolForKey:@"UseTimelineList"] ) {
             result = @"ON";
         } else {
             result = @"OFF";
         }
         
-    }else if ( settingState == 38 ) {
+    } else if ( settingState == 38 ) {
         
-        result = [[d objectForKey:@"TimelineList"] objectForKey:[TWAccounts currentAccountName]];
+        result = [[USER_DEFAULTS objectForKey:@"TimelineList"] objectForKey:[TWAccounts currentAccountName]];
         
-    }else if ( settingState == 39 ) {
+    } else if ( settingState == 39 ) {
         
-        result = [d objectForKey:@"IconQuality"];
+        result = [USER_DEFAULTS objectForKey:@"IconQuality"];
     }
     
     return result;
@@ -652,13 +651,13 @@
     
     if ( indexPath.section == 0 ) {
         settingState = indexPath.row;
-    }else if ( indexPath.section == 1 ) {
+    } else if ( indexPath.section == 1 ) {
         settingState = indexPath.row + SECTION_0;
-    }else if ( indexPath.section == 2 ) {
+    } else if ( indexPath.section == 2 ) {
         settingState = indexPath.row + SECTION_0 + SECTION_1;
-    }else if ( indexPath.section == 3 ) {
+    } else if ( indexPath.section == 3 ) {
         settingState = indexPath.row + SECTION_0 + SECTION_1 + SECTION_2;
-    }else if ( indexPath.section == 4 ) {
+    } else if ( indexPath.section == 4 ) {
         settingState = indexPath.row + SECTION_0 + SECTION_1 + SECTION_2 + SECTION_3;
     }
     
@@ -693,7 +692,7 @@
             [sheet autorelease];
             [sheet showInView:self.view];
             
-        }else if ( indexPath.row == 1 ) {
+        } else if ( indexPath.row == 1 ) {
             
             //リサイズ最大長辺
             sheet = [[UIActionSheet alloc]
@@ -705,7 +704,7 @@
             [sheet autorelease];
             [sheet showInView:self.view];
             
-        }else if ( indexPath.row == 2 ) {
+        } else if ( indexPath.row == 2 ) {
             
             //画像形式
             sheet = [[UIActionSheet alloc]
@@ -717,7 +716,7 @@
             [sheet autorelease];
             [sheet showInView:self.view];
             
-        }else if ( indexPath.row == 3 ) {
+        } else if ( indexPath.row == 3 ) {
             
             //Retina解像度画像もリサイズを行う
             sheet = [[UIActionSheet alloc]
@@ -729,7 +728,7 @@
             [sheet autorelease];
             [sheet showInView:self.view];
             
-        }else if ( indexPath.row == 4 ) {
+        } else if ( indexPath.row == 4 ) {
             
             //画像投稿先
             sheet = [[UIActionSheet alloc]
@@ -742,7 +741,7 @@
             [sheet autorelease];
             [sheet showInView:self.view];
             
-        }else if ( indexPath.row == 5 ) {
+        } else if ( indexPath.row == 5 ) {
             
             //画像ソース
             sheet = [[UIActionSheet alloc]
@@ -754,7 +753,7 @@
             [sheet autorelease];
             [sheet showInView:self.view];
             
-        }else if ( indexPath.row == 6 ) {
+        } else if ( indexPath.row == 6 ) {
             
             //連続投稿確認表示
             sheet = [[UIActionSheet alloc]
@@ -766,7 +765,7 @@
             [sheet autorelease];
             [sheet showInView:self.view];
             
-        }else if ( indexPath.row == 7 ) {
+        } else if ( indexPath.row == 7 ) {
             
             //画像共有サービスフルサイズ取得
             sheet = [[UIActionSheet alloc]
@@ -778,7 +777,7 @@
             [sheet autorelease];
             [sheet showInView:self.view];
             
-        }else if ( indexPath.row == 8 ) {
+        } else if ( indexPath.row == 8 ) {
             
             //NowPlaying画像投稿先
             sheet = [[UIActionSheet alloc]
@@ -791,7 +790,7 @@
             [sheet showInView:self.view];
         }
         
-    }else if ( indexPath.section == 1 ) {
+    } else if ( indexPath.section == 1 ) {
         
         actionSheetNo = actionSheetNo + SECTION_0;
         
@@ -807,7 +806,7 @@
             [sheet autorelease];
             [sheet showInView:self.view];
             
-        }else if ( indexPath.row == 1 ) {
+        } else if ( indexPath.row == 1 ) {
             
             //カスタム書式を編集
             alertTextNo = 0;
@@ -815,8 +814,8 @@
             NSString *message = @"\n曲名[st] アーティスト名[ar]\nアルバム名[at] 再生数[pc] レート[rt]";
             NSString *alertMessage = BLANK;
             
-            if ( [EmptyCheck check:[d objectForKey:@"NowPlayingEditText"]] ) {
-                alertMessage = [d objectForKey:@"NowPlayingEditText"];
+            if ( [EmptyCheck check:[USER_DEFAULTS objectForKey:@"NowPlayingEditText"]] ) {
+                alertMessage = [USER_DEFAULTS objectForKey:@"NowPlayingEditText"];
             }
             
             alert = [[UIAlertView alloc] initWithTitle:NOWPLAYING_CUSTOM_EDIT
@@ -839,7 +838,7 @@
             
             return;
             
-        }else if ( indexPath.row == 2 ) {
+        } else if ( indexPath.row == 2 ) {
             
             //曲名とアルバム名が同じな場合サブ書式を使用
             sheet = [[UIActionSheet alloc]
@@ -851,7 +850,7 @@
             [sheet autorelease];
             [sheet showInView:self.view];
             
-        }else if ( indexPath.row == 3 ) {
+        } else if ( indexPath.row == 3 ) {
             
             //サブ書式を編集
             alertTextNo = 1;
@@ -859,8 +858,8 @@
             NSString *message = @"\n曲名[st] アーティスト名[ar]\nアルバム名[at] 再生数[pc] レート[rt]";
             NSString *alertMessage = BLANK;
             
-            if ( [EmptyCheck check:[d objectForKey:@"NowPlayingEditTextSub"]] ) {
-                alertMessage = [d objectForKey:@"NowPlayingEditTextSub"];
+            if ( [EmptyCheck check:[USER_DEFAULTS objectForKey:@"NowPlayingEditTextSub"]] ) {
+                alertMessage = [USER_DEFAULTS objectForKey:@"NowPlayingEditTextSub"];
             }
             
             alert = [[UIAlertView alloc] initWithTitle:NOWPLAYING_SUB_STYLE
@@ -883,7 +882,7 @@
             
             return;
             
-        }else if ( indexPath.row == 4 ) {
+        } else if ( indexPath.row == 4 ) {
             
             //NowPlaying時にアートワークを投稿
             sheet = [[UIActionSheet alloc]
@@ -895,7 +894,7 @@
             [sheet autorelease];
             [sheet showInView:self.view];
             
-        }else if ( indexPath.row == 5 ) {
+        } else if ( indexPath.row == 5 ) {
             
             //とは検索
             sheet = [[UIActionSheet alloc]
@@ -907,7 +906,7 @@
             [sheet autorelease];
             [sheet showInView:self.view];
             
-        }else if ( indexPath.row == 6 ) {
+        } else if ( indexPath.row == 6 ) {
             
             //Webページ投稿書式変更
             alertTextNo = 2;
@@ -915,14 +914,14 @@
             NSString *message = @"\nタイトル[title] URL[url]";
             NSString *alertMessage = BLANK;
             
-            if ( [EmptyCheck check:[d objectForKey:@"WebPagePostFormat"]] ) {
+            if ( [EmptyCheck check:[USER_DEFAULTS objectForKey:@"WebPagePostFormat"]] ) {
                 
-                alertMessage = [d objectForKey:@"WebPagePostFormat"];
+                alertMessage = [USER_DEFAULTS objectForKey:@"WebPagePostFormat"];
                 
             } else {
                 
                 alertMessage = @" \"[title]\" [url] ";
-                [d setObject:alertMessage forKey:@"WebPagePostFormat"];
+                [USER_DEFAULTS setObject:alertMessage forKey:@"WebPagePostFormat"];
             }
             
             alert = [[UIAlertView alloc] initWithTitle:WEB_PAGE_SHARE_STYLE
@@ -945,7 +944,7 @@
             
             return;
             
-        }else if ( indexPath.row == 7 ) {
+        } else if ( indexPath.row == 7 ) {
             
             //Webページ投稿書式セット後カーソル位置
             sheet = [[UIActionSheet alloc]
@@ -957,7 +956,7 @@
             [sheet autorelease];
             [sheet showInView:self.view];
             
-        }else if ( indexPath.row == 8 ) {
+        } else if ( indexPath.row == 8 ) {
             
             //引用投稿書式変更
             alertTextNo = 3;
@@ -965,14 +964,14 @@
             NSString *message = @"\nタイトル[title] URL[url] 引用[quote]";
             NSString *alertMessage = BLANK;
             
-            if ( [EmptyCheck check:[d objectForKey:@"QuoteFormat"]] ) {
+            if ( [EmptyCheck check:[USER_DEFAULTS objectForKey:@"QuoteFormat"]] ) {
                 
-                alertMessage = [d objectForKey:@"QuoteFormat"];
+                alertMessage = [USER_DEFAULTS objectForKey:@"QuoteFormat"];
                 
             } else {
                 
                 alertMessage = @" \"[title]\" [url] >>[quote]";
-                [d setObject:alertMessage forKey:@"QuoteFormat"];
+                [USER_DEFAULTS setObject:alertMessage forKey:@"QuoteFormat"];
             }
             
             alert = [[UIAlertView alloc] initWithTitle:WEB_PAGE_QUOTE_STYLE
@@ -995,7 +994,7 @@
             
             return;
             
-        }else if ( indexPath.row == 9 ) {
+        } else if ( indexPath.row == 9 ) {
             
             //引用投稿書式セット後カーソル位置
             sheet = [[UIActionSheet alloc]
@@ -1008,7 +1007,7 @@
             [sheet showInView:self.view];
         }
         
-    }else if ( indexPath.section == 2 ) {
+    } else if ( indexPath.section == 2 ) {
         
         actionSheetNo = actionSheetNo + SECTION_0 + SECTION_1;
         
@@ -1024,7 +1023,7 @@
             [sheet autorelease];
             [sheet showInView:self.view];
             
-        }else if ( indexPath.row == 1 ) {
+        } else if ( indexPath.row == 1 ) {
             
             //ブラウザの検索ワードを毎回リセット
             sheet = [[UIActionSheet alloc]
@@ -1036,7 +1035,7 @@
             [sheet autorelease];
             [sheet showInView:self.view];
             
-        }else if ( indexPath.row == 2 ) {
+        } else if ( indexPath.row == 2 ) {
             
             //ブラウザを開く時ペーストボード内のURLを開く
             sheet = [[UIActionSheet alloc]
@@ -1048,7 +1047,7 @@
             [sheet autorelease];
             [sheet showInView:self.view];
             
-        }else if ( indexPath.row == 3 ) {
+        } else if ( indexPath.row == 3 ) {
             
             //ブラウザユーザーエージェント
             sheet = [[UIActionSheet alloc]
@@ -1060,7 +1059,7 @@
             [sheet autorelease];
             [sheet showInView:self.view];
             
-        }else if ( indexPath.row == 4 ) {
+        } else if ( indexPath.row == 4 ) {
             
             sheet = [[UIActionSheet alloc]
                      initWithTitle:USER_AGENT_RESET
@@ -1071,7 +1070,7 @@
             [sheet autorelease];
             [sheet showInView:self.view];
             
-        }else if ( indexPath.row == 5 ) {
+        } else if ( indexPath.row == 5 ) {
             
             sheet = [[UIActionSheet alloc]
                      initWithTitle:SWIPE_SHIFT_CARET
@@ -1083,7 +1082,7 @@
             [sheet showInView:self.view];
         }
         
-    }else if ( indexPath.section == 3 ) {
+    } else if ( indexPath.section == 3 ) {
         
         actionSheetNo = actionSheetNo + SECTION_0 + SECTION_1 + SECTION_2;
         
@@ -1099,7 +1098,7 @@
             [sheet autorelease];
             [sheet showInView:self.view];
             
-        }else if ( indexPath.row == 1 ) {
+        } else if ( indexPath.row == 1 ) {
             
             //バックグラウンドから復帰時UserStreamに接続
             sheet = [[UIActionSheet alloc]
@@ -1111,7 +1110,7 @@
             [sheet autorelease];
             [sheet showInView:self.view];
             
-        }else if ( indexPath.row == 2 ) {
+        } else if ( indexPath.row == 2 ) {
             
             //通常の更新後にUserStreamに接続
             sheet = [[UIActionSheet alloc]
@@ -1123,14 +1122,14 @@
             [sheet autorelease];
             [sheet showInView:self.view];
             
-        }else if ( indexPath.row == 3 ) {
+        } else if ( indexPath.row == 3 ) {
             
             //NG設定を開く
             NGSettingViewController *dialog = [[[NGSettingViewController alloc] init] autorelease];
             dialog.title = @"NG Settings";
             [self.navigationController pushViewController:dialog animated:YES];
             
-        }else if ( indexPath.row == 4 ) {
+        } else if ( indexPath.row == 4 ) {
             
             //自分のTweetもNGを行う
             sheet = [[UIActionSheet alloc]
@@ -1142,7 +1141,7 @@
             [sheet autorelease];
             [sheet showInView:self.view];
             
-        }else if ( indexPath.row == 5 ) {
+        } else if ( indexPath.row == 5 ) {
             
             //アイコンの角を丸める
             sheet = [[UIActionSheet alloc]
@@ -1154,7 +1153,7 @@
             [sheet autorelease];
             [sheet showInView:self.view];
             
-        }else if ( indexPath.row == 6 ) {
+        } else if ( indexPath.row == 6 ) {
             
             //UserStream接続中は自動ロックを無効化する
             sheet = [[UIActionSheet alloc]
@@ -1166,7 +1165,7 @@
             [sheet autorelease];
             [sheet showInView:self.view];
             
-        }else if ( indexPath.row == 7 ) {
+        } else if ( indexPath.row == 7 ) {
             
             sheet = [[UIActionSheet alloc]
                      initWithTitle:TIMELINE_LOAD
@@ -1177,7 +1176,7 @@
             [sheet autorelease];
             [sheet showInView:self.view];
             
-        }else if ( indexPath.row == 8 ) {
+        } else if ( indexPath.row == 8 ) {
             
             sheet = [[UIActionSheet alloc]
                      initWithTitle:MENTIONS_LOAD
@@ -1188,7 +1187,7 @@
             [sheet autorelease];
             [sheet showInView:self.view];
             
-        }else if ( indexPath.row == 9 ) {
+        } else if ( indexPath.row == 9 ) {
             
             sheet = [[UIActionSheet alloc]
                      initWithTitle:FAVORITES_LOAD
@@ -1199,7 +1198,7 @@
             [sheet autorelease];
             [sheet showInView:self.view];
             
-        }else if ( indexPath.row == 10 ) {
+        } else if ( indexPath.row == 10 ) {
             
             sheet = [[UIActionSheet alloc]
                      initWithTitle:TIMELINE_FIRSTLOAD
@@ -1210,7 +1209,7 @@
             [sheet autorelease];
             [sheet showInView:self.view];
             
-        }else if ( indexPath.row == 11 ) {
+        } else if ( indexPath.row == 11 ) {
             
             sheet = [[UIActionSheet alloc]
                      initWithTitle:TIMELINE_ICON_ACTION
@@ -1221,7 +1220,7 @@
             [sheet autorelease];
             [sheet showInView:self.view];
             
-        }else if ( indexPath.row == 12 ) {
+        } else if ( indexPath.row == 12 ) {
             
             sheet = [[UIActionSheet alloc]
                      initWithTitle:TIMELINE_LIST
@@ -1232,7 +1231,7 @@
             [sheet autorelease];
             [sheet showInView:self.view];
             
-        }else if ( indexPath.row == 13 ) {
+        } else if ( indexPath.row == 13 ) {
             
             [self setListSelectMode:YES];
             
@@ -1240,7 +1239,7 @@
             dialog.modalTransitionStyle = UIModalTransitionStyleCoverVertical;
             [self showModalViewController:dialog];
             
-        }else if ( indexPath.row == 14 ) {
+        } else if ( indexPath.row == 14 ) {
             
             sheet = [[UIActionSheet alloc]
                      initWithTitle:ICON_QUALITY
@@ -1252,7 +1251,7 @@
             [sheet showInView:self.view];
         }
         
-    }else if ( indexPath.section == 4 ) {
+    } else if ( indexPath.section == 4 ) {
         
         if ( indexPath.row == 0 ) {
             
@@ -1260,7 +1259,7 @@
             dialog.title = @"License";
             [self.navigationController pushViewController:dialog animated:YES];
             
-        }else if ( indexPath.row == 1 ) {
+        } else if ( indexPath.row == 1 ) {
             
             SpecialThanksViewController *dialog = [[[SpecialThanksViewController alloc] init] autorelease];
             dialog.title = @"SpecialThanks";
@@ -1277,23 +1276,23 @@
         if (buttonIndex == 1) {
             
             //カスタム書式を保存
-            [d setObject:alertText.text forKey:@"NowPlayingEditText"];
+            [USER_DEFAULTS setObject:alertText.text forKey:@"NowPlayingEditText"];
         }
         
-    }else if ( alertTextNo == 1 ) {
+    } else if ( alertTextNo == 1 ) {
         
         //サブ書式を保存
-        [d setObject:alertText.text forKey:@"NowPlayingEditTextSub"];
+        [USER_DEFAULTS setObject:alertText.text forKey:@"NowPlayingEditTextSub"];
         
-    }else if ( alertTextNo == 2 ) {
+    } else if ( alertTextNo == 2 ) {
         
         //Webページ投稿書式を保存
-        [d setObject:alertText.text forKey:@"WebPagePostFormat"];
+        [USER_DEFAULTS setObject:alertText.text forKey:@"WebPagePostFormat"];
         
-    }else if ( alertTextNo == 3 ) {
+    } else if ( alertTextNo == 3 ) {
         
         //引用投稿書式を保存
-        [d setObject:alertText.text forKey:@"QuoteFormat"];
+        [USER_DEFAULTS setObject:alertText.text forKey:@"QuoteFormat"];
     }
 }
 
@@ -1304,22 +1303,22 @@
     if ( alertTextNo == 0 ) {
         
         //カスタム書式を保存
-        [d setObject:alertText.text forKey:@"NowPlayingEditText"];
+        [USER_DEFAULTS setObject:alertText.text forKey:@"NowPlayingEditText"];
         
-    }else if ( alertTextNo == 1 ) {
+    } else if ( alertTextNo == 1 ) {
         
         //サブ書式を保存
-        [d setObject:alertText.text forKey:@"NowPlayingEditTextSub"];
+        [USER_DEFAULTS setObject:alertText.text forKey:@"NowPlayingEditTextSub"];
         
-    }else if ( alertTextNo == 2 ) {
+    } else if ( alertTextNo == 2 ) {
         
         //Webページ投稿書式を保存
-        [d setObject:alertText.text forKey:@"WebPagePostFormat"];
+        [USER_DEFAULTS setObject:alertText.text forKey:@"WebPagePostFormat"];
         
-    }else if ( alertTextNo == 3 ) {
+    } else if ( alertTextNo == 3 ) {
         
         //引用投稿書式を保存
-        [d setObject:alertText.text forKey:@"QuoteFormat"];
+        [USER_DEFAULTS setObject:alertText.text forKey:@"QuoteFormat"];
     }
     
     //キーボードを閉じる
@@ -1337,62 +1336,62 @@
     
     if ( actionSheetNo == 0 ) {
         if ( buttonIndex == 0 ) {
-            [d setBool:YES forKey:@"ResizeImage"];
-        }else if ( buttonIndex == 1 ) {
-            [d setBool:NO forKey:@"ResizeImage"];
+            [USER_DEFAULTS setBool:YES forKey:@"ResizeImage"];
+        } else if ( buttonIndex == 1 ) {
+            [USER_DEFAULTS setBool:NO forKey:@"ResizeImage"];
         }
         
-    }else if ( actionSheetNo == 1 ) {
+    } else if ( actionSheetNo == 1 ) {
         if ( buttonIndex == 0 ) {
-            [d setInteger:320 forKey:@"ImageMaxSize"];
-        }else if ( buttonIndex == 1 ) {
-            [d setInteger:640 forKey:@"ImageMaxSize"];
-        }else if ( buttonIndex == 2 ) {
-            [d setInteger:800 forKey:@"ImageMaxSize"];
-        }else if ( buttonIndex == 3 ) {
-            [d setInteger:960 forKey:@"ImageMaxSize"];
-        }else if ( buttonIndex == 4 ) {
-            [d setInteger:1280 forKey:@"ImageMaxSize"];
+            [USER_DEFAULTS setInteger:320 forKey:@"ImageMaxSize"];
+        } else if ( buttonIndex == 1 ) {
+            [USER_DEFAULTS setInteger:640 forKey:@"ImageMaxSize"];
+        } else if ( buttonIndex == 2 ) {
+            [USER_DEFAULTS setInteger:800 forKey:@"ImageMaxSize"];
+        } else if ( buttonIndex == 3 ) {
+            [USER_DEFAULTS setInteger:960 forKey:@"ImageMaxSize"];
+        } else if ( buttonIndex == 4 ) {
+            [USER_DEFAULTS setInteger:1280 forKey:@"ImageMaxSize"];
         }
         
-    }else if ( actionSheetNo == 2 ) {
+    } else if ( actionSheetNo == 2 ) {
         if ( buttonIndex == 0 ) {
-            [d setObject:@"JPG(Low)" forKey:@"SaveImageType"];
-        }else if ( buttonIndex == 1 ) {
-            [d setObject:@"JPG" forKey:@"SaveImageType"];
-        }else if ( buttonIndex == 2 ) {
-            [d setObject:@"JPG(High)" forKey:@"SaveImageType"];
-        }else if ( buttonIndex == 3 ) {
-            [d setObject:@"PNG" forKey:@"SaveImageType"];
+            [USER_DEFAULTS setObject:@"JPG(Low)" forKey:@"SaveImageType"];
+        } else if ( buttonIndex == 1 ) {
+            [USER_DEFAULTS setObject:@"JPG" forKey:@"SaveImageType"];
+        } else if ( buttonIndex == 2 ) {
+            [USER_DEFAULTS setObject:@"JPG(High)" forKey:@"SaveImageType"];
+        } else if ( buttonIndex == 3 ) {
+            [USER_DEFAULTS setObject:@"PNG" forKey:@"SaveImageType"];
         }
         
-    }else if ( actionSheetNo == 3 ) {
+    } else if ( actionSheetNo == 3 ) {
         if ( buttonIndex == 0 ) {
-            [d setBool:NO forKey:@"NoResizeIphone4Ss"];
-        }else if ( buttonIndex == 1 ) {
-            [d setBool:YES forKey:@"NoResizeIphone4Ss"];
+            [USER_DEFAULTS setBool:NO forKey:@"NoResizeIphone4Ss"];
+        } else if ( buttonIndex == 1 ) {
+            [USER_DEFAULTS setBool:YES forKey:@"NoResizeIphone4Ss"];
         }
         
-    }else if ( actionSheetNo == 4 ) {
+    } else if ( actionSheetNo == 4 ) {
         
         if ( buttonIndex == 0 ) {
             
-            [d setObject:@"Twitter" forKey:@"PhotoService"];
+            [USER_DEFAULTS setObject:@"Twitter" forKey:@"PhotoService"];
             
-            if ( [d boolForKey:@"RepeatedPost"] ) {
+            if ( [USER_DEFAULTS boolForKey:@"RepeatedPost"] ) {
                 
                 [ShowAlert error:@"Twitterへの画像投稿では連続投稿機能は使えません。"];
                 
-                [d setBool:NO forKey:@"RepeatedPost"];
+                [USER_DEFAULTS setBool:NO forKey:@"RepeatedPost"];
             }
             
-        }else if ( buttonIndex == 1 ) {
+        } else if ( buttonIndex == 1 ) {
             
-            [d setObject:@"img.ur" forKey:@"PhotoService"];
+            [USER_DEFAULTS setObject:@"img.ur" forKey:@"PhotoService"];
             
-        }else if ( buttonIndex == 2 ) {
+        } else if ( buttonIndex == 2 ) {
             
-            NSDictionary *dic = [d dictionaryForKey:@"OAuthAccount"];
+            NSDictionary *dic = [USER_DEFAULTS dictionaryForKey:@"OAuthAccount"];
             NSArray *oauthAccountNames = [dic allKeys];
             
             ACAccount *twAccount = [TWAccounts currentAccount];
@@ -1433,7 +1432,7 @@
             }
         }
         
-    }else if ( actionSheetNo == 5 ) {
+    } else if ( actionSheetNo == 5 ) {
         
         //カメラが使われる可能性のある選択肢
         if ( buttonIndex != 0 ) {
@@ -1445,18 +1444,18 @@
                 
                 if ( buttonIndex == 1 ) {
                     
-                    [d setInteger:1 forKey:@"ImageSource"];
+                    [USER_DEFAULTS setInteger:1 forKey:@"ImageSource"];
                     
-                    if ( [d boolForKey:@"RepeatedPost"] ) {
+                    if ( [USER_DEFAULTS boolForKey:@"RepeatedPost"] ) {
                         
-                        [d setBool:NO forKey:@"RepeatedPost"];
+                        [USER_DEFAULTS setBool:NO forKey:@"RepeatedPost"];
                         
                         [ShowAlert error:@"カメラでは連続投稿が出来ません"];
                     }
                     
-                }else if ( buttonIndex == 2 ) {
+                } else if ( buttonIndex == 2 ) {
                     
-                    [d setInteger:2 forKey:@"ImageSource"];
+                    [USER_DEFAULTS setInteger:2 forKey:@"ImageSource"];
                 }
                 
             } else {
@@ -1464,303 +1463,303 @@
                 //カメラが利用できない場合
                 [ShowAlert error:@"カメラが利用出来ない端末です。カメラロールが設定されます。"];
                 
-                [d setInteger:0 forKey:@"ImageSource"];
+                [USER_DEFAULTS setInteger:0 forKey:@"ImageSource"];
             }
             
         } else {
             
-            [d setInteger:0 forKey:@"ImageSource"];
+            [USER_DEFAULTS setInteger:0 forKey:@"ImageSource"];
         }
         
         //連続投稿確認表示
-    }else if ( actionSheetNo == 6 ) {
+    } else if ( actionSheetNo == 6 ) {
         if ( buttonIndex == 0 ) {
             
-            [d setBool:YES forKey:@"RepeatedPost"];
+            [USER_DEFAULTS setBool:YES forKey:@"RepeatedPost"];
             
-            if ( [[d objectForKey:@"PhotoService"] isEqualToString:@"Twitter"] ) {
+            if ( [[USER_DEFAULTS objectForKey:@"PhotoService"] isEqualToString:@"Twitter"] ) {
                 
                 [ShowAlert error:@"Twitterへの画像投稿では連続投稿機能は使えません。"];
                 
-                [d setObject:@"img.ur" forKey:@"PhotoService"];
+                [USER_DEFAULTS setObject:@"img.ur" forKey:@"PhotoService"];
             }
             
-            if ( [d integerForKey:@"ImageSource"] == 1 ) {
+            if ( [USER_DEFAULTS integerForKey:@"ImageSource"] == 1 ) {
                 
                 [ShowAlert error:@"カメラでは連続投稿が出来ません"];
                 
-                [d setInteger:0 forKey:@"ImageSource"];
+                [USER_DEFAULTS setInteger:0 forKey:@"ImageSource"];
             }
             
-        }else if ( buttonIndex == 1 ) {
+        } else if ( buttonIndex == 1 ) {
             
-            [d setBool:NO forKey:@"RepeatedPost"];
+            [USER_DEFAULTS setBool:NO forKey:@"RepeatedPost"];
         }
         
-    }else if ( actionSheetNo == 7 ) {
+    } else if ( actionSheetNo == 7 ) {
         if ( buttonIndex == 0 ) {
-            [d setBool:YES forKey:@"FullSizeImage"];
-        }else if ( buttonIndex == 1 ) {
-            [d setBool:NO forKey:@"FullSizeImage"];
+            [USER_DEFAULTS setBool:YES forKey:@"FullSizeImage"];
+        } else if ( buttonIndex == 1 ) {
+            [USER_DEFAULTS setBool:NO forKey:@"FullSizeImage"];
         }
         
-    }else if ( actionSheetNo == 8 ) {
+    } else if ( actionSheetNo == 8 ) {
         if ( buttonIndex == 0 ) {
-            [d setInteger:0 forKey:@"NowPlayingPhotoService"];
-        }else if ( buttonIndex == 1 ) {
-            [d setInteger:1 forKey:@"NowPlayingPhotoService"];
-        }else if ( buttonIndex == 2 ) {
-            [d setInteger:2 forKey:@"NowPlayingPhotoService"];
-        }else if ( buttonIndex == 3 ) {
-            [d setInteger:3 forKey:@"NowPlayingPhotoService"];
+            [USER_DEFAULTS setInteger:0 forKey:@"NowPlayingPhotoService"];
+        } else if ( buttonIndex == 1 ) {
+            [USER_DEFAULTS setInteger:1 forKey:@"NowPlayingPhotoService"];
+        } else if ( buttonIndex == 2 ) {
+            [USER_DEFAULTS setInteger:2 forKey:@"NowPlayingPhotoService"];
+        } else if ( buttonIndex == 3 ) {
+            [USER_DEFAULTS setInteger:3 forKey:@"NowPlayingPhotoService"];
         }
         
-    }else if ( actionSheetNo == 9 ) {
+    } else if ( actionSheetNo == 9 ) {
         if ( buttonIndex == 0 ) {
-            [d setBool:YES forKey:@"NowPlayingEdit"];
-        }else if ( buttonIndex == 1 ) {
-            [d setBool:NO forKey:@"NowPlayingEdit"];
+            [USER_DEFAULTS setBool:YES forKey:@"NowPlayingEdit"];
+        } else if ( buttonIndex == 1 ) {
+            [USER_DEFAULTS setBool:NO forKey:@"NowPlayingEdit"];
         }
         
-        //  }else if ( actionSheetNo == 10 ) {
+        //  } else if ( actionSheetNo == 10 ) {
         
-    }else if ( actionSheetNo == 11 ) {
+    } else if ( actionSheetNo == 11 ) {
         if ( buttonIndex == 0 ) {
-            [d setInteger:0 forKey:@"NowPlayingEditSub"];
-        }else if ( buttonIndex == 1 ) {
-            [d setInteger:1 forKey:@"NowPlayingEditSub"];
-        }else if ( buttonIndex == 2 ) {
-            [d setInteger:2 forKey:@"NowPlayingEditSub"];
+            [USER_DEFAULTS setInteger:0 forKey:@"NowPlayingEditSub"];
+        } else if ( buttonIndex == 1 ) {
+            [USER_DEFAULTS setInteger:1 forKey:@"NowPlayingEditSub"];
+        } else if ( buttonIndex == 2 ) {
+            [USER_DEFAULTS setInteger:2 forKey:@"NowPlayingEditSub"];
         }
         
-        //  }else if ( actionSheetNo == 12 ) {
+        //  } else if ( actionSheetNo == 12 ) {
         
-    }else if ( actionSheetNo == 13 ) {
-        
-        if ( buttonIndex == 0 ) {
-            [d setBool:YES forKey:@"NowPlayingArtWork"];
-        }else if ( buttonIndex == 1 ) {
-            [d setBool:NO forKey:@"NowPlayingArtWork"];
-        }
-        
-    }else if ( actionSheetNo == 14 ) {
-        if ( buttonIndex == 0 ) {
-            [d setBool:YES forKey:@"TohaSearch"];
-        }else if ( buttonIndex == 1 ) {
-            [d setBool:NO forKey:@"TohaSearch"];
-        }
-        
-        //  }else if ( actionSheetNo == 15 ) {
-        
-    }else if ( actionSheetNo == 16 ) {
-        if ( buttonIndex == 0 ) {
-            [d setBool:YES forKey:@"WebPagePostCursorPosition"];
-        }else if ( buttonIndex == 1 ) {
-            [d setBool:NO forKey:@"WebPagePostCursorPosition"];
-        }
-        
-        //  }else if ( actionSheetNo == 17 ) {
-        
-    }else if ( actionSheetNo == 18 ) {
+    } else if ( actionSheetNo == 13 ) {
         
         if ( buttonIndex == 0 ) {
-            [d setBool:YES forKey:@"QuoteCursorPosition"];
-        }else if ( buttonIndex == 1 ) {
-            [d setBool:NO forKey:@"QuoteCursorPosition"];
+            [USER_DEFAULTS setBool:YES forKey:@"NowPlayingArtWork"];
+        } else if ( buttonIndex == 1 ) {
+            [USER_DEFAULTS setBool:NO forKey:@"NowPlayingArtWork"];
         }
         
-    }else if ( actionSheetNo == 19 ) {
+    } else if ( actionSheetNo == 14 ) {
         if ( buttonIndex == 0 ) {
-            [d setBool:YES forKey:@"ShowKeyboard"];
-        }else if ( buttonIndex == 1 ) {
-            [d setBool:NO forKey:@"ShowKeyboard"];
+            [USER_DEFAULTS setBool:YES forKey:@"TohaSearch"];
+        } else if ( buttonIndex == 1 ) {
+            [USER_DEFAULTS setBool:NO forKey:@"TohaSearch"];
         }
         
-    }else if ( actionSheetNo == 20 ) {
+        //  } else if ( actionSheetNo == 15 ) {
+        
+    } else if ( actionSheetNo == 16 ) {
         if ( buttonIndex == 0 ) {
-            [d setBool:YES forKey:@"ClearBrowserSearchField"];
-        }else if ( buttonIndex == 1 ) {
-            [d setBool:NO forKey:@"ClearBrowserSearchField"];
+            [USER_DEFAULTS setBool:YES forKey:@"WebPagePostCursorPosition"];
+        } else if ( buttonIndex == 1 ) {
+            [USER_DEFAULTS setBool:NO forKey:@"WebPagePostCursorPosition"];
         }
         
-    }else if ( actionSheetNo == 21 ) {
+        //  } else if ( actionSheetNo == 17 ) {
+        
+    } else if ( actionSheetNo == 18 ) {
+        
+        if ( buttonIndex == 0 ) {
+            [USER_DEFAULTS setBool:YES forKey:@"QuoteCursorPosition"];
+        } else if ( buttonIndex == 1 ) {
+            [USER_DEFAULTS setBool:NO forKey:@"QuoteCursorPosition"];
+        }
+        
+    } else if ( actionSheetNo == 19 ) {
+        if ( buttonIndex == 0 ) {
+            [USER_DEFAULTS setBool:YES forKey:@"ShowKeyboard"];
+        } else if ( buttonIndex == 1 ) {
+            [USER_DEFAULTS setBool:NO forKey:@"ShowKeyboard"];
+        }
+        
+    } else if ( actionSheetNo == 20 ) {
+        if ( buttonIndex == 0 ) {
+            [USER_DEFAULTS setBool:YES forKey:@"ClearBrowserSearchField"];
+        } else if ( buttonIndex == 1 ) {
+            [USER_DEFAULTS setBool:NO forKey:@"ClearBrowserSearchField"];
+        }
+        
+    } else if ( actionSheetNo == 21 ) {
         if ( buttonIndex == 0 ) {
             
-            [d setBool:YES forKey:@"OpenPasteBoardURL"];
+            [USER_DEFAULTS setBool:YES forKey:@"OpenPasteBoardURL"];
             
-            if ( ![EmptyCheck check:[d objectForKey:@"LastOpendPasteBoardURL"]] ) {
+            if ( ![EmptyCheck check:[USER_DEFAULTS objectForKey:@"LastOpendPasteBoardURL"]] ) {
                 
-                [d setObject:BLANK forKey:@"LastOpendPasteBoardURL"];
+                [USER_DEFAULTS setObject:BLANK forKey:@"LastOpendPasteBoardURL"];
             }
             
-        }else if ( buttonIndex == 1 ) {
+        } else if ( buttonIndex == 1 ) {
             
-            [d setBool:NO forKey:@"OpenPasteBoardURL"];
+            [USER_DEFAULTS setBool:NO forKey:@"OpenPasteBoardURL"];
         }
         
-    }else if ( actionSheetNo == 22 ) {
+    } else if ( actionSheetNo == 22 ) {
         if ( buttonIndex == 0 ) {
-            [d setObject:@"FireFox" forKey:@"UserAgent"];
-        }else if ( buttonIndex == 1 ) {
-            [d setObject:@"iPad" forKey:@"UserAgent"];
-        }else if ( buttonIndex == 2 ) {
-            [d setObject:@"iPhone" forKey:@"UserAgent"];
+            [USER_DEFAULTS setObject:@"FireFox" forKey:@"UserAgent"];
+        } else if ( buttonIndex == 1 ) {
+            [USER_DEFAULTS setObject:@"iPad" forKey:@"UserAgent"];
+        } else if ( buttonIndex == 2 ) {
+            [USER_DEFAULTS setObject:@"iPhone" forKey:@"UserAgent"];
         }
         
-    }else if ( actionSheetNo == 23 ) {
+    } else if ( actionSheetNo == 23 ) {
         
         if ( buttonIndex == 0 ) {
-            [d setObject:@"OFF" forKey:@"UserAgentReset"];
-        }else if ( buttonIndex == 1 ) {
-            [d setObject:@"FireFox" forKey:@"UserAgentReset"];
-        }else if ( buttonIndex == 2 ) {
-            [d setObject:@"iPad" forKey:@"UserAgentReset"];
-        }else if ( buttonIndex == 3 ) {
-            [d setObject:@"iPhone" forKey:@"UserAgentReset"];
+            [USER_DEFAULTS setObject:@"OFF" forKey:@"UserAgentReset"];
+        } else if ( buttonIndex == 1 ) {
+            [USER_DEFAULTS setObject:@"FireFox" forKey:@"UserAgentReset"];
+        } else if ( buttonIndex == 2 ) {
+            [USER_DEFAULTS setObject:@"iPad" forKey:@"UserAgentReset"];
+        } else if ( buttonIndex == 3 ) {
+            [USER_DEFAULTS setObject:@"iPhone" forKey:@"UserAgentReset"];
         }
         
-    }else if ( actionSheetNo == 24 ) {
+    } else if ( actionSheetNo == 24 ) {
         
         if ( buttonIndex == 0 ) {
-            [d setBool:YES forKey:@"SwipeShiftCaret"];
-        }else if ( buttonIndex == 1 ) {
-            [d setBool:NO forKey:@"SwipeShiftCaret"];
+            [USER_DEFAULTS setBool:YES forKey:@"SwipeShiftCaret"];
+        } else if ( buttonIndex == 1 ) {
+            [USER_DEFAULTS setBool:NO forKey:@"SwipeShiftCaret"];
         }
         
-    }else if ( actionSheetNo == 25 ) {
+    } else if ( actionSheetNo == 25 ) {
         if ( buttonIndex == 0 ) {
-            [d setBool:YES forKey:@"EnterBackgroundUSDisConnect"];
-        }else if ( buttonIndex == 1 ) {
-            [d setBool:NO forKey:@"EnterBackgroundUSDisConnect"];
+            [USER_DEFAULTS setBool:YES forKey:@"EnterBackgroundUSDisConnect"];
+        } else if ( buttonIndex == 1 ) {
+            [USER_DEFAULTS setBool:NO forKey:@"EnterBackgroundUSDisConnect"];
         }
         
-    }else if ( actionSheetNo == 26 ) {
+    } else if ( actionSheetNo == 26 ) {
         if ( buttonIndex == 0 ) {
-            [d setBool:YES forKey:@"BecomeActiveUSConnect"];
-        }else if ( buttonIndex == 1 ) {
-            [d setBool:NO forKey:@"BecomeActiveUSConnect"];
+            [USER_DEFAULTS setBool:YES forKey:@"BecomeActiveUSConnect"];
+        } else if ( buttonIndex == 1 ) {
+            [USER_DEFAULTS setBool:NO forKey:@"BecomeActiveUSConnect"];
         }
         
-    }else if ( actionSheetNo == 27 ) {
+    } else if ( actionSheetNo == 27 ) {
         if ( buttonIndex == 0 ) {
-            [d setBool:YES forKey:@"ReloadAfterUSConnect"];
-        }else if ( buttonIndex == 1 ) {
-            [d setBool:NO forKey:@"ReloadAfterUSConnect"];
+            [USER_DEFAULTS setBool:YES forKey:@"ReloadAfterUSConnect"];
+        } else if ( buttonIndex == 1 ) {
+            [USER_DEFAULTS setBool:NO forKey:@"ReloadAfterUSConnect"];
         }
         
-        //    }else if ( actionSheetNo == 29 ) {
+        //    } else if ( actionSheetNo == 29 ) {
         
-    }else if ( actionSheetNo == 29 ) {
+    } else if ( actionSheetNo == 29 ) {
         if ( buttonIndex == 0 ) {
-            [d setBool:YES forKey:@"MyTweetNG"];
-        }else if ( buttonIndex == 1 ) {
-            [d setBool:NO forKey:@"MyTweetNG"];
+            [USER_DEFAULTS setBool:YES forKey:@"MyTweetNG"];
+        } else if ( buttonIndex == 1 ) {
+            [USER_DEFAULTS setBool:NO forKey:@"MyTweetNG"];
         }
         
-    }else if ( actionSheetNo == 30 ) {
+    } else if ( actionSheetNo == 30 ) {
         
         if ( buttonIndex == 0 ) {
-            [d setInteger:2 forKey:@"IconCornerRounding"];
-        }else if ( buttonIndex == 1 ) {
-            [d setInteger:1 forKey:@"IconCornerRounding"];
+            [USER_DEFAULTS setInteger:2 forKey:@"IconCornerRounding"];
+        } else if ( buttonIndex == 1 ) {
+            [USER_DEFAULTS setInteger:1 forKey:@"IconCornerRounding"];
         }
         
         [ShowAlert title:@"設定変更完了" message:@"設定を有効にするにはアプリケーションを再起動してください。"];
         
-    }else if ( actionSheetNo == 31 ) {
+    } else if ( actionSheetNo == 31 ) {
         if ( buttonIndex == 0 ) {
-            [d setBool:YES forKey:@"USNoAutoLock"];
-        }else if ( buttonIndex == 1 ) {
-            [d setBool:NO forKey:@"USNoAutoLock"];
+            [USER_DEFAULTS setBool:YES forKey:@"USNoAutoLock"];
+        } else if ( buttonIndex == 1 ) {
+            [USER_DEFAULTS setBool:NO forKey:@"USNoAutoLock"];
         }
         
-    }else if ( actionSheetNo == 32 ) {
+    } else if ( actionSheetNo == 32 ) {
         if ( buttonIndex == 0 ) {
-            [d setObject:@"200" forKey:@"TimelineLoadCount"];
-        }else if ( buttonIndex == 1 ) {
-            [d setObject:@"160" forKey:@"TimelineLoadCount"];
-        }else if ( buttonIndex == 2 ) {
-            [d setObject:@"120" forKey:@"TimelineLoadCount"];
-        }else if ( buttonIndex == 3 ) {
-            [d setObject:@"80" forKey:@"TimelineLoadCount"];
-        }else if ( buttonIndex == 4 ) {
-            [d setObject:@"40" forKey:@"TimelineLoadCount"];
-        }else if ( buttonIndex == 5 ) {
-            [d setObject:@"20" forKey:@"TimelineLoadCount"];
+            [USER_DEFAULTS setObject:@"200" forKey:@"TimelineLoadCount"];
+        } else if ( buttonIndex == 1 ) {
+            [USER_DEFAULTS setObject:@"160" forKey:@"TimelineLoadCount"];
+        } else if ( buttonIndex == 2 ) {
+            [USER_DEFAULTS setObject:@"120" forKey:@"TimelineLoadCount"];
+        } else if ( buttonIndex == 3 ) {
+            [USER_DEFAULTS setObject:@"80" forKey:@"TimelineLoadCount"];
+        } else if ( buttonIndex == 4 ) {
+            [USER_DEFAULTS setObject:@"40" forKey:@"TimelineLoadCount"];
+        } else if ( buttonIndex == 5 ) {
+            [USER_DEFAULTS setObject:@"20" forKey:@"TimelineLoadCount"];
         }
         
-    }else if ( actionSheetNo == 33 ) {
+    } else if ( actionSheetNo == 33 ) {
         if ( buttonIndex == 0 ) {
-            [d setObject:@"200" forKey:@"MentionsLoadCount"];
-        }else if ( buttonIndex == 1 ) {
-            [d setObject:@"160" forKey:@"MentionsLoadCount"];
-        }else if ( buttonIndex == 2 ) {
-            [d setObject:@"120" forKey:@"MentionsLoadCount"];
-        }else if ( buttonIndex == 3 ) {
-            [d setObject:@"80" forKey:@"MentionsLoadCount"];
-        }else if ( buttonIndex == 4 ) {
-            [d setObject:@"40" forKey:@"MentionsLoadCount"];
-        }else if ( buttonIndex == 5 ) {
-            [d setObject:@"20" forKey:@"MentionsLoadCount"];
+            [USER_DEFAULTS setObject:@"200" forKey:@"MentionsLoadCount"];
+        } else if ( buttonIndex == 1 ) {
+            [USER_DEFAULTS setObject:@"160" forKey:@"MentionsLoadCount"];
+        } else if ( buttonIndex == 2 ) {
+            [USER_DEFAULTS setObject:@"120" forKey:@"MentionsLoadCount"];
+        } else if ( buttonIndex == 3 ) {
+            [USER_DEFAULTS setObject:@"80" forKey:@"MentionsLoadCount"];
+        } else if ( buttonIndex == 4 ) {
+            [USER_DEFAULTS setObject:@"40" forKey:@"MentionsLoadCount"];
+        } else if ( buttonIndex == 5 ) {
+            [USER_DEFAULTS setObject:@"20" forKey:@"MentionsLoadCount"];
         }
         
-    }else if ( actionSheetNo == 34 ) {
+    } else if ( actionSheetNo == 34 ) {
         if ( buttonIndex == 0 ) {
-            [d setObject:@"200" forKey:@"FavoritesLoadCount"];
-        }else if ( buttonIndex == 1 ) {
-            [d setObject:@"160" forKey:@"FavoritesLoadCount"];
-        }else if ( buttonIndex == 2 ) {
-            [d setObject:@"120" forKey:@"FavoritesLoadCount"];
-        }else if ( buttonIndex == 3 ) {
-            [d setObject:@"80" forKey:@"FavoritesLoadCount"];
-        }else if ( buttonIndex == 4 ) {
-            [d setObject:@"40" forKey:@"FavoritesLoadCount"];
-        }else if ( buttonIndex == 5 ) {
-            [d setObject:@"20" forKey:@"FavoritesLoadCount"];
+            [USER_DEFAULTS setObject:@"200" forKey:@"FavoritesLoadCount"];
+        } else if ( buttonIndex == 1 ) {
+            [USER_DEFAULTS setObject:@"160" forKey:@"FavoritesLoadCount"];
+        } else if ( buttonIndex == 2 ) {
+            [USER_DEFAULTS setObject:@"120" forKey:@"FavoritesLoadCount"];
+        } else if ( buttonIndex == 3 ) {
+            [USER_DEFAULTS setObject:@"80" forKey:@"FavoritesLoadCount"];
+        } else if ( buttonIndex == 4 ) {
+            [USER_DEFAULTS setObject:@"40" forKey:@"FavoritesLoadCount"];
+        } else if ( buttonIndex == 5 ) {
+            [USER_DEFAULTS setObject:@"20" forKey:@"FavoritesLoadCount"];
         }
         
-    }else if ( actionSheetNo == 35 ) {
+    } else if ( actionSheetNo == 35 ) {
         if ( buttonIndex == 0 ) {
-            [d setBool:NO forKey:@"TimelineFirstLoad"];
-        }else if ( buttonIndex == 1 ) {
-            [d setBool:YES forKey:@"TimelineFirstLoad"];
+            [USER_DEFAULTS setBool:NO forKey:@"TimelineFirstLoad"];
+        } else if ( buttonIndex == 1 ) {
+            [USER_DEFAULTS setBool:YES forKey:@"TimelineFirstLoad"];
         }
         
-    }else if ( actionSheetNo == 36 ) {
+    } else if ( actionSheetNo == 36 ) {
         
         if ( buttonIndex != 6 ) {
             
-            [d setInteger:buttonIndex forKey:@"TimelineIconAction"];
+            [USER_DEFAULTS setInteger:buttonIndex forKey:@"TimelineIconAction"];
         }
         
-    }else if ( actionSheetNo == 37 ) {
+    } else if ( actionSheetNo == 37 ) {
         
         if ( buttonIndex == 0 ) {
-            [d setBool:YES forKey:@"UseTimelineList"];
-        }else if ( buttonIndex == 1 ) {
-            [d setBool:NO forKey:@"UseTimelineList"];
+            [USER_DEFAULTS setBool:YES forKey:@"UseTimelineList"];
+        } else if ( buttonIndex == 1 ) {
+            [USER_DEFAULTS setBool:NO forKey:@"UseTimelineList"];
         }
         
-    }else if ( actionSheetNo == 39 ) {
+    } else if ( actionSheetNo == 39 ) {
         
         if ( buttonIndex == 0 ) {
-            [d setObject:@"Mini" forKey:@"IconQuality"];
-        }else if ( buttonIndex == 1 ) {
-            [d setObject:@"Normal" forKey:@"IconQuality"];
-        }else if ( buttonIndex == 2 ) {
-            [d setObject:@"Bigger" forKey:@"IconQuality"];
-        }else if ( buttonIndex == 3 ) {
-            [d setObject:@"Original" forKey:@"IconQuality"];
-        }else if ( buttonIndex == 4 ) {
-            [d setObject:@"Original96" forKey:@"IconQuality"];
+            [USER_DEFAULTS setObject:@"Mini" forKey:@"IconQuality"];
+        } else if ( buttonIndex == 1 ) {
+            [USER_DEFAULTS setObject:@"Normal" forKey:@"IconQuality"];
+        } else if ( buttonIndex == 2 ) {
+            [USER_DEFAULTS setObject:@"Bigger" forKey:@"IconQuality"];
+        } else if ( buttonIndex == 3 ) {
+            [USER_DEFAULTS setObject:@"Original" forKey:@"IconQuality"];
+        } else if ( buttonIndex == 4 ) {
+            [USER_DEFAULTS setObject:@"Original96" forKey:@"IconQuality"];
         }
         
-    }else if ( actionSheetNo == 100 ) {
+    } else if ( actionSheetNo == 100 ) {
         if ( buttonIndex == 0 ) {
             
-            [d setObject:@"Twitpic" forKey:@"PhotoService"];
+            [USER_DEFAULTS setObject:@"Twitpic" forKey:@"PhotoService"];
             
-        }else if ( buttonIndex == 1 ) {
+        } else if ( buttonIndex == 1 ) {
             
             OAuthSetupViewController *dialog = [[[OAuthSetupViewController alloc] init] autorelease];
             dialog.modalTransitionStyle = UIModalTransitionStyleCoverVertical;
@@ -1816,9 +1815,7 @@
 
 - (BOOL)shouldAutorotate {
     
-    if ( [[UIDevice currentDevice] orientation] == UIDeviceOrientationPortrait ) return YES;
-    
-    return NO;
+    return YES;
 }
 
 - (NSUInteger)supportedInterfaceOrientations {

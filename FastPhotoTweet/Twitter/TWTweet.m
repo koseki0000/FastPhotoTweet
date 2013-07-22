@@ -63,17 +63,17 @@
     TWTweet *tweet = [[[TWTweet alloc] init] autorelease];
     
     IconSize iconSize;
-    NSString *iconQualitySetting = [[NSUserDefaults standardUserDefaults] objectForKey:@"IconQuality"];
+    NSString *iconQualitySetting = [USER_DEFAULTS objectForKey:@"IconQuality"];
     
     if ( [iconQualitySetting isEqualToString:@"Mini"] ) {
         iconSize = IconSizeMini;
-    }else if ( [iconQualitySetting isEqualToString:@"Normal"] ) {
+    } else if ( [iconQualitySetting isEqualToString:@"Normal"] ) {
         iconSize = IconSizeNormal;
-    }else if ( [iconQualitySetting isEqualToString:@"Bigger"] ) {
+    } else if ( [iconQualitySetting isEqualToString:@"Bigger"] ) {
         iconSize = IconSizeBigger;
-    }else if ( [iconQualitySetting isEqualToString:@"Original"] ) {
+    } else if ( [iconQualitySetting isEqualToString:@"Original"] ) {
         iconSize = IconSizeOriginal;
-    }else if ( [iconQualitySetting isEqualToString:@"Original96"] ) {
+    } else if ( [iconQualitySetting isEqualToString:@"Original96"] ) {
         iconSize = IconSizeOriginal96;
     } else {
         iconSize = IconSizeBigger;
@@ -117,14 +117,14 @@
             
             [tweet createTimelineCellInfo];
             
-        }else if ( [tweet.eventType isEqualToString:@"favorite"] &&
+        } else if ( [tweet.eventType isEqualToString:@"favorite"] &&
                   [tweetDictionary[@"source"][@"screen_name"] isEqualToString:[TWAccounts currentAccountName]] &&
                   [tweetDictionary[@"target"][@"screen_name"] isEqualToString:[TWAccounts currentAccountName]] ) {
             
             //ふぁぼった
             [tweet setFavoriteEventeType:FavoriteEventTypeAdd];
             
-        }else if ( [tweet.eventType isEqualToString:@"unfavorite"] ) {
+        } else if ( [tweet.eventType isEqualToString:@"unfavorite"] ) {
             
             //ふぁぼ外した
             [tweet setFavoriteEventeType:FavoriteEventTypeRemove];
@@ -132,7 +132,7 @@
         
         [tweet setTweetID:tweetDictionary[@"target_object"][@"id_str"]];
         
-    }else if ( tweetDictionary[@"delete"] ) {
+    } else if ( tweetDictionary[@"delete"] ) {
         
         [tweet setIsDelete:YES];
         [tweet setTweetID:tweetDictionary[@"delete"][@"status"][@"id_str"]];
@@ -225,10 +225,12 @@
     
     [self setInfoText:infoText];
     
+    CGFloat minHeight = self.isReTweet ? CELL_RT_MIN_HEIGHT : CELL_MIN_HEIGHT;
+    
     //セルの高さ
     CGFloat textHeight = [self.text heightForContents:TWEET_TEXT_FONT
                                               toWidht:CELL_WIDHT
-                                            minHeight:self.isReTweet ? CELL_RT_MIN_HEIGHT : CELL_MIN_HEIGHT
+                                            minHeight:minHeight
                                         lineBreakMode:NSLineBreakByCharWrapping];
     CGFloat lineSpacing = 1.0f;
     CGFloat lineHeight = TWEET_TEXT_FONT_SIZE + (lineSpacing * 2);
@@ -236,6 +238,16 @@
     CGFloat customLineHeight = 14.0f;
     textHeight = customLineHeight * lineCount;
     [self setCellHeight:textHeight];
+    
+    ////////////////////////////////
+    
+    textHeight = [self.text heightForContents:TWEET_TEXT_FONT
+                                      toWidht:210.0f
+                                    minHeight:minHeight
+                                lineBreakMode:NSLineBreakByCharWrapping];
+    lineCount = textHeight / lineHeight;
+    textHeight = customLineHeight * lineCount;
+    [self setMenuCellHeight:textHeight];
     
     //Tweetの色を決定
     if ( [self isFavorited] ) {

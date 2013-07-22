@@ -20,24 +20,9 @@
 #define BLANK_DIC [NSDictionary dictionary]
 #define BLANK_M_DIC [NSMutableDictionary dictionary]
 
-#define D [NSUserDefaults standardUserDefaults]
-#define P_BOARD [UIPasteboard generalPasteboard]
-#define ORIENTATION [[UIDevice currentDevice] orientation]
-
 #define FIREFOX_USERAGENT @"Mozilla/5.0 (Macintosh; Intel Mac OS X 10.7; rv:13.0) Gecko/20100101 Firefox/13.0.1"
 #define IPAD_USERAFENT @"Mozilla/5.0 (iPad; CPU OS 5_1_1 like Mac OS X) AppleWebKit/534.46 (KHTML, like Gecko) Version/5.1 Mobile/9B176 Safari/7534.48.3"
 #define IPHONE_USERAGENT @"Mozilla/5.0 (iPhone; CPU iPhone OS 5_1_1 like Mac OS X) AppleWebKit/534.46 (KHTML, like Gecko) Mobile/9B206"
-
-#define FIRMWARE_VERSION [[UIDevice currentDevice] systemVersion]
-
-#define MAIN_QUEUE dispatch_get_main_queue()
-#define ASYNC_MAIN_QUEUE dispatch_async(dispatch_get_main_queue(),
-#define SYNC_MAIN_QUEUE dispatch_sync(dispatch_get_main_queue(),
-#define GLOBAL_QUEUE_DEFAULT dispatch_get_global_queue( DISPATCH_QUEUE_PRIORITY_DEFAULT, 0 )
-#define GLOBAL_QUEUE_HIGH dispatch_get_global_queue( DISPATCH_QUEUE_PRIORITY_HIGH, 0 )
-#define GLOBAL_QUEUE_BACKGROUND dispatch_get_global_queue( DISPATCH_QUEUE_PRIORITY_BACKGROUND, 0 )
-
-#define DISPATCH_AFTER(delay) dispatch_after(dispatch_time(DISPATCH_TIME_NOW, delay * NSEC_PER_SEC), MAIN_QUEUE,
 
 void uncaughtExceptionHandler(NSException *exception);
 

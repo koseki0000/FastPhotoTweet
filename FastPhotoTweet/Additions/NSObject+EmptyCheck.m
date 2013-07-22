@@ -26,23 +26,23 @@
                 
                 result = ((NSString *)self).length == 0;
                 
-            }else if ( [self isKindOfClass:[NSArray class]] ) {
+            } else if ( [self isKindOfClass:[NSArray class]] ) {
                 
                 result = ((NSArray *)self).count == 0;
                 
-            }else if ( [self isKindOfClass:[NSSet class]] ) {
+            } else if ( [self isKindOfClass:[NSSet class]] ) {
                 
                 result = ((NSSet *)self).count == 0;
                 
-            }else if ( [self isKindOfClass:[NSDictionary class]] ) {
+            } else if ( [self isKindOfClass:[NSDictionary class]] ) {
                 
                 result = ((NSDictionary *)self).count == 0;
                 
-            }else if ( [self isKindOfClass:[NSData class]] ) {
+            } else if ( [self isKindOfClass:[NSData class]] ) {
                 
                 result = ((NSData *)self).length == 0;
                 
-            }else if ( [self isKindOfClass:[NSURL class]] ) {
+            } else if ( [self isKindOfClass:[NSURL class]] ) {
                 
                 result = ((NSURL *)self).absoluteString.length == 0;
             }

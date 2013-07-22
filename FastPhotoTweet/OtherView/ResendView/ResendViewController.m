@@ -99,8 +99,8 @@
     
     if ( find ) {
         
-        [[NSUserDefaults standardUserDefaults] setInteger:index
-                                                   forKey:@"UseAccount"];
+        [USER_DEFAULTS setInteger:index
+                           forKey:@"UseAccount"];
         
         //アカウントが切り替わったことを通知
         NSNotification *notification =[NSNotification notificationWithName:@"ChangeAccount"

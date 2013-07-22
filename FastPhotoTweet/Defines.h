@@ -5,11 +5,17 @@
 //  Copyright (c) 2013年 @peace3884. All rights reserved.
 //
 
+typedef enum {
+    TimelineCellTypeMain,
+    TimelineCellTypeMenu
+} TimelineCellType;
+
 #define SCREEN_HEIGHT [UIScreen mainScreen].applicationFrame.size.height
 #define SCREEN_WIDTH [UIScreen mainScreen].applicationFrame.size.width
 #define MAIN_MARGIN 4.0f
 #define MINI_MARGIN 2.0f
 #define SEGMENT_BAR_HEIGHT 30.0f
+#define PROGRESS_BAR_HEIGHT 9.0f
 #define PICKER_HEIGHT 216.0f
 #define STATUS_BAR_HEIGHT 20.0f
 #define TAB_BAR_HEIGHT 48.0f

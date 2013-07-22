@@ -24,7 +24,7 @@
             //テキストの場合
             return 0;
             
-        }else if ( [[pboard.pasteboardTypes objectAtIndex:i] isEqualToString:@"public.jpeg"] ||
+        } else if ( [[pboard.pasteboardTypes objectAtIndex:i] isEqualToString:@"public.jpeg"] ||
                    [[pboard.pasteboardTypes objectAtIndex:i] isEqualToString:@"public.png"] ||
                    [[pboard.pasteboardTypes objectAtIndex:i] isEqualToString:@"public.gif"] ||
                    [[pboard.pasteboardTypes objectAtIndex:i] isEqualToString:@"public.bmp"] ) {

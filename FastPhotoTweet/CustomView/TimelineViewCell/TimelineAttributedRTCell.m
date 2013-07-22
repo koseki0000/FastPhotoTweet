@@ -17,6 +17,12 @@
 #define MARGIN 4.0f
 #define HALF_MARGIN 2.0f
 
+@interface TimelineAttributedRTCell ()
+
+@property (nonatomic) TimelineCellType timelineCellType;
+
+@end
+
 @implementation TimelineAttributedRTCell
 
 - (void)drawRect:(CGRect)rect {
@@ -26,7 +32,7 @@
     size_t location = 2;
     CGFloat locations[2] =  {0.0f, 1.0f};
     CGFloat components[8] = {1.0f,  1.0f,  1.0f, 1.0f, 0.92f, 0.92f, 0.92f, 1.0f};
-    
+
     CGColorSpaceRef colorSpace = CGColorSpaceCreateDeviceRGB();
     CGGradientRef gradient =   CGGradientCreateWithColorComponents(colorSpace, components, locations, location);
     
@@ -38,7 +44,7 @@
     CGGradientRelease(gradient);
 }
 
-- (id)initWithStyle:(UITableViewCellStyle)style reuseIdentifier:(NSString *)reuseIdentifier forWidth:(CGFloat)width {
+- (id)initWithStyle:(UITableViewCellStyle)style reuseIdentifier:(NSString *)reuseIdentifier forWidth:(CGFloat)width timelineCellType:(TimelineCellType)timelineCellType {
     
     self = [super initWithStyle:style
                 reuseIdentifier:reuseIdentifier];
@@ -46,6 +52,7 @@
     if ( self ) {
         
         [self setProperties:width];
+        [self setTimelineCellType:timelineCellType];
     }
     
     return self;
@@ -91,7 +98,7 @@
     [self.arrowView setBackgroundColor:[UIColor grayColor]];
     [self.iconView addSubview:self.arrowView];
     
-    if ( [[NSUserDefaults standardUserDefaults] integerForKey:@"IconCornerRounding"] == 1 ) {
+    if ( [USER_DEFAULTS integerForKey:@"IconCornerRounding"] == 1 ) {
         
         //角を丸める
         [self.userIconView.layer setCornerRadius:4.0f];
@@ -116,7 +123,7 @@
     NSString *userName = tweet.rtUserName;
     [self.iconView setTargetTweet:tweet];
     NSString *infoLabelText = tweet.infoText;
-    CGFloat contentsHeight = tweet.cellHeight;
+    CGFloat contentsHeight = (self.timelineCellType == TimelineCellTypeMain) ? tweet.cellHeight : tweet.menuCellHeight;
     
     NSMutableAttributedString *mainText = [NSMutableAttributedString attributedStringWithString:text];
     [mainText setFont:[UIFont systemFontOfSize:12.0f]];

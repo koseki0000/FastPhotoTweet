@@ -20,12 +20,11 @@
         if ( [(NSArray *)unitArray isEmpty] ) return self;
         
         NSMutableArray *tempArray = [NSMutableArray arrayWithArray:self];
-        __block __weak NSMutableArray *wTempArray = tempArray;
         
         NSInteger i = 0;
         for ( id item in unitArray ) {
             
-            [wTempArray insertObject:item
+            [tempArray insertObject:item
                              atIndex:i];
             i++;
         }
@@ -46,11 +45,10 @@
         if ( [(NSArray *)unitArray isEmpty] ) return self;
         
         NSMutableArray *tempArray = [NSMutableArray arrayWithArray:self];
-        __block __weak NSMutableArray *wTempArray = tempArray;
         
         for ( id item in unitArray ) {
             
-            [wTempArray addObject:item];
+            [tempArray addObject:item];
         }
         
         return returnMutable ? tempArray : [NSArray arrayWithArray:tempArray];
@@ -68,15 +66,13 @@
         
         if ( [(NSArray *)unitArray isEmpty] ) return self;
         
-        __block __weak id wself = self;
         NSMutableArray *tempArray = [NSMutableArray arrayWithArray:self];
-        __block __weak NSMutableArray *wTempArray = tempArray;
         
         NSInteger i = 0;
         for ( id item in unitArray ) {
             
             BOOL notHave = YES;
-            for ( id myItem in wself ) {
+            for ( id myItem in self ) {
                 
                 if ( [myItem isEqual:item] ) {
                     
@@ -87,7 +83,7 @@
             
             if ( notHave ) {
                 
-                [wTempArray insertObject:item atIndex:i];
+                [tempArray insertObject:item atIndex:i];
                 i++;
             }
         }
@@ -107,14 +103,12 @@
         
         if ( [(NSArray *)unitArray isEmpty] ) return self;
         
-        __block __weak id wself = self;
         NSMutableArray *tempArray = [NSMutableArray arrayWithArray:self];
-        __block __weak NSMutableArray *wTempArray = tempArray;
 
         for ( id item in unitArray ) {
             
             BOOL notHave = YES;
-            for ( id myItem in wself ) {
+            for ( id myItem in self ) {
                 
                 if ( [myItem isEqual:item] ) {
                     
@@ -123,7 +117,7 @@
                 }
             }
             
-            if ( notHave ) [wTempArray addObject:item];
+            if ( notHave ) [tempArray addObject:item];
         }
 
         return returnMutable ? tempArray : [NSArray arrayWithArray:tempArray];
@@ -141,25 +135,21 @@
         
         if ( [(NSArray *)dictionariesArray isEmpty] ) return self;
         
-        __block __weak id wself = self;
         NSMutableArray *tempArray = [NSMutableArray arrayWithArray:self];
-        __block __weak NSMutableArray *wTempArray = tempArray;
         
         BOOL isOnlyDictionary = YES;
         for ( id item in dictionariesArray ) {
             
-            if (!( [item isKindOfClass:[NSDictionary class]] ||
-                   [item isKindOfClass:[NSMutableDictionary class]] )) {
+            if ( ![item isKindOfClass:[NSDictionary class]] ) {
                 
                 isOnlyDictionary = NO;
                 break;
             }
         }
         
-        for ( id item in wself ) {
+        for ( id item in self ) {
             
-            if (!( [item isKindOfClass:[NSDictionary class]] ||
-                   [item isKindOfClass:[NSMutableDictionary class]] )) {
+            if ( ![item isKindOfClass:[NSDictionary class]] ) {
                 
                 isOnlyDictionary = NO;
                 break;
@@ -172,7 +162,7 @@
             for ( NSDictionary *item in dictionariesArray ) {
                 
                 BOOL notHave = YES;
-                for ( NSDictionary *myItem in wself ) {
+                for ( NSDictionary *myItem in self ) {
                     
                     id targetMyItem = [myItem objectForXPath:xpath separator:separator];
                     id targetItem = [item objectForXPath:xpath separator:separator];
@@ -190,7 +180,7 @@
                 
                 if ( notHave ) {
                     
-                    [wTempArray insertObject:item atIndex:i];
+                    [tempArray insertObject:item atIndex:i];
                     i++;
                 }
             }
@@ -219,15 +209,13 @@
         
         if ( [(NSArray *)tweetDictionariesArray isEmpty] ) return self;
         
-        __block __weak id wself = self;
         NSMutableArray *tempArray = [NSMutableArray arrayWithArray:self];
-        __block __weak NSMutableArray *wTempArray = tempArray;
         
         NSInteger i = 0;
         for ( TWTweet *tweet in tweetDictionariesArray ) {
             
             BOOL notHave = YES;
-            for ( TWTweet *myTweew in wself ) {
+            for ( TWTweet *myTweew in self ) {
                 
                 NSString *myTweetID = myTweew.tweetID;
                 NSString *tweetID = tweet.tweetID;
@@ -245,7 +233,7 @@
             
             if ( notHave ) {
                 
-                [wTempArray insertObject:tweet atIndex:i];
+                [tempArray insertObject:tweet atIndex:i];
                 i++;
             }
         }

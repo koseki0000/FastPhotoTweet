@@ -31,15 +31,15 @@
                          [lastPath substringWithRange:NSMakeRange(2,1)],
                          lastPath];
         
-        }else if ([urlString hasPrefix:@"http://p.twipple.jp/"]) {
+        } else if ([urlString hasPrefix:@"http://p.twipple.jp/"]) {
             
             urlString = [NSString stringWithFormat:@"http://p.twpl.jp/show/orig/%@", [urlString lastPathComponent]];
             
-        }else if ( [urlString hasPrefix:@"http://ow.ly/i/"] ) {
+        } else if ( [urlString hasPrefix:@"http://ow.ly/i/"] ) {
             
             urlString = [NSString stringWithFormat:@"http://static.ow.ly/photos/normal/%@.jpg", [urlString lastPathComponent]];
             
-        }else if ( [urlString hasPrefix:@"http://twitpic.com/"] &&          ![urlString hasPrefix:@"http://twitpic.com/photos/"] &&
+        } else if ( [urlString hasPrefix:@"http://twitpic.com/"] &&          ![urlString hasPrefix:@"http://twitpic.com/photos/"] &&
                   ![urlString hasPrefix:@"http://twitpic.com/show"] &&      ![urlString hasPrefix:@"http://twitpic.com/account"] &&
                   ![urlString hasPrefix:@"http://twitpic.com/session"] &&   ![urlString hasPrefix:@"http://twitpic.com/events"] &&
                   ![urlString hasPrefix:@"http://twitpic.com/faces"] &&     ![urlString hasPrefix:@"http://twitpic.com/upload"] &&
@@ -49,7 +49,7 @@
             
             urlString = [NSString stringWithFormat:@"http://twitpic.com/show/full/%@", [urlString lastPathComponent]];
             
-        }else if ( [urlString boolWithRegExp:@"http://instagr.?am(.com)?/p/"] ) {
+        } else if ( [urlString boolWithRegExp:@"http://instagr.?am(.com)?/p/"] ) {
             
             NSString *sourceCode = [FullSizeImage getSourceCode:[NSString stringWithFormat:@"http://instagr.am/api/v1/oembed/?url=%@", urlString]];
             
@@ -59,7 +59,7 @@
             
             urlString = [results objectForKey:@"url"];
             
-        }else if ( [urlString boolWithRegExp:TWITTER_FULL_PATTERN] ) {
+        } else if ( [urlString boolWithRegExp:TWITTER_FULL_PATTERN] ) {
             
             NSString *originalUrl = urlString;
             
@@ -76,7 +76,7 @@
             
             if ( [urlString isEqualToString:@":large"] ) urlString = originalUrl;
             
-        }else if ( [urlString boolWithRegExp:@"https?://via.me/-[a-zA-Z0-9]+"] ) {
+        } else if ( [urlString boolWithRegExp:@"https?://via.me/-[a-zA-Z0-9]+"] ) {
             
             NSString *sourceCode = [FullSizeImage getSourceCode:urlString];
             
@@ -84,7 +84,7 @@
             
             urlString = [sourceCode stringWithRegExp:@"https?://(s[0-9]\\.amazonaws\\.com/com\\.clixtr\\.picbounce|img\\.viame-cdn\\.com)/photos/[-a-zA-Z0-9]+/[a-z]600x600\\.(jpe?g|png)"];
             
-        }else if ( [urlString boolWithRegExp:@"https?://img.ly/[a-zA-Z0-9]+"] ) {
+        } else if ( [urlString boolWithRegExp:@"https?://img.ly/[a-zA-Z0-9]+"] ) {
             
             NSString *sourceCode = [FullSizeImage getSourceCode:urlString];
             
@@ -121,7 +121,7 @@
         
             NSLog(@"%@", urlString);
             
-        }else if ( [urlString boolWithRegExp:PIXIV_FULL_PATTERN] ) {
+        } else if ( [urlString boolWithRegExp:PIXIV_FULL_PATTERN] ) {
             
             NSString *originalURL = urlString;
             urlString = [urlString replaceWord:@"mode=medium" replacedWord:@"mode=big"];
@@ -149,7 +149,7 @@
                     urlString = fullUrl;
                 }
             }
-        }else if ( [urlString hasPrefix:@"http://campl.us/"] ) {
+        } else if ( [urlString hasPrefix:@"http://campl.us/"] ) {
             
             NSString *sourceCode = [FullSizeImage getSourceCode:urlString];
             urlString = [sourceCode stringWithRegExp:@"https?://(www\\.)?pics\\.campl\\.us/f/[0-9]+/[-_\\.a-zA-Z0-9]+\\.(jpe?g|png)"];
@@ -214,11 +214,11 @@
     
     if ( [urlString hasPrefix:@"http://twitvid.com/"] || [urlString hasPrefix:@"http://www.twitvid.com/"] ) {
         result = YES;
-    }else if ([urlString hasPrefix:@"http://p.twipple.jp/"]) {
+    } else if ([urlString hasPrefix:@"http://p.twipple.jp/"]) {
         result = YES;
-    }else if ( [urlString hasPrefix:@"http://ow.ly/i/"] ) {
+    } else if ( [urlString hasPrefix:@"http://ow.ly/i/"] ) {
         result = YES;
-    }else if ( [urlString hasPrefix:@"http://twitpic.com/"] && ![urlString hasPrefix:@"http://twitpic.com/photos/"] &&
+    } else if ( [urlString hasPrefix:@"http://twitpic.com/"] && ![urlString hasPrefix:@"http://twitpic.com/photos/"] &&
               ![urlString hasPrefix:@"http://twitpic.com/show"] && ![urlString hasPrefix:@"http://twitpic.com/account"] &&
               ![urlString hasPrefix:@"http://twitpic.com/session"] && ![urlString hasPrefix:@"http://twitpic.com/events"] &&
               ![urlString hasPrefix:@"http://twitpic.com/faces"] && ![urlString hasPrefix:@"http://twitpic.com/upload"] &&
@@ -226,17 +226,17 @@
               ![urlString isEqualToString:@"http://twitpic.com/"] &&
               ![urlString boolWithRegExp:@"http://twitpic.com/[0-9a-zA-Z]+/full$"] ) {
         result = YES;
-    }else if ( [urlString boolWithRegExp:@"http://instagr.?am(.com)?/p/"] ) {
+    } else if ( [urlString boolWithRegExp:@"http://instagr.?am(.com)?/p/"] ) {
         result = YES;
-    }else if ( [urlString boolWithRegExp:TWITTER_FULL_PATTERN] ) {
+    } else if ( [urlString boolWithRegExp:TWITTER_FULL_PATTERN] ) {
         result = YES;
-    }else if ( [urlString boolWithRegExp:@"https?://via.me/-[a-zA-Z0-9]+"] ) {
+    } else if ( [urlString boolWithRegExp:@"https?://via.me/-[a-zA-Z0-9]+"] ) {
         result = YES;
-    }else if ( [urlString boolWithRegExp:@"https?://img.ly/[a-zA-Z0-9]+"] ) {
+    } else if ( [urlString boolWithRegExp:@"https?://img.ly/[a-zA-Z0-9]+"] ) {
         result = YES;
-    }else if ( [urlString boolWithRegExp:PIXIV_FULL_PATTERN] ) {
+    } else if ( [urlString boolWithRegExp:PIXIV_FULL_PATTERN] ) {
         result = YES;
-    }else if ( [urlString hasPrefix:@"http://campl.us/"] ) {
+    } else if ( [urlString hasPrefix:@"http://campl.us/"] ) {
         result = YES;
     }
     
@@ -253,11 +253,11 @@
     
     if ( [urlString hasPrefix:@"http://twitvid.com/"] || [urlString hasPrefix:@"http://www.twitvid.com/"] ) {
         result = YES;
-    }else if ([urlString hasPrefix:@"http://p.twipple.jp/"]) {
+    } else if ([urlString hasPrefix:@"http://p.twipple.jp/"]) {
         result = YES;
-    }else if ( [urlString hasPrefix:@"http://ow.ly/i/"] ) {
+    } else if ( [urlString hasPrefix:@"http://ow.ly/i/"] ) {
         result = YES;
-    }else if ( [urlString hasPrefix:@"http://twitpic.com/"] && ![urlString hasPrefix:@"http://twitpic.com/photos/"] &&
+    } else if ( [urlString hasPrefix:@"http://twitpic.com/"] && ![urlString hasPrefix:@"http://twitpic.com/photos/"] &&
               ![urlString hasPrefix:@"http://twitpic.com/show"] && ![urlString hasPrefix:@"http://twitpic.com/account"] &&
               ![urlString hasPrefix:@"http://twitpic.com/session"] && ![urlString hasPrefix:@"http://twitpic.com/events"] &&
               ![urlString hasPrefix:@"http://twitpic.com/faces"] && ![urlString hasPrefix:@"http://twitpic.com/upload"] &&
@@ -265,17 +265,17 @@
               ![urlString isEqualToString:@"http://twitpic.com/"] &&
               ![urlString boolWithRegExp:@"http://twitpic.com/[0-9a-zA-Z]+/full$"] ) {
         result = YES;
-    }else if ( [urlString boolWithRegExp:@"http://instagr.?am(.com)?/p/"] ) {
+    } else if ( [urlString boolWithRegExp:@"http://instagr.?am(.com)?/p/"] ) {
         result = YES;
-    }else if ( [urlString boolWithRegExp:TWITTER_FULL_PATTERN] ) {
+    } else if ( [urlString boolWithRegExp:TWITTER_FULL_PATTERN] ) {
         result = YES;
-    }else if ( [urlString boolWithRegExp:@"https?://via.me/-[a-zA-Z0-9]+"] ) {
+    } else if ( [urlString boolWithRegExp:@"https?://via.me/-[a-zA-Z0-9]+"] ) {
         result = YES;
-    }else if ( [urlString boolWithRegExp:@"https?://img.ly/[a-zA-Z0-9]+"] ) {
+    } else if ( [urlString boolWithRegExp:@"https?://img.ly/[a-zA-Z0-9]+"] ) {
         result = YES;
-    }else if ( [urlString boolWithRegExp:PIXIV_FULL_PATTERN] ) {
+    } else if ( [urlString boolWithRegExp:PIXIV_FULL_PATTERN] ) {
         result = YES;
-    }else if ( [urlString hasPrefix:@"http://campl.us/"] ) {
+    } else if ( [urlString hasPrefix:@"http://campl.us/"] ) {
         result = YES;
     }
     

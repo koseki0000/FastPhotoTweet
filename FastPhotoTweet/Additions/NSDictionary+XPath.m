@@ -48,7 +48,7 @@
                         break;
                     }
                     
-                }else if ( [object isKindOfClass:[NSArray class]] ) {
+                } else if ( [object isKindOfClass:[NSArray class]] ) {
                     
                     NSInteger indexPath = [path integerValue];
                     NSArray *arrayObject = (NSArray *)object;
@@ -71,7 +71,7 @@
                         break;
                     }
                     
-                }else if ( [object isKindOfClass:[NSString class]] ||
+                } else if ( [object isKindOfClass:[NSString class]] ||
                            [object isKindOfClass:[NSNumber class]] ) {
                     
                     return object;

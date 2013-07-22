@@ -16,7 +16,7 @@
 @property (strong, nonatomic) OHAttributedLabel *mainLabel;
 @property (strong, nonatomic) IconButton *iconView;
 
-- (id)initWithStyle:(UITableViewCellStyle)style reuseIdentifier:(NSString *)reuseIdentifier forWidth:(CGFloat)width;
+- (id)initWithStyle:(UITableViewCellStyle)style reuseIdentifier:(NSString *)reuseIdentifier forWidth:(CGFloat)width timelineCellType:(TimelineCellType)timelineCellType;
 - (void)setProperties:(CGFloat)width;
 - (void)setTweetData:(TWTweet *)tweet cellWidth:(CGFloat)cellWidth;
 

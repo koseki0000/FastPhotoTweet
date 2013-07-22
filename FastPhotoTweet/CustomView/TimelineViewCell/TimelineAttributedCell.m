@@ -18,6 +18,12 @@
 #define MARGIN 4.0f
 #define HALF_MARGIN 2.0f
 
+@interface TimelineAttributedCell ()
+
+@property (nonatomic) TimelineCellType timelineCellType;
+
+@end
+ 
 @implementation TimelineAttributedCell
 
 - (void)drawRect:(CGRect)rect {
@@ -39,13 +45,14 @@
     CGGradientRelease(gradient);
 }
 
-- (id)initWithStyle:(UITableViewCellStyle)style reuseIdentifier:(NSString *)reuseIdentifier forWidth:(CGFloat)width {
+- (id)initWithStyle:(UITableViewCellStyle)style reuseIdentifier:(NSString *)reuseIdentifier forWidth:(CGFloat)width timelineCellType:(TimelineCellType)timelineCellType {
     
     self = [super initWithStyle:style reuseIdentifier:reuseIdentifier];
     
     if ( self ) {
         
         [self setProperties:width];
+        [self setTimelineCellType:timelineCellType];
     }
     
     return self;
@@ -76,7 +83,7 @@
     [self.mainLabel setUnderlineLinks:YES];
     [self.mainLabel setExtendBottomToFit:YES];
     
-    if ( [[NSUserDefaults standardUserDefaults] integerForKey:@"IconCornerRounding"] == 1 ) {
+    if ( [USER_DEFAULTS integerForKey:@"IconCornerRounding"] == 1 ) {
         
         //角を丸める
         [self.iconView.layer setCornerRadius:6.0f];
@@ -95,7 +102,7 @@
     NSString *screenName = tweet.screenName;
     [self.iconView setTargetTweet:tweet];
     NSString *infoLabelText = tweet.infoText;
-    CGFloat contentsHeight = tweet.cellHeight;
+    CGFloat contentsHeight = (self.timelineCellType == TimelineCellTypeMain) ? tweet.cellHeight : tweet.menuCellHeight;
     
     //ふぁぼられイベント用
     if ( tweet.favoriteEventeType == FavoriteEventTypeReceive ) {

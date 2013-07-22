@@ -16,9 +16,11 @@
 #define BOTTOM_BAR [NSArray arrayWithObjects:closeButton, flexibleSpace, composeButton, flexibleSpace, reloadButton, flexibleSpace, backButton, flexibleSpace, forwardButton, flexibleSpace, bookmarkButton, flexibleSpace, menuButton, nil]
 #define EXTENSIONS [NSArray arrayWithObjects:@"zip", @"mp4", @"mov", @"m4a", @"rar", @"dmg", @"deb", nil]
 
-#define APP_DELEGATE ((AppDelegate *)[[UIApplication sharedApplication] delegate])
-#define P_BOARD [UIPasteboard generalPasteboard]
-#define D [NSUserDefaults standardUserDefaults]
+@interface WebViewExController ()
+
+@property (weak, nonatomic) AppDelegate *appDelegate;
+
+@end
 
 @implementation WebViewExController
 @synthesize alert;
@@ -60,7 +62,7 @@
         
         if ( [URL isEmpty] ) {
          
-            URL = [D objectForKey:@"HomePageURL"];
+            URL = [USER_DEFAULTS objectForKey:@"HomePageURL"];
         }
         
         startupUrlList = @[URL];
@@ -73,6 +75,8 @@
             NSLog(@"Retine 4inch");
             retina4InchOffset = 88;
         }
+        
+        [self setAppDelegate:((AppDelegate *)[[UIApplication sharedApplication] delegate])];
     }
     
     return self;
@@ -85,10 +89,10 @@
     
     if ( self ) {
         
-        startupUrlList = APP_DELEGATE.startupUrlList;
+        startupUrlList = self.appDelegate.startupUrlList;
         urlList = BLANK_ARRAY;
         
-        if ( startupUrlList == nil ) [D objectForKey:@"HomePageURL"];
+        if ( startupUrlList == nil ) [USER_DEFAULTS objectForKey:@"HomePageURL"];
         
         retina4InchOffset = 0;
         
@@ -137,7 +141,7 @@
                                name:@"pboardNotification"
                              object:nil];
     
-    searchField.clearsOnBeginEditing = [D boolForKey:@"ClearBrowserSearchField"];
+    searchField.clearsOnBeginEditing = [USER_DEFAULTS boolForKey:@"ClearBrowserSearchField"];
     
     accessURL = BLANK;
     
@@ -146,23 +150,23 @@
     //ツールバーにボタンをセット
     [bottomBar setItems:BOTTOM_BAR animated:NO];
     
-    APP_DELEGATE.browserOpenMode = YES;
+    self.appDelegate.browserOpenMode = YES;
     
     //URLSchemeダウンロード判定
-    if ( [EmptyCheck check:APP_DELEGATE.urlSchemeDownloadUrl] ) {
+    if ( [EmptyCheck check:self.appDelegate.urlSchemeDownloadUrl] ) {
         
-        [self requestStart:APP_DELEGATE.urlSchemeDownloadUrl];
+        [self requestStart:self.appDelegate.urlSchemeDownloadUrl];
         return;
     }
     
-    if (( APP_DELEGATE.pcUaMode ||
-         [EmptyCheck string:APP_DELEGATE.reOpenUrl] ) &&
-          APP_DELEGATE.tabBarController.selectedIndex != 1 ) {
+    if (( self.appDelegate.pcUaMode ||
+         [EmptyCheck string:self.appDelegate.reOpenUrl] ) &&
+          self.appDelegate.tabBarController.selectedIndex != 1 ) {
         
-        [_wv loadRequestWithString:APP_DELEGATE.reOpenUrl];
+        [_wv loadRequestWithString:self.appDelegate.reOpenUrl];
         
-        APP_DELEGATE.reOpenUrl = BLANK;
-        APP_DELEGATE.pcUaMode = NO;
+        self.appDelegate.reOpenUrl = BLANK;
+        self.appDelegate.pcUaMode = NO;
         
     } else {
      
@@ -174,7 +178,7 @@
     
     //NSLog(@"startupUrlList: %@", startupUrlList);
     
-    if ( APP_DELEGATE.tabBarController.selectedIndex == 1 ) {
+    if ( self.appDelegate.tabBarController.selectedIndex == 1 ) {
         
         //NSLog(@"タイムラインから開いている場合はスタートアップURLを優先");
         
@@ -184,9 +188,9 @@
         
         //NSLog(@"タイムラインから開かれていない場合");
         
-        if ( [D boolForKey:@"OpenPasteBoardURL"] ) {
+        if ( [USER_DEFAULTS boolForKey:@"OpenPasteBoardURL"] ) {
             
-            //NSLog(@"ペーストボードからURLを開く設定が有効な場合: %@", [D objectForKey:@"LastOpendPasteBoardURL"]);
+            //NSLog(@"ペーストボードからURLを開く設定が有効な場合: %@", [USER_DEFAULTS objectForKey:@"LastOpendPasteBoardURL"]);
             
             //ペーストボードのURLを取得
             urlList = [P_BOARD.string URLs];
@@ -197,29 +201,29 @@
                 
                 [_wv loadRequestWithString:[startupUrlList objectAtIndex:0]];
                 
-            }else if ( startupUrlList.count == 0 && urlList.count == 1 ) {
+            } else if ( startupUrlList.count == 0 && urlList.count == 1 ) {
                 
                 //NSLog(@"スタートアップURLがなく、ペーストボードにURLが1つ存在する場合");
                 
-                if ( [[urlList objectAtIndex:0] isEqualToString:[D objectForKey:@"LastOpendPasteBoardURL"]] ) {
+                if ( [[urlList objectAtIndex:0] isEqualToString:[USER_DEFAULTS objectForKey:@"LastOpendPasteBoardURL"]] ) {
                 
-                    [_wv loadRequestWithString:[D objectForKey:@"HomePageURL"]];
+                    [_wv loadRequestWithString:[USER_DEFAULTS objectForKey:@"HomePageURL"]];
                     
                 } else {
                     
                     [_wv loadRequestWithString:[urlList objectAtIndex:0]];
-                    [D setObject:[urlList objectAtIndex:0] forKey:@"LastOpendPasteBoardURL"];
+                    [USER_DEFAULTS setObject:[urlList objectAtIndex:0] forKey:@"LastOpendPasteBoardURL"];
                 }
                 
-            }else if ( startupUrlList.count == 1 && urlList.count == 1 ) {
+            } else if ( startupUrlList.count == 1 && urlList.count == 1 ) {
                 
                 //NSLog(@"ペーストボードにURLが1つ存在する場合");
                 
-                if ( [[startupUrlList objectAtIndex:0] isEqualToString:[D objectForKey:@"HomePageURL"]] ) {
+                if ( [[startupUrlList objectAtIndex:0] isEqualToString:[USER_DEFAULTS objectForKey:@"HomePageURL"]] ) {
                     
                     //NSLog(@"スタートアップURLがホームページだった場合はペーストボードのURLを優先して判定");
                     
-                    if ( [[urlList objectAtIndex:0] isEqualToString:[D objectForKey:@"LastOpendPasteBoardURL"]] ) {
+                    if ( [[urlList objectAtIndex:0] isEqualToString:[USER_DEFAULTS objectForKey:@"LastOpendPasteBoardURL"]] ) {
                         
                         //NSLog(@"直前にペーストボードから開いたURLだった場合はスタートアップURLを開く");
                         
@@ -230,7 +234,7 @@
                         //NSLog(@"直前にペーストボードから開いたURLではない場合開く");
                         
                         [_wv loadRequestWithString:[urlList objectAtIndex:0]];
-                        [D setObject:[urlList objectAtIndex:0] forKey:@"LastOpendPasteBoardURL"];
+                        [USER_DEFAULTS setObject:[urlList objectAtIndex:0] forKey:@"LastOpendPasteBoardURL"];
                     }
                     
                 } else {
@@ -255,11 +259,11 @@
                     }
                 }
                 
-            }else if ( startupUrlList.count == 1 && urlList.count > 1 ) {
+            } else if ( startupUrlList.count == 1 && urlList.count > 1 ) {
                 
                 //NSLog(@"ペーストボードにURLが複数個ある場合");
                 
-                if ( [[startupUrlList objectAtIndex:0] isEqualToString:[D objectForKey:@"HomePageURL"]] ) {
+                if ( [[startupUrlList objectAtIndex:0] isEqualToString:[USER_DEFAULTS objectForKey:@"HomePageURL"]] ) {
                     
                     //NSLog(@"スタートアップURLがホームページだった場合はペーストボードのURLを優先して判定");
                     
@@ -280,14 +284,14 @@
                     [sheet showInView:self.view];
                 }
                 
-            }else if ( startupUrlList.count > 1 && urlList.count == 0 ) {
+            } else if ( startupUrlList.count > 1 && urlList.count == 0 ) {
                 
                 //NSLog(@"スタートアップURLが複数個あり、ペーストボードにURLがない場合");
                 
                 //URLを選択して表示
                 [self selectUrl];
                 
-            }else if ( startupUrlList.count > 1 && urlList.count != 0 ) {
+            } else if ( startupUrlList.count > 1 && urlList.count != 0 ) {
                 
                 //NSLog(@"スタートアップURLとペーストボードにURLが複数個ある場合");
                 
@@ -305,7 +309,7 @@
                 
                 //NSLog(@"その他の場合");
                 
-                [_wv loadRequestWithString:[D objectForKey:@"HomePageURL"]];
+                [_wv loadRequestWithString:[USER_DEFAULTS objectForKey:@"HomePageURL"]];
             }
             
         } else {
@@ -317,7 +321,7 @@
                 //NSLog(@"URLが1つの場合は開く");
                 [_wv loadRequestWithString:[startupUrlList objectAtIndex:0]];
                 
-            }else if ( startupUrlList.count > 1 ) {
+            } else if ( startupUrlList.count > 1 ) {
                 
                 //NSLog(@"URLが複数個の場合は選択して開く");
                 [self selectUrl];
@@ -325,7 +329,7 @@
             } else {
                 
                 //NSLog(@"その他の場合はホームページを開く");
-                [_wv loadRequestWithString:[D objectForKey:@"HomePageURL"]];
+                [_wv loadRequestWithString:[USER_DEFAULTS objectForKey:@"HomePageURL"]];
             }
         }
     }
@@ -341,11 +345,11 @@
         
         openBookmark = NO;
         
-        if ( [EmptyCheck check:APP_DELEGATE.bookmarkUrl] ) {
+        if ( [EmptyCheck check:self.appDelegate.bookmarkUrl] ) {
             
             //ブックマークで選択したURLを読み込み
-            [_wv loadRequestWithString:APP_DELEGATE.bookmarkUrl];
-            APP_DELEGATE.bookmarkUrl = BLANK;
+            [_wv loadRequestWithString:self.appDelegate.bookmarkUrl];
+            self.appDelegate.bookmarkUrl = BLANK;
         }
     }
 }
@@ -358,7 +362,7 @@
         
         [_wv loadRequestWithString:[startupUrlList objectAtIndex:0]];
         
-    }else if (startupUrlList.count == 2 ) {
+    } else if (startupUrlList.count == 2 ) {
         
         actionSheetNo = 2;
         
@@ -371,7 +375,7 @@
                                 [startupUrlList objectAtIndex:1], nil];
         [sheet showInView:self.view];
         
-    }else if (startupUrlList.count == 3 ) {
+    } else if (startupUrlList.count == 3 ) {
         
         actionSheetNo = 3;
         
@@ -385,7 +389,7 @@
                                 [startupUrlList objectAtIndex:2], nil];
         [sheet showInView:self.view];
         
-    }else if (startupUrlList.count == 4 ) {
+    } else if (startupUrlList.count == 4 ) {
         
         actionSheetNo = 4;
         
@@ -400,7 +404,7 @@
                                 [startupUrlList objectAtIndex:3], nil];
         [sheet showInView:self.view];
         
-    }else if (startupUrlList.count == 5 ) {
+    } else if (startupUrlList.count == 5 ) {
         
         actionSheetNo = 5;
         
@@ -416,7 +420,7 @@
                                 [startupUrlList objectAtIndex:4], nil];
         [sheet showInView:self.view];
         
-    }else if (startupUrlList.count >= 6 ) {
+    } else if (startupUrlList.count >= 6 ) {
         
         actionSheetNo = 6;
         
@@ -447,24 +451,24 @@
 
 - (void)becomeActive:(NSNotification *)notification {
     
-    if ( APP_DELEGATE.willResignActiveBrowser ) {
+    if ( self.appDelegate.willResignActiveBrowser ) {
         
-        APP_DELEGATE.willResignActiveBrowser = NO;
+        self.appDelegate.willResignActiveBrowser = NO;
         
         return;
     }
     
     //URLSchemeダウンロード判定
-    if ( [EmptyCheck check:APP_DELEGATE.urlSchemeDownloadUrl] ) {
+    if ( [EmptyCheck check:self.appDelegate.urlSchemeDownloadUrl] ) {
         
-        [self requestStart:APP_DELEGATE.urlSchemeDownloadUrl];
+        [self requestStart:self.appDelegate.urlSchemeDownloadUrl];
         
         return;
     }
     
-    if ( APP_DELEGATE.pboardURLOpenBrowser ) {
+    if ( self.appDelegate.pboardURLOpenBrowser ) {
      
-        APP_DELEGATE.pboardURLOpenBrowser = NO;
+        self.appDelegate.pboardURLOpenBrowser = NO;
         return;
     }
     
@@ -488,9 +492,9 @@
 
 - (void)setSearchEngine {
     
-    if ( ![EmptyCheck check:[D objectForKey:@"SearchEngine"]] ) [D setObject:@"Google" forKey:@"SearchEngine"];
+    if ( ![EmptyCheck check:[USER_DEFAULTS objectForKey:@"SearchEngine"]] ) [USER_DEFAULTS setObject:@"Google" forKey:@"SearchEngine"];
     
-    searchField.placeholder = [D objectForKey:@"SearchEngine"];
+    searchField.placeholder = [USER_DEFAULTS objectForKey:@"SearchEngine"];
 }
 
 - (IBAction)pushSearchButton:(id)sender {
@@ -527,8 +531,8 @@
     
         [self resetUserAgent];
         
-        APP_DELEGATE.startupUrlList = BLANK_ARRAY;
-        APP_DELEGATE.reOpenUrl = accessURL;
+        self.appDelegate.startupUrlList = BLANK_ARRAY;
+        self.appDelegate.reOpenUrl = accessURL;
         
         ASYNC_MAIN_QUEUE ^{
             
@@ -556,8 +560,8 @@
      
         [self resetUserAgent];
         
-        APP_DELEGATE.startupUrlList = BLANK_ARRAY;
-        APP_DELEGATE.reOpenUrl = BLANK;
+        self.appDelegate.startupUrlList = BLANK_ARRAY;
+        self.appDelegate.reOpenUrl = BLANK;
         
         ASYNC_MAIN_QUEUE ^{
             
@@ -575,6 +579,7 @@
             [_wv stopLoading];
             [ActivityIndicator off];
             reloadButton.image = reloadButtonImage;
+            [self backForwordButtonVisible];
             
         } else {
             
@@ -631,27 +636,27 @@
     
     NSString *searchURL = nil;
     
-    if ( [[D objectForKey:@"SearchEngine"] isEqualToString:@"Google"] ) {
+    if ( [[USER_DEFAULTS objectForKey:@"SearchEngine"] isEqualToString:@"Google"] ) {
         
         searchURL = @"http://www.google.co.jp/search?q=";
         
-    }else if ( [[D objectForKey:@"SearchEngine"] isEqualToString:@"Amazon"] ) {
+    } else if ( [[USER_DEFAULTS objectForKey:@"SearchEngine"] isEqualToString:@"Amazon"] ) {
         
         searchURL = @"http://www.amazon.co.jp/s/field-keywords=";
         
-    }else if ( [[D objectForKey:@"SearchEngine"] isEqualToString:@"Yahoo!オークション"] ) {
+    } else if ( [[USER_DEFAULTS objectForKey:@"SearchEngine"] isEqualToString:@"Yahoo!オークション"] ) {
         
         searchURL = @"http://auctions.search.yahoo.co.jp/search?tab_ex=commerce&rkf=1&p=";
         
-    }else if ( [[D objectForKey:@"SearchEngine"] isEqualToString:@"Wikipedia"] ) {
+    } else if ( [[USER_DEFAULTS objectForKey:@"SearchEngine"] isEqualToString:@"Wikipedia"] ) {
         
         searchURL = @"http://ja.m.wikipedia.org/wiki/";
         
-    }else if ( [[D objectForKey:@"SearchEngine"] isEqualToString:@"Twitter"] ) {
+    } else if ( [[USER_DEFAULTS objectForKey:@"SearchEngine"] isEqualToString:@"Twitter"] ) {
         
         searchURL = @"https://mobile.twitter.com/search?q=";
     
-    }else if ( [[D objectForKey:@"SearchEngine"] isEqualToString:@"Wikipedia (Suggestion)"] ) {
+    } else if ( [[USER_DEFAULTS objectForKey:@"SearchEngine"] isEqualToString:@"Wikipedia (Suggestion)"] ) {
         
         searchURL = @"http://google.com/complete/search?output=toolbar&hl=ja&q=";
     }
@@ -662,7 +667,7 @@
                                                                                                 (CFStringRef)@"!*'();:@&=+$,/?%#[]", 
                                                                                                 kCFStringEncodingUTF8);
     
-    if ( ![[D objectForKey:@"SearchEngine"] isEqualToString:@"Wikipedia (Suggestion)"] ) {
+    if ( ![[USER_DEFAULTS objectForKey:@"SearchEngine"] isEqualToString:@"Wikipedia (Suggestion)"] ) {
         
         [_wv loadRequestWithString:[NSString stringWithFormat:@"%@%@", searchURL, encodedSearchWord]];
         searchURL = nil;
@@ -700,7 +705,7 @@
                     //UIの更新
                     searchField.text = suggestion;
                     searchField.placeholder = @"Wikipedia";
-                    [D setObject:@"Wikipedia" forKey:@"SearchEngine"];
+                    [USER_DEFAULTS setObject:@"Wikipedia" forKey:@"SearchEngine"];
                     [self enterSearchField:nil];
                     [ActivityIndicator off];
                 });
@@ -813,25 +818,25 @@
         
         if ( buttonIndex == 0 ) {
             searchEngineName = @"Google";
-        }else if ( buttonIndex == 1 ) {
+        } else if ( buttonIndex == 1 ) {
             searchEngineName = @"Amazon";
-        }else if ( buttonIndex == 2 ) {
+        } else if ( buttonIndex == 2 ) {
             searchEngineName = @"Yahoo!オークション";
-        }else if ( buttonIndex == 3 ) {
+        } else if ( buttonIndex == 3 ) {
             searchEngineName = @"Wikipedia";
-        }else if ( buttonIndex == 4 ) {
+        } else if ( buttonIndex == 4 ) {
             searchEngineName = @"Twitter";
-        }else if ( buttonIndex == 5 ) {
+        } else if ( buttonIndex == 5 ) {
             searchEngineName = @"Wikipedia (Suggestion)";
         } else {
             return;
         }
         
         searchField.placeholder = searchEngineName;
-        [D setObject:searchEngineName forKey:@"SearchEngine"];
+        [USER_DEFAULTS setObject:searchEngineName forKey:@"SearchEngine"];
         [searchField becomeFirstResponder];
         
-    }else if ( actionSheetNo == 1 ) {
+    } else if ( actionSheetNo == 1 ) {
         
         if ( buttonIndex == 0 ) {
             
@@ -868,14 +873,14 @@
                     
                 } else {
                     
-                    if ( [EmptyCheck check:[D objectForKey:@"WebPagePostFormat"]] ) {
+                    if ( [EmptyCheck check:[USER_DEFAULTS objectForKey:@"WebPagePostFormat"]] ) {
                         
-                        postText = [D objectForKey:@"WebPagePostFormat"];
+                        postText = [USER_DEFAULTS objectForKey:@"WebPagePostFormat"];
                         
                     } else {
                         
                         postText = @" \"[title]\" [url] ";
-                        [D setObject:postText forKey:@"WebPagePostFormat"];
+                        [USER_DEFAULTS setObject:postText forKey:@"WebPagePostFormat"];
                     }
                     
                     postText = [postText replaceWord:@"[title]" replacedWord:_wv.pageTitle];
@@ -909,17 +914,17 @@
                                                                            userInfo:@{@"Text":postText}];
                 [[NSNotificationCenter defaultCenter] postNotification:notification];
                 
-                if ( APP_DELEGATE.tabBarController.selectedIndex == 0 ) {
+                if ( self.appDelegate.tabBarController.selectedIndex == 0 ) {
                     
                     [self pushComposeButton:nil];
                     
                 } else {
                  
-                    APP_DELEGATE.tabBarController.selectedIndex = 0;
+                    self.appDelegate.tabBarController.selectedIndex = 0;
                 }
             });
             
-        }else if ( buttonIndex == 1 ) {
+        } else if ( buttonIndex == 1 ) {
             
             //NSLog(@"selectString: %@", _wv.selectString);
             
@@ -941,7 +946,7 @@
                 [ShowAlert error:@"文字が選択されていません。"];
             }
         
-        }else if ( buttonIndex == 2 ) {
+        } else if ( buttonIndex == 2 ) {
             
             actionSheetNo = 8;
             
@@ -954,7 +959,7 @@
                                     @"Wikipedia", @"Twitter検索", @"Wikipedia (Suggestion)", nil];
             [sheet showInView:self.view];
         
-        }else if ( buttonIndex == 3 ) {
+        } else if ( buttonIndex == 3 ) {
             
             if ( [EmptyCheck check:urlField.text] ) {
                 
@@ -993,14 +998,14 @@
                 }
             }
             
-        }else if ( buttonIndex == 4 ) {
+        } else if ( buttonIndex == 4 ) {
             
-            if ( ![EmptyCheck check:[D arrayForKey:@"Bookmark"]] ) {
+            if ( ![EmptyCheck check:[USER_DEFAULTS arrayForKey:@"Bookmark"]] ) {
                 
-                [D setObject:BLANK_ARRAY forKey:@"Bookmark"];
+                [USER_DEFAULTS setObject:BLANK_ARRAY forKey:@"Bookmark"];
             }
             
-            NSMutableArray *bookMarkArray = [[NSMutableArray alloc] initWithArray:[D arrayForKey:@"Bookmark"]];
+            NSMutableArray *bookMarkArray = [[NSMutableArray alloc] initWithArray:[USER_DEFAULTS arrayForKey:@"Bookmark"]];
             
             //登録済みURLのチェック
             BOOL check = YES;
@@ -1019,22 +1024,22 @@
                 
                 [bookMarkArray addObject:addBookmark];
                 
-                [D setObject:bookMarkArray forKey:@"Bookmark"];
+                [USER_DEFAULTS setObject:bookMarkArray forKey:@"Bookmark"];
                 
             } else {
                 
                 [ShowAlert error:@"登録済みのURLです。"];
             }
             
-        }else if ( buttonIndex == 5 ) {
+        } else if ( buttonIndex == 5 ) {
             
             NSString *useragent = IPHONE_USERAGENT;
             
-            if ( [[D objectForKey:@"UserAgent"] isEqualToString:@"FireFox"] ) {
+            if ( [[USER_DEFAULTS objectForKey:@"UserAgent"] isEqualToString:@"FireFox"] ) {
                 
                 useragent = FIREFOX_USERAGENT;
                 
-            }else if ( [[D objectForKey:@"UserAgent"] isEqualToString:@"iPad"] ) {
+            } else if ( [[USER_DEFAULTS objectForKey:@"UserAgent"] isEqualToString:@"iPad"] ) {
                 
                 useragent = IPAD_USERAFENT;
             }
@@ -1122,7 +1127,7 @@
             
             [httpRequest startAsynchronous];
             
-        }else if ( buttonIndex == 6 ) {
+        } else if ( buttonIndex == 6 ) {
             
             alertTextNo = 1;
             
@@ -1141,7 +1146,7 @@
             [alert show];
             [alertText becomeFirstResponder];
             
-        }else if ( buttonIndex == 7 ) {
+        } else if ( buttonIndex == 7 ) {
             
             if ( [[UIApplication sharedApplication] canOpenURL:[NSURL URLWithString:@"fastever://"]] ) {
                 
@@ -1169,24 +1174,24 @@
             }
         
         //PC版UAで開き直す
-        }else if ( buttonIndex == 8 ) {
+        } else if ( buttonIndex == 8 ) {
             
-            APP_DELEGATE.pcUaMode = YES;
-            [D setObject:@"FireFox" forKey:@"UserAgent"];
+            self.appDelegate.pcUaMode = YES;
+            [USER_DEFAULTS setObject:@"FireFox" forKey:@"UserAgent"];
             [self pushComposeButton:nil];
         
-        }else if ( buttonIndex == 9 ) {
+        } else if ( buttonIndex == 9 ) {
             
             //Safariで開く
             [[UIApplication sharedApplication] openURL:[NSURL URLWithString:accessURL]];
         }
         
-    }else if ( actionSheetNo == 2 || actionSheetNo == 3 || actionSheetNo == 4 || actionSheetNo == 5 || actionSheetNo == 6 ) {
+    } else if ( actionSheetNo == 2 || actionSheetNo == 3 || actionSheetNo == 4 || actionSheetNo == 5 || actionSheetNo == 6 ) {
         
         if ( buttonIndex == actionSheetNo ) {
             
             //キャンセルされた場合はホームページを開く
-            [_wv loadRequestWithString:[D objectForKey:@"HomePageURL"]];
+            [_wv loadRequestWithString:[USER_DEFAULTS objectForKey:@"HomePageURL"]];
             
         } else {
             
@@ -1194,7 +1199,7 @@
             [_wv loadRequestWithString:[startupUrlList objectAtIndex:buttonIndex]];
         }
         
-    }else if ( actionSheetNo == 7 ) {
+    } else if ( actionSheetNo == 7 ) {
         
         NSString *quoteText = @"";
         
@@ -1205,25 +1210,25 @@
             quoteText = _wv.selectString;
             [self pushComposeButton:nil];
         
-        }else if ( buttonIndex == 1 ) {
+        } else if ( buttonIndex == 1 ) {
         
             if ( ![EmptyCheck check:_wv.selectString] ) return;
             
             quoteText = [NSString stringWithFormat:@">>%@", _wv.selectString];
             [self pushComposeButton:nil];
         
-        }else if ( buttonIndex == 2 ) {
+        } else if ( buttonIndex == 2 ) {
         
             if ( ![EmptyCheck check:_wv.selectString] ) return;
             
-            if ( [EmptyCheck check:[D objectForKey:@"QuoteFormat"]] ) {
+            if ( [EmptyCheck check:[USER_DEFAULTS objectForKey:@"QuoteFormat"]] ) {
                 
-                quoteText = [D objectForKey:@"QuoteFormat"];
+                quoteText = [USER_DEFAULTS objectForKey:@"QuoteFormat"];
                 
             } else {
                 
                 quoteText = @" \"[title]\" [url] >>[quote]";
-                [D setObject:quoteText
+                [USER_DEFAULTS setObject:quoteText
                       forKey:@"QuoteFormat"];
             }
             
@@ -1256,7 +1261,7 @@
         
         } else {
             
-            APP_DELEGATE.postTextType = BLANK;
+            self.appDelegate.postTextType = BLANK;
         }
     
         NSNotification *notification = [NSNotification notificationWithName:@"SetTweetViewText"
@@ -1266,10 +1271,10 @@
         
         dispatch_async(dispatch_get_main_queue(), ^{
         
-            APP_DELEGATE.tabBarController.selectedIndex = 0;
+            self.appDelegate.tabBarController.selectedIndex = 0;
         });
         
-    }else if ( actionSheetNo == 8 ) {
+    } else if ( actionSheetNo == 8 ) {
         
         if ( [EmptyCheck check:_wv.selectString] ) {
             
@@ -1277,15 +1282,15 @@
             
             if ( buttonIndex == 0 ) {
                 searchEngineName = @"Google";
-            }else if ( buttonIndex == 1 ) {
+            } else if ( buttonIndex == 1 ) {
                 searchEngineName = @"Amazon";
-            }else if ( buttonIndex == 2 ) {
+            } else if ( buttonIndex == 2 ) {
                 searchEngineName = @"Yahoo!オークション";
-            }else if ( buttonIndex == 3 ) {
+            } else if ( buttonIndex == 3 ) {
                 searchEngineName = @"Wikipedia";
-            }else if ( buttonIndex == 4 ) {
+            } else if ( buttonIndex == 4 ) {
                 searchEngineName = @"Twitter";
-            }else if ( buttonIndex == 5 ) {
+            } else if ( buttonIndex == 5 ) {
                 searchEngineName = @"Wikipedia (Suggestion)";
             } else {
                 return;
@@ -1293,18 +1298,18 @@
             
             searchField.text = _wv.selectString;
             searchField.placeholder = searchEngineName;
-            [D setObject:searchEngineName forKey:@"SearchEngine"];
+            [USER_DEFAULTS setObject:searchEngineName forKey:@"SearchEngine"];
             
             [self enterSearchField:nil];
         }
     
-    }else if ( actionSheetNo == 9 ) {
+    } else if ( actionSheetNo == 9 ) {
         
         if ( buttonIndex == 0 ) {
             
             [self requestStart:accessURL];
             
-        }else if ( buttonIndex == 1 ) {
+        } else if ( buttonIndex == 1 ) {
             
             [self requestStart:urlField.text];
             
@@ -1313,17 +1318,17 @@
             [_grayView off];
         }
         
-    }else if ( actionSheetNo == 10 ) {
+    } else if ( actionSheetNo == 10 ) {
         
         if ( buttonIndex == 0 ) {
             
             [self requestStart:accessURL];
             
-        }else if ( buttonIndex == 1 ) {
+        } else if ( buttonIndex == 1 ) {
             
             [self requestStart:[NSString stringWithFormat:@"http://%@", urlField.text]];
             
-        }else if ( buttonIndex == 2 ) {
+        } else if ( buttonIndex == 2 ) {
             
             [self requestStart:[NSString stringWithFormat:@"https://%@", urlField.text]];
             
@@ -1332,7 +1337,7 @@
             [_grayView off];
         }
     
-    }else if ( actionSheetNo == 11 ) {
+    } else if ( actionSheetNo == 11 ) {
         
         if ( buttonIndex == 0 ) {
             
@@ -1340,7 +1345,7 @@
             [self dismissViewControllerAnimated:YES completion:nil];
         }
         
-    }else if ( actionSheetNo == 12 ) {
+    } else if ( actionSheetNo == 12 ) {
         
         if ( buttonIndex == 0 ) {
             
@@ -1348,7 +1353,7 @@
             [self dismissViewControllerAnimated:YES completion:nil];
         }
     
-    }else if ( actionSheetNo == 13 ) {
+    } else if ( actionSheetNo == 13 ) {
         
         [ActivityIndicator off];
         
@@ -1357,7 +1362,7 @@
             [self requestStart:downloadUrl];
         }
         
-    }else if ( actionSheetNo == 14 ) {
+    } else if ( actionSheetNo == 14 ) {
         
         showActionSheet = NO;
         
@@ -1365,26 +1370,26 @@
             
             if ( buttonIndex == 0 ) {
                 
-                APP_DELEGATE.postText = P_BOARD.string;
+                self.appDelegate.postText = P_BOARD.string;
                 
                 [self pushComposeButton:nil];
                 
-            }else if ( buttonIndex == 1 ) {
+            } else if ( buttonIndex == 1 ) {
                 
                 [_wv loadRequestWithString:[CreateSearchURL google:P_BOARD.string]];
                 
-            }else if ( buttonIndex == 2 ) {
+            } else if ( buttonIndex == 2 ) {
                 
                 [self selectOpenUrl];
             }
             
         }@catch ( NSException *e ) {}
         
-    }else if ( actionSheetNo == 15 ) {
+    } else if ( actionSheetNo == 15 ) {
         
         if ( buttonIndex == 0 ) {
             
-        }else if ( buttonIndex == 1 ) {
+        } else if ( buttonIndex == 1 ) {
             
             //ペーストボードから開く場合
             startupUrlList = urlList;
@@ -1392,14 +1397,14 @@
         } else {
             
             //キャンセルされた場合はホームページを開く
-            [_wv loadRequestWithString:[D objectForKey:@"HomePageURL"]];
+            [_wv loadRequestWithString:[USER_DEFAULTS objectForKey:@"HomePageURL"]];
             
             return;
         }
         
         [self selectUrl];
         
-    }else if ( actionSheetNo == 16 ) {
+    } else if ( actionSheetNo == 16 ) {
         
         NSString *copyURL = [[_wv.request URL] absoluteString];
         
@@ -1409,11 +1414,11 @@
             
             [P_BOARD setString:_wv.pageTitle];
             
-        }else if ( buttonIndex == 1 ) {
+        } else if ( buttonIndex == 1 ) {
             
             [P_BOARD setString:copyURL];
             
-        }else if ( buttonIndex == 2 ) {
+        } else if ( buttonIndex == 2 ) {
             
             [P_BOARD setString:[NSString stringWithFormat:@"\"%@\" %@", _wv.pageTitle, copyURL]];
         }
@@ -1454,7 +1459,7 @@
         if ( buttonIndex == 1 ) {
      
             //NSLog(@"SetHomePage: %@", alertText.text);
-            [D setObject:alertText.text forKey:@"HomePageURL"];
+            [USER_DEFAULTS setObject:alertText.text forKey:@"HomePageURL"];
             
             alertTextNo = 0;
             alertText.text = BLANK;
@@ -1469,7 +1474,7 @@
     if ( alertTextNo == 1 ) {
     
         //NSLog(@"SetHomePage: %@", alertText.text);
-        [D setObject:alertText.text forKey:@"HomePageURL"];
+        [USER_DEFAULTS setObject:alertText.text forKey:@"HomePageURL"];
         
         alertTextNo = 0;
         alertText.text = BLANK;
@@ -1504,7 +1509,7 @@
     //NSLog(@"%@", [[request URL] absoluteString]);
     
     //フルサイズ取得が有効
-    if ( [D boolForKey:@"FullSizeImage"] ) {
+    if ( [USER_DEFAULTS boolForKey:@"FullSizeImage"] ) {
         
         //画像サービスのURLかスキャン
         NSString *fullSizeImageUrl = [FullSizeImage urlString:accessURL];
@@ -1838,7 +1843,7 @@
     bytesLabel.hidden = YES;
     progressBar.hidden = YES;
     downloadCancelButton.hidden = YES;
-    APP_DELEGATE.urlSchemeDownloadUrl = BLANK;
+    self.appDelegate.urlSchemeDownloadUrl = BLANK;
 }
 
 - (void)showDownloadMenu:(NSString *)url {
@@ -1877,11 +1882,11 @@
     //NSLog(@"resetUserAgent");
     
     //「PC版UAで開き直す」ではなく、リセット設定がONでなく、空でない
-    if ( !APP_DELEGATE.pcUaMode && ![[D objectForKey:@"UserAgentReset"] isEqualToString:@"OFF"] ) {
+    if ( !self.appDelegate.pcUaMode && ![[USER_DEFAULTS objectForKey:@"UserAgentReset"] isEqualToString:@"OFF"] ) {
         
-        //NSLog(@"Reset: %@", [D objectForKey:@"UserAgentReset"]);
+        //NSLog(@"Reset: %@", [USER_DEFAULTS objectForKey:@"UserAgentReset"]);
         
-        [D setObject:[D objectForKey:@"UserAgentReset"] forKey:@"UserAgent"];
+        [USER_DEFAULTS setObject:[USER_DEFAULTS objectForKey:@"UserAgentReset"] forKey:@"UserAgent"];
     }
 }
 
@@ -2075,8 +2080,8 @@
     
     NSLog(@"%s", __func__);
     
-//    APP_DELEGATE.browserOpenMode = NO;
-//    APP_DELEGATE.urlSchemeDownloadUrl = BLANK;
+//    self.appDelegate.browserOpenMode = NO;
+//    self.appDelegate.urlSchemeDownloadUrl = BLANK;
 //    
 //    [self setTopBar:nil];
 //    [self setBottomBar:nil];
@@ -2102,8 +2107,8 @@
     
     NSLog(@"%s", __func__);
     
-    APP_DELEGATE.browserOpenMode = NO;
-    APP_DELEGATE.urlSchemeDownloadUrl = BLANK;
+    self.appDelegate.browserOpenMode = NO;
+    self.appDelegate.urlSchemeDownloadUrl = BLANK;
     
     if ( _wv.loading ) [_wv stopLoading];
     _wv.delegate = nil;

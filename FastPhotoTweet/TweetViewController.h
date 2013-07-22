@@ -35,7 +35,6 @@
     
     GrayView *grayView;
     
-    NSUserDefaults *d;
     NSString *inReplyToId;
     
     UIView *clearView;

@@ -14,8 +14,6 @@
 
 @interface NGSettingViewController : UIViewController <UITextFieldDelegate, UINavigationBarDelegate> {
     
-    NSUserDefaults *d;
-    
     NSMutableArray *ngSettingArray;
 }
 

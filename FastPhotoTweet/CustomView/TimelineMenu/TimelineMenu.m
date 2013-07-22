@@ -25,9 +25,6 @@
 #import "InputAlertView.h"
 #import "NSAttributedString+Attributes.h"
 
-#define APP_DELEGATE ((AppDelegate *)[[UIApplication sharedApplication] delegate])
-#define P_BOARD [UIPasteboard generalPasteboard]
-
 #define DELAY_TIME(x) dispatch_time(DISPATCH_TIME_NOW, x * NSEC_PER_SEC), dispatch_get_main_queue(),
 
 #define CELL_IDENTIFIER @"TimelineAttributedCell"
@@ -40,6 +37,12 @@
 
 #define MENU_CLOSE_TIME 0.4
 
+@interface TimelineMenu ()
+
+@property (weak, nonatomic) AppDelegate *appDelegate;
+
+@end
+
 @implementation TimelineMenu
 
 - (id)initWithTweet:(TWTweet *)tweet forMenu:(TimeLineMenuIdentifier)menuIdentifier  controller:(TimelineViewController *)controller {
@@ -50,17 +53,18 @@
                                            SCREEN_HEIGHT - TAB_BAR_HEIGHT)];
     self.backgroundColor = [UIColor whiteColor];
     
+    [self setAppDelegate:((AppDelegate *)[[UIApplication sharedApplication] delegate])];
     [self setController:controller];
     
     if ( menuIdentifier == TimeLineMenuIdentifierMain ) {
         
         self.menuList = [NSMutableArray arrayWithArray:MAIN_MENU];
         
-    }else if ( menuIdentifier == TimeLineMenuIdentifierCopy ) {
+    } else if ( menuIdentifier == TimeLineMenuIdentifierCopy ) {
         
         self.menuList = [NSMutableArray arrayWithArray:COPY_MENU];
         
-    }else if ( menuIdentifier == TimeLineMenuIdentifierUser ) {
+    } else if ( menuIdentifier == TimeLineMenuIdentifierUser ) {
         
         self.menuList = [NSMutableArray arrayWithArray:USER_MENU];
     }
@@ -129,7 +133,8 @@
                     
                     cell = [[TimelineAttributedRTCell alloc] initWithStyle:UITableViewCellStyleDefault
                                                            reuseIdentifier:RT_CELL_IDENTIFIER
-                                                                  forWidth:210.0f];
+                                                                  forWidth:210.0f
+                                                          timelineCellType:TimelineCellTypeMenu];
                 }
                 
                 [cell setTweetData:self.tweet
@@ -148,7 +153,8 @@
                     
                     cell = [[TimelineAttributedCell alloc] initWithStyle:UITableViewCellStyleDefault
                                                          reuseIdentifier:CELL_IDENTIFIER
-                                                                forWidth:210.0f];
+                                                                forWidth:210.0f
+                                                        timelineCellType:TimelineCellTypeMenu];
                 }
                 
                 [cell setTweetData:self.tweet
@@ -187,10 +193,16 @@
     
     if ( indexPath.row == 0 ) {
         
-        return [_tweet.text heightForContents:[UIFont systemFontOfSize:12.0f]
-                                      toWidht:210.0f
-                                    minHeight:31.0f
-                                lineBreakMode:NSLineBreakByCharWrapping] + 25.0f;
+        TWTweet *currentTweet = self.tweet;
+        CGFloat heightOffset = 25.0f;
+        
+        if ( currentTweet.isReTweet &&
+             currentTweet.cellHeight == 31.0f ) {
+            
+            heightOffset += 6.0f;
+        }
+        
+        return currentTweet.menuCellHeight + heightOffset;
         
     } else {
         
@@ -219,7 +231,7 @@
                 
                 [self startRemoveAllTimer];
                 
-            }else if ( indexPath.row == 12 ) {
+            } else if ( indexPath.row == 12 ) {
                 
                 self.nextMenuList = [NSMutableArray arrayWithArray:USER_MENU];
                 [_nextMenuList insertObject:_tweet
@@ -257,11 +269,11 @@
                                                             @"InsertToTop" : @YES
                                                             }];
                             [[NSNotificationCenter defaultCenter] postNotification:notification];
-                            APP_DELEGATE.tabBarController.selectedIndex = 0;
+                            self.appDelegate.tabBarController.selectedIndex = 0;
                         });
                     });
                 
-                }else if ( index == MainMenuFav ) {
+                } else if ( index == MainMenuFav ) {
                     
                     //Fav UnFav
                     NSString *tweetId = _tweet.tweetID;
@@ -270,49 +282,49 @@
                     if ( favorited ) {
                         
                         [TWEvent unFavorite:tweetId
-                               accountIndex:[D integerForKey:@"UseAccount"]];
+                               accountIndex:[USER_DEFAULTS integerForKey:@"UseAccount"]];
                         
                     } else {
                         
                         [TWEvent favorite:tweetId
-                             accountIndex:[D integerForKey:@"UseAccount"]];
+                             accountIndex:[USER_DEFAULTS integerForKey:@"UseAccount"]];
                     }
                     
-                }else if ( index == MainMenuRT ) {
+                } else if ( index == MainMenuRT ) {
                     
                     //RT
                     NSString *tweetId = _tweet.tweetID;
                     [TWEvent reTweet:tweetId
-                        accountIndex:[D integerForKey:@"UseAccount"]];
+                        accountIndex:[USER_DEFAULTS integerForKey:@"UseAccount"]];
                     
-                }else if ( index == MainMenuFavRT ) {
+                } else if ( index == MainMenuFavRT ) {
                     
                     //Fav RT
                     NSString *tweetId = _tweet.tweetID;
                     [TWEvent favoriteReTweet:tweetId
-                                accountIndex:[D integerForKey:@"UseAccount"]];
+                                accountIndex:[USER_DEFAULTS integerForKey:@"UseAccount"]];
                     
-                }else if ( index == MainMenuSeleceID ) {
+                } else if ( index == MainMenuSeleceID ) {
                     
                     [NSNotificationCenter postNotificationCenterForName:@"TimelineMenuSelectID"];
                     
-                }else if ( index == MainMenuHashTagNG ) {
+                } else if ( index == MainMenuHashTagNG ) {
                 
                     [NSNotificationCenter postNotificationCenterForName:@"TimelineMenuHashTagNG"];
                     
-                }else if ( index == MainMenuClientNG ) {
+                } else if ( index == MainMenuClientNG ) {
                 
                     [NSNotificationCenter postNotificationCenterForName:@"TimelineMenuClientNG"];
                     
-                }else if ( index == MainMenuInReplyTo ) {
+                } else if ( index == MainMenuInReplyTo ) {
 
                     [NSNotificationCenter postNotificationCenterForName:@"TimelineMenuInReplyTo"];
                     
-                }else if ( index == MainMenuDelete ) {
+                } else if ( index == MainMenuDelete ) {
 
                     [NSNotificationCenter postNotificationCenterForName:@"TimelineMenuDelete"];
                     
-                }else if ( index == MainMenuEdit ) {
+                } else if ( index == MainMenuEdit ) {
 
                     DISPATCH_AFTER(MENU_CLOSE_TIME) ^{
                         ASYNC_MAIN_QUEUE ^{
@@ -331,7 +343,7 @@
                                                             @"InReplyToID" : inReplyToId
                                                             }];
                             [[NSNotificationCenter defaultCenter] postNotification:notification];
-                            APP_DELEGATE.tabBarController.selectedIndex = 0;
+                            self.appDelegate.tabBarController.selectedIndex = 0;
                             [NSNotificationCenter postNotificationCenterForName:@"TimelineMenuDelete"];
                         });
                     });
@@ -340,7 +352,7 @@
                 [NSNotificationCenter postNotificationCenterForName:@"TimelineMenuDone"];
             }
             
-        }else if ( _menuNo == 1 ) {
+        } else if ( _menuNo == 1 ) {
             
             NSString *tweetId = _tweet.tweetID;
             NSString *screenName = _tweet.screenName;
@@ -366,17 +378,17 @@
                             screenName,
                             tweetId];
                 
-            }else if ( indexPath.row == 2 ) {
+            } else if ( indexPath.row == 2 ) {
                 
                 copyText = [NSMutableString stringWithString:text];
                 
-            }else if ( indexPath.row == 3 ) {
+            } else if ( indexPath.row == 3 ) {
                 
                 copyText = [NSString stringWithFormat:@"https://twitter.com/%@/status/%@",
                             screenName,
                             tweetId];
                 
-            }else if ( indexPath.row == 4 ) {
+            } else if ( indexPath.row == 4 ) {
                 
                 self.nextMenuList = [NSMutableArray arrayWithArray:[text URLs]];
                 
@@ -405,7 +417,7 @@
             text = nil;
             copyText = nil;
             
-        }else if ( _menuNo == 2 ) {
+        } else if ( _menuNo == 2 ) {
             
             if ( indexPath.row != 8 ) {
                 
@@ -465,7 +477,7 @@
                 [self startRemoveAllTimer];
             }
             
-        }else if ( _menuNo == 3 ) {
+        } else if ( _menuNo == 3 ) {
             
             if ( [[_menuList objectAtIndex:indexPath.row] isKindOfClass:[TWTweet class]] ) {
                 
@@ -491,7 +503,7 @@
                          menuIndex:self.userMenuActionNo];
             });
             
-        }else if ( _menuNo == 4 ) {
+        } else if ( _menuNo == 4 ) {
             
             if ( [_menuList[0] isKindOfClass:[TWTweet class]] ) {
                 
@@ -513,22 +525,22 @@
                 //スパム報告
                 [TWFriends reportSpam:_selectUser];
                 
-            }else if ( indexPath.row == 2 ) {
+            } else if ( indexPath.row == 2 ) {
                 
                 //ブロック
                 [TWFriends block:_selectUser];
                 
-            }else if ( indexPath.row == 3 ) {
+            } else if ( indexPath.row == 3 ) {
                 
                 //ブロック解除
                 [TWFriends unblock:_selectUser];
                 
-            }else if ( indexPath.row == 4 ) {
+            } else if ( indexPath.row == 4 ) {
                 
                 //フォロー
                 [TWFriends follow:_selectUser];
                 
-            }else if ( indexPath.row == 5 ) {
+            } else if ( indexPath.row == 5 ) {
                 
                 //フォロー解除
                 [TWFriends unfollow:_selectUser];
@@ -537,7 +549,7 @@
             self.selectUser = nil;
             [self pushCancelButton];
         
-        }else if ( _menuNo == 5 ) {
+        } else if ( _menuNo == 5 ) {
             
             [P_BOARD setString:_nextMenuList[indexPath.row]];
             [NSNotificationCenter postNotificationCenterForName:@"TimelineMenuDone"];
@@ -548,7 +560,7 @@
             if ( indexPath.row == 9 ) {
                 //コピーメニュー
                 _menuNo = 1;
-            }else if ( indexPath.row == 12 ) {
+            } else if ( indexPath.row == 12 ) {
                 //ユーザーメニュー
                 _menuNo = 2;
             } else {
@@ -587,7 +599,7 @@
         
         [self.controller openTwilog:self.tweet.screenName];
         
-    }else if ( menuIndex == 2 ) {
+    } else if ( menuIndex == 2 ) {
         
         InputAlertView *alert = [[InputAlertView alloc] initWithTitle:@"TwilogSearch"
                                                              delegate:self.controller
@@ -601,23 +613,23 @@
         [alert show];
         [alert.multiTextFieldBottom becomeFirstResponder];
         
-    }else if ( menuIndex == 3 ) {
+    } else if ( menuIndex == 3 ) {
         
         [self.controller openFavStar:screenName];
         
-    }else if ( menuIndex == 4 ) {
+    } else if ( menuIndex == 4 ) {
         
         [self.controller openTwitPic:screenName];
         
-    }else if ( menuIndex == 5 ) {
+    } else if ( menuIndex == 5 ) {
         
         [self.controller requestUserTimeline:screenName];
         
-    }else if ( menuIndex == 6 ) {
+    } else if ( menuIndex == 6 ) {
         
         
         
-    }else if ( menuIndex == 7 ) {
+    } else if ( menuIndex == 7 ) {
         
         self.selectUser = @"";
         self.nextMenuList = [NSMutableArray arrayWithArray:FORROW_MENU];

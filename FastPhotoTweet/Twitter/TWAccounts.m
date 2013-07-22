@@ -101,7 +101,7 @@ static TWAccounts *sharedObject = nil;
     if ( accounts != nil &&
          accounts.count != 0 ) {
      
-        return [accounts objectAtIndex:[[NSUserDefaults standardUserDefaults] integerForKey:@"UseAccount"]];
+        return [accounts objectAtIndex:[USER_DEFAULTS integerForKey:@"UseAccount"]];
         
     } else {
         
@@ -116,7 +116,7 @@ static TWAccounts *sharedObject = nil;
     if ( accounts != nil &&
          accounts.count != 0 ) {
         
-        ACAccount *account = [accounts objectAtIndex:[[NSUserDefaults standardUserDefaults] integerForKey:@"UseAccount"]];
+        ACAccount *account = [accounts objectAtIndex:[USER_DEFAULTS integerForKey:@"UseAccount"]];
         
         return [account username];
         

@@ -104,7 +104,7 @@
         
         [self setDefaultViewPosition];
         
-    }else if ( self.view.frame.origin.x > 160 ) {
+    } else if ( self.view.frame.origin.x > 160 ) {
         
         [self setMenuViewPosition];
         

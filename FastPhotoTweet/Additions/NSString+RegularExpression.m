@@ -128,6 +128,29 @@
     return urlList;
 }
 
+- (NSArray *)URLRanges {
+    
+    NSError *error = nil;
+    NSMutableArray *ranges = [NSMutableArray array];
+    
+    NSDataDetector *linkDetector = [[[NSDataDetector alloc] initWithTypes:NSTextCheckingTypeLink
+                                                                    error:&error] autorelease];
+    
+    NSArray *matches = [linkDetector matchesInString:self
+                                             options:0
+                                               range:NSMakeRange(0, [self length])];
+    
+    if ( !error ) {
+        
+        for ( NSTextCheckingResult *match in matches ) {
+            
+            [ranges addObject:[NSValue valueWithRange:match.range]];
+        }
+    }
+    
+    return ranges;
+}
+
 - (NSMutableArray *)twitterIDs {
     
     return [self mutableArrayWithRegExp:@"@[\\w]{1,15}"];

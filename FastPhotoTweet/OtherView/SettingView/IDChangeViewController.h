@@ -15,7 +15,6 @@
     
     AppDelegate *appDelegate;
     
-    NSUserDefaults *d;
     NSMutableArray *accountList;
     NSString *screenName;
     

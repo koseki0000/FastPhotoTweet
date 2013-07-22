@@ -26,7 +26,6 @@
         ACAccountStore *accountStore = [[[ACAccountStore alloc] init] autorelease];
         ACAccountType *accountType = [accountStore accountTypeWithAccountTypeIdentifier:ACAccountTypeIdentifierTwitter];
         NSArray *twitterAccounts = [accountStore accountsWithAccountType:accountType];
-        d = [NSUserDefaults standardUserDefaults];
         appDelegate = (AppDelegate *)[[UIApplication sharedApplication] delegate];
         
         if ( appDelegate.twitpicLinkMode ) {
@@ -109,7 +108,7 @@
     
     //テキストをセット
     //使用中のアカウントにチェックマークを付ける
-    if ( indexPath.row == [d integerForKey:@"UseAccount"] ) {
+    if ( indexPath.row == [USER_DEFAULTS integerForKey:@"UseAccount"] ) {
         cell.numberLabel.text = [NSString stringWithFormat:@"✓ %d", indexPath.row + 1];
     } else {
         cell.numberLabel.text = [NSString stringWithFormat:@"　 %d", indexPath.row + 1];
@@ -129,12 +128,12 @@
         //NSLog(@"SelectAccount: %@", [accountList objectAtIndex:indexPath.row]);
         
         //仮登録された情報の名前を生成
-        NSString *searchAccountName = [NSString stringWithFormat:@"OAuthAccount_%d", [d integerForKey:@"AccountCount"]];
+        NSString *searchAccountName = [NSString stringWithFormat:@"OAuthAccount_%d", [USER_DEFAULTS integerForKey:@"AccountCount"]];
         
         //NSLog(@"searchAccountName: %@", searchAccountName);
         
         //設定からアカウントリストを読み込む
-        NSMutableDictionary *dic = [[d dictionaryForKey:@"OAuthAccount"] mutableCopy];
+        NSMutableDictionary *dic = [[USER_DEFAULTS dictionaryForKey:@"OAuthAccount"] mutableCopy];
         
         //key, secretを取得
         NSString *key = [[dic objectForKey:searchAccountName] objectAtIndex:0];
@@ -151,19 +150,19 @@
         
         //設定に反映
         NSDictionary *saveDic = [[NSDictionary alloc] initWithDictionary:dic];
-        [d setObject:saveDic forKey:@"OAuthAccount"];
+        [USER_DEFAULTS setObject:saveDic forKey:@"OAuthAccount"];
         [saveDic release];
         [dic release];
         
-        [d setObject:@"Twitpic" forKey:@"PhotoService"];
+        [USER_DEFAULTS setObject:@"Twitpic" forKey:@"PhotoService"];
         appDelegate.needChangeAccount = YES;
         appDelegate.twitpicLinkMode = NO;
         
-        //NSLog(@"OAuthAccount: %@", [d dictionaryForKey:@"OAuthAccount"]);
+        //NSLog(@"OAuthAccount: %@", [USER_DEFAULTS dictionaryForKey:@"OAuthAccount"]);
     }
     
     //使用アカウント情報を保存
-    [d setInteger:indexPath.row forKey:@"UseAccount"];
+    [USER_DEFAULTS setInteger:indexPath.row forKey:@"UseAccount"];
     
     //セルの選択状態を解除
 	[tableView deselectRowAtIndexPath:indexPath animated:YES];

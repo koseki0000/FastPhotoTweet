@@ -14,6 +14,7 @@
 - (NSArray *)arrayWithRegExp:(NSString *)regExpPattern;
 - (NSMutableArray *)mutableArrayWithRegExp:(NSString *)regExpPattern;
 - (NSMutableArray *)URLs;
+- (NSArray *)URLRanges;
 - (NSMutableArray *)twitterIDs;
 
 - (NSString *)replaceStringWithRegExp:(NSString *)regExpPattern

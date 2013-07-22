@@ -202,7 +202,7 @@
                                                                withUserInfo:userInfo];
                     }
                     
-                }else if ( [tweetData isKindOfClass:[NSDictionary class]] ) {
+                } else if ( [tweetData isKindOfClass:[NSDictionary class]] ) {
                     
                     NSDictionary *tweetDataDic = (NSDictionary *)tweetData;
                     if ( tweetDataDic[@"errors"] == nil ) {
@@ -434,7 +434,7 @@
                                                             userInfo:resultData];
                         }
                         
-                    }else if ( [resultDic objectForKey:@"error"] == nil &&
+                    } else if ( [resultDic objectForKey:@"error"] == nil &&
                                [resultDic objectForKey:@"text"] != nil ) {
                         
                         TWTweet *tweet = [TWTweet tweetWithDictionary:resultDic];

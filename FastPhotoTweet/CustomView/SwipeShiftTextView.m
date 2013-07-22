@@ -102,7 +102,7 @@
             offset = 1;
             location = self.selectedRange.location + offset;
             
-            if ( location >= [self.text length] ) {
+            if ( location > [self.text length] ) {
                 
                 return;
             }
