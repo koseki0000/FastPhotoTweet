@@ -28,6 +28,8 @@ typedef enum {
 
 @interface TWTweet : NSObject
 
+@property (nonatomic, retain) NSMutableAttributedString *attributedString;
+
 //Tweet
 @property (nonatomic, retain) TWTweetEntities *entities;
 @property (nonatomic, copy) NSString *text;

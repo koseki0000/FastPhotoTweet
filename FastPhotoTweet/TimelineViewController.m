@@ -3119,13 +3119,19 @@ typedef enum {
                 lineBreakMode:NSLineBreakByCharWrapping] + heightOffset;
     }
     
-    if ( currentTweet.isReTweet &&
-         currentTweet.cellHeight == 31.0f ) {
+    CGFloat height = currentTweet.cellHeight + heightOffset;
+    CGFloat minHeight = 56.0f;
+    if ( currentTweet.isReTweet ) {
         
-        heightOffset += 6.0f;
+        minHeight += 6.0f;
     }
     
-    return currentTweet.cellHeight + heightOffset;
+    if ( height < minHeight ) {
+        
+        height = minHeight;
+    }
+    
+    return height;
 }
 
 - (void)tableView:(UITableView *)tableView didSelectRowAtIndexPath:(NSIndexPath *)indexPath {

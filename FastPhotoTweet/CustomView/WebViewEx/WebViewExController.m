@@ -472,12 +472,12 @@
         return;
     }
     
-    if ( !showActionSheet ) {
+    if ( !showActionSheet &&
+         [self.view window] != nil ) {
      
         showActionSheet = YES;
         
         actionSheetNo = 14;
-        
         UIActionSheet *sheet = [[UIActionSheet alloc]
                                 initWithTitle:@"動作選択"
                                 delegate:self

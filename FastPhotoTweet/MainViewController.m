@@ -112,6 +112,7 @@ typedef enum {
 - (void)setTextViewText:(NSNotification *)notification;
 - (void)pboardNotification:(NSNotification *)notification;
 - (void)openImageSource:(NSInteger)buttonIndex;
+- (void)parseImageUploadResponse:(ASIHTTPRequest *)request;
 
 - (NSString *)nowPlayingText;
 - (void)saveArtworkURL:(NSString *)URL;
@@ -712,7 +713,7 @@ typedef enum {
         if ( [[USER_DEFAULTS dictionaryForKey:@"Information"] valueForKey:APP_VERSION] == 0 ) {
             
             [ShowAlert title:[NSString stringWithFormat:@"FastPhotoTweet %@", APP_VERSION]
-                     message:@"・「英数の全角半角をランダム変換」機能がURLを無視するように修正\n・Timelineで画像を開き、拡大縮小を行った際のスクロールを調整\n・キーボード表示、非表示ボタンを追加\n・その他多数のバグ修正"];
+                     message:@"・Tweet表示の高さ計算を修正\n・Tweet表示の高速化\n・NowPlaying用画像アップロード先の修正\n・細かな修正"];
             
             information = [[NSMutableDictionary alloc] initWithDictionary:[USER_DEFAULTS dictionaryForKey:@"Information"]];
             [information setValue:[NSNumber numberWithInt:1] forKey:APP_VERSION];
@@ -1140,13 +1141,38 @@ typedef enum {
     
     if ( self.nowPlayingImageUploading ) {
         
-        if ( [[USER_DEFAULTS objectForKey:@"PhotoService"] isEqualToString:@"img.ur"] ) {
+        //0: 通常と同じ
+        //1: Twitter
+        //2: img.ur
+        //3: Twitpic
+        NSUInteger uploadType = [USER_DEFAULTS integerForKey:@"NowPlayingPhotoService"];
+        
+        if ( uploadType == 0 ) {
+            
+            if ( [[USER_DEFAULTS objectForKey:@"PhotoService"] isEqualToString:@"img.ur"] ) {
+                
+                URL = [NSURL URLWithString:@"http://api.imgur.com/2/upload.json"];
+                
+            } else if ( [[USER_DEFAULTS objectForKey:@"PhotoService"] isEqualToString:@"Twitpic"] ) {
+                
+                URL = [NSURL URLWithString:@"http://api.twitpic.com/1/upload.json"];
+                
+            } else {
+                
+                URL = [NSURL URLWithString:@"http://api.imgur.com/2/upload.json"];
+            }
+            
+        } else if ( uploadType == 2 ) {
             
             URL = [NSURL URLWithString:@"http://api.imgur.com/2/upload.json"];
             
-        } else if ( [[USER_DEFAULTS objectForKey:@"PhotoService"] isEqualToString:@"Twitpic"] ) {
+        } else if ( uploadType == 3 ) {
             
             URL = [NSURL URLWithString:@"http://api.twitpic.com/1/upload.json"];
+            
+        } else {
+            
+            URL = [NSURL URLWithString:@"http://api.imgur.com/2/upload.json"];
         }
         
     } else {
@@ -1168,14 +1194,14 @@ typedef enum {
     
     ASIFormDataRequest *request = [[ASIFormDataRequest alloc] initWithURL:URL];
     
-    if ( [[USER_DEFAULTS objectForKey:@"PhotoService"] isEqualToString:@"img.ur"] ) {
+    if ( [URL.absoluteString isEqualToString:@"http://api.imgur.com/2/upload.json"] ) {
         
         //NSLog(@"img.ur upload");
         
         [request addPostValue:IMGUR_API_KEY forKey:@"key"];
         [request addData:imageData forKey:@"image"];
 
-    } else if ( [[USER_DEFAULTS objectForKey:@"PhotoService"] isEqualToString:@"Twitpic"] ) {
+    } else if ( [URL.absoluteString isEqualToString:@"http://api.twitpic.com/1/upload.json"] ) {
         
         //NSLog(@"Twitpic upload");
         
@@ -1379,14 +1405,7 @@ typedef enum {
     }
 }
 
-- (void)requestFinished:(ASIHTTPRequest *)request {
-
-    NSLog(@"%s", __func__);
-    
-    dispatch_async(dispatch_get_main_queue(), ^{
-        
-        [self.grayView end];
-    });
+- (void)parseImageUploadResponse:(ASIHTTPRequest *)request {
     
     NSError *jsonError = nil;
     NSDictionary *result = [NSJSONSerialization JSONObjectWithData:request.responseData
@@ -1397,18 +1416,17 @@ typedef enum {
         
         NSString *imageURL = nil;
         
-        if ( [[USER_DEFAULTS objectForKey:@"PhotoService"] isEqualToString:@"img.ur"] ) {
+        if ( [request.url.absoluteString isEqualToString:@"http://api.imgur.com/2/upload.json"] ) {
             
             imageURL = [[[result objectForKey:@"upload"] objectForKey:@"links"] objectForKey:@"original"];
             
-        } else if ( [[USER_DEFAULTS objectForKey:@"PhotoService"] isEqualToString:@"Twitpic"] ) {
+        } else if ( [request.url.absoluteString isEqualToString:@"http://api.twitpic.com/1/upload.json"] ) {
             
             imageURL = [result objectForKey:@"url"];
         }
         
         if ( imageURL == nil ) {
             
-            [self requestFailed:request];
             return;
         }
         
@@ -1416,11 +1434,11 @@ typedef enum {
         
         NSRange beforeRange = NSMakeRange(0, 0);
         if ( [self.textView.text isEmpty] ) {
-        
+            
             //何も入力されてない→カーソル位置先頭
             
         } else if ( self.nowPlayingImageUploading ) {
-        
+            
             //NowPlaying→カーソル位置先頭
             
         } else {
@@ -1454,19 +1472,40 @@ typedef enum {
     }
 }
 
+- (void)requestFinished:(ASIHTTPRequest *)request {
+
+    NSLog(@"%s", __func__);
+    
+    dispatch_async(dispatch_get_main_queue(), ^{
+        
+        [self.grayView end];
+    });
+    
+    [self parseImageUploadResponse:request];
+}
+
 - (void)requestFailed:(ASIHTTPRequest *)request {
     
     NSLog(@"%s", __func__);
     
-    if ( self.nowPlayingImageUploading ) {
-        
-        [self setNowPlayingImageUploading:NO];
-    }
-    
     dispatch_async(dispatch_get_main_queue(), ^{
-       
+        
         [self.grayView end];
     });
+    
+    if ( request.error ) {
+        
+        [ShowAlert error:request.error.description];
+        
+        if ( self.nowPlayingImageUploading ) {
+            
+            [self setNowPlayingImageUploading:NO];
+        }
+        
+    } else {
+        
+        [self parseImageUploadResponse:request];
+    }
 }
 
 - (void)textViewDidChange:(UITextView *)textView {

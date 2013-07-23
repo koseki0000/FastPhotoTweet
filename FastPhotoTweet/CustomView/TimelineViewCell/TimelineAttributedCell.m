@@ -118,24 +118,10 @@
                                    lineBreakMode:NSLineBreakByCharWrapping];
     }
     
-    NSMutableAttributedString *mainText = [NSMutableAttributedString attributedStringWithString:text];
-    [mainText setFont:[UIFont systemFontOfSize:12.0f]];
-    [mainText setTextColor:[TWTweet getTextColor:tweet.textColor]
-                     range:NSMakeRange(0.0f,
-                                       text.length)];
-    [mainText setTextAlignment:kCTLeftTextAlignment
-                 lineBreakMode:kCTLineBreakByCharWrapping
-                 maxLineHeight:14.0f
-                 minLineHeight:14.0f
-                maxLineSpacing:1.0f
-                minLineSpacing:1.0f
-                         range:NSMakeRange(0.0f,
-                                           mainText.length)];
-    
     //セルへの反映開始
     [self.infoLabel setText:infoLabelText];
     [self.infoLabel setTextColor:[TWTweet getTextColor:tweet.textColor]];
-    [self.mainLabel setAttributedText:mainText];
+    [self.mainLabel setAttributedText:tweet.attributedString];
     [self.mainLabel setFrame:CGRectMake(CGRectGetMinX(self.infoLabel.frame),
                                         CGRectGetMaxY(self.infoLabel.frame) + MARGIN,
                                         cellWidth,

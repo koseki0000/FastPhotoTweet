@@ -9,6 +9,7 @@
 #import "TWIconResizer.h"
 #import "NSString+RegularExpression.h"
 #import "NSString+Calculator.h"
+#import "NSAttributedString+Attributes.h"
 
 @implementation TWTweet
 
@@ -222,32 +223,7 @@
                           self.screenName,
                           self.createdAt,
                           self.source];
-    
     [self setInfoText:infoText];
-    
-    CGFloat minHeight = self.isReTweet ? CELL_RT_MIN_HEIGHT : CELL_MIN_HEIGHT;
-    
-    //セルの高さ
-    CGFloat textHeight = [self.text heightForContents:TWEET_TEXT_FONT
-                                              toWidht:CELL_WIDHT
-                                            minHeight:minHeight
-                                        lineBreakMode:NSLineBreakByCharWrapping];
-    CGFloat lineSpacing = 1.0f;
-    CGFloat lineHeight = TWEET_TEXT_FONT_SIZE + (lineSpacing * 2);
-    CGFloat lineCount = textHeight / lineHeight;
-    CGFloat customLineHeight = 14.0f;
-    textHeight = customLineHeight * lineCount;
-    [self setCellHeight:textHeight];
-    
-    ////////////////////////////////
-    
-    textHeight = [self.text heightForContents:TWEET_TEXT_FONT
-                                      toWidht:210.0f
-                                    minHeight:minHeight
-                                lineBreakMode:NSLineBreakByCharWrapping];
-    lineCount = textHeight / lineHeight;
-    textHeight = customLineHeight * lineCount;
-    [self setMenuCellHeight:textHeight];
     
     //Tweetの色を決定
     if ( [self isFavorited] ) {
@@ -279,6 +255,31 @@
             }
         }
     }
+    
+    //セルの高さ
+    NSMutableAttributedString *mainText = [NSMutableAttributedString attributedStringWithString:self.text];
+    [mainText setFont:[UIFont systemFontOfSize:TWEET_TEXT_FONT_SIZE]];
+                     range:NSMakeRange(0,
+                                       [self.text length]);
+    [mainText setTextColor:[TWTweet getTextColor:self.textColor]];
+    [mainText setTextAlignment:kCTLeftTextAlignment
+                 lineBreakMode:kCTLineBreakByCharWrapping
+                 maxLineHeight:14.0f
+                 minLineHeight:14.0f
+                maxLineSpacing:1.0f
+                minLineSpacing:1.0f
+                         range:NSMakeRange(0.0f,
+                                           mainText.length)];
+    [self setAttributedString:mainText];
+    
+    CGSize mainTextLabelSize = [mainText sizeConstrainedToSize:CGSizeMake(CELL_WIDHT,
+                                                                          20000.0f)];
+    [self setCellHeight:mainTextLabelSize.height];
+    
+    CGSize menuTextLabelSize = [mainText sizeConstrainedToSize:CGSizeMake(210.0f,
+                                                                          20000.0f)];
+    
+    [self setMenuCellHeight:menuTextLabelSize.height];
 }
 
 @end
